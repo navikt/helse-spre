@@ -74,7 +74,7 @@ spec:
   {{#if env}}
   env:
   - name: KAFKA_CONSUMER_GROUP_ID
-    value: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}{{team}}-sparkel-{{app}}-v1{{/if}}
+    value: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}{{team}}-spre-{{app}}-v1{{/if}}
   - name: KAFKA_RAPID_TOPIC
     value: tbd.rapid.v1
   - name: KAFKA_RESET_POLICY
