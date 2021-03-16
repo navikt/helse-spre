@@ -3,7 +3,7 @@ name: Aiven-config
 on:
   push:
     branches:
-    - master
+    - main
     paths:
     - 'config/saksbehandlingsstatistikk/aiven-dev.yml'
 
