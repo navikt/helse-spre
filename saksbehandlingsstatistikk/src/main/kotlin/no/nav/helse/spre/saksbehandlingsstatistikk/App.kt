@@ -15,9 +15,7 @@ val objectMapper = jacksonObjectMapper().apply {
 
 @KtorExperimentalAPI
 fun main() {
-    val env = Environment(
-        System.getenv().also { LoggerFactory.getLogger("tjenestekall").info(it.toString()) }
-    )
+    val env = Environment(System.getenv())
     launchApplication(env)
 }
 

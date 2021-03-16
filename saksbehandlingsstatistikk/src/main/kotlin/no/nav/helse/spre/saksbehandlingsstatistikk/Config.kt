@@ -5,7 +5,6 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
-import java.nio.file.Paths
 import java.util.Properties
 
 data class Environment(
@@ -15,9 +14,11 @@ data class Environment(
     constructor(raw: Map<String, String>) : this(
         raw = raw,
         db = DB(
-            name = raw.getValue("DB_DATABASE"),
-            host = raw.getValue("DB_HOST"),
-            port = raw.getValue("DB_PORT").toInt(),
+            name = raw.getValue("NAIS_DATABASE_SPRE_SAKSBEHANDLINGSSTATISTIKK_SPRE_SAKSBEHANDLINGSSTATISTIKK_DATABASE"),
+            host = raw.getValue("NAIS_DATABASE_SPRE_SAKSBEHANDLINGSSTATISTIKK_SPRE_SAKSBEHANDLINGSSTATISTIKK_HOST"),
+            port = raw.getValue("NAIS_DATABASE_SPRE_SAKSBEHANDLINGSSTATISTIKK_SPRE_SAKSBEHANDLINGSSTATISTIKK_PORT").toInt(),
+            username = raw.getValue("NAIS_DATABASE_SPRE_SAKSBEHANDLINGSSTATISTIKK_SPRE_SAKSBEHANDLINGSSTATISTIKK_USERNAME"),
+            password = raw.getValue("NAIS_DATABASE_SPRE_SAKSBEHANDLINGSSTATISTIKK_SPRE_SAKSBEHANDLINGSSTATISTIKK_PASSWORD"),
         ),
     )
 
@@ -25,6 +26,8 @@ data class Environment(
         val name: String,
         val host: String,
         val port: Int,
+        val username: String,
+        val password: String,
     ) {
         val jdbcUrl: String = "jdbc:postgresql://${host}:${port}/${name}"
     }

@@ -8,6 +8,8 @@ internal class DataSourceBuilder(private val dbConfig: Environment.DB) {
 
     private val hikariConfig = HikariConfig().apply {
         jdbcUrl = dbConfig.jdbcUrl
+        username = dbConfig.username
+        password = dbConfig.password
         maximumPoolSize = 3
         minimumIdle = 1
         idleTimeout = 10001
