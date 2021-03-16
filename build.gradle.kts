@@ -49,6 +49,7 @@ tasks.create("deployMatrix") {
                 project to (File("config", project)
                     .listFiles()
                     ?.filter { it.isFile && it.name.endsWith(".yml") }
+                    ?.filterNot { it.name.contains("aiven") }
                     ?.map { it.name.removeSuffix(".yml") }
                     ?: emptyList())
             }.toMap()
