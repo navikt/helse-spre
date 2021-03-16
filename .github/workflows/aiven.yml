@@ -5,7 +5,7 @@ on:
     branches:
     - master
     paths:
-    - 'config/aiven-dev.yml'
+    - 'config/saksbehandlingsstatistikk/aiven-dev.yml'
 
 jobs:
   deployDev:
