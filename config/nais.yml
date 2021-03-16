@@ -51,7 +51,11 @@ spec:
       {{/if}}
   {{/if}}
   {{#if gcp}}
-  {{gcp}}
+  gcp:
+    sqlInstances:
+      - type: {{gcp.type}}
+        databases:
+          - name: {{gcp.databaseName}}
   {{/if}}
   prometheus:
     enabled: true

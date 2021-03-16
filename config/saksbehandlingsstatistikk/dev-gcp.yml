@@ -1,8 +1,8 @@
 kafkaPool: nav-dev
 gcp:
-  sqlInstances:
-    - type: POSTGRES_12
-      databases:
-        - name: spre-saksbehandlingsstatistikk
-env: true
+  type: POSTGRES_12
+  databaseName: spre-saksbehandlingsstatistikk
+env:
+- name: DUMMY
+  value: "it works"
 kafkaConsumerGroup: tbd-spre-saksbehandlingsstatistikk-v1
