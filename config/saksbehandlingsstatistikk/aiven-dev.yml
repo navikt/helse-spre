@@ -18,4 +18,3 @@ spec:
         - team: tbd
           application: spre-saksbehandlingsstatistikk
           access: readwrite
-
