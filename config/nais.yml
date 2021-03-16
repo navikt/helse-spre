@@ -50,6 +50,9 @@ spec:
       tenant: {{azure.tenant}}
       {{/if}}
   {{/if}}
+  {{#if gcp}}
+  {{gcp}}
+  {{/if}}
   prometheus:
     enabled: true
     path: /metrics
