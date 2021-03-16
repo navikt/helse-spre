@@ -25,10 +25,7 @@ fun launchApplication(env: Environment) {
     val dokumentDao = DokumentDao(dataSource)
     val producer =
         KafkaProducer<String, String>(
-            loadBaseConfig(
-                env.raw.getValue("KAFKA_BOOTSTRAP_SERVERS"),
-                env.serviceUser
-            ).toProducerConfig()
+            loadBaseConfig(env.raw).toProducerConfig()
         )
     val spreService = SpreService(producer, dokumentDao)
 
