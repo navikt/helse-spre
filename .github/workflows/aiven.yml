@@ -17,4 +17,4 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
-          RESOURCE: config/aiven-dev.yml
+          RESOURCE: config/saksbehandlingsstatistikk/aiven-dev.yml
