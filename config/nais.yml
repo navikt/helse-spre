@@ -56,6 +56,7 @@ spec:
       - type: {{gcp.type}}
         databases:
           - name: {{gcp.databaseName}}
+            envVarPrefix: DB
   {{/if}}
   prometheus:
     enabled: true
