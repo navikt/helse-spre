@@ -1,6 +1,7 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
 import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration as createDataSource
@@ -16,12 +17,10 @@ internal class DataSourceBuilder(private val env: Environment.DB) {
         maxLifetime = 30001
     }
 
-    fun getDataSource(role: Role = Role.User) =
-        createDataSource(hikariConfig, env.vaultMountPath, role.asRole(env.name))
-
-    fun migrate() {
-        runMigration(getDataSource(Role.Admin), "SET ROLE \"${Role.Admin.asRole(env.name)}\"")
-    }
+    fun getMigratedDataSource(role: Role = Role.User): HikariDataSource =
+        createDataSource(hikariConfig, env.vaultMountPath, role.asRole(env.name)).also { dataSource ->
+            runMigration(dataSource, "SET ROLE \"${Role.Admin.asRole(env.name)}\"")
+        }
 
     private fun runMigration(dataSource: DataSource, initSql: String? = null) =
         Flyway.configure()

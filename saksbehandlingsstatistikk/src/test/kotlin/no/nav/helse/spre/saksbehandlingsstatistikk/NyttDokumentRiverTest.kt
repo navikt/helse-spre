@@ -1,15 +1,15 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
-import java.util.*
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.util.*
 
 internal class NyttDokumentRiverTest {
-    val testRapid = TestRapid()
-    private val dataSource = dataSource()
-    val dokumentDao = DokumentDao(dataSource)
+    private val testRapid = TestRapid()
+    private val dataSource = DatabaseHelpers.dataSource
+    private val dokumentDao = DokumentDao(dataSource)
 
     init {
         NyttDokumentRiver(testRapid, dokumentDao)

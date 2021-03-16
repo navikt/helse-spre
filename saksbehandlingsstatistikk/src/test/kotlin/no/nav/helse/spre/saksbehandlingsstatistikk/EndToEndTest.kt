@@ -4,10 +4,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.mockk.CapturingSlot
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.temporal.TemporalAdjusters
-import java.util.*
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -18,11 +14,15 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
+import java.util.*
 import kotlin.streams.asSequence
 
 internal class EndToEndTest {
     private val testRapid = TestRapid()
-    private val dataSource = dataSource()
+    private val dataSource = DatabaseHelpers.dataSource
     private val kafkaProducer: KafkaProducer<String, String> = mockk(relaxed = true)
     private val dokumentDao = DokumentDao(dataSource)
     private val spreService = SpreService(kafkaProducer, dokumentDao)

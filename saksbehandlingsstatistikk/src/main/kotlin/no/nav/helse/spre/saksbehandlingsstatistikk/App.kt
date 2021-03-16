@@ -20,9 +20,7 @@ fun main() {
 
 @KtorExperimentalAPI
 fun launchApplication(env: Environment) {
-    val dataSource = DataSourceBuilder(env.db)
-        .apply(DataSourceBuilder::migrate)
-        .getDataSource()
+    val dataSource = DataSourceBuilder(env.db).getMigratedDataSource()
 
     val dokumentDao = DokumentDao(dataSource)
     val producer =
