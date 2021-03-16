@@ -71,6 +71,11 @@ spec:
   - {{item}}
   {{/each}}
   {{/if}}
+  {{#if fromEnv}}
+  fromEnv:
+  {{# each fromEnv as |item| }}
+    - secret: {{ item }}
+  {{/each}}{{/if}}
   {{#if env}}
   env:
   - name: KAFKA_CONSUMER_GROUP_ID

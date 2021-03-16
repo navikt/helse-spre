@@ -5,6 +5,8 @@ ingresses:
 mountPaths:
 - mountPath: /var/run/secrets/nais.io/service_user
   kvPath: /serviceuser/data/dev/srvspregosys
+fromEnv:
+  - spre-gosys
 env:
 - name: KAFKA_BOOTSTRAP_SERVERS
   value: b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443
