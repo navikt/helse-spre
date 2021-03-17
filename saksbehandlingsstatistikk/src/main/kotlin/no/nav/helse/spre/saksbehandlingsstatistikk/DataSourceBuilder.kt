@@ -19,7 +19,7 @@ internal class DataSourceBuilder(private val dbConfig: Environment.DB) {
 
     fun getMigratedDataSource(): HikariDataSource = HikariDataSource(hikariConfig).apply {
         Flyway.configure()
-            .dataSource(dataSource)
+            .dataSource(this)
             .load()
             .migrate()
     }
