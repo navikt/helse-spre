@@ -1,7 +1,7 @@
 apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
-    name: aapen-sykepenger-saksbehandlingsstatistikk
+    name: aapen-sykepenger-saksbehandlingsstatistikk-tulletopic
     namespace: tbd
     labels:
         team: tbd

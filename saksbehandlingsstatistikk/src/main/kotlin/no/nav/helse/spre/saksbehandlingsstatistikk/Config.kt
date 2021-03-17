@@ -34,6 +34,7 @@ data class Environment(
 }
 
 fun loadBaseConfig(env: Map<String, String>): Properties = Properties().also {
+    it[(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG)] = env["KAFKA_BROKERS"]
     it[CommonClientConfigs.SECURITY_PROTOCOL_CONFIG] = SecurityProtocol.SSL.name
     it[(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG)] = ""
     it[(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG)] = "jks"
@@ -46,8 +47,10 @@ fun loadBaseConfig(env: Map<String, String>): Properties = Properties().also {
 
 fun Properties.toProducerConfig(): Properties = Properties().also {
     it.putAll(this)
-    it[ProducerConfig.ACKS_CONFIG] = "all"
-    it[ProducerConfig.CLIENT_ID_CONFIG] = "spre-saksbehandlingsstatistikk"
+    it[ProducerConfig.ACKS_CONFIG] = "1"
+    it[ProducerConfig.CLIENT_ID_CONFIG] = "spre-saksbehandlingsstatistikk-v1"
+    it[ProducerConfig.LINGER_MS_CONFIG] = "5"
+    it[ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION] = "1"
     it[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
     it[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
 }

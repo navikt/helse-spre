@@ -12,7 +12,7 @@ internal class SpreService(
         val dokumenter = dokumentDao.finnDokumenter(vedtaksperiodeEndretData.hendelser)
         val statistikkEvent: StatistikkEvent = vedtaksperiodeEndretData.toStatistikkEvent()
         statistikkProducer.send(ProducerRecord(
-            "aapen-sykepenger-saksbehandlingsstatistikk",
+            "aapen-sykepenger-saksbehandlingsstatistikk-tulletopic",
             null,
             "FNR",
             objectMapper.writeValueAsString(statistikkEvent)
