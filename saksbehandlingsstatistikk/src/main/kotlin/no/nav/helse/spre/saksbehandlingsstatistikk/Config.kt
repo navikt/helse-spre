@@ -14,11 +14,11 @@ data class Environment(
     constructor(raw: Map<String, String>) : this(
         raw = raw,
         db = DB(
-            name = raw.getValue("NAIS_DATABASE_SPRE_SAKSBEHANDLINGSSTATISTIKK_SPRE_SAKSBEHANDLINGSSTATISTIKK_DATABASE"),
-            host = raw.getValue("NAIS_DATABASE_SPRE_SAKSBEHANDLINGSSTATISTIKK_SPRE_SAKSBEHANDLINGSSTATISTIKK_HOST"),
-            port = raw.getValue("NAIS_DATABASE_SPRE_SAKSBEHANDLINGSSTATISTIKK_SPRE_SAKSBEHANDLINGSSTATISTIKK_PORT").toInt(),
-            username = raw.getValue("NAIS_DATABASE_SPRE_SAKSBEHANDLINGSSTATISTIKK_SPRE_SAKSBEHANDLINGSSTATISTIKK_USERNAME"),
-            password = raw.getValue("NAIS_DATABASE_SPRE_SAKSBEHANDLINGSSTATISTIKK_SPRE_SAKSBEHANDLINGSSTATISTIKK_PASSWORD"),
+            name = raw.getValue("DB_DATABASE"),
+            host = raw.getValue("DB_HOST"),
+            port = raw.getValue("DB_PORT").toInt(),
+            username = raw.getValue("DB_USERNAME"),
+            password = raw.getValue("DB_PASSWORD"),
         ),
     )
 
