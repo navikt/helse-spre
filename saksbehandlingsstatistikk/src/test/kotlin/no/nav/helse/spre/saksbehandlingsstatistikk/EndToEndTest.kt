@@ -37,7 +37,7 @@ internal class EndToEndTest {
         testRapid.reset()
         sessionOf(dataSource).use { session ->
             @Language("PostgreSQL")
-            val query = "TRUNCATE TABLE utbetaling, oppdrag, vedtak, hendelse, annullering"
+            val query = "TRUNCATE TABLE hendelse"
             session.run(queryOf(query).asExecute)
         }
     }
