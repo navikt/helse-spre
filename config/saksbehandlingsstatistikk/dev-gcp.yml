@@ -6,3 +6,4 @@ env:
 - name: DUMMY
   value: "it works"
 kafkaConsumerGroup: tbd-spre-saksbehandlingsstatistikk-v1
+kafkaResetPolicy: latest
