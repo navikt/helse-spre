@@ -6,14 +6,13 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class NyttDokumentRiverTest {
     val testRapid = TestRapid()
-    val embeddedPostgres = EmbeddedPostgres.builder().setPort(56789).start()
+    val embeddedPostgres: EmbeddedPostgres = EmbeddedPostgres.builder().setPort(56789).start()
     val hikariConfig = HikariConfig().apply {
         this.jdbcUrl = embeddedPostgres.getJdbcUrl("postgres", "postgres")
         maximumPoolSize = 3

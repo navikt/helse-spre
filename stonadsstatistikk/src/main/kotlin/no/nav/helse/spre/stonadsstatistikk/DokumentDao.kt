@@ -20,8 +20,6 @@ class DokumentDao(val datasource: DataSource) {
         }
     }
 
-    fun finnHendelser(hendelseIder: List<UUID>): List<Hendelse> = finn(hendelseIder)
-
     fun finnDokumenter(hendelseIder: List<UUID>) = finn(hendelseIder)
         .let { hendelser ->
             Dokumenter(

@@ -26,7 +26,6 @@ fun launchApplication(env: Environment) {
 
     val dokumentDao = DokumentDao(dataSource)
     val utbetaltDao = UtbetaltDao(dataSource)
-    val utbetaltBehovDao = UtbetaltBehovDao(dataSource)
     val annulleringDao = AnnulleringDao(dataSource)
     val producer =
         KafkaProducer<String, String>(
@@ -35,16 +34,13 @@ fun launchApplication(env: Environment) {
                 env.serviceUser
             ).toProducerConfig()
         )
-    val utbetaltService = UtbetaltService(utbetaltDao, dokumentDao, utbetaltBehovDao, annulleringDao, producer)
+    val utbetaltService = UtbetaltService(utbetaltDao, dokumentDao, annulleringDao, producer)
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env.raw))
         .build()
         .apply {
             NyttDokumentRiver(this, dokumentDao)
-            TilUtbetalingBehovRiver(this, utbetaltBehovDao)
             UtbetaltRiver(this, utbetaltService)
-            UtbetaltUtenMaksdatoRiver(this, utbetaltService)
-            OldUtbetalingRiver(this, utbetaltService)
             AnnullertRiver(this, utbetaltService)
             start()
         }
