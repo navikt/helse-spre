@@ -74,6 +74,16 @@ internal class EndToEndTest {
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 
+    @Test
+    fun `Ignorerer vedtaksperiode_endret-events med dato fra før vi har en komplett dokumentdatabase`() {
+        val søknadHendelseId = UUID.randomUUID()
+        val søknad = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Søknad)
+
+        testRapid.sendTestMessage(vedtaksperiodeEndretMessageUtdatert(listOf(søknad.hendelseId), "TIL_GODKJENNING"))
+
+        verify(exactly = 0) { kafkaProducer.send(any()) }
+    }
+
     @Language("JSON")
     private fun utbetalingMessage(
         hendelseId: UUID,
@@ -146,7 +156,16 @@ fun vedtaksperiodeEndretMessage(hendelser: List<UUID>, tilstand: String) =
     """{
             "@event_name": "vedtaksperiode_endret",
             "gjeldendeTilstand": "$tilstand",
-            "hendelser": [${hendelser.joinToString { """"$it"""" }}]
+            "hendelser": [${hendelser.joinToString { """"$it"""" }}],
+            "@opprettet": "2021-03-19T18:23:27.76939"
+        }"""
+
+fun vedtaksperiodeEndretMessageUtdatert(hendelser: List<UUID>, tilstand: String) =
+    """{
+            "@event_name": "vedtaksperiode_endret",
+            "gjeldendeTilstand": "$tilstand",
+            "hendelser": [${hendelser.joinToString { """"$it"""" }}],
+            "@opprettet": "2021-03-09T18:23:27.76939"
         }"""
 
 fun sendtSøknadNavMessage(sykmelding: Hendelse, søknad: Hendelse) =
