@@ -16,6 +16,8 @@ class DuplikatsjekkDao(private val datasource: DataSource) {
                 val recordsChanged = transaction.run(queryOf(query, id).asUpdate)
                 if (recordsChanged > 0) {
                     callback()
+                } else {
+                    log.info("Oppdaget duplikat, oppretter ikke journalpost for $id")
                 }
             }
         }
