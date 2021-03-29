@@ -9,22 +9,16 @@ import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.request.HttpRequestData
 import io.ktor.http.fullPath
 import io.ktor.util.KtorExperimentalAPI
-import io.mockk.coEvery
-import io.mockk.mockk
-import io.mockk.spyk
+import io.mockk.*
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.spre.gosys.JoarkClient
-import no.nav.helse.spre.gosys.JournalpostPayload
-import no.nav.helse.spre.gosys.PdfClient
-import no.nav.helse.spre.gosys.StsRestClient
-import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helse.spre.gosys.*
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.Base64
+import java.util.*
 
 @KtorExperimentalAPI
 class VedtakRiverTest {
@@ -36,7 +30,11 @@ class VedtakRiverTest {
     private val mockClient = httpclient()
     private val joarkClient = spyk(JoarkClient("https://url.no", stsMock, mockClient))
     private val pdfClient = PdfClient(mockClient)
-    private val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
+
+    val dataSource = setupDataSourceMedFlyway()
+    val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
+
+    private val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
     private val godkjentAv = "A123456"
 
     private var capturedJoarkRequest: HttpRequestData? = null
@@ -53,13 +51,14 @@ class VedtakRiverTest {
 
     @Test
     fun `journalfører et vedtak`() = runBlocking {
-        testRapid.sendTestMessage(vedtakV3())
+        val id = UUID.randomUUID()
+        testRapid.sendTestMessage(vedtakV3(id))
         val joarkRequest = requireNotNull(capturedJoarkRequest)
         val joarkPayload =
             requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
 
         assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
-        assertEquals("e8eb9ffa-57b7-4fe0-b44c-471b2b306bb6", joarkRequest.headers["Nav-Consumer-Token"])
+        assertEquals(id.toString(), joarkRequest.headers["Nav-Consumer-Token"])
         assertEquals("application/json", joarkRequest.body.contentType.toString())
         assertEquals(expectedJournalpost(), joarkPayload)
 
@@ -181,13 +180,14 @@ class VedtakRiverTest {
 
     @Test
     fun `mapper ikke-utbetalte dager`() = runBlocking {
-        testRapid.sendTestMessage(vedtakIkkeUtbetalteDager())
+        val id = UUID.randomUUID()
+        testRapid.sendTestMessage(vedtakIkkeUtbetalteDager(id))
         val joarkRequest = requireNotNull(capturedJoarkRequest)
         val joarkPayload =
             requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
 
         assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
-        assertEquals("e8eb9ffa-57b7-4fe0-b44c-471b2b306bb6", joarkRequest.headers["Nav-Consumer-Token"])
+        assertEquals(id.toString(), joarkRequest.headers["Nav-Consumer-Token"])
         assertEquals("application/json", joarkRequest.body.contentType.toString())
         assertEquals(expectedJournalpost(), joarkPayload)
 
@@ -268,6 +268,17 @@ class VedtakRiverTest {
             )
         )
         assertEquals(expectedPdfPayload, pdfPayload)
+    }
+
+    @Test
+    fun `kaller api-et kun en gang når vi sender inn to like oppgaver`(){
+        val vedtak = vedtakV3()
+        testRapid.sendTestMessage(vedtak)
+        testRapid.sendTestMessage(vedtak)
+
+        coVerify(exactly = 1) {
+            joarkClient.opprettJournalpost(any(), any())
+        }
     }
 
     private fun httpclient(): HttpClient {
@@ -381,7 +392,7 @@ class VedtakRiverTest {
     }
 
     @Language("JSON")
-    private fun vedtakV3() = """
+    private fun vedtakV3(id: UUID = UUID.randomUUID()) = """
         {
             "aktørId": "aktørId",
             "fødselsnummer": "fnr",
@@ -428,7 +439,7 @@ class VedtakRiverTest {
             "opprettet": "2020-05-04T11:26:30.23846",
             "system_read_count": 0,
             "@event_name": "utbetalt",
-            "@id": "e8eb9ffa-57b7-4fe0-b44c-471b2b306bb6",
+            "@id": "$id",
             "@opprettet": "2020-05-04T11:27:13.521398",
             "@forårsaket_av": {
                 "event_name": "behov",
@@ -439,7 +450,7 @@ class VedtakRiverTest {
     """
 
     @Language("JSON")
-    private fun vedtakUtenUtbetaling() = """
+    private fun vedtakUtenUtbetaling(id: UUID = UUID.randomUUID()) = """
         {
           "aktørId": "1000012345678",
           "fødselsnummer": "12345678910",
@@ -488,7 +499,7 @@ class VedtakRiverTest {
             }
           ],
           "@event_name": "utbetalt",
-          "@id": "efad5041-23de-49ff-85bb-7f9e8d59c77a",
+          "@id": "$id",
           "@opprettet": "2020-05-20T06:36:02.865575",
           "@forårsaket_av": {
             "event_name": "behov",
@@ -499,7 +510,7 @@ class VedtakRiverTest {
     """
 
     @Language("JSON")
-    private fun vedtakFlereUtbetalinger() = """
+    private fun vedtakFlereUtbetalinger(id: UUID = UUID.randomUUID()) = """
         {
           "aktørId": "1000012345678",
           "fødselsnummer": "12345678910",
@@ -565,7 +576,7 @@ class VedtakRiverTest {
             }
           ],
           "@event_name": "utbetalt",
-          "@id": "efad5041-23de-49ff-85bb-7f9e8d59c77a",
+          "@id": "$id",
           "@opprettet": "2020-05-20T06:36:02.865575",
           "@forårsaket_av": {
             "event_name": "behov",
@@ -576,7 +587,7 @@ class VedtakRiverTest {
     """
 
     @Language("JSON")
-    private fun vedtakIkkeUtbetalteDager() = """
+    private fun vedtakIkkeUtbetalteDager(id: UUID = UUID.randomUUID()) = """
 {
     "aktørId": "aktørId",
     "fødselsnummer": "fnr",
@@ -644,7 +655,7 @@ class VedtakRiverTest {
     "opprettet": "2020-05-04T11:26:30.23846",
     "system_read_count": 0,
     "@event_name": "utbetalt",
-    "@id": "e8eb9ffa-57b7-4fe0-b44c-471b2b306bb6",
+    "@id": "$id",
     "@opprettet": "2020-05-04T11:27:13.521398",
     "@forårsaket_av": {
         "event_name": "behov",
@@ -655,7 +666,7 @@ class VedtakRiverTest {
     """
 
     @Language("JSON")
-    private fun vedtakMedGjenopptattArbeid() = """{
+    private fun vedtakMedGjenopptattArbeid(id: UUID = UUID.randomUUID()) = """{
     "aktørId": "aktørId",
     "fødselsnummer": "fnr",
     "organisasjonsnummer": "orgnummer",
@@ -726,7 +737,7 @@ class VedtakRiverTest {
     "opprettet": "2020-05-04T11:26:30.23846",
     "system_read_count": 0,
     "@event_name": "utbetalt",
-    "@id": "e8eb9ffa-57b7-4fe0-b44c-471b2b306bb6",
+    "@id": "$id",
     "@opprettet": "2020-05-04T11:27:13.521398",
     "@forårsaket_av": {
         "event_name": "behov",

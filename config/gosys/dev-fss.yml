@@ -8,14 +8,22 @@ mountPaths:
 fromEnv:
   - spre-gosys
 env:
-- name: KAFKA_BOOTSTRAP_SERVERS
-  value: b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443
-- name: KAFKA_MAX_RECORDS
-  value: "50"
-- name: KAFKA_MAX_POLL_INTERVAL_MS
-  value: "500000"
-- name: STS_URL
-  value: http://security-token-service.default.svc.nais.local
-- name: JOARK_BASE_URL
-  value: https://dokarkiv-q1.nais.preprod.local
+  - name: KAFKA_BOOTSTRAP_SERVERS
+    value: b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443
+  - name: KAFKA_MAX_RECORDS
+    value: "50"
+  - name: KAFKA_MAX_POLL_INTERVAL_MS
+    value: "500000"
+  - name: STS_URL
+    value: http://security-token-service.default.svc.nais.local
+  - name: JOARK_BASE_URL
+    value: https://dokarkiv-q1.nais.preprod.local
+  - name: DATABASE_HOST
+    value: b27dbvl024.preprod.local
+  - name: DATABASE_PORT
+    value: "5432"
+  - name: DATABASE_NAME
+    value: spre-gosys
+  - name: VAULT_MOUNTPATH
+    value: postgresql/preprod-fss/
 

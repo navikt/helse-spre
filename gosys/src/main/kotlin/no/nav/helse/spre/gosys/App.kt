@@ -53,8 +53,13 @@ fun launchApplication(
     val joarkClient = JoarkClient(requireNotNull(environment["JOARK_BASE_URL"]), stsRestClient, httpClient)
     val pdfClient = PdfClient(httpClient)
 
-    val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
-    val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient)
+    val dataSourceBuilder = DataSourceBuilder(readDatabaseEnvironment())
+    dataSourceBuilder.migrate()
+
+    val dataSource = dataSourceBuilder.getDataSource()
+    val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
+    val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
+    val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
 
     return RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(environment)).build()
         .apply {

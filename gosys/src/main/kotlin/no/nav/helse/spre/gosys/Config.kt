@@ -13,9 +13,25 @@ fun readServiceUserCredentials() = ServiceUser(
     password = Files.readString(vaultBasePath.resolve("password"))
 )
 
+fun readDatabaseEnvironment() = DatabaseEnvironment(
+    databaseName = System.getenv("DATABASE_NAME"),
+    databaseHost = System.getenv("DATABASE_HOST"),
+    databasePort = System.getenv("DATABASE_PORT"),
+    vaultMountPath = System.getenv("VAULT_MOUNTPATH")
+)
+
 data class ServiceUser(
     val username: String,
     val password: String
 ) {
     val basicAuth = "Basic ${Base64.getEncoder().encodeToString("$username:$password".toByteArray())}"
+}
+
+class DatabaseEnvironment(
+    val databaseName: String,
+    val vaultMountPath: String,
+    databaseHost: String,
+    databasePort: String
+) {
+    val jdbcUrl = "jdbc:postgresql://$databaseHost:$databasePort/$databaseName"
 }

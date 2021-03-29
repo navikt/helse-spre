@@ -13,6 +13,8 @@ import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.PdfClient
 import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.spre.gosys.io.mockUtbetalinger
+import no.nav.helse.spre.gosys.setupDataSourceMedFlyway
+import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
@@ -31,9 +33,11 @@ class AdminApiTest {
         val format = Json { ignoreUnknownKeys = true }
         val pdfClient: PdfClient = mockk(relaxed = true)
         val joarkClient: JoarkClient = mockk(relaxed = true)
-        val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
-        val slot = mutableListOf<VedtakPdfPayload>()
 
+        val dataSource = setupDataSourceMedFlyway()
+        val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
+        val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
+        val slot = mutableListOf<VedtakPdfPayload>()
 
         coEvery { pdfClient.hentVedtakPdf(capture(slot)) } returns ""
         coEvery { joarkClient.opprettJournalpost(any(), any()) } returns true

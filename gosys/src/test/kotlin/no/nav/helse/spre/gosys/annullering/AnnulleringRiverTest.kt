@@ -6,9 +6,7 @@ import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
-import io.mockk.coEvery
-import io.mockk.mockk
-import io.mockk.spyk
+import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.*
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -25,8 +23,6 @@ import java.time.LocalDateTime
 import java.util.*
 
 internal class AnnulleringRiverTest {
-    private val hendelseId = UUID.randomUUID()
-
     private val testRapid = TestRapid()
     private val stsMock: StsRestClient = mockk {
         coEvery { token() }.returns("6B70C162-8AAB-4B56-944D-7F092423FE4B")
@@ -34,7 +30,9 @@ internal class AnnulleringRiverTest {
     private val mockClient = httpclient()
     private val joarkClient = spyk(JoarkClient("https://url.no", stsMock, mockClient))
     private val pdfClient = PdfClient(mockClient)
-    private val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient)
+    val dataSource = setupDataSourceMedFlyway()
+    val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
+    private val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
 
     private var capturedJoarkRequest: HttpRequestData? = null
     private var capturedPdfRequest: HttpRequestData? = null
@@ -52,7 +50,8 @@ internal class AnnulleringRiverTest {
     @Test
     fun `journalfører en annullering`() {
         runBlocking {
-            testRapid.sendTestMessage(annullering())
+            val hendelseId = UUID.randomUUID()
+            testRapid.sendTestMessage(annullering(hendelseId))
             val joarkRequest = requireNotNull(capturedJoarkRequest)
             val joarkPayload =
                 requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
@@ -72,7 +71,7 @@ internal class AnnulleringRiverTest {
                 fom = LocalDate.of(2020, 1, 1),
                 tom = LocalDate.of(2020, 1, 10),
                 organisasjonsnummer = "orgnummer",
-                dato = LocalDateTime.of(2020, 5, 4, 8,8,0),
+                dato = LocalDateTime.of(2020, 5, 4, 8, 8, 0),
                 saksbehandlerId = "sara.saksbehandler@nav.no",
                 linjer = listOf(
                     AnnulleringPdfPayload.Linje(
@@ -85,6 +84,17 @@ internal class AnnulleringRiverTest {
             )
 
             assertEquals(expectedPdfPayload, pdfPayload)
+        }
+    }
+
+    @Test
+    fun `oppretter kun en journalpost ved duplikat`() {
+        val annullering = annullering()
+        testRapid.sendTestMessage(annullering)
+        testRapid.sendTestMessage(annullering)
+
+        coVerify(exactly = 1) {
+            joarkClient.opprettJournalpost(any(), any())
         }
     }
 
@@ -112,11 +122,11 @@ internal class AnnulleringRiverTest {
     }
 
     @Language("JSON")
-    private fun annullering() = """
+    private fun annullering(id: UUID = UUID.randomUUID()) = """
         {
             "@event_name": "utbetaling_annullert",
             "@opprettet": "2020-05-04T11:26:47.088455",
-            "@id": "$hendelseId",
+            "@id": "$id",
             "fødselsnummer": "fnr",
             "aktørId": "aktørid",
             "organisasjonsnummer": "orgnummer",

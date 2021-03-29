@@ -1,0 +1,1 @@
+CREATE TABLE duplikatsjekk(id UUID NOT NULL PRIMARY KEY);

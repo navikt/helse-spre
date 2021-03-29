@@ -8,14 +8,22 @@ mountPaths:
 fromEnv:
   - spre-gosys
 env:
-- name: KAFKA_BOOTSTRAP_SERVERS
-  value: a01apvl00145.adeo.no:8443,a01apvl00146.adeo.no:8443,a01apvl00147.adeo.no:8443,a01apvl00148.adeo.no:8443,a01apvl00149.adeo.no:8443,a01apvl00150.adeo.no:8443
-- name: KAFKA_MAX_RECORDS
-  value: "50"
-- name: KAFKA_MAX_POLL_INTERVAL_MS
-  value: "500000"
-- name: STS_URL
-  value: http://security-token-service.default.svc.nais.local
-- name: JOARK_BASE_URL
-  value: https://dokarkiv.nais.adeo.no
+  - name: KAFKA_BOOTSTRAP_SERVERS
+    value: a01apvl00145.adeo.no:8443,a01apvl00146.adeo.no:8443,a01apvl00147.adeo.no:8443,a01apvl00148.adeo.no:8443,a01apvl00149.adeo.no:8443,a01apvl00150.adeo.no:8443
+  - name: KAFKA_MAX_RECORDS
+    value: "50"
+  - name: KAFKA_MAX_POLL_INTERVAL_MS
+    value: "500000"
+  - name: STS_URL
+    value: http://security-token-service.default.svc.nais.local
+  - name: JOARK_BASE_URL
+    value: https://dokarkiv.nais.adeo.no
+  - name: DATABASE_HOST
+    value: A01DBVL022.adeo.no
+  - name: DATABASE_PORT
+    value: "5432"
+  - name: DATABASE_NAME
+    value: spre-gosys
+  - name: VAULT_MOUNTPATH
+    value: postgresql/prod-fss/
 
