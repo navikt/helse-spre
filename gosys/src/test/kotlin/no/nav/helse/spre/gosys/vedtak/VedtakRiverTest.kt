@@ -210,7 +210,8 @@ class VedtakRiverTest {
                 VedtakPdfPayload.IkkeUtbetalteDager(
                     fom = LocalDate.of(2020, 5, 11),
                     tom = LocalDate.of(2020, 5, 15),
-                    grunn = "Sykdomsgrad under 20%"
+                    grunn = "Avvist dag",
+                    begrunnelser = listOf("Sykdomsgrad under 20%")
                 )
             ),
             dagsats = 1431,
@@ -251,7 +252,8 @@ class VedtakRiverTest {
                 VedtakPdfPayload.IkkeUtbetalteDager(
                     fom = LocalDate.of(2020, 5, 20),
                     tom = LocalDate.of(2020, 5, 25),
-                    grunn = "Arbeidsdag"
+                    grunn = "Arbeidsdag",
+                    begrunnelser = emptyList()
                 )
             ),
             dagsats = 1431,

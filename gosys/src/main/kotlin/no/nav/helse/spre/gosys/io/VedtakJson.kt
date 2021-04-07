@@ -55,6 +55,7 @@ class IO {
     @Serializable
     data class IkkeUtbetaltDag(
         val dato: LocalDate,
-        val type: String
+        val type: String,
+        val begrunnelser: List<String>?
     )
 }

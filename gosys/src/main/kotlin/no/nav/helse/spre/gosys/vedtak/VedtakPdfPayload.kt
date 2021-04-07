@@ -30,6 +30,7 @@ data class VedtakPdfPayload(
     data class IkkeUtbetalteDager(
         val fom: LocalDate,
         val tom: LocalDate,
-        val grunn: String
+        val grunn: String,
+        val begrunnelser: List<String>
     )
 }
