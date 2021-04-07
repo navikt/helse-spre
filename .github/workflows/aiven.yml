@@ -4,10 +4,12 @@ on:
   push:
     branches:
     - main
+    paths:
+    - 'config/saksbehandlingsstatistikk/aiven-dev.yml'
 
 jobs:
   deployDev:
-    name: apply dev-gcp
+    name: apply kafka-topic i dev
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
