@@ -45,7 +45,6 @@ class DokumentDao(val datasource: DataSource) {
                 }.asList
         )
     }
-
 }
 
 data class Dokumenter(

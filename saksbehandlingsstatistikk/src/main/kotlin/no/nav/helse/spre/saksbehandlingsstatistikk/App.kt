@@ -6,7 +6,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.helse.rapids_rivers.RapidApplication
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.slf4j.LoggerFactory
 
 val objectMapper = jacksonObjectMapper().apply {
     registerModule(JavaTimeModule())

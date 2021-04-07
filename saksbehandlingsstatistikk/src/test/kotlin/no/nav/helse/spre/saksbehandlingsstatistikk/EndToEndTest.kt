@@ -58,7 +58,8 @@ internal class EndToEndTest {
         val sendtTilDVH = objectMapper.readValue<StatistikkEvent>(record.value())
         val expected = StatistikkEvent(
             aktorId = "aktorId",
-            behandlingStatus = REGISTRERT
+            behandlingStatus = REGISTRERT,
+            behandlingId = søknad.dokumentId
         )
 
         assertEquals(expected, sendtTilDVH)

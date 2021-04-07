@@ -1,12 +1,10 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
 
 data class StatistikkEvent(
     val aktorId: String,
-//    val behandlingId: UUID?, //søknadId
+    val behandlingId: UUID?,
 //    val funksjonellTid: LocalDateTime, //Tidspunkt for avslag eller fatting av vedtak eller tilsvarende
 //    val tekniskTid: LocalDateTime, //?
 //    val mottattDato: LocalDate, //Tidspunktet søknaden ankom NAV
