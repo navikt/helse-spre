@@ -15,23 +15,12 @@ internal class VedtaksperiodeEndretRiver(
     private val spreService: SpreService
 ) : River.PacketListener {
 
-    private val tilstanderFørSøknadMottatt = listOf(
-        "MOTTATT_SYKMELDING_FERDIG_FORLENGELSE",
-        "MOTTATT_SYKMELDING_UFERDIG_FORLENGELSE",
-        "MOTTATT_SYKMELDING_FERDIG_GAP",
-        "MOTTATT_SYKMELDING_UFERDIG_GAP",
-        "AVVENTER_SØKNAD_UFERDIG_FORLENGELSE",
-        "AVVENTER_SØKNAD_UFERDIG_GAP",
-        "AVVENTER_SØKNAD_FERDIG_GAP"
-    )
-
     init {
         River(rapidsConnection).apply {
             validate { message ->
                 message.demandValue("@event_name", "vedtaksperiode_endret")
                 message.requireKey("hendelser")
                 message.requireKey("@opprettet")
-                message.require("gjeldendeTilstand") { check(!tilstanderFørSøknadMottatt.contains(it.asText())) }
             }
         }.register(this)
     }

@@ -3,10 +3,13 @@ package no.nav.helse.spre.saksbehandlingsstatistikk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
+import org.slf4j.LoggerFactory
 import java.util.*
 import javax.sql.DataSource
 
 class DokumentDao(val datasource: DataSource) {
+    private val log = LoggerFactory.getLogger(DokumentDao::class.java)
+
     fun opprett(hendelse: Hendelse) {
         @Language("PostgreSQL")
         val query = "INSERT INTO hendelse(hendelse_id, dokument_id, type) VALUES(?,?,?) ON CONFLICT DO NOTHING"
@@ -20,13 +23,13 @@ class DokumentDao(val datasource: DataSource) {
         }
     }
 
-    fun finnHendelser(hendelseIder: List<UUID>): List<Hendelse> = finn(hendelseIder)
-
     fun finnDokumenter(hendelseIder: List<UUID>) = finn(hendelseIder)
         .let { hendelser ->
+            hendelseIder - hendelser.map { hendelse -> hendelse.hendelseId }
+                .forEach { log.info("Fant ikke dokumentId for hendelseId $it") }
             Dokumenter(
                 sykmelding = hendelser.first { it.type == Dokument.Sykmelding },
-                søknad = hendelser.first { it.type == Dokument.Søknad },
+                søknad = hendelser.firstOrNull { it.type == Dokument.Søknad },
                 inntektsmelding = hendelser.firstOrNull { it.type == Dokument.Inntektsmelding }
             )
         }
@@ -49,12 +52,12 @@ class DokumentDao(val datasource: DataSource) {
 
 data class Dokumenter(
     val sykmelding: Hendelse,
-    val søknad: Hendelse,
+    val søknad: Hendelse?,
     val inntektsmelding: Hendelse?
 ) {
     init {
         require(sykmelding.type == Dokument.Sykmelding)
-        require(søknad.type == Dokument.Søknad)
+        søknad?.also { require(it.type == Dokument.Søknad) }
         inntektsmelding?.also { require(it.type == Dokument.Inntektsmelding) }
     }
 }

@@ -66,13 +66,25 @@ internal class EndToEndTest {
     }
 
     @Test
-    fun `Ignorerer vedtaksperiode_endret-events med tilstander før søknad er mottatt`() {
+    fun `Kan sende til DVH når vi bare har fått sykmelding`() {
         val søknadHendelseId = UUID.randomUUID()
-        val søknad = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Søknad)
+        val sykmelding = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Sykmelding)
 
-        testRapid.sendTestMessage(vedtaksperiodeEndretMessage(listOf(søknad.hendelseId), "AVVENTER_SØKNAD_FERDIG_GAP"))
+        testRapid.sendTestMessage(sykmeldingMessage(sykmelding))
+        testRapid.sendTestMessage(vedtaksperiodeEndretMessage(listOf(sykmelding.hendelseId), "MOTTATT_SYKMELDING_FERDIG_GAP"))
 
-        verify(exactly = 0) { kafkaProducer.send(any()) }
+        val capture = CapturingSlot<ProducerRecord<String, String>>()
+        verify { kafkaProducer.send(capture(capture)) }
+        val record = capture.captured
+
+        val sendtTilDVH = objectMapper.readValue<StatistikkEvent>(record.value())
+        val expected = StatistikkEvent(
+            aktorId = "aktorId",
+            behandlingStatus = REGISTRERT,
+            behandlingId = null
+        )
+
+        assertEquals(expected, sendtTilDVH)
     }
 
     @Test
@@ -177,11 +189,11 @@ fun sendtSøknadNavMessage(sykmelding: Hendelse, søknad: Hendelse) =
             "sykmeldingId": "${sykmelding.dokumentId}"
         }"""
 
-fun sykmeldingMessage(søknad: Hendelse) =
+fun sykmeldingMessage(sykmelding: Hendelse) =
     """{
             "@event_name": "ny_søknad",
-            "@id": "${søknad.hendelseId}",
-            "id": "${søknad.dokumentId}"
+            "@id": "${sykmelding.hendelseId}",
+            "sykmeldingId": "${sykmelding.dokumentId}"
         }"""
 
 fun inntektsmeldingMessage(hendelse: Hendelse) =

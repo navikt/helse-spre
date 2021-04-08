@@ -15,7 +15,7 @@ internal class NyttDokumentRiver(rapidsConnection: RapidsConnection, private val
         River(rapidsConnection).apply {
             validate { it.requireKey("@id") }
             validate { it.interestedIn("inntektsmeldingId", "id", "sykmeldingId") }
-            validate { it.requireAny("@event_name", listOf("inntektsmelding", "sendt_søknad_nav", "sendt_søknad_arbeidsgiver")) }
+            validate { it.requireAny("@event_name", listOf("ny_søknad", "inntektsmelding", "sendt_søknad_nav", "sendt_søknad_arbeidsgiver")) }
         }.register(this)
     }
 
@@ -26,6 +26,10 @@ internal class NyttDokumentRiver(rapidsConnection: RapidsConnection, private val
             "inntektsmelding" -> {
                 val dokumentId = UUID.fromString(packet["inntektsmeldingId"].textValue())
                 dokumentDao.opprett(Hendelse(dokumentId, hendelseId, Dokument.Inntektsmelding))
+            }
+            "ny_søknad" -> {
+                val sykmeldingId = UUID.fromString(packet["sykmeldingId"].textValue())
+                dokumentDao.opprett(Hendelse(sykmeldingId, hendelseId, Dokument.Sykmelding))
             }
             "sendt_søknad_nav", "sendt_søknad_arbeidsgiver" -> {
                 val sykmeldingId = UUID.fromString(packet["sykmeldingId"].textValue())

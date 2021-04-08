@@ -9,9 +9,8 @@ internal class SpreService(
     private val statistikkProducer: KafkaProducer<String, String>,
     private val dokumentDao: DokumentDao
 ) {
-    private companion object {
-        private val log = LoggerFactory.getLogger(SpreService::class.java)
-    }
+    private val log = LoggerFactory.getLogger(SpreService::class.java)
+
     internal fun spre(vedtaksperiodeEndretData: VedtaksperiodeEndretData) {
         val dokumenter = dokumentDao.finnDokumenter(vedtaksperiodeEndretData.hendelser)
         val statistikkEvent: StatistikkEvent = vedtaksperiodeEndretData.toStatistikkEvent(dokumenter)
@@ -27,6 +26,6 @@ internal class SpreService(
     private fun VedtaksperiodeEndretData.toStatistikkEvent(dokumenter: Dokumenter) = StatistikkEvent(
         aktorId =  "aktorId",
         behandlingStatus = REGISTRERT,
-        behandlingId = dokumenter.søknad.dokumentId
+        behandlingId = dokumenter.søknad?.dokumentId
     )
 }
