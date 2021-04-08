@@ -1,15 +1,15 @@
 package no.nav.helse.spre.gosys.vedtak
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.client.engine.mock.toByteArray
-import io.ktor.client.features.json.JacksonSerializer
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.request.HttpRequestData
-import io.ktor.http.fullPath
-import io.ktor.util.KtorExperimentalAPI
-import io.mockk.*
+import io.ktor.client.*
+import io.ktor.client.engine.mock.*
+import io.ktor.client.features.json.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.util.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
+import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.gosys.*
@@ -208,6 +208,12 @@ class VedtakRiverTest {
             totaltTilUtbetaling = 8586,
             ikkeUtbetalteDager = listOf(
                 VedtakPdfPayload.IkkeUtbetalteDager(
+                    fom = LocalDate.of(2020, 5, 10),
+                    tom = LocalDate.of(2020, 5, 10),
+                    grunn = "Avvist dag",
+                    begrunnelser = listOf("Egenmelding etter arbeidsgiverperioden", "Sykdomsgrad under 20%")
+                ),
+                VedtakPdfPayload.IkkeUtbetalteDager(
                     fom = LocalDate.of(2020, 5, 11),
                     tom = LocalDate.of(2020, 5, 15),
                     grunn = "Avvist dag",
@@ -273,7 +279,7 @@ class VedtakRiverTest {
     }
 
     @Test
-    fun `kaller api-et kun en gang når vi sender inn to like oppgaver`(){
+    fun `kaller api-et kun en gang når vi sender inn to like oppgaver`() {
         val vedtak = vedtakV3()
         testRapid.sendTestMessage(vedtak)
         testRapid.sendTestMessage(vedtak)
@@ -627,24 +633,34 @@ class VedtakRiverTest {
     ],
     "ikkeUtbetalteDager": [
         {
+            "dato": "2020-05-10",
+            "type": "AvvistDag",
+            "begrunnelser": ["EgenmeldingUtenforArbeidsgiverperiode", "MinimumSykdomsgrad"]
+        },        
+        {
             "dato": "2020-05-11",
-            "type": "MinimumSykdomsgrad"
+            "type": "AvvistDag",
+            "begrunnelser": ["MinimumSykdomsgrad"]
         },
         {
             "dato": "2020-05-12",
-            "type": "MinimumSykdomsgrad"
+            "type": "AvvistDag",
+            "begrunnelser": ["MinimumSykdomsgrad"]
         },
         {
             "dato": "2020-05-13",
-            "type": "MinimumSykdomsgrad"
+            "type": "AvvistDag",
+            "begrunnelser": ["MinimumSykdomsgrad"]
         },
         {
             "dato": "2020-05-14",
-            "type": "MinimumSykdomsgrad"
+            "type": "AvvistDag",
+            "begrunnelser": ["MinimumSykdomsgrad"]
         },
         {
             "dato": "2020-05-15",
-            "type": "MinimumSykdomsgrad"
+            "type": "AvvistDag",
+            "begrunnelser": ["MinimumSykdomsgrad"]
         }
     ],
     "fom": "2020-05-11",
@@ -706,7 +722,8 @@ class VedtakRiverTest {
     "ikkeUtbetalteDager": [
         {
             "dato": "2020-05-20",
-            "type": "Arbeidsdag"
+            "type": "Arbeidsdag",
+            "begrunnelser": null
         },
         {
             "dato": "2020-05-21",
