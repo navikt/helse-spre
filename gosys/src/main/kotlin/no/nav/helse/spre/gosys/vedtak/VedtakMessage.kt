@@ -122,7 +122,7 @@ data class VedtakMessage private constructor(
                     grunn = when (it.type) {
                         "AvvistDag" -> "Avvist dag"
                         "SykepengedagerOppbrukt" -> "Dager etter maksdato"
-                        "MinimumInntekt" -> "Inntektsgrunnlag under 1/2 G"
+                        "MinimumInntekt" -> "Krav til minste sykepengegrunnlag er ikke oppfylt"
                         "EgenmeldingUtenforArbeidsgiverperiode" -> "Egenmelding etter arbeidsgiverperioden"
                         "MinimumSykdomsgrad" -> "Sykdomsgrad under 20%"
                         "Fridag" -> "Ferie/Permisjon"
@@ -140,7 +140,7 @@ data class VedtakMessage private constructor(
     private fun mapBegrunnelser(begrunnelser: List<String>): List<String> = begrunnelser.map {
         when (it) {
             "SykepengedagerOppbrukt" -> "Dager etter maksdato"
-            "MinimumInntekt" -> "Inntektsgrunnlag under 1/2 G"
+            "MinimumInntekt" -> "Krav til minste sykepengegrunnlag er ikke oppfylt"
             "EgenmeldingUtenforArbeidsgiverperiode" -> "Egenmelding etter arbeidsgiverperioden"
             "MinimumSykdomsgrad" -> "Sykdomsgrad under 20%"
             "ManglerOpptjening" -> "Krav til 4 ukers opptjening er ikke oppfylt"
