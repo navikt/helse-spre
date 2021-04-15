@@ -6,12 +6,9 @@ import com.zaxxer.hikari.HikariDataSource
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.spre.oppgaver.DokumentTypeDTO
+import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
-import no.nav.helse.spre.oppgaver.OppdateringstypeDTO
 import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
-import no.nav.helse.spre.oppgaver.OppgaveDAO
-import no.nav.helse.spre.oppgaver.OppgaveDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.flywaydb.core.Flyway
@@ -109,7 +106,7 @@ class EndToEndTest {
         )
         assertEquals(4, captureslot.size)
 
-        assertEquals(4, rapid.inspektør.events().size)
+        assertEquals(4, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", søknad1HendelseId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_ferdigbehandlet", søknad1HendelseId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
@@ -138,7 +135,7 @@ class EndToEndTest {
         )
         assertEquals(2, captureslot.size)
 
-        assertEquals(2, rapid.inspektør.events().size)
+        assertEquals(2, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", søknad1HendelseId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_ferdigbehandlet", søknad1HendelseId).size)
     }
@@ -154,7 +151,7 @@ class EndToEndTest {
         assertOppgave(Opprett, søknad1DokumentId, DokumentTypeDTO.Søknad, captureslot[0].value())
         assertEquals(1, captureslot.size)
 
-        assertEquals(1, rapid.inspektør.events().size)
+        assertEquals(1, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", søknad1HendelseId).size)
     }
 
@@ -180,7 +177,7 @@ class EndToEndTest {
             captureslot[1].value()
         )
 
-        assertEquals(2, rapid.inspektør.events().size)
+        assertEquals(2, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingHendelseId).size)
     }
@@ -189,7 +186,7 @@ class EndToEndTest {
     fun `tåler meldinger som mangler kritiske felter`() = runBlocking {
         rapid.sendTestMessage("{}")
         assertTrue(captureslot.isEmpty())
-        assertEquals(0, rapid.inspektør.events().size)
+        assertEquals(0, rapid.inspektør.size)
     }
 
     @Test
@@ -198,7 +195,7 @@ class EndToEndTest {
         sendVedtaksperiodeEndret(listOf(inntektsmeldingHendelseId), "AVVENTER_VILKÅRSPRØVING")
 
         assertTrue(captureslot.isEmpty())
-        assertEquals(0, rapid.inspektør.events().size)
+        assertEquals(0, rapid.inspektør.size)
     }
 
     @Test
@@ -405,6 +402,11 @@ class EndToEndTest {
         rapid.sendTestMessage(vedtaksperiodeEndret(hendelseIder, tilstand, vedtaksperiodeId))
     }
 }
+
+private fun TestRapid.RapidInspector.events(eventnavn: String, hendelseId: UUID) =
+    (0.until(size)).map(::message)
+        .filter { it["@event_name"].textValue() == eventnavn }
+        .filter { it["hendelseId"].textValue() == hendelseId.toString() }
 
 
 fun vedtaksperiodeEndret(

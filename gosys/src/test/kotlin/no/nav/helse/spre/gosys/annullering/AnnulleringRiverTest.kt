@@ -6,14 +6,11 @@ import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.spre.gosys.*
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.spre.gosys.JoarkClient
-import no.nav.helse.spre.gosys.JournalpostPayload
-import no.nav.helse.spre.gosys.PdfClient
-import no.nav.helse.spre.gosys.StsRestClient
+import no.nav.helse.spre.gosys.*
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -28,14 +25,14 @@ internal class AnnulleringRiverTest {
         coEvery { token() }.returns("6B70C162-8AAB-4B56-944D-7F092423FE4B")
     }
     private val mockClient = httpclient()
-    private val joarkClient = spyk(JoarkClient("https://url.no", stsMock, mockClient))
+    private val joarkClient = JoarkClient("https://url.no", stsMock, mockClient)
     private val pdfClient = PdfClient(mockClient)
     val dataSource = setupDataSourceMedFlyway()
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
     private val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
 
-    private var capturedJoarkRequest: HttpRequestData? = null
-    private var capturedPdfRequest: HttpRequestData? = null
+    private var capturedJoarkRequests = mutableListOf<HttpRequestData>()
+    private var capturedPdfRequests = mutableListOf<HttpRequestData>()
 
     init {
         AnnulleringRiver(testRapid, annulleringMediator)
@@ -44,6 +41,8 @@ internal class AnnulleringRiverTest {
     @BeforeEach
     fun setup() {
         testRapid.reset()
+        capturedJoarkRequests.clear()
+        capturedPdfRequests.clear()
     }
 
     @KtorExperimentalAPI
@@ -52,7 +51,7 @@ internal class AnnulleringRiverTest {
         runBlocking {
             val hendelseId = UUID.randomUUID()
             testRapid.sendTestMessage(annullering(hendelseId))
-            val joarkRequest = requireNotNull(capturedJoarkRequest)
+            val joarkRequest = capturedJoarkRequests.single()
             val joarkPayload =
                 requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
 
@@ -61,7 +60,7 @@ internal class AnnulleringRiverTest {
             assertEquals("application/json", joarkRequest.body.contentType.toString())
             assertEquals(expectedJournalpost(), joarkPayload)
 
-            val pdfRequest = requireNotNull(capturedPdfRequest)
+            val pdfRequest = capturedPdfRequests.single()
             val pdfPayload =
                 requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), AnnulleringPdfPayload::class.java))
 
@@ -93,9 +92,7 @@ internal class AnnulleringRiverTest {
         testRapid.sendTestMessage(annullering)
         testRapid.sendTestMessage(annullering)
 
-        coVerify(exactly = 1) {
-            joarkClient.opprettJournalpost(any(), any())
-        }
+        assertEquals(1, capturedJoarkRequests.size)
     }
 
     private fun httpclient(): HttpClient {
@@ -107,11 +104,11 @@ internal class AnnulleringRiverTest {
                 addHandler { request ->
                     when (request.url.fullPath) {
                         "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> {
-                            capturedJoarkRequest = request
+                            capturedJoarkRequests.add(request)
                             respond("Hello, world")
                         }
                         "/api/v1/genpdf/spre-gosys/annullering" -> {
-                            capturedPdfRequest = request
+                            capturedPdfRequests.add(request)
                             respond("Test".toByteArray())
                         }
                         else -> error("Unhandled ${request.url.fullPath}")

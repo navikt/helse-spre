@@ -7,9 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.gosys.*
@@ -28,7 +26,7 @@ class VedtakRiverTest {
         coEvery { token() }.returns("6B70C162-8AAB-4B56-944D-7F092423FE4B")
     }
     private val mockClient = httpclient()
-    private val joarkClient = spyk(JoarkClient("https://url.no", stsMock, mockClient))
+    private val joarkClient = JoarkClient("https://url.no", stsMock, mockClient)
     private val pdfClient = PdfClient(mockClient)
 
     val dataSource = setupDataSourceMedFlyway()
@@ -37,8 +35,8 @@ class VedtakRiverTest {
     private val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
     private val godkjentAv = "A123456"
 
-    private var capturedJoarkRequest: HttpRequestData? = null
-    private var capturedPdfRequest: HttpRequestData? = null
+    private var capturedJoarkRequests = mutableListOf<HttpRequestData>()
+    private var capturedPdfRequests = mutableListOf<HttpRequestData>()
 
     init {
         VedtakRiver(testRapid, vedtakMediator)
@@ -47,13 +45,15 @@ class VedtakRiverTest {
     @BeforeEach
     fun setup() {
         testRapid.reset()
+        capturedJoarkRequests.clear()
+        capturedPdfRequests.clear()
     }
 
     @Test
     fun `journalfører et vedtak`() = runBlocking {
         val id = UUID.randomUUID()
         testRapid.sendTestMessage(vedtakV3(id))
-        val joarkRequest = requireNotNull(capturedJoarkRequest)
+        val joarkRequest = capturedJoarkRequests.single()
         val joarkPayload =
             requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
 
@@ -62,7 +62,7 @@ class VedtakRiverTest {
         assertEquals("application/json", joarkRequest.body.contentType.toString())
         assertEquals(expectedJournalpost(), joarkPayload)
 
-        val pdfRequest = requireNotNull(capturedPdfRequest)
+        val pdfRequest = capturedPdfRequests.single()
         val pdfPayload =
             requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), VedtakPdfPayload::class.java))
 
@@ -98,13 +98,13 @@ class VedtakRiverTest {
     @Test
     fun `journalfører et vedtak uten utbetaling`() = runBlocking {
         testRapid.sendTestMessage(vedtakUtenUtbetaling())
-        val joarkRequest = requireNotNull(capturedJoarkRequest)
+        val joarkRequest = capturedJoarkRequests.single()
         val joarkPayload =
             requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
 
         assertEquals(expectedJournalpostUtenUtbetaling(), joarkPayload)
 
-        val pdfRequest = requireNotNull(capturedPdfRequest)
+        val pdfRequest = capturedPdfRequests.single()
         val pdfPayload =
             requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), VedtakPdfPayload::class.java))
 
@@ -132,13 +132,13 @@ class VedtakRiverTest {
     @Test
     fun `journalfører et vedtak med flere utbetalinger`() = runBlocking {
         testRapid.sendTestMessage(vedtakFlereUtbetalinger())
-        val joarkRequest = requireNotNull(capturedJoarkRequest)
+        val joarkRequest = capturedJoarkRequests.single()
         val joarkPayload =
             requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
 
         assertEquals(expectedJournalpostMedFlereUtbetalinger(), joarkPayload)
 
-        val pdfRequest = requireNotNull(capturedPdfRequest)
+        val pdfRequest = capturedPdfRequests.single()
         val pdfPayload =
             requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), VedtakPdfPayload::class.java))
 
@@ -182,7 +182,7 @@ class VedtakRiverTest {
     fun `mapper ikke-utbetalte dager`() = runBlocking {
         val id = UUID.randomUUID()
         testRapid.sendTestMessage(vedtakIkkeUtbetalteDager(id))
-        val joarkRequest = requireNotNull(capturedJoarkRequest)
+        val joarkRequest = capturedJoarkRequests.single()
         val joarkPayload =
             requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
 
@@ -191,7 +191,7 @@ class VedtakRiverTest {
         assertEquals("application/json", joarkRequest.body.contentType.toString())
         assertEquals(expectedJournalpost(), joarkPayload)
 
-        val pdfRequest = requireNotNull(capturedPdfRequest)
+        val pdfRequest = capturedPdfRequests.single()
         val pdfPayload =
             requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), VedtakPdfPayload::class.java))
 
@@ -240,7 +240,7 @@ class VedtakRiverTest {
     @Test
     fun `tar med arbeidsdager og kollapser over inneklemte fridager`() = runBlocking {
         testRapid.sendTestMessage(vedtakMedGjenopptattArbeid())
-        val pdfRequest = requireNotNull(capturedPdfRequest)
+        val pdfRequest = capturedPdfRequests.single()
         val pdfPayload =
             requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), VedtakPdfPayload::class.java))
         val expectedPdfPayload = VedtakPdfPayload(
@@ -284,9 +284,7 @@ class VedtakRiverTest {
         testRapid.sendTestMessage(vedtak)
         testRapid.sendTestMessage(vedtak)
 
-        coVerify(exactly = 1) {
-            joarkClient.opprettJournalpost(any(), any())
-        }
+        assertEquals(1, capturedJoarkRequests.size)
     }
 
     private fun httpclient(): HttpClient {
@@ -298,11 +296,11 @@ class VedtakRiverTest {
                 addHandler { request ->
                     when (request.url.fullPath) {
                         "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> {
-                            capturedJoarkRequest = request
+                            capturedJoarkRequests.add(request)
                             respond("Hello, world")
                         }
                         "/api/v1/genpdf/spre-gosys/vedtak" -> {
-                            capturedPdfRequest = request
+                            capturedPdfRequests.add(request)
                             respond("Test".toByteArray())
                         }
                         else -> error("Unhandled ${request.url.fullPath}")

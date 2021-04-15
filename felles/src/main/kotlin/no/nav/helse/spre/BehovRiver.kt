@@ -8,7 +8,7 @@ class BehovRiver(
     private val behov: String,
     private val validation: (JsonMessage) -> Unit = {},
     private val packetListener: (JsonMessage, MessageContext) -> Unit
-) : Validation, River.PacketListener {
+) : River.PacketValidation, River.PacketListener {
     private companion object {
         private val log = LoggerFactory.getLogger(BehovRiver::class.java)
         private val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
