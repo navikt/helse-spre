@@ -17,24 +17,29 @@ class HåndterVedtaksperiodeendringer(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireKey("gjeldendeTilstand") }
+            validate { it.requireKey("gjeldendeTilstand", "hendelser") }
             validate { it.requireValue("@event_name", "vedtaksperiode_endret") }
-            validate { it.requireKey("hendelser") }
         }.register(this)
     }
 
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val gjeldendeTilstand = packet["gjeldendeTilstand"].asText()
+
         packet["hendelser"]
             .map { UUID.fromString(it.asText()) }
             .mapNotNull { oppgaveDAO.finnOppgave(it) }
             .onEach { it.setObserver(observer) }
             .forEach { oppgave ->
-                when (packet["gjeldendeTilstand"].asText()) {
+                val erSøknad = oppgave.dokumentType == DokumentType.Søknad
+
+                when (gjeldendeTilstand) {
                     "TIL_INFOTRYGD" -> Hendelse.TilInfotrygd
                     "AVSLUTTET" -> Hendelse.Avsluttet
-                    "AVSLUTTET_UTEN_UTBETALING" -> Hendelse.Avsluttet
-                    "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING" -> Hendelse.AvsluttetUtenUtbetalingMedInntektsmelding
+                    "AVSLUTTET_UTEN_UTBETALING" -> {
+                        if (erSøknad) Hendelse.AvsluttetUtenUtbetaling
+                        else Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling
+                    }
                     else -> Hendelse.Lest
                 }.accept(oppgave)
             }

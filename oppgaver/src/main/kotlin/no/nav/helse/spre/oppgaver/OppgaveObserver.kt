@@ -48,9 +48,10 @@ class OppgaveObserver(
     }
 
     private fun Oppgave.Tilstand.toDTO(): OppdateringstypeDTO = when (this) {
-        Oppgave.Tilstand.KortPeriodeFerdigbehandlet -> OppdateringstypeDTO.Ferdigbehandlet
+        Oppgave.Tilstand.KortSøknadFerdigbehandlet,
         Oppgave.Tilstand.SpleisFerdigbehandlet -> OppdateringstypeDTO.Ferdigbehandlet
         Oppgave.Tilstand.LagOppgave -> OppdateringstypeDTO.Opprett
+        Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet,
         Oppgave.Tilstand.SpleisLest -> OppdateringstypeDTO.Utsett
         Oppgave.Tilstand.DokumentOppdaget -> error("skal ikke legge melding på topic om at dokument er oppdaget")
     }
@@ -58,8 +59,9 @@ class OppgaveObserver(
     private fun Oppgave.Tilstand.toEventName(): String = when (this) {
         Oppgave.Tilstand.SpleisFerdigbehandlet -> "oppgavestyring_ferdigbehandlet"
         Oppgave.Tilstand.LagOppgave -> "oppgavestyring_opprett"
+        Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet,
         Oppgave.Tilstand.SpleisLest -> "oppgavestyring_utsatt"
-        Oppgave.Tilstand.KortPeriodeFerdigbehandlet -> "oppgavestyring_kort_periode"
+        Oppgave.Tilstand.KortSøknadFerdigbehandlet -> "oppgavestyring_kort_periode"
         Oppgave.Tilstand.DokumentOppdaget -> error("skal ikke legge melding på topic om at dokument er oppdaget")
     }
 }

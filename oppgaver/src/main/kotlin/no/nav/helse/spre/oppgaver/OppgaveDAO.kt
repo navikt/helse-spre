@@ -11,7 +11,8 @@ enum class DatabaseTilstand {
     LagOppgave,
     SpleisLest,
     DokumentOppdaget,
-    AvsluttetUtenUtbetalingMedInntektsmelding
+    KortInntektsmeldingFerdigbehandlet,
+    KortSøknadFerdigbehandlet
 }
 
 class OppgaveDAO(
@@ -31,7 +32,8 @@ class OppgaveDAO(
                         DatabaseTilstand.LagOppgave -> Oppgave.Tilstand.LagOppgave
                         DatabaseTilstand.SpleisLest -> Oppgave.Tilstand.SpleisLest
                         DatabaseTilstand.DokumentOppdaget -> Oppgave.Tilstand.DokumentOppdaget
-                        DatabaseTilstand.AvsluttetUtenUtbetalingMedInntektsmelding -> Oppgave.Tilstand.KortPeriodeFerdigbehandlet
+                        DatabaseTilstand.KortInntektsmeldingFerdigbehandlet -> Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet
+                        DatabaseTilstand.KortSøknadFerdigbehandlet -> Oppgave.Tilstand.KortSøknadFerdigbehandlet
                     },
                     dokumentType = DokumentType.valueOf(rs.string("dokument_type"))
                 )
@@ -68,5 +70,6 @@ private fun Oppgave.Tilstand.toDBTilstand(): DatabaseTilstand = when (this) {
     Oppgave.Tilstand.LagOppgave -> DatabaseTilstand.LagOppgave
     Oppgave.Tilstand.SpleisLest -> DatabaseTilstand.SpleisLest
     Oppgave.Tilstand.DokumentOppdaget -> DatabaseTilstand.DokumentOppdaget
-    Oppgave.Tilstand.KortPeriodeFerdigbehandlet -> DatabaseTilstand.AvsluttetUtenUtbetalingMedInntektsmelding
+    Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet -> DatabaseTilstand.KortInntektsmeldingFerdigbehandlet
+    Oppgave.Tilstand.KortSøknadFerdigbehandlet -> DatabaseTilstand.KortSøknadFerdigbehandlet
 }
