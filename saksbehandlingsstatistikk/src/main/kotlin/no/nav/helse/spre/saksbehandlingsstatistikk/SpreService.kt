@@ -15,16 +15,18 @@ internal class SpreService(
         val dokumenter = dokumentDao.finnDokumenter(vedtaksperiodeEndretData.hendelser)
         val statistikkEvent: StatistikkEvent = vedtaksperiodeEndretData.toStatistikkEvent(dokumenter)
         val eventString = objectMapper.writeValueAsString(statistikkEvent)
-        statistikkProducer.send(ProducerRecord(
-            "aapen-sykepenger-saksbehandlingsstatistikk-tulletopic",
-            "FNR",
-            eventString
-        ))
-        log.info("Publisert melding på tulletopic {}", eventString)
+
+        statistikkProducer.send(
+            ProducerRecord(
+                "tbd.aapen-sykepenger-saksbehandlingsstatistikk-tulletopic",
+                "FNR",
+                eventString
+            )
+        ) { _, _ -> log.info("Publiserte melding på tulletopic: {}", eventString) }
     }
 
     private fun VedtaksperiodeEndretData.toStatistikkEvent(dokumenter: Dokumenter) = StatistikkEvent(
-        aktorId =  "aktorId",
+        aktorId = "aktorId",
         behandlingStatus = REGISTRERT,
         behandlingId = dokumenter.søknad?.dokumentId
     )

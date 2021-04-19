@@ -49,10 +49,10 @@ internal class EndToEndTest {
         val søknad = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Søknad)
 
         testRapid.sendTestMessage(sendtSøknadNavMessage(sykmelding, søknad))
-        testRapid.sendTestMessage(vedtaksperiodeEndretMessage(listOf(søknad.hendelseId), "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP"))
+        testRapid.sendTestMessage(vedtaksperiodeEndretMessage(listOf(søknad.hendelseId, sykmelding.hendelseId), "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP"))
 
         val capture = CapturingSlot<ProducerRecord<String, String>>()
-        verify { kafkaProducer.send(capture(capture)) }
+        verify { kafkaProducer.send(capture(capture), any()) }
         val record = capture.captured
 
         val sendtTilDVH = objectMapper.readValue<StatistikkEvent>(record.value())
@@ -74,7 +74,7 @@ internal class EndToEndTest {
         testRapid.sendTestMessage(vedtaksperiodeEndretMessage(listOf(sykmelding.hendelseId), "MOTTATT_SYKMELDING_FERDIG_GAP"))
 
         val capture = CapturingSlot<ProducerRecord<String, String>>()
-        verify { kafkaProducer.send(capture(capture)) }
+        verify { kafkaProducer.send(capture(capture), any()) }
         val record = capture.captured
 
         val sendtTilDVH = objectMapper.readValue<StatistikkEvent>(record.value())
