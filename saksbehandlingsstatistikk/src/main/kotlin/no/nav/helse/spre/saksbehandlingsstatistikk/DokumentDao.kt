@@ -25,7 +25,7 @@ class DokumentDao(val datasource: DataSource) {
 
     fun finnDokumenter(hendelseIder: List<UUID>) = finn(hendelseIder)
         .let { hendelser ->
-            hendelseIder - hendelser.map { hendelse -> hendelse.hendelseId }
+            (hendelseIder - hendelser.map { hendelse -> hendelse.hendelseId })
                 .forEach { log.info("Fant ikke dokumentId for hendelseId $it") }
             Dokumenter(
                 sykmelding = hendelser.first { it.type == Dokument.Sykmelding },
