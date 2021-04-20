@@ -28,8 +28,7 @@ internal class EndToEndTest {
     private val spreService = SpreService(kafkaProducer, dokumentDao)
 
     init {
-        NyttDokumentRiver(testRapid, dokumentDao)
-        VedtaksperiodeEndretRiver(testRapid, spreService, dokumentDao)
+        testRapid.setupRivers(dokumentDao, spreService)
     }
 
     @BeforeEach

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helse.rapids_rivers.RapidsConnection
 import org.apache.kafka.clients.producer.KafkaProducer
 
 val objectMapper = jacksonObjectMapper().apply {
@@ -32,8 +33,16 @@ fun launchApplication(env: Environment) {
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env.raw))
         .build()
         .apply {
-            NyttDokumentRiver(this, dokumentDao)
-            VedtaksperiodeEndretRiver(this, spreService, dokumentDao)
+            setupRivers(dokumentDao, spreService)
             start()
         }
+
+}
+
+internal fun RapidsConnection.setupRivers(
+    dokumentDao: DokumentDao,
+    spreService: SpreService
+) {
+    NyttDokumentRiver(this, dokumentDao)
+    VedtaksperiodeEndretRiver(this, spreService, dokumentDao)
 }
