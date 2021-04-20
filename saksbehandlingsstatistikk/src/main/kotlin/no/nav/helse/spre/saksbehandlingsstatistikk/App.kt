@@ -33,7 +33,7 @@ fun launchApplication(env: Environment) {
         .build()
         .apply {
             NyttDokumentRiver(this, dokumentDao)
-            VedtaksperiodeEndretRiver(this, spreService)
+            VedtaksperiodeEndretRiver(this, spreService, dokumentDao)
             start()
         }
 }

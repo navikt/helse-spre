@@ -34,7 +34,7 @@ class DokumentDao(val datasource: DataSource) {
             )
         }
 
-    private fun finn(hendelseIder: List<UUID>) = sessionOf(datasource).use { session ->
+    fun finn(hendelseIder: List<UUID>) = sessionOf(datasource).use { session ->
         @Language("PostgreSQL")
         val query = "SELECT * FROM hendelse WHERE hendelse_id = ANY((?)::uuid[])"
         session.run(

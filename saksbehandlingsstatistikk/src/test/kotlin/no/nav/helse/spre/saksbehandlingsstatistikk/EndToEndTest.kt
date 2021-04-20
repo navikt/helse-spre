@@ -29,7 +29,7 @@ internal class EndToEndTest {
 
     init {
         NyttDokumentRiver(testRapid, dokumentDao)
-        VedtaksperiodeEndretRiver(testRapid, spreService)
+        VedtaksperiodeEndretRiver(testRapid, spreService, dokumentDao)
     }
 
     @BeforeEach
@@ -85,6 +85,14 @@ internal class EndToEndTest {
         )
 
         assertEquals(expected, sendtTilDVH)
+    }
+
+    @Test
+    fun `Kan sende til DVH når vi bare har fått sykmelding2`() {
+        testRapid.sendTestMessage(vedtaksperiodeEndretMessage(listOf(UUID.randomUUID()), "MOTTATT_SYKMELDING_FERDIG_GAP"))
+
+        val capture = CapturingSlot<ProducerRecord<String, String>>()
+        verify(exactly = 0) { kafkaProducer.send(capture(capture), any()) }
     }
 
     @Test
@@ -170,7 +178,8 @@ fun vedtaksperiodeEndretMessage(hendelser: List<UUID>, tilstand: String) =
             "@event_name": "vedtaksperiode_endret",
             "gjeldendeTilstand": "$tilstand",
             "hendelser": [${hendelser.joinToString { """"$it"""" }}],
-            "@opprettet": "2021-03-19T18:23:27.76939"
+            "@opprettet": "2021-03-19T18:23:27.76939",
+            "vedtaksperiodeId": "${UUID.randomUUID()}"
         }"""
 
 fun vedtaksperiodeEndretMessageUtdatert(hendelser: List<UUID>, tilstand: String) =
