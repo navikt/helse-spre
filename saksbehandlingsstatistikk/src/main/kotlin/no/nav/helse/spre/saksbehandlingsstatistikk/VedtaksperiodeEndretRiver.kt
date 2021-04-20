@@ -36,12 +36,12 @@ internal class VedtaksperiodeEndretRiver(
         )
 
         if (dokumentDao.finn(vedtak.hendelser).none { it.type == Dokument.Sykmelding }) {
-            log.info("Finner ikke sykmelding for vedtaksperiodeId {}", packet["vedtaksperiodeId"].asText())
+            log.info("Finner ikke sykmelding for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())
             return
         }
 
         spreService.spre(vedtak)
-        log.info("vedtaksperiode_endret lest inn")
+        log.info("vedtaksperiode_endret lest inn for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
