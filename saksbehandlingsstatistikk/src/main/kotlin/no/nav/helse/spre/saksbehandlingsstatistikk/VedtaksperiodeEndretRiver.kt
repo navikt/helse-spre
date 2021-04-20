@@ -20,9 +20,7 @@ internal class VedtaksperiodeEndretRiver(
         River(rapidsConnection).apply {
             validate { message ->
                 message.demandValue("@event_name", "vedtaksperiode_endret")
-                message.requireKey("hendelser")
-                message.requireKey("@opprettet")
-                message.interestedIn("vedtaksperiodeId")
+                message.requireKey("hendelser", "@opprettet", "vedtaksperiodeId", "aktørId")
             }
         }.register(this)
     }
@@ -33,6 +31,7 @@ internal class VedtaksperiodeEndretRiver(
 
         val vedtak = VedtaksperiodeEndretData(
             hendelser = packet["hendelser"].map { UUID.fromString(it.asText()) },
+            aktørId = packet["aktørId"].asText(),
         )
 
         if (dokumentDao.finn(vedtak.hendelser).none { it.type == Dokument.Sykmelding }) {

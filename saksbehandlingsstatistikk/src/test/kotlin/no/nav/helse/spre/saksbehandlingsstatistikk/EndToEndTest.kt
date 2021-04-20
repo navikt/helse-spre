@@ -56,7 +56,7 @@ internal class EndToEndTest {
 
         val sendtTilDVH = objectMapper.readValue<StatistikkEvent>(record.value())
         val expected = StatistikkEvent(
-            aktorId = "aktorId",
+            aktorId = "aktørens id",
             behandlingStatus = REGISTRERT,
             behandlingId = søknad.dokumentId
         )
@@ -78,7 +78,7 @@ internal class EndToEndTest {
 
         val sendtTilDVH = objectMapper.readValue<StatistikkEvent>(record.value())
         val expected = StatistikkEvent(
-            aktorId = "aktorId",
+            aktorId = "aktørens id",
             behandlingStatus = REGISTRERT,
             behandlingId = null
         )
@@ -87,7 +87,7 @@ internal class EndToEndTest {
     }
 
     @Test
-    fun `Kan sende til DVH når vi bare har fått sykmelding2`() {
+    fun `ignorerer vedtaksperiode_endret hvor vi ikke har lest inn sykmelding`() {
         testRapid.sendTestMessage(vedtaksperiodeEndretMessage(listOf(UUID.randomUUID()), "MOTTATT_SYKMELDING_FERDIG_GAP"))
 
         val capture = CapturingSlot<ProducerRecord<String, String>>()
@@ -178,7 +178,8 @@ fun vedtaksperiodeEndretMessage(hendelser: List<UUID>, tilstand: String) =
             "gjeldendeTilstand": "$tilstand",
             "hendelser": [${hendelser.joinToString { """"$it"""" }}],
             "@opprettet": "2021-03-19T18:23:27.76939",
-            "vedtaksperiodeId": "${UUID.randomUUID()}"
+            "vedtaksperiodeId": "${UUID.randomUUID()}",
+            "aktørId": "aktørens id"
         }"""
 
 fun vedtaksperiodeEndretMessageUtdatert(hendelser: List<UUID>, tilstand: String) =

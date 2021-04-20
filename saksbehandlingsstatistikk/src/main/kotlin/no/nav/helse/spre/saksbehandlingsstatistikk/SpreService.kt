@@ -26,7 +26,7 @@ internal class SpreService(
     }
 
     private fun VedtaksperiodeEndretData.toStatistikkEvent(dokumenter: Dokumenter) = StatistikkEvent(
-        aktorId = "aktorId",
+        aktorId = aktørId,
         behandlingStatus = REGISTRERT,
         behandlingId = dokumenter.søknad?.dokumentId
     )
