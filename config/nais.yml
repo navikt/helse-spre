@@ -84,7 +84,6 @@ spec:
   {{# each fromEnv as |item| }}
     - secret: {{ item }}
   {{/each}}{{/if}}
-  {{#if env}}
   env:
   - name: KAFKA_CONSUMER_GROUP_ID
     value: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}{{team}}-spre-{{app}}-v1{{/if}}
@@ -96,4 +95,3 @@ spec:
   - name: {{ item.name }}
     value: "{{ item.value }}"
   {{/each }}
-  {{/if}}
