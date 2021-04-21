@@ -4,3 +4,6 @@ gcp:
   databaseName: spre-saksbehandlingsstatistikk
 kafkaConsumerGroup: tbd-spre-saksbehandlingsstatistikk-v3
 kafkaResetPolicy: earliest
+env:
+  - name: KAFKA_EXTRA_TOPIC
+    value: tbd.temp-dokumenter-v1
