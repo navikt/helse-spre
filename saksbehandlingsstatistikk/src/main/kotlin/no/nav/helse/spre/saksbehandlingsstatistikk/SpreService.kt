@@ -18,7 +18,7 @@ internal class SpreService(
 
         statistikkProducer.send(
             ProducerRecord(
-                "tbd.aapen-sykepenger-saksbehandlingsstatistikk-tulletopic",
+                "tbd.aapen-sykepenger-saksbehandlingsstatistikk-utviklingstopic",
                 "FNR",
                 eventString
             )
