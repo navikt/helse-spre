@@ -18,3 +18,9 @@ spec:
     - team: tbd
       application: spre-saksbehandlingsstatistikk
       access: readwrite
+    - team: ptsak
+      application: pt-sak-sykepenger-dev
+      access: read
+    - team: ptsak
+      application: pt-sak-sykepenger-preprod
+      access: read
