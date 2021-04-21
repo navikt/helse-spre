@@ -6,6 +6,7 @@ on:
     - main
     paths:
     - 'config/saksbehandlingsstatistikk/aiven-dev.yml'
+    - 'config/saksbehandlingsstatistikk/aiven-temp-dokumenter.yml'
 
 jobs:
   deployDev:
