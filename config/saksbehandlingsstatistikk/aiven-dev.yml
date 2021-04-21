@@ -1,20 +1,20 @@
 apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
-    name: aapen-sykepenger-saksbehandlingsstatistikk-utviklingstopic
-    namespace: tbd
-    labels:
-        team: tbd
+  name: aapen-sykepenger-saksbehandlingsstatistikk-utviklingstopic
+  namespace: tbd
+  labels:
+    team: tbd
 spec:
-    pool: nav-dev
-    config:
-        cleanupPolicy: delete
-        minimumInSyncReplicas: 1
-        partitions: 1
-        replication: 2
-        retentionBytes: -1
-        retentionHours: 168
-    acl:
-        - team: tbd
-          application: spre-saksbehandlingsstatistikk
-          access: readwrite
+  pool: nav-dev
+  config:
+    cleanupPolicy: delete
+    minimumInSyncReplicas: 1
+    partitions: 1
+    replication: 2
+    retentionBytes: -1
+    retentionHours: 168
+  acl:
+    - team: tbd
+      application: spre-saksbehandlingsstatistikk
+      access: readwrite
