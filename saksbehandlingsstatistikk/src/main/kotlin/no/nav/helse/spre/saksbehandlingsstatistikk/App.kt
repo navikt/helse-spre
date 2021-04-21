@@ -44,5 +44,5 @@ internal fun RapidsConnection.setupRivers(
     spreService: SpreService
 ) {
     NyttDokumentRiver(this, dokumentDao)
-    VedtaksperiodeEndretRiver(this, spreService, dokumentDao)
+    VedtaksperiodeEndretRiver(this, spreService)
 }

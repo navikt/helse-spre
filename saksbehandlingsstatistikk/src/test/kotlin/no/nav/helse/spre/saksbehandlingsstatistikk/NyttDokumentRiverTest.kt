@@ -1,6 +1,9 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
+import kotliquery.queryOf
+import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -21,7 +24,7 @@ internal class NyttDokumentRiverTest {
     }
 
     @Test
-    fun `skriver dokumenter til hendelse`() {
+    fun `lagrer dokumentIder til basen`() {
         val søknadHendelseId = UUID.randomUUID()
         val sykmelding = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Sykmelding)
         val søknad = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Søknad)
@@ -30,8 +33,8 @@ internal class NyttDokumentRiverTest {
         testRapid.sendTestMessage(sendtSøknadMessage(sykmelding, søknad))
         testRapid.sendTestMessage(inntektsmeldingMessage(inntektsmelding))
 
-        val dokumenter = dokumentDao.finnDokumenter(listOf(sykmelding.hendelseId, søknad.hendelseId, inntektsmelding.hendelseId))
-        assertEquals(Dokumenter(sykmelding, søknad, inntektsmelding), dokumenter)
+        val dokumentIder = finnDokumentIder(listOf(sykmelding.hendelseId, inntektsmelding.hendelseId))
+        assertEquals(setOf(sykmelding.dokumentId, søknad.dokumentId, inntektsmelding.dokumentId), dokumentIder.toSet())
     }
 
     @Test
@@ -39,14 +42,21 @@ internal class NyttDokumentRiverTest {
         val søknadHendelseId = UUID.randomUUID()
         val sykmelding = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Sykmelding)
         val søknad = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Søknad)
-        val inntektsmelding = Hendelse(UUID.randomUUID(), UUID.randomUUID(), Dokument.Inntektsmelding)
 
         testRapid.sendTestMessage(sendtSøknadArbeidsgiverMessage(sykmelding, søknad))
         testRapid.sendTestMessage(sendtSøknadMessage(sykmelding, søknad))
-        testRapid.sendTestMessage(inntektsmeldingMessage(inntektsmelding))
 
-        val dokumenter = dokumentDao.finnDokumenter(listOf(sykmelding.hendelseId, søknad.hendelseId, inntektsmelding.hendelseId))
-        assertEquals(Dokumenter(sykmelding, søknad, inntektsmelding), dokumenter)
+        val dokumentId = dokumentDao.finnSøknadDokumentId(listOf(sykmelding.hendelseId, søknad.hendelseId))
+        assertEquals(søknad.dokumentId, dokumentId)
+    }
+
+    private fun finnDokumentIder(hendelseIder: List<UUID>) = sessionOf(dataSource).use { session ->
+        @Language("PostgreSQL")
+        val query = "SELECT * FROM hendelse WHERE hendelse_id = ANY((?)::uuid[])"
+        session.run(
+            queryOf(query, hendelseIder.joinToString(prefix = "{", postfix = "}", separator = ",") { it.toString() })
+                .map { row -> UUID.fromString(row.string("dokument_id"))}.asList
+        )
     }
 
     private fun sendtSøknadMessage(sykmelding: Hendelse, søknad: Hendelse) =

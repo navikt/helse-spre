@@ -12,8 +12,7 @@ private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 
 internal class VedtaksperiodeEndretRiver(
     rapidsConnection: RapidsConnection,
-    private val spreService: SpreService,
-    private val dokumentDao: DokumentDao,
+    private val spreService: SpreService
 ) : River.PacketListener {
 
     init {
@@ -33,11 +32,6 @@ internal class VedtaksperiodeEndretRiver(
             hendelser = packet["hendelser"].map { UUID.fromString(it.asText()) },
             aktørId = packet["aktørId"].asText(),
         )
-
-        if (dokumentDao.finn(vedtak.hendelser).none { it.type == Dokument.Sykmelding }) {
-            log.info("Finner ikke sykmelding for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())
-            return
-        }
 
         spreService.spre(vedtak)
         log.info("vedtaksperiode_endret lest inn for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())

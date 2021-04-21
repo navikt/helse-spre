@@ -4,6 +4,7 @@ import no.nav.helse.spre.saksbehandlingsstatistikk.BehandlingStatus.REGISTRERT
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
+import java.util.*
 
 internal class SpreService(
     private val statistikkProducer: KafkaProducer<String, String>,
@@ -12,8 +13,8 @@ internal class SpreService(
     private val log = LoggerFactory.getLogger(SpreService::class.java)
 
     internal fun spre(vedtaksperiodeEndretData: VedtaksperiodeEndretData) {
-        val dokumenter = dokumentDao.finnDokumenter(vedtaksperiodeEndretData.hendelser)
-        val statistikkEvent: StatistikkEvent = vedtaksperiodeEndretData.toStatistikkEvent(dokumenter)
+        val søknadDokumentId = dokumentDao.finnSøknadDokumentId(vedtaksperiodeEndretData.hendelser)
+        val statistikkEvent: StatistikkEvent = vedtaksperiodeEndretData.toStatistikkEvent(søknadDokumentId)
         val eventString = objectMapper.writeValueAsString(statistikkEvent)
 
         statistikkProducer.send(
@@ -25,9 +26,9 @@ internal class SpreService(
         ) { _, _ -> log.info("Publiserte melding på tulletopic: {}", eventString) }
     }
 
-    private fun VedtaksperiodeEndretData.toStatistikkEvent(dokumenter: Dokumenter) = StatistikkEvent(
+    private fun VedtaksperiodeEndretData.toStatistikkEvent(søknadDokumentId: UUID?) = StatistikkEvent(
         aktorId = aktørId,
         behandlingStatus = REGISTRERT,
-        behandlingId = dokumenter.søknad?.dokumentId
+        behandlingId = søknadDokumentId
     )
 }
