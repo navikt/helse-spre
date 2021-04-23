@@ -21,7 +21,8 @@ internal class EndToEndTest {
     private val dataSource = DatabaseHelpers.dataSource
     private val kafkaProducer: KafkaProducer<String, String> = mockk(relaxed = true)
     private val dokumentDao = DokumentDao(dataSource)
-    private val spreService = SpreService(kafkaProducer, dokumentDao)
+    private val koblingDao = KoblingDao(dataSource)
+    private val spreService = SpreService(kafkaProducer, dokumentDao, koblingDao)
 
     init {
         testRapid.setupRivers(dokumentDao, spreService)
@@ -54,7 +55,9 @@ internal class EndToEndTest {
         val expected = StatistikkEvent(
             aktorId = "aktørens id",
             behandlingStatus = REGISTRERT,
-            behandlingId = søknad.dokumentId
+            behandlingId = søknad.dokumentId,
+            behandlingType = null,
+            behandlingTypeBeskrivelse = null
         )
 
         assertEquals(expected, sendtTilDVH)
@@ -76,7 +79,9 @@ internal class EndToEndTest {
         val expected = StatistikkEvent(
             aktorId = "aktørens id",
             behandlingStatus = REGISTRERT,
-            behandlingId = null
+            behandlingId = null,
+            behandlingType = null,
+            behandlingTypeBeskrivelse = null
         )
 
         assertEquals(expected, sendtTilDVH)
@@ -108,7 +113,9 @@ fun vedtaksperiodeEndretMessageUtdatert(hendelser: List<UUID>, tilstand: String)
             "@event_name": "vedtaksperiode_endret",
             "gjeldendeTilstand": "$tilstand",
             "hendelser": [${hendelser.joinToString { """"$it"""" }}],
-            "@opprettet": "2021-03-09T18:23:27.76939"
+            "@opprettet": "2021-03-09T18:23:27.76939",
+            "aktørId": "aktørens id",
+            "vedtaksperiodeId": "${UUID.randomUUID()}"
         }"""
 
 fun sendtSøknadNavMessage(sykmelding: Hendelse, søknad: Hendelse) =

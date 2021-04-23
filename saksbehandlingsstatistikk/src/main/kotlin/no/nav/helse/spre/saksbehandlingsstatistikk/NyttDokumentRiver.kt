@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.spre.saksbehandlingsstatistikk.Dokument.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -30,25 +31,21 @@ internal class NyttDokumentRiver(rapidsConnection: RapidsConnection, private val
         when (packet["@event_name"].textValue()) {
             "inntektsmelding" -> {
                 val dokumentId = UUID.fromString(packet["inntektsmeldingId"].textValue())
-                dokumentDao.opprett(Hendelse(dokumentId, hendelseId, Dokument.Inntektsmelding))
+                dokumentDao.opprett(Hendelse(dokumentId, hendelseId, Inntektsmelding))
             }
             "ny_søknad" -> {
                 val sykmeldingId = UUID.fromString(packet["sykmeldingId"].textValue())
-                dokumentDao.opprett(Hendelse(sykmeldingId, hendelseId, Dokument.Sykmelding))
+                dokumentDao.opprett(Hendelse(sykmeldingId, hendelseId, Sykmelding))
             }
             "sendt_søknad_nav", "sendt_søknad_arbeidsgiver" -> {
                 val sykmeldingId = UUID.fromString(packet["sykmeldingId"].textValue())
-                dokumentDao.opprett(Hendelse(sykmeldingId, hendelseId, Dokument.Sykmelding))
+                dokumentDao.opprett(Hendelse(sykmeldingId, hendelseId, Sykmelding))
                 val søknadId = UUID.fromString(packet["id"].textValue())
-                dokumentDao.opprett(Hendelse(søknadId, hendelseId, Dokument.Søknad))
+                dokumentDao.opprett(Hendelse(søknadId, hendelseId, Søknad))
             }
             else -> throw IllegalStateException("Ukjent event (etter whitelist :mind_blown:)")
         }
 
         log.info("Dokument med hendelse $hendelseId lagret")
     }
-}
-
-enum class Dokument {
-    Sykmelding, Inntektsmelding, Søknad
 }

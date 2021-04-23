@@ -24,11 +24,12 @@ fun launchApplication(env: Environment) {
     val dataSource = DataSourceBuilder(env.db).getMigratedDataSource()
 
     val dokumentDao = DokumentDao(dataSource)
+    val koblingDao = KoblingDao(dataSource)
     val producer =
         KafkaProducer<String, String>(
             loadBaseConfig(env.raw).toProducerConfig()
         )
-    val spreService = SpreService(producer, dokumentDao)
+    val spreService = SpreService(producer, dokumentDao, koblingDao)
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env.raw))
         .build()
@@ -45,4 +46,6 @@ internal fun RapidsConnection.setupRivers(
 ) {
     NyttDokumentRiver(this, dokumentDao)
     VedtaksperiodeEndretRiver(this, spreService)
+    UtbetalingUtbetaltRiver(this, spreService)
+    VedtakFattetRiver(this, spreService)
 }
