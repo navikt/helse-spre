@@ -6,6 +6,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.*
 import java.util.UUID.randomUUID
 
@@ -14,12 +15,13 @@ internal class VedtakFattetE2ETest {
     private val kafkaProducer: KafkaProducer<String, String> = mockk(relaxed = true)
 
     private val dataSource = DatabaseHelpers.dataSource
-    private val dokumentDao = DokumentDao(dataSource)
-    private val søknadDao = KoblingDao(dataSource)
-    private val spreService = SpreService(kafkaProducer, dokumentDao, søknadDao)
+    private val koblingDao = KoblingDao(dataSource)
+    private val søknadDao = SøknadDao(dataSource)
+
+    private val spreService = SpreService(kafkaProducer, koblingDao, søknadDao)
 
     init {
-        testRapid.setupRivers(dokumentDao, spreService)
+        testRapid.setupRivers(spreService, søknadDao, koblingDao)
     }
 
     @BeforeEach
@@ -33,22 +35,22 @@ internal class VedtakFattetE2ETest {
         val søknadHendelseId = randomUUID()
         val vedtaksperiodeId = randomUUID()
 
-        val sykmelding = Hendelse(randomUUID(), søknadHendelseId, Dokument.Sykmelding)
-        val søknad = Hendelse(randomUUID(), søknadHendelseId, Dokument.Søknad)
+        val søknad = Søknad(søknadHendelseId, randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
 
-        testRapid.sendTestMessage(sendtSøknadMessage(sykmelding, søknad))
+        testRapid.sendTestMessage(sendtSøknadNavMessage(søknad))
         testRapid.sendTestMessage(vedtakFattetMessage(listOf(søknadHendelseId), utbetalingId, vedtaksperiodeId))
 
-        assertEquals(søknad.dokumentId, søknadDao.finnSøknadIdForUtbetalingId(utbetalingId))
-        assertEquals(søknad.dokumentId, søknadDao.finnSøknadIdForVedtaksperiodeId(vedtaksperiodeId))
+        assertEquals(søknad.dokumentId, koblingDao.finnSøknadIdForUtbetalingId(utbetalingId))
+        assertEquals(søknad.dokumentId, koblingDao.finnSøknadIdForVedtaksperiodeId(vedtaksperiodeId))
     }
 
-    private fun sendtSøknadMessage(sykmelding: Hendelse, søknad: Hendelse) =
+    private fun sendtSøknadNavMessage(søknad: Søknad) =
         """{
             "@event_name": "sendt_søknad_nav",
-            "@id": "${sykmelding.hendelseId}",
+            "@id": "${søknad.hendelseId}",
             "id": "${søknad.dokumentId}",
-            "sykmeldingId": "${sykmelding.dokumentId}"
+            "sendtNav": "2021-01-01T00:00:00",
+            "rapportertDato": "2021-01-01T00:00:00"
         }"""
 
     private fun vedtakFattetMessage(hendelseIder: List<UUID>, utbetalingId: UUID, vedtaksperiodeId: UUID) =

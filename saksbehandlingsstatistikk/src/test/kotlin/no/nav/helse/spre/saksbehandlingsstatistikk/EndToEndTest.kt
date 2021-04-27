@@ -7,25 +7,28 @@ import io.mockk.verify
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.spre.saksbehandlingsstatistikk.BehandlingStatus.REGISTRERT
+import no.nav.helse.spre.saksbehandlingsstatistikk.Avsender.SPLEIS
+import no.nav.helse.spre.saksbehandlingsstatistikk.BehandlingStatus.AVSLUTTET
+import no.nav.helse.spre.saksbehandlingsstatistikk.YtelseType.SYKEPENGER
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.*
 
 internal class EndToEndTest {
     private val testRapid = TestRapid()
     private val dataSource = DatabaseHelpers.dataSource
     private val kafkaProducer: KafkaProducer<String, String> = mockk(relaxed = true)
-    private val dokumentDao = DokumentDao(dataSource)
+    private val søknadDao = SøknadDao(dataSource)
     private val koblingDao = KoblingDao(dataSource)
-    private val spreService = SpreService(kafkaProducer, dokumentDao, koblingDao)
+    private val spreService = SpreService(kafkaProducer, koblingDao, søknadDao)
 
     init {
-        testRapid.setupRivers(dokumentDao, spreService)
+        testRapid.setupRivers(spreService, søknadDao, koblingDao)
     }
 
     @BeforeEach
@@ -33,19 +36,17 @@ internal class EndToEndTest {
         testRapid.reset()
         sessionOf(dataSource).use { session ->
             @Language("PostgreSQL")
-            val query = "TRUNCATE TABLE hendelse"
+            val query = "TRUNCATE TABLE søknad"
             session.run(queryOf(query).asExecute)
         }
     }
 
     @Test
     fun `Spleis reagerer på søknad`() {
-        val søknadHendelseId = UUID.randomUUID()
-        val sykmelding = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Sykmelding)
-        val søknad = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Søknad)
+        val søknad = Søknad(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(), "ident")
 
-        testRapid.sendTestMessage(sendtSøknadNavMessage(sykmelding, søknad))
-        testRapid.sendTestMessage(vedtaksperiodeEndretMessage(listOf(søknad.hendelseId, sykmelding.hendelseId), "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK_FERDIG_GAP"))
+        testRapid.sendTestMessage(sendtSøknadNavMessage(søknad))
+        testRapid.sendTestMessage(vedtakFattetMessage(listOf(søknad.hendelseId)))
 
         val capture = CapturingSlot<ProducerRecord<String, String>>()
         verify { kafkaProducer.send(capture(capture), any()) }
@@ -54,34 +55,21 @@ internal class EndToEndTest {
         val sendtTilDVH = objectMapper.readValue<StatistikkEvent>(record.value())
         val expected = StatistikkEvent(
             aktorId = "aktørens id",
-            behandlingStatus = REGISTRERT,
+            behandlingStatus = AVSLUTTET,
             behandlingId = søknad.dokumentId,
-            behandlingType = null,
-            behandlingTypeBeskrivelse = null
-        )
-
-        assertEquals(expected, sendtTilDVH)
-    }
-
-    @Test
-    fun `Kan sende til DVH når vi bare har fått sykmelding`() {
-        val søknadHendelseId = UUID.randomUUID()
-        val sykmelding = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Sykmelding)
-
-        testRapid.sendTestMessage(sykmeldingMessage(sykmelding))
-        testRapid.sendTestMessage(vedtaksperiodeEndretMessage(listOf(sykmelding.hendelseId), "MOTTATT_SYKMELDING_FERDIG_GAP"))
-
-        val capture = CapturingSlot<ProducerRecord<String, String>>()
-        verify { kafkaProducer.send(capture(capture), any()) }
-        val record = capture.captured
-
-        val sendtTilDVH = objectMapper.readValue<StatistikkEvent>(record.value())
-        val expected = StatistikkEvent(
-            aktorId = "aktørens id",
-            behandlingStatus = REGISTRERT,
-            behandlingId = null,
-            behandlingType = null,
-            behandlingTypeBeskrivelse = null
+            behandlingType = BehandlingType.SØKNAD,
+            tekniskTid = sendtTilDVH.tekniskTid,
+            funksjonellTid = LocalDateTime.parse("2021-03-09T18:23:27.76939"),
+            mottattDato = "2021-01-01T00:00",
+            registrertDato = "2021-01-01T00:00",
+            ytelseType = SYKEPENGER,
+            utenlandstilsnitt = Utenlandstilsnitt.NEI,
+            totrinnsbehandling = Totrinnsbehandling.NEI,
+            avsender = SPLEIS,
+            saksbehandlerIdent = null,
+            ansvarligEnhetKode = "4488",
+            ansvarligEnhetType = "NORG",
+            versjon = sendtTilDVH.versjon
         )
 
         assertEquals(expected, sendtTilDVH)
@@ -89,24 +77,13 @@ internal class EndToEndTest {
 
     @Test
     fun `Ignorerer vedtaksperiode_endret-events med dato fra før vi har en komplett dokumentdatabase`() {
-        val søknadHendelseId = UUID.randomUUID()
-        val søknad = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Søknad)
+        val søknad = Søknad(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
 
         testRapid.sendTestMessage(vedtaksperiodeEndretMessageUtdatert(listOf(søknad.hendelseId), "TIL_GODKJENNING"))
 
         verify(exactly = 0) { kafkaProducer.send(any()) }
     }
 }
-
-fun vedtaksperiodeEndretMessage(hendelser: List<UUID>, tilstand: String) =
-    """{
-            "@event_name": "vedtaksperiode_endret",
-            "gjeldendeTilstand": "$tilstand",
-            "hendelser": [${hendelser.joinToString { """"$it"""" }}],
-            "@opprettet": "2021-03-19T18:23:27.76939",
-            "vedtaksperiodeId": "${UUID.randomUUID()}",
-            "aktørId": "aktørens id"
-        }"""
 
 fun vedtaksperiodeEndretMessageUtdatert(hendelser: List<UUID>, tilstand: String) =
     """{
@@ -118,17 +95,21 @@ fun vedtaksperiodeEndretMessageUtdatert(hendelser: List<UUID>, tilstand: String)
             "vedtaksperiodeId": "${UUID.randomUUID()}"
         }"""
 
-fun sendtSøknadNavMessage(sykmelding: Hendelse, søknad: Hendelse) =
+fun vedtakFattetMessage(hendelser: List<UUID>) =
+    """{
+            "@event_name": "vedtak_fattet",
+            "hendelser": [${hendelser.joinToString { """"$it"""" }}],
+            "@opprettet": "2021-03-09T18:23:27.76939",
+            "utbetalingId": "${UUID.randomUUID()}",
+            "aktørId": "aktørens id",
+            "vedtaksperiodeId": "${UUID.randomUUID()}"
+        }"""
+
+fun sendtSøknadNavMessage(søknad: Søknad) =
     """{
             "@event_name": "sendt_søknad_nav",
             "@id": "${søknad.hendelseId}",
             "id": "${søknad.dokumentId}",
-            "sykmeldingId": "${sykmelding.dokumentId}"
-        }"""
-
-fun sykmeldingMessage(sykmelding: Hendelse) =
-    """{
-            "@event_name": "ny_søknad",
-            "@id": "${sykmelding.hendelseId}",
-            "sykmeldingId": "${sykmelding.dokumentId}"
+            "sendtNav": "2021-01-01T00:00:00",
+            "rapportertDato": "2021-01-01T00:00:00"
         }"""

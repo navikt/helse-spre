@@ -11,25 +11,27 @@ private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 
 internal class UtbetalingUtbetaltRiver(
     rapidsConnection: RapidsConnection,
-    private val spreService: SpreService
+    private val koblingDao: KoblingDao,
+    private val søknadDao: SøknadDao
 ) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
             validate { message ->
                 message.demandValue("@event_name", "utbetaling_utbetalt")
-                message.requireKey("@opprettet", "utbetalingId", "type")
+                message.requireKey("utbetalingId", "ident")
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val utbetaling = UtbetalingUtbetaltData(
+        val utbetalingUtbetalt = UtbetalingUtbetaltData(
             utbetalingId = packet["utbetalingId"].asUuid(),
-            type = packet["type"].asText()
+            saksbehandlerIdent = packet["ident"].asText()
         )
 
-        spreService.spre(utbetaling)
+        val søknadId = requireNotNull(koblingDao.finnSøknadIdForUtbetalingId(utbetalingUtbetalt.utbetalingId)) { "Fant ikke søknadId for utbetalingId" }
+        søknadDao.settSaksbehandlerPåSøknad(utbetalingUtbetalt.saksbehandlerIdent, søknadId)
         log.info("utbetaling_utbetalt lest inn for utbetaling med id {}", packet["utbetalingId"].asText())
     }
 

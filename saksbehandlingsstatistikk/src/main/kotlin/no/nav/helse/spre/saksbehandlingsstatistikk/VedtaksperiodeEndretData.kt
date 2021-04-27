@@ -1,8 +1,10 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
+import java.time.LocalDateTime
 import java.util.*
 
 class VedtaksperiodeEndretData(
+    val opprettet: LocalDateTime,
     val hendelser: List<UUID>,
     val aktørId: String,
 )

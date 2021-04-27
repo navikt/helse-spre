@@ -3,7 +3,7 @@ package no.nav.helse.spre.saksbehandlingsstatistikk
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.util.*
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -27,29 +27,30 @@ fun main() {
 fun launchApplication(env: Environment) {
     val dataSource = DataSourceBuilder(env.db).getMigratedDataSource()
 
-    val dokumentDao = DokumentDao(dataSource)
     val koblingDao = KoblingDao(dataSource)
+    val søknadDao = SøknadDao(dataSource)
     val producer =
         KafkaProducer<String, String>(
             loadBaseConfig(env.raw).toProducerConfig()
         )
-    val spreService = SpreService(producer, dokumentDao, koblingDao)
+    val spreService = SpreService(producer, koblingDao, søknadDao)
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env.raw))
         .build()
         .apply {
-            setupRivers(dokumentDao, spreService)
+            setupRivers(spreService, søknadDao, koblingDao)
             start()
         }
 
 }
 
 internal fun RapidsConnection.setupRivers(
-    dokumentDao: DokumentDao,
-    spreService: SpreService
+    spreService: SpreService,
+    søknadDao: SøknadDao,
+    koblingDao: KoblingDao
 ) {
-    NyttDokumentRiver(this, dokumentDao)
+    NyttDokumentRiver(this, søknadDao)
     VedtaksperiodeEndretRiver(this, spreService)
-    UtbetalingUtbetaltRiver(this, spreService)
+    UtbetalingUtbetaltRiver(this, koblingDao, søknadDao)
     VedtakFattetRiver(this, spreService)
 }

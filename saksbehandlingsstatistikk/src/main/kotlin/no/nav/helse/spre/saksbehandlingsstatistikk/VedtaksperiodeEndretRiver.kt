@@ -24,11 +24,11 @@ internal class VedtaksperiodeEndretRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = VedtaksperiodeEndretData(
+            opprettet = packet["@opprettet"].asLocalDateTime(),
             hendelser = packet["hendelser"].map { UUID.fromString(it.asText()) },
             aktørId = packet["aktørId"].asText(),
         )
 
-        spreService.spre(vedtak)
         log.info("vedtaksperiode_endret lest inn for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())
     }
 

@@ -7,15 +7,16 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 import java.util.*
 
 internal class NyttDokumentRiverTest {
     private val testRapid = TestRapid()
     private val dataSource = DatabaseHelpers.dataSource
-    private val dokumentDao = DokumentDao(dataSource)
+    private val søknadDao = SøknadDao(dataSource)
 
     init {
-        NyttDokumentRiver(testRapid, dokumentDao)
+        NyttDokumentRiver(testRapid, søknadDao)
     }
 
     @BeforeEach
@@ -24,61 +25,52 @@ internal class NyttDokumentRiverTest {
     }
 
     @Test
-    fun `lagrer dokumentIder til basen`() {
+    fun `lagrer søknad til basen`() {
         val søknadHendelseId = UUID.randomUUID()
-        val sykmelding = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Sykmelding)
-        val søknad = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Søknad)
-        val inntektsmelding = Hendelse(UUID.randomUUID(), UUID.randomUUID(), Dokument.Inntektsmelding)
+        val søknad = Søknad(søknadHendelseId, UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
 
-        testRapid.sendTestMessage(sendtSøknadMessage(sykmelding, søknad))
-        testRapid.sendTestMessage(inntektsmeldingMessage(inntektsmelding))
+        testRapid.sendTestMessage(sendtSøknadNavMessage(søknad))
 
-        val dokumentIder = finnDokumentIder(listOf(sykmelding.hendelseId, inntektsmelding.hendelseId))
-        assertEquals(setOf(sykmelding.dokumentId, søknad.dokumentId, inntektsmelding.dokumentId), dokumentIder.toSet())
+        val søknadDokumentId = finnSøknadDokumentId(søknadHendelseId)
+        assertEquals(søknad.dokumentId, søknadDokumentId)
     }
 
     @Test
     fun `håndterer duplikate dokumenter`() {
         val søknadHendelseId = UUID.randomUUID()
-        val sykmelding = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Sykmelding)
-        val søknad = Hendelse(UUID.randomUUID(), søknadHendelseId, Dokument.Søknad)
+        val søknad = Søknad(søknadHendelseId, UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
 
-        testRapid.sendTestMessage(sendtSøknadArbeidsgiverMessage(sykmelding, søknad))
-        testRapid.sendTestMessage(sendtSøknadMessage(sykmelding, søknad))
+        testRapid.sendTestMessage(sendtSøknadArbeidsgiverMessage(søknad))
+        testRapid.sendTestMessage(sendtSøknadNavMessage(søknad))
 
-        val dokumentId = dokumentDao.finnSøknadDokumentId(listOf(sykmelding.hendelseId, søknad.hendelseId))
-        assertEquals(søknad.dokumentId, dokumentId)
+        val søknadDokumentId = finnSøknadDokumentId(søknadHendelseId)
+        assertEquals(søknad.dokumentId, søknadDokumentId)
     }
 
-    private fun finnDokumentIder(hendelseIder: List<UUID>) = sessionOf(dataSource).use { session ->
+    private fun finnSøknadDokumentId(søknadHendelseId: UUID) = sessionOf(dataSource).use { session ->
         @Language("PostgreSQL")
-        val query = "SELECT * FROM hendelse WHERE hendelse_id = ANY((?)::uuid[])"
+        val query = "SELECT * FROM søknad WHERE hendelse_id = ?::uuid"
         session.run(
-            queryOf(query, hendelseIder.joinToString(prefix = "{", postfix = "}", separator = ",") { it.toString() })
-                .map { row -> UUID.fromString(row.string("dokument_id"))}.asList
+            queryOf(query, søknadHendelseId)
+                .map { row -> UUID.fromString(row.string("dokument_id"))}.asSingle
         )
     }
 
-    private fun sendtSøknadMessage(sykmelding: Hendelse, søknad: Hendelse) =
+    private fun sendtSøknadNavMessage(søknad: Søknad) =
         """{
             "@event_name": "sendt_søknad_nav",
-            "@id": "${sykmelding.hendelseId}",
+            "@id": "${søknad.hendelseId}",
             "id": "${søknad.dokumentId}",
-            "sykmeldingId": "${sykmelding.dokumentId}"
+            "sendtNav": "2021-01-01T00:00:00",
+            "rapportertDato": "2021-01-01T00:00:00"
         }"""
 
-    private fun sendtSøknadArbeidsgiverMessage(sykmelding: Hendelse, søknad: Hendelse) =
+    private fun sendtSøknadArbeidsgiverMessage(søknad: Søknad) =
         """{
             "@event_name": "sendt_søknad_arbeidsgiver",
-            "@id": "${sykmelding.hendelseId}",
+            "@id": "${søknad.hendelseId}",
             "id": "${søknad.dokumentId}",
-            "sykmeldingId": "${sykmelding.dokumentId}"
-        }"""
-
-    private fun inntektsmeldingMessage(hendelse: Hendelse) =
-        """{
-            "@event_name": "inntektsmelding",
-            "@id": "${hendelse.hendelseId}",
-            "inntektsmeldingId": "${hendelse.dokumentId}"
+            "sendtNav": "2021-01-01T00:00:00",
+            "rapportertDato": "2021-01-01T00:00:00"
         }"""
 }

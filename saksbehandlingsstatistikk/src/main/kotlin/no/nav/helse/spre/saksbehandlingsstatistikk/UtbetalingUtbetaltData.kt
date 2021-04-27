@@ -4,7 +4,7 @@ import java.util.*
 
 class UtbetalingUtbetaltData(
     val utbetalingId: UUID,
-    val type: String,
+    val saksbehandlerIdent: String
 )
 
 /*JsonMessage.newMessage(mapOf(

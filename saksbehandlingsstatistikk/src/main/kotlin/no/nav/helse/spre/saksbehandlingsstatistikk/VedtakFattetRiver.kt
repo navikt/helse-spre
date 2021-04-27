@@ -25,6 +25,7 @@ internal class VedtakFattetRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = VedtakFattetData(
+            opprettet = packet["@opprettet"].asLocalDateTime(),
             aktørId = packet["aktørId"].asText(),
             hendelser = packet["hendelser"].map { it.asUuid() },
             utbetalingId = packet["utbetalingId"].asUuid(),
