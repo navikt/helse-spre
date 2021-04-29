@@ -34,8 +34,7 @@ internal class NyttDokumentRiver(
                 val søknadId = UUID.fromString(packet["id"].textValue())
                 val mottattDato = packet["sendtNav"].asLocalDateTime()
                 val registrertDato = packet["rapportertDato"].asLocalDateTime()
-                val saksbehandlerIdent = ""
-                søknadDao.opprett(Søknad(hendelseId, søknadId, mottattDato, registrertDato, saksbehandlerIdent))
+                søknadDao.upsertSøknad(Søknad(hendelseId, søknadId,  mottattDato, registrertDato))
                 log.info("Søknad med id $søknadId og hendelseId $hendelseId lagret")
             }
             else -> throw IllegalStateException("Ukjent event (etter whitelist :mind_blown:)")

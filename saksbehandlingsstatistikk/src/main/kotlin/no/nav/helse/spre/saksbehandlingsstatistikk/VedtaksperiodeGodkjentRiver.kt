@@ -9,26 +9,33 @@ import java.util.*
 private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 
-internal class UtbetalingUtbetaltRiver(
+internal class VedtaksperiodeGodkjentRiver(
     rapidsConnection: RapidsConnection,
+    private val søknadDao: SøknadDao,
 ) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
             validate { message ->
-                message.demandValue("@event_name", "utbetaling_utbetalt")
-                message.requireKey("utbetalingId", "ident")
+                message.demandValue("@event_name", "vedtaksperiode_godkjent")
+                message.requireKey("vedtaksperiodeId", "saksbehandlerIdent")
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val utbetalingUtbetalt = UtbetalingUtbetaltData(
-            utbetalingId = packet["utbetalingId"].asUuid(),
-            saksbehandlerIdent = packet["ident"].asText()
+        val vedtak = VedtaksperiodeGodkjentData(
+            vedtaksperiodeId = packet["vedtaksperiodeId"].asUuid(),
+            saksbehandlerIdent = packet["saksbehandlerIdent"].asText()
         )
+        val søknad = søknadDao.finnSøknad(vedtak.vedtaksperiodeId)
 
-        log.info("utbetaling_utbetalt lest inn for utbetaling med id {}", packet["utbetalingId"].asText())
+        if (søknad == null) {
+            log.info("Kunne ikke finne søknad for vedtaksperiode ${vedtak.vedtaksperiodeId}")
+            return
+        }
+        søknadDao.upsertSøknad(søknad.saksbehandlerIdent(vedtak.saksbehandlerIdent))
+        log.info("vedtaksperiode_godkjent lest inn for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

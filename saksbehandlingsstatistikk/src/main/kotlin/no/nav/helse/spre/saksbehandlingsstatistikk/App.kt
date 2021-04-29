@@ -17,6 +17,7 @@ val objectMapper = jacksonObjectMapper().apply {
     disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 }
 
+
 @KtorExperimentalAPI
 fun main() {
     val env = Environment(System.getenv())
@@ -25,20 +26,20 @@ fun main() {
 
 @KtorExperimentalAPI
 fun launchApplication(env: Environment) {
+    val gitSha = System.getenv()["GIT_SHA"].toString()
+    log.info("Starter spre-saksbehandlingsstatistikk versjon $gitSha")
     val dataSource = DataSourceBuilder(env.db).getMigratedDataSource()
-
-    val koblingDao = KoblingDao(dataSource)
     val søknadDao = SøknadDao(dataSource)
     val producer =
         KafkaProducer<String, String>(
             loadBaseConfig(env.raw).toProducerConfig()
         )
-    val spreService = SpreService(producer, koblingDao, søknadDao)
+    val spreService = SpreService(producer, søknadDao)
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env.raw))
         .build()
         .apply {
-            setupRivers(spreService, søknadDao, koblingDao)
+            setupRivers(spreService, søknadDao)
             start()
         }
 
@@ -47,10 +48,10 @@ fun launchApplication(env: Environment) {
 internal fun RapidsConnection.setupRivers(
     spreService: SpreService,
     søknadDao: SøknadDao,
-    koblingDao: KoblingDao
 ) {
     NyttDokumentRiver(this, søknadDao)
-    VedtaksperiodeEndretRiver(this, spreService)
-    UtbetalingUtbetaltRiver(this, koblingDao, søknadDao)
+    VedtaksperiodeEndretRiver(this, søknadDao)
+    UtbetalingUtbetaltRiver(this)
     VedtakFattetRiver(this, spreService)
+    VedtaksperiodeGodkjentRiver(this, søknadDao)
 }

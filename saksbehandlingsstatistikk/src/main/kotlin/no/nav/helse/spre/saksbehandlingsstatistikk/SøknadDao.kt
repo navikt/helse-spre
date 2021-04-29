@@ -3,39 +3,31 @@ package no.nav.helse.spre.saksbehandlingsstatistikk
 import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
+import kotliquery.Row
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
 
 class SøknadDao(private val dataSource: DataSource) {
 
-    fun opprett(søknad: Søknad) {
+    fun upsertSøknad(søknad: Søknad) {
         @Language("PostgreSQL")
         val query =
-            "INSERT INTO søknad(hendelse_id, dokument_id, mottatt_dato, registrert_dato) VALUES(?,?,?,?) ON CONFLICT DO NOTHING"
+            """INSERT INTO søknad(hendelse_id, dokument_id, mottatt_dato, registrert_dato)
+VALUES (:hendelseId, :dokumentId, :mottattDato, :registrertDato)
+ON CONFLICT (hendelse_id) DO UPDATE SET vedtaksperiode_id = :vedtaksperiodeId, saksbehandler_ident = :saksbehandlerIdent"""
         sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
                     query,
-                    søknad.hendelseId,
-                    søknad.dokumentId,
-                    søknad.mottattDato,
-                    søknad.registrertDato
-                ).asUpdate
-            )
-        }
-    }
-
-    fun settSaksbehandlerPåSøknad(saksbehandlerIdent: String, søknadId: UUID) {
-        @Language("PostgreSQL")
-        val query =
-            "UPDATE søknad SET saksbehandler_ident = ? WHERE dokument_id = ?"
-        sessionOf(dataSource).use { session ->
-            session.run(
-                queryOf(
-                    query,
-                    saksbehandlerIdent,
-                    søknadId
+                    mapOf(
+                        "hendelseId" to søknad.hendelseId,
+                        "dokumentId" to søknad.dokumentId,
+                        "mottattDato" to søknad.mottattDato,
+                        "registrertDato" to søknad.registrertDato,
+                        "vedtaksperiodeId" to søknad.vedtaksperiodeId,
+                        "saksbehandlerIdent" to søknad.saksbehandlerIdent
+                    )
                 ).asUpdate
             )
         }
@@ -46,15 +38,16 @@ class SøknadDao(private val dataSource: DataSource) {
         val query = "SELECT * FROM søknad WHERE hendelse_id = ANY((?)::uuid[])"
         session.run(
             queryOf(query, hendelseIder.joinToString(prefix = "{", postfix = "}", separator = ",") { it.toString() })
-                .map { row ->
-                    Søknad(
-                        hendelseId = UUID.fromString(row.string("hendelse_id")),
-                        dokumentId = UUID.fromString(row.string("dokument_id")),
-                        mottattDato = row.localDateTime("mottatt_dato"),
-                        registrertDato = row.localDateTime("registrert_dato"),
-                        saksbehandlerIdent = row.stringOrNull("saksbehandler_ident")
-                    )
-                }.asSingle
+                .map(Søknad::fromSql).asSingle
+        )
+    }
+
+    fun finnSøknad(vedtaksperiodeId: UUID) = sessionOf(dataSource).use { session ->
+        @Language("PostgreSQL")
+        val query = "SELECT * FROM søknad WHERE vedtaksperiode_id = ?"
+        session.run(
+            queryOf(query, vedtaksperiodeId)
+                .map(Søknad::fromSql).asSingle
         )
     }
 }
@@ -64,7 +57,21 @@ data class Søknad(
     val dokumentId: UUID,
     val mottattDato: LocalDateTime,
     val registrertDato: LocalDateTime,
-    val saksbehandlerIdent: String?
-)
+    val vedtaksperiodeId: UUID? = null,
+    val saksbehandlerIdent: String? = null
+) {
+    fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
+    fun saksbehandlerIdent(it: String) = copy(saksbehandlerIdent = it)
 
-
+    companion object {
+        fun fromSql(row: Row) =
+            Søknad(
+                hendelseId = UUID.fromString(row.string("hendelse_id")),
+                dokumentId = UUID.fromString(row.string("dokument_id")),
+                mottattDato = row.localDateTime("mottatt_dato"),
+                registrertDato = row.localDateTime("registrert_dato"),
+                vedtaksperiodeId = row.stringOrNull("vedtaksperiode_id")?.let(UUID::fromString),
+                saksbehandlerIdent = row.stringOrNull("saksbehandler_ident")
+            )
+    }
+}

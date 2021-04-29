@@ -7,25 +7,21 @@ import no.nav.helse.spre.saksbehandlingsstatistikk.YtelseType.SYKEPENGER
 
 data class StatistikkEvent(
     val aktorId: String,
-    val behandlingId: UUID?, // SøknadDokumentId
-
+    val behandlingId: UUID?,
     val tekniskTid: LocalDateTime = LocalDateTime.now(),
-    val funksjonellTid: LocalDateTime, // Tidspunkt for avslag eller fatting av vedtak eller tilsvarende
+    val funksjonellTid: LocalDateTime,
     val mottattDato: String?,
-    val registrertDato: String?, // Tidspunktet Spleis ble klar over søknaden
-
+    val registrertDato: String?,
     val behandlingType: BehandlingType?,
     val behandlingStatus: BehandlingStatus,
-
     val ytelseType: YtelseType = SYKEPENGER,
     val utenlandstilsnitt: Utenlandstilsnitt = Utenlandstilsnitt.NEI,
     val totrinnsbehandling: Totrinnsbehandling = Totrinnsbehandling.NEI,
-    val ansvarligEnhetKode: String = "4488",
-    val ansvarligEnhetType: String = "NORG",
-
+    val ansvarligEnhetKode: AnsvarligEnhetKode = AnsvarligEnhetKode.FIREFIREÅTTEÅTTE,
+    val ansvarligEnhetType: AnsvarligEnhetType = AnsvarligEnhetType.NORG,
     val versjon: String = System.getenv()["GIT_SHA"].toString(),
     val avsender: Avsender = SPLEIS,
-    val saksbehandlerIdent: String?, // NAV-ident
+    val saksbehandlerIdent: String?,
 )
 
 enum class Avsender {
@@ -52,4 +48,12 @@ enum class BehandlingType {
 
 enum class YtelseType {
     SYKEPENGER
+}
+
+enum class AnsvarligEnhetKode(kode: Int) {
+    FIREFIREÅTTEÅTTE(4488)
+}
+
+enum class AnsvarligEnhetType {
+    NORG
 }

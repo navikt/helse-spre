@@ -18,7 +18,7 @@ internal class VedtakFattetRiver(
         River(rapidsConnection).apply {
             validate { message ->
                 message.demandValue("@event_name", "vedtak_fattet")
-                message.requireKey("hendelser", "@opprettet", "utbetalingId", "aktørId", "vedtaksperiodeId")
+                message.requireKey("hendelser", "@opprettet", "aktørId", "vedtaksperiodeId")
             }
         }.register(this)
     }
@@ -28,12 +28,11 @@ internal class VedtakFattetRiver(
             opprettet = packet["@opprettet"].asLocalDateTime(),
             aktørId = packet["aktørId"].asText(),
             hendelser = packet["hendelser"].map { it.asUuid() },
-            utbetalingId = packet["utbetalingId"].asUuid(),
             vedtaksperiodeId = packet["vedtaksperiodeId"].asUuid()
         )
 
         spreService.spre(vedtak)
-        log.info("vedtaksperiode_fattet lest inn for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())
+        log.info("vedtak_fattet lest inn for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

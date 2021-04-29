@@ -7,7 +7,6 @@ class VedtakFattetData(
     val opprettet: LocalDateTime,
     val aktørId: String,
     val hendelser: List<UUID>,
-    val utbetalingId: UUID,
     val vedtaksperiodeId: UUID,
 )
 

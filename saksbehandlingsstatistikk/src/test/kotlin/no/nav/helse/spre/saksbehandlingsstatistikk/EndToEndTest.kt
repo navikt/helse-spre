@@ -24,11 +24,10 @@ internal class EndToEndTest {
     private val dataSource = DatabaseHelpers.dataSource
     private val kafkaProducer: KafkaProducer<String, String> = mockk(relaxed = true)
     private val søknadDao = SøknadDao(dataSource)
-    private val koblingDao = KoblingDao(dataSource)
-    private val spreService = SpreService(kafkaProducer, koblingDao, søknadDao)
+    private val spreService = SpreService(kafkaProducer, søknadDao)
 
     init {
-        testRapid.setupRivers(spreService, søknadDao, koblingDao)
+        testRapid.setupRivers(spreService, søknadDao)
     }
 
     @BeforeEach
@@ -43,7 +42,7 @@ internal class EndToEndTest {
 
     @Test
     fun `Spleis reagerer på søknad`() {
-        val søknad = Søknad(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(), "ident")
+        val søknad = Søknad(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now())
 
         testRapid.sendTestMessage(sendtSøknadNavMessage(søknad))
         testRapid.sendTestMessage(vedtakFattetMessage(listOf(søknad.hendelseId)))
@@ -67,8 +66,8 @@ internal class EndToEndTest {
             totrinnsbehandling = Totrinnsbehandling.NEI,
             avsender = SPLEIS,
             saksbehandlerIdent = null,
-            ansvarligEnhetKode = "4488",
-            ansvarligEnhetType = "NORG",
+            ansvarligEnhetKode = AnsvarligEnhetKode.FIREFIREÅTTEÅTTE,
+            ansvarligEnhetType = AnsvarligEnhetType.NORG,
             versjon = sendtTilDVH.versjon
         )
 

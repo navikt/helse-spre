@@ -1,5 +1,6 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
+import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -10,25 +11,31 @@ private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 
 internal class VedtaksperiodeEndretRiver(
     rapidsConnection: RapidsConnection,
-    private val spreService: SpreService
+    private val søknadDao: SøknadDao
 ) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
             validate { message ->
                 message.demandValue("@event_name", "vedtaksperiode_endret")
-                message.requireKey("hendelser", "@opprettet", "vedtaksperiodeId", "aktørId")
+                message.requireValue("gjeldendeTilstand", "AVVENTER_GODKJENNING")
+                message.requireKey("hendelser", "vedtaksperiodeId")
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = VedtaksperiodeEndretData(
-            opprettet = packet["@opprettet"].asLocalDateTime(),
             hendelser = packet["hendelser"].map { UUID.fromString(it.asText()) },
-            aktørId = packet["aktørId"].asText(),
+            vedtaksperiodeId = packet["vedtaksperiodeId"].asUuid(),
         )
+        val søknad = søknadDao.finnSøknad(vedtak.hendelser)
 
+        if (søknad == null) {
+            log.info("Kunne ikke finne søknad for hendelser ${vedtak.hendelser}")
+            return
+        }
+        søknadDao.upsertSøknad(søknad.vedtaksperiodeId(vedtak.vedtaksperiodeId))
         log.info("vedtaksperiode_endret lest inn for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())
     }
 
@@ -40,4 +47,6 @@ internal class VedtaksperiodeEndretRiver(
         if (!error.problems.toExtendedReport().contains("Demanded @event_name is not string"))
             tjenestekall.info("Noe gikk galt: {}", error.problems.toExtendedReport())
     }
+
+    private fun JsonNode.asUuid(): UUID = UUID.fromString(asText())
 }
