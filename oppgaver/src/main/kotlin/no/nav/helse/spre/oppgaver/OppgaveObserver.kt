@@ -25,7 +25,7 @@ class OppgaveObserver(
                     dokumentType = oppgave.dokumentType.toDTO(),
                     oppdateringstype = oppgave.tilstand.toDTO(),
                     dokumentId = oppgave.dokumentId,
-                    timeout = LocalDateTime.now().plusDays(50)
+                    timeout = LocalDateTime.now().plusDays(110)
                 )
             )
         )
