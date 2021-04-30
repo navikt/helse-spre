@@ -6,7 +6,7 @@ import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
-class DatabaseHelpers {
+class TestUtil {
     companion object {
         val dataSource: DataSource = dataSource()
         private fun dataSource(): DataSource {
@@ -29,4 +29,10 @@ class DatabaseHelpers {
         }
     }
 
+    class LokalUtgiver : Utgiver {
+        val meldinger : MutableList<StatistikkEvent> = mutableListOf()
+        override fun publiserStatistikk(statistikkEvent: StatistikkEvent) {
+            meldinger.add(statistikkEvent)
+        }
+    }
 }

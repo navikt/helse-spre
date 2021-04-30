@@ -21,10 +21,10 @@ import java.util.*
 
 internal class EndToEndTest {
     private val testRapid = TestRapid()
-    private val dataSource = DatabaseHelpers.dataSource
-    private val kafkaProducer: KafkaProducer<String, String> = mockk(relaxed = true)
+    private val dataSource = TestUtil.dataSource
     private val søknadDao = SøknadDao(dataSource)
-    private val spreService = SpreService(KafkaUtgiver(kafkaProducer), søknadDao)
+    private val utgiver = TestUtil.LokalUtgiver()
+    private val spreService = SpreService(utgiver, søknadDao)
 
     init {
         testRapid.setupRivers(spreService, søknadDao)
@@ -47,11 +47,9 @@ internal class EndToEndTest {
         testRapid.sendTestMessage(sendtSøknadNavMessage(søknad))
         testRapid.sendTestMessage(vedtakFattetMessage(listOf(søknad.hendelseId)))
 
-        val capture = CapturingSlot<ProducerRecord<String, String>>()
-        verify { kafkaProducer.send(capture(capture), any()) }
-        val record = capture.captured
+        assert(utgiver.meldinger.size == 1)
 
-        val sendtTilDVH = objectMapper.readValue<StatistikkEvent>(record.value())
+        val sendtTilDVH = utgiver.meldinger[0]
         val expected = StatistikkEvent(
             aktorId = "aktørens id",
             behandlingStatus = AVSLUTTET,
@@ -80,7 +78,7 @@ internal class EndToEndTest {
 
         testRapid.sendTestMessage(vedtaksperiodeEndretMessageUtdatert(listOf(søknad.hendelseId), "TIL_GODKJENNING"))
 
-        verify(exactly = 0) { kafkaProducer.send(any()) }
+        assert(utgiver.meldinger.isEmpty())
     }
 }
 

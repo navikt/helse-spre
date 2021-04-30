@@ -12,7 +12,7 @@ import java.util.*
 
 internal class NyttDokumentRiverTest {
     private val testRapid = TestRapid()
-    private val dataSource = DatabaseHelpers.dataSource
+    private val dataSource = TestUtil.dataSource
     private val søknadDao = SøknadDao(dataSource)
 
     init {

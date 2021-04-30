@@ -12,12 +12,12 @@ import java.util.UUID.randomUUID
 
 internal class DbTest {
     private val testRapid = TestRapid()
-    private val kafkaProducer: KafkaProducer<String, String> = mockk(relaxed = true)
 
-    private val dataSource = DatabaseHelpers.dataSource
+    private val dataSource = TestUtil.dataSource
     private val søknadDao = SøknadDao(dataSource)
+    private val utgiver = TestUtil.LokalUtgiver()
 
-    private val spreService = SpreService(KafkaUtgiver(kafkaProducer), søknadDao)
+    private val spreService = SpreService(utgiver, søknadDao)
 
     init {
         testRapid.setupRivers(spreService, søknadDao)
