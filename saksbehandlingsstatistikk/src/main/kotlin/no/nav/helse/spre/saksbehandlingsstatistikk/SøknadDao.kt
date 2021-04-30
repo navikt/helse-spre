@@ -73,5 +73,7 @@ data class Søknad(
                 vedtaksperiodeId = row.stringOrNull("vedtaksperiode_id")?.let(UUID::fromString),
                 saksbehandlerIdent = row.stringOrNull("saksbehandler_ident")
             )
+        fun fromEvent(it : NyttDokumentData) =
+                Søknad(it.hendelseId, it.søknadId,  it.mottattDato, it.registrertDato)
     }
 }
