@@ -51,7 +51,6 @@ internal fun RapidsConnection.setupRivers(
 ) {
     NyttDokumentRiver(this, søknadDao)
     VedtaksperiodeEndretRiver(this, søknadDao)
-    UtbetalingUtbetaltRiver(this)
     VedtakFattetRiver(this, spreService)
     VedtaksperiodeGodkjentRiver(this, søknadDao)
 }
