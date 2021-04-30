@@ -1,12 +1,7 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
 import com.fasterxml.jackson.databind.JsonNode
-import java.util.*
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.asLocalDateTime
+import no.nav.helse.rapids_rivers.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -30,17 +25,13 @@ internal class NyttDokumentRiver(
 
         when (packet["@event_name"].textValue()) {
             "sendt_søknad_nav", "sendt_søknad_arbeidsgiver" -> {
-
-                val søknadEvent = NyttDokumentData(
-                    hendelseId = UUID.fromString(packet["@id"].textValue()),
-                    søknadId = UUID.fromString(packet["id"].textValue()),
-                    mottattDato = packet["sendtNav"].asLocalDateTime(),
-                    registrertDato = packet["rapportertDato"].asLocalDateTime(),
-                )
-                søknadDao.upsertSøknad(Søknad.fromEvent(søknadEvent))
-                log.info("Søknad med id ${søknadEvent.søknadId} og hendelseId ${søknadEvent.hendelseId} lagret")
+                val nyttDokument = NyttDokumentData.fromJson(packet)
+                søknadDao.upsertSøknad(nyttDokument.asSøknad)
+                log.info("Søknad med id ${nyttDokument.søknadId} og hendelseId ${nyttDokument.hendelseId} lagret")
             }
             else -> throw IllegalStateException("Ukjent event (etter whitelist :mind_blown:)")
         }
     }
+
+
 }

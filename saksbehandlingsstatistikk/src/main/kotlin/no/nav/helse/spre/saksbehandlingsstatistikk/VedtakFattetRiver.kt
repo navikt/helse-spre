@@ -1,10 +1,8 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
-import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
 
 private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
@@ -24,15 +22,9 @@ internal class VedtakFattetRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val vedtak = VedtakFattetData(
-            opprettet = packet["@opprettet"].asLocalDateTime(),
-            aktørId = packet["aktørId"].asText(),
-            hendelser = packet["hendelser"].map { it.asUuid() },
-            vedtaksperiodeId = packet["vedtaksperiodeId"].asUuid()
-        )
-
+        val vedtak = VedtakFattetData.fromJson(packet)
         spreService.spre(vedtak)
-        log.info("vedtak_fattet lest inn for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())
+        log.info("vedtak_fattet lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
@@ -43,6 +35,4 @@ internal class VedtakFattetRiver(
         if (!error.problems.toExtendedReport().contains("Demanded @event_name is not string"))
             tjenestekall.info("Noe gikk galt: {}", error.problems.toExtendedReport())
     }
-
-    private fun JsonNode.asUuid(): UUID = UUID.fromString(asText())
 }

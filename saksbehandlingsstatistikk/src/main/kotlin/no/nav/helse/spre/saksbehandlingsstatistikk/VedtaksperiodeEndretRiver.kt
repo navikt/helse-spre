@@ -1,10 +1,8 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
-import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
 
 private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
@@ -25,10 +23,7 @@ internal class VedtaksperiodeEndretRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val vedtak = VedtaksperiodeEndretData(
-            hendelser = packet["hendelser"].map { UUID.fromString(it.asText()) },
-            vedtaksperiodeId = packet["vedtaksperiodeId"].asUuid(),
-        )
+        val vedtak = VedtaksperiodeEndretData.fromJson(packet)
         val søknad = søknadDao.finnSøknad(vedtak.hendelser)
 
         if (søknad == null) {
@@ -36,7 +31,7 @@ internal class VedtaksperiodeEndretRiver(
             return
         }
         søknadDao.upsertSøknad(søknad.vedtaksperiodeId(vedtak.vedtaksperiodeId))
-        log.info("vedtaksperiode_endret lest inn for vedtaksperiode med id {}", packet["vedtaksperiodeId"].asText())
+        log.info("vedtaksperiode_endret lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
@@ -47,6 +42,4 @@ internal class VedtaksperiodeEndretRiver(
         if (!error.problems.toExtendedReport().contains("Demanded @event_name is not string"))
             tjenestekall.info("Noe gikk galt: {}", error.problems.toExtendedReport())
     }
-
-    private fun JsonNode.asUuid(): UUID = UUID.fromString(asText())
 }

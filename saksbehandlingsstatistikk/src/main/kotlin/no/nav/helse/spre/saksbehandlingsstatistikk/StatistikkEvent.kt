@@ -1,9 +1,9 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
-import java.time.LocalDateTime
-import java.util.*
 import no.nav.helse.spre.saksbehandlingsstatistikk.Avsender.SPLEIS
 import no.nav.helse.spre.saksbehandlingsstatistikk.YtelseType.SYKEPENGER
+import java.time.LocalDateTime
+import java.util.*
 
 data class StatistikkEvent(
     val aktorId: String,
@@ -22,7 +22,20 @@ data class StatistikkEvent(
     val versjon: String = System.getenv()["GIT_SHA"].toString(),
     val avsender: Avsender = SPLEIS,
     val saksbehandlerIdent: String?,
-)
+) {
+    companion object {
+        fun toStatistikkEvent(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
+            aktorId = vedtakFattetData.aktørId,
+            behandlingStatus = BehandlingStatus.AVSLUTTET,
+            behandlingId = søknad.dokumentId,
+            behandlingType = BehandlingType.SØKNAD,
+            funksjonellTid = vedtakFattetData.opprettet,
+            mottattDato = søknad.mottattDato.toString(),
+            registrertDato = søknad.registrertDato.toString(),
+            saksbehandlerIdent = søknad.saksbehandlerIdent
+        )
+    }
+}
 
 enum class Avsender {
     SPLEIS
@@ -50,8 +63,10 @@ enum class YtelseType {
     SYKEPENGER
 }
 
-enum class AnsvarligEnhetKode(kode: Int) {
-    FIREFIREÅTTEÅTTE(4488)
+enum class AnsvarligEnhetKode(private val kode: Int) {
+    FIREFIREÅTTEÅTTE(4488);
+
+    override fun toString() = kode.toString()
 }
 
 enum class AnsvarligEnhetType {
