@@ -34,7 +34,8 @@ fun launchApplication(env: Environment) {
         KafkaProducer<String, String>(
             loadBaseConfig(env.raw).toProducerConfig()
         )
-    val spreService = SpreService(producer, søknadDao)
+    val annonsør= KafkaUtgiver(producer)
+    val spreService = SpreService(annonsør, søknadDao)
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env.raw))
         .build()

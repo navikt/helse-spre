@@ -17,7 +17,7 @@ internal class DbTest {
     private val dataSource = DatabaseHelpers.dataSource
     private val søknadDao = SøknadDao(dataSource)
 
-    private val spreService = SpreService(kafkaProducer, søknadDao)
+    private val spreService = SpreService(KafkaUtgiver(kafkaProducer), søknadDao)
 
     init {
         testRapid.setupRivers(spreService, søknadDao)
