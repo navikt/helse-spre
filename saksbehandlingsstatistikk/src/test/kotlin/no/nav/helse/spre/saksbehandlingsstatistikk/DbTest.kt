@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 import java.util.*
 import java.util.UUID.randomUUID
 
-internal class SpreStatistikkE2ETest {
+internal class DbTest {
     private val testRapid = TestRapid()
     private val kafkaProducer: KafkaProducer<String, String> = mockk(relaxed = true)
 
@@ -29,7 +29,7 @@ internal class SpreStatistikkE2ETest {
     }
 
     @Test
-    fun `lagrer ider til basen`() {
+    fun `lagrer saksbehandlingsløp for søknad`() {
         val søknadHendelseId = randomUUID()
         val vedtaksperiodeId = randomUUID()
         val saksbehandlerIdent = "AA10000"
