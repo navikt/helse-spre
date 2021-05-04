@@ -2,10 +2,12 @@ package no.nav.helse.spre.gosys.feriepenger
 
 import io.mockk.*
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.spre.gosys.*
+import no.nav.helse.spre.gosys.DuplikatsjekkDao
+import no.nav.helse.spre.gosys.JoarkClient
+import no.nav.helse.spre.gosys.PdfClient
+import no.nav.helse.spre.gosys.setupDataSourceMedFlyway
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -41,7 +43,6 @@ internal class FeriepengerRiverTest {
         coVerify(exactly = 1) { joarkClient.opprettJournalpost(any(), any()) }
     }
 
-    @Disabled
     @Test
     fun `oversetter behov med kun arbeidsgiverlinjer til riktig pdf-format`() {
         val utbetalt = LocalDate.of(2021, 5, 31).atTime(13, 37)
@@ -66,14 +67,13 @@ internal class FeriepengerRiverTest {
         )
     }
 
-    @Disabled
     @Test
     fun `oversetter behov med både arbeidsgiver- og personlinjer til riktig pdf-format`() {
         val utbetalt = LocalDate.of(2021, 5, 31).atTime(13, 37)
         val capturedPdfPayload = slot<FeriepengerPdfPayload>()
         coEvery { pdfClient.hentFeriepengerPdf(capture(capturedPdfPayload)) } returns "PDF‽‽‽"
 
-        testRapid.sendTestMessage(feriepenger(utbetalt))
+        testRapid.sendTestMessage(feriepengerArbeidsgiverOgPerson(utbetalt))
         assertEquals(
             FeriepengerPdfPayload(
                 tittel = "Feriepenger utbetalt for sykepenger",
@@ -170,8 +170,8 @@ internal class FeriepengerRiverTest {
         ],
         "fagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
         "tidsstempel": "$utbetalt",
-        "fom": "-999999999-01-01",
-        "tom": "-999999999-01-01"
+        "fom": "2021-05-01",
+        "tom": "2021-05-31"
       },
       "@event_name": "utbetaling_endret",
       "@id": "${UUID.randomUUID()}",

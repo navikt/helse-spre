@@ -18,11 +18,13 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
-import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
-import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
+import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
+import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
+import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
+import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage
 import no.nav.helse.spre.gosys.vedtak.VedtakRiver
@@ -60,11 +62,13 @@ fun launchApplication(
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
     val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
     val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
+    val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient, duplikatsjekkDao)
 
     return RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(environment)).build()
         .apply {
             VedtakRiver(this, vedtakMediator)
             AnnulleringRiver(this, annulleringMediator)
+            FeriepengerRiver(this, feriepengerMediator)
         }
 }
 

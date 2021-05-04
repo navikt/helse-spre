@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 data class FeriepengerPdfPayload(
     val tittel: String,
     val oppdrag: List<Oppdrag>,
-    val utbetalt: LocalDateTime? // TODO: Ikke optional
+    val utbetalt: LocalDateTime
 )
 
 data class Oppdrag(
@@ -21,20 +21,3 @@ enum class OppdragType {
     ARBEIDSGIVER,
     PERSON
 }
-
-/*
-Feks utbetalingsnotat i Gosys
-
-Tittel: "Feriepenger utbetalt"
-
-Beløp:
-
-Mottaker:
-
-dato:
-
-(Periode: )
-
-(kanskje støtte personbeløp og mtp neste år)
-
- */

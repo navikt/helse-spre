@@ -2,7 +2,7 @@ package no.nav.helse.spre.gosys.feriepenger
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.*
-import no.nav.helse.spre.gosys.log
+import java.time.format.DateTimeFormatter
 
 class FeriepengerMediator(
     private val pdfClient: PdfClient,
@@ -12,21 +12,30 @@ class FeriepengerMediator(
     fun opprettFeriepenger(feriepenger: FeriepengerMessage) {
         duplikatsjekkDao.sjekkDuplikat(feriepenger.hendelseId) {
             runBlocking {
-                val pdf = pdfClient.hentFeriepengerPdf(FeriepengerPdfPayload("Feriepenger utbetalt for sykepenger", emptyList(), null))
+                val pdf = pdfClient.hentFeriepengerPdf(FeriepengerPdfPayload(
+                    tittel = "Feriepenger utbetalt for sykepenger",
+                    oppdrag = feriepenger.oppdrag,
+                    utbetalt = feriepenger.utbetalt
+                ))
+
+                val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+                val fom = feriepenger.oppdrag.map { it.fom }.minOrNull()!!
+                val tom = feriepenger.oppdrag.map { it.tom }.maxOrNull()!!
+
                 val journalpostPayload = JournalpostPayload(
                     tittel = "Feriepenger utbetalt for sykepenger",
                     bruker = JournalpostPayload.Bruker(id = feriepenger.fødselsnummer),
                     dokumenter = listOf(
                         JournalpostPayload.Dokument(
-                            tittel = "Utbetaling annullert i ny løsning ${feriepenger.norskFom} - ${feriepenger.norskTom}",
+                            tittel = "Utbetaling av feriepenger i ny løsning ${fom.format(formatter)} - ${tom.format(formatter)}",
                             dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdf))
                         )
                     )
                 )
                 if (joarkClient.opprettJournalpost(feriepenger.hendelseId, journalpostPayload)) {
-                    log.info("Annullering journalført for aktør: ${feriepenger.aktørId}")
+                    log.info("Feriepenger journalført for aktør: ${feriepenger.aktørId}")
                 } else {
-                    log.warn("Feil oppstod under journalføring av annullering")
+                    log.warn("Feil oppstod under journalføring av feriepenger")
                 }
             }
         }

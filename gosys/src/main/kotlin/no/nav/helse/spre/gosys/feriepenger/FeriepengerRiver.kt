@@ -24,7 +24,14 @@ class FeriepengerRiver(
                     "organisasjonsnummer",
                     "arbeidsgiverOppdrag.fagsystemId",
                 )
+                it.requireKey("arbeidsgiverOppdrag")
                 it.requireArray("arbeidsgiverOppdrag.linjer") {
+                    require("fom", JsonNode::asLocalDate)
+                    require("tom", JsonNode::asLocalDate)
+                    requireKey("totalbeløp")
+                }
+                it.requireKey("personOppdrag")
+                it.requireArray("personOppdrag.linjer") {
                     require("fom", JsonNode::asLocalDate)
                     require("tom", JsonNode::asLocalDate)
                     requireKey("totalbeløp")
@@ -34,11 +41,11 @@ class FeriepengerRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        log.info("Oppdaget annullering-event {}", StructuredArguments.keyValue("id", packet["@id"].asText()))
+        log.info("Oppdaget feriepenger-event {}", StructuredArguments.keyValue("id", packet["@id"].asText()))
         sikkerLogg.info(packet.toJson())
 
-        val annulleringMessage = FeriepengerMessage(packet)
-        feriepengerMediator.opprettFeriepenger(annulleringMessage)
+        val feriepengerMessage = FeriepengerMessage(packet)
+        feriepengerMediator.opprettFeriepenger(feriepengerMessage)
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
