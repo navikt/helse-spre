@@ -22,4 +22,18 @@ class DuplikatsjekkDao(private val datasource: DataSource) {
             }
         }
     }
+
+    fun insertAlleredeProdusertVedtak(hendelseId: String) {
+        sessionOf(datasource).use {
+            @Language("PostgreSQL")
+            val query = "INSERT INTO duplikatsjekk (id) VALUES (?) ON CONFLICT DO NOTHING;"
+            it.run(
+                queryOf(
+                    query,
+                    hendelseId
+                ).asUpdate
+            )
+
+        }
+    }
 }

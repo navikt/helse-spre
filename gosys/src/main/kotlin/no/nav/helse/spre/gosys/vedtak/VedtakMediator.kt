@@ -8,7 +8,7 @@ class VedtakMediator(
     private val pdfClient: PdfClient,
     private val joarkClient: JoarkClient,
     private val duplikatsjekkDao: DuplikatsjekkDao
-){
+) {
     internal fun opprettVedtak(vedtakMessage: VedtakMessage) {
         duplikatsjekkDao.sjekkDuplikat(vedtakMessage.hendelseId) {
             runBlocking {
