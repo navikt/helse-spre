@@ -6,6 +6,8 @@ import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.objectMapper
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.TopicPartition
+import java.time.Instant
+import java.time.ZoneId
 
 class VedtakConsumer(
     val consumer: KafkaConsumer<String, String>,
@@ -37,7 +39,7 @@ class VedtakConsumer(
                     .filter { record -> objectMapper.readTree(record.value())["@event_name"].asText() == "utbetalt" }
                     .onEach { count++ }
                     .forEach { record ->
-                        val timestamp = LocalDate.ofEpochDay(record.timestamp())
+                        val timestamp = LocalDate.ofInstant(Instant.ofEpochMilli(record.timestamp()), ZoneId.systemDefault())
                         val aktørId = objectMapper.readTree(record.value())["aktørId"].asText()
                         val hendelseId = objectMapper.readTree(record.value())["@id"].asText()
                         val datoer = produserteVedtak[aktørId]
