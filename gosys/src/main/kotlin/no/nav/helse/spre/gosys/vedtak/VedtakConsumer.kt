@@ -8,6 +8,8 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import kotlin.math.absoluteValue
 
 class VedtakConsumer(
     val consumer: KafkaConsumer<String, String>,
@@ -39,7 +41,8 @@ class VedtakConsumer(
                     .filter { record -> objectMapper.readTree(record.value())["@event_name"].asText() == "utbetalt" }
                     .onEach { count++ }
                     .forEach { record ->
-                        val timestamp = LocalDate.ofInstant(Instant.ofEpochMilli(record.timestamp()), ZoneId.systemDefault())
+                        val timestamp =
+                            LocalDate.ofInstant(Instant.ofEpochMilli(record.timestamp()), ZoneId.systemDefault())
                         val aktørId = objectMapper.readTree(record.value())["aktørId"].asText()
                         val hendelseId = objectMapper.readTree(record.value())["@id"].asText()
                         val datoer = produserteVedtak[aktørId]
@@ -49,7 +52,7 @@ class VedtakConsumer(
                             ingenBehandlingTeller++
                         } else {
                             if (datoer.any { dato ->
-                                    Duration.between(LocalDate.parse(dato), timestamp).toDays() < 2
+                                    ChronoUnit.DAYS.between(LocalDate.parse(dato), timestamp).absoluteValue < 2
                                 }) {
 //                                duplikatsjekkDao.insertAlleredeProdusertVedtak(hendelseId)
                                 alleredeProdusertTeller++
@@ -69,7 +72,7 @@ class VedtakConsumer(
 
     private fun lesProduserteVedtak(): MutableMap<String, List<String>> {
         val noe = mutableMapOf<String, List<String>>()
-        this::class.java.getResourceAsStream("/vedtak_produsert.txt")
+        this::class.java.getResourceAsStream("/vedtak_produsert.txt")!!
             .bufferedReader(Charsets.UTF_8)
             .readLines()
             .map {
