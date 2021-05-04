@@ -89,7 +89,8 @@ fun startRyddejobbConsumer(env: Map<String, String>) {
         put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
         put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, env.getValue("KAFKA_KEYSTORE_PATH"))
         put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
-        put(ConsumerConfig.GROUP_ID_CONFIG, "spre-gosys")
+        put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        put(ConsumerConfig.GROUP_ID_CONFIG, "spre-gosys-laste-v1")
         put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
     }
     VedtakConsumer(KafkaConsumer(kafkaConfig, StringDeserializer(), StringDeserializer())).consume()
