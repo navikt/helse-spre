@@ -6,7 +6,9 @@ import java.time.LocalDateTime
 data class FeriepengerPdfPayload(
     val tittel: String,
     val oppdrag: List<Oppdrag>,
-    val utbetalt: LocalDateTime
+    val utbetalt: LocalDateTime,
+    val orgnummer: String,
+    val fødselsnummer: String
 )
 
 data class Oppdrag(
@@ -14,7 +16,8 @@ data class Oppdrag(
     val fom: LocalDate,
     val tom: LocalDate,
     val mottaker: String,
-    val totalbeløp: Int
+    val totalbeløp: Int,
+    val fagsystemId: String
 )
 
 enum class OppdragType {

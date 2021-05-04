@@ -15,7 +15,9 @@ class FeriepengerMediator(
                 val pdf = pdfClient.hentFeriepengerPdf(FeriepengerPdfPayload(
                     tittel = "Feriepenger utbetalt for sykepenger",
                     oppdrag = feriepenger.oppdrag,
-                    utbetalt = feriepenger.utbetalt
+                    utbetalt = feriepenger.utbetalt,
+                    orgnummer = feriepenger.orgnummer,
+                    fødselsnummer = feriepenger.fødselsnummer
                 ))
 
                 val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")

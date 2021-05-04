@@ -12,6 +12,7 @@ class FeriepengerMessage(packet: JsonMessage) {
     val fødselsnummer = packet["fødselsnummer"].asText()
     val aktørId = packet["aktørId"].asText()
     val oppdrag = mutableListOf<Oppdrag>()
+    val orgnummer: String = packet["organisasjonsnummer"].asText()
     lateinit var utbetalt: LocalDateTime
 
     init {
@@ -32,6 +33,7 @@ class FeriepengerMessage(packet: JsonMessage) {
         fom = oppdragPacket["fom"].asLocalDate(),
         tom = oppdragPacket["tom"].asLocalDate(),
         mottaker = oppdragPacket["mottaker"].asText(),
-        totalbeløp = oppdragPacket["linjer"].sumBy { it["totalbeløp"].asInt() }
+        totalbeløp = oppdragPacket["linjer"].sumBy { it["totalbeløp"].asInt() },
+        fagsystemId = oppdragPacket["fagsystemId"].asText()
     )
 }

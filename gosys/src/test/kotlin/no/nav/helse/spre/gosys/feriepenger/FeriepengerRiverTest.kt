@@ -59,10 +59,14 @@ internal class FeriepengerRiverTest {
                         fom = LocalDate.of(2021, 5, 1),
                         tom = LocalDate.of(2021, 5, 31),
                         totalbeløp = 1000,
-                        mottaker = "123456789"
+                        mottaker = "123456789",
+                        fagsystemId ="88ABRH3QENHB5K4XUY4LQ7HRTY"
                     )
                 ),
-                utbetalt = utbetalt
+                utbetalt = utbetalt,
+                orgnummer = "123456789",
+                fødselsnummer = "20046912345",
+
             ), capturedPdfPayload.captured
         )
     }
@@ -83,17 +87,22 @@ internal class FeriepengerRiverTest {
                         fom = LocalDate.of(2021, 5, 1),
                         tom = LocalDate.of(2021, 5, 31),
                         totalbeløp = 1000,
-                        mottaker = "123456789"
+                        mottaker = "123456789",
+                        fagsystemId ="88ABRH3QENHB5K4XUY4LQ7HRTY"
                     ),
                     Oppdrag(
                         type = OppdragType.PERSON,
                         fom = LocalDate.of(2021, 5, 1),
                         tom = LocalDate.of(2021, 5, 31),
                         totalbeløp = 420,
-                        mottaker = "20046912345"
+                        mottaker = "20046912345",
+                        fagsystemId ="77ATRH3QENHB5K4XUY4LQ7HRTY"
+
                     )
                 ),
-                utbetalt = utbetalt
+                utbetalt = utbetalt,
+                orgnummer = "123456789",
+                fødselsnummer = "20046912345"
             ), capturedPdfPayload.captured
         )
     }
@@ -115,7 +124,7 @@ internal class FeriepengerRiverTest {
             "totalbeløp": 1000
           }
         ],
-        "fagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
+        "fagsystemId": "88ABRH3QENHB5K4XUY4LQ7HRTY",
         "tidsstempel": "$utbetalt",
         "fom": "2021-05-01",
         "tom": "2021-05-31"
@@ -154,7 +163,7 @@ internal class FeriepengerRiverTest {
             "totalbeløp": 1000
           }
         ],
-        "fagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
+        "fagsystemId": "88ABRH3QENHB5K4XUY4LQ7HRTY",
         "tidsstempel": "$utbetalt",
         "fom": "2021-05-01",
         "tom": "2021-05-31"
