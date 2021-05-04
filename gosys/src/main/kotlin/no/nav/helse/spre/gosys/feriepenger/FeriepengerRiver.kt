@@ -40,4 +40,9 @@ class FeriepengerRiver(
         val annulleringMessage = FeriepengerMessage(packet)
         feriepengerMediator.opprettFeriepenger(annulleringMessage)
     }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        log.error(problems.toString())
+        sikkerLogg.error(problems.toExtendedReport())
+    }
 }
