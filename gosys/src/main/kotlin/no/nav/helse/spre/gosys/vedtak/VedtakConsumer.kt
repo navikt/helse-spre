@@ -1,12 +1,12 @@
 package no.nav.helse.spre.gosys.vedtak
 
-import java.time.Duration
-import java.time.LocalDate
 import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.objectMapper
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.TopicPartition
+import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 
 class VedtakConsumer(
@@ -69,7 +69,7 @@ class VedtakConsumer(
 
     private fun lesProduserteVedtak(): MutableMap<String, List<String>> {
         val noe = mutableMapOf<String, List<String>>()
-        this::class.java.getResourceAsStream("./vedtak_produsert.txt")
+        this::class.java.getResourceAsStream("/vedtak_produsert.txt")
             .bufferedReader(Charsets.UTF_8)
             .readLines()
             .map {
