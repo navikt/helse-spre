@@ -1,9 +1,6 @@
 package no.nav.helse.spre.stonadsstatistikk
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import io.mockk.CapturingSlot
 import io.mockk.mockk
 import io.mockk.verify
@@ -11,6 +8,7 @@ import kotliquery.Row
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helse.spre.stonadsstatistikk.DatabaseHelpers.Companion.dataSource
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.flywaydb.core.Flyway
@@ -23,7 +21,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 import java.util.*
-import javax.sql.DataSource
 import kotlin.streams.asSequence
 
 private const val FNR = "12020052345"
@@ -31,7 +28,6 @@ private const val ORGNUMMER = "987654321"
 
 internal class EndToEndTest {
     private val testRapid = TestRapid()
-    private val dataSource = testDataSource()
     private val dokumentDao = DokumentDao(dataSource)
     private val utbetaltDao = UtbetaltDao(dataSource)
     private val annulleringDao = AnnulleringDao(dataSource)
@@ -297,26 +293,6 @@ internal class EndToEndTest {
             if (tilOgMed.dayOfWeek in listOf(DayOfWeek.FRIDAY, DayOfWeek.SATURDAY)) tilOgMed.with(TemporalAdjusters.next(DayOfWeek.MONDAY))
             else tilOgMed.plusDays(1)
         }
-}
-
-fun testDataSource(): DataSource {
-    val embeddedPostgres = EmbeddedPostgres.builder().setPort(56789).start()
-    val hikariConfig = HikariConfig().apply {
-        this.jdbcUrl = embeddedPostgres.getJdbcUrl("postgres", "postgres")
-        maximumPoolSize = 3
-        minimumIdle = 1
-        idleTimeout = 10001
-        connectionTimeout = 1000
-        maxLifetime = 30001
-    }
-    return HikariDataSource(hikariConfig)
-        .apply {
-            Flyway
-                .configure()
-                .dataSource(this)
-                .load().also { it.migrate() }
-        }
-
 }
 
 fun sendtSøknadMessage(sykmelding: Hendelse, søknad: Hendelse) =

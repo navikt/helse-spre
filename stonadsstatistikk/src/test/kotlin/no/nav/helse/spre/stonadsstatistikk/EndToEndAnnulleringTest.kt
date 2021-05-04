@@ -7,6 +7,7 @@ import io.mockk.verify
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helse.spre.stonadsstatistikk.DatabaseHelpers.Companion.dataSource
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.flywaydb.core.Flyway
@@ -19,7 +20,6 @@ import java.util.*
 
 internal class EndToEndAnnulleringTest {
     private val testRapid = TestRapid()
-    private val dataSource = testDataSource()
     private val dokumentDao = mockk<DokumentDao>()
     private val utbetaltDao = mockk<UtbetaltDao>()
     private val annulleringDao = AnnulleringDao(dataSource)
