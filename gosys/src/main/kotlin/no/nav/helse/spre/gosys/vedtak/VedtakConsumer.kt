@@ -1,9 +1,11 @@
 package no.nav.helse.spre.gosys.vedtak
 
-import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.objectMapper
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.TopicPartition
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.lang.System.currentTimeMillis
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -11,8 +13,10 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.math.absoluteValue
 
+internal val logger: Logger = LoggerFactory.getLogger("re-lesing")
+
 class VedtakConsumer(
-    val consumer: KafkaConsumer<String, String>,
+    private val consumer: KafkaConsumer<String, String>,
 //    private val vedtakMediator: VedtakMediator,
 //    private val duplikatsjekkDao: DuplikatsjekkDao
 ) {
@@ -27,9 +31,9 @@ class VedtakConsumer(
         var alleredeProdusertTeller = 0
         var ingenBehandlingSammeTidsromTeller = 0
         var finished = false
-        val startMillis = System.currentTimeMillis()
+        val startMillis = currentTimeMillis()
 
-        Thread.setDefaultUncaughtExceptionHandler { _, throwable -> log.error(throwable.message, throwable) }
+        Thread.setDefaultUncaughtExceptionHandler { _, throwable -> logger.error(throwable.message, throwable) }
         while (!finished) {
             consumer.poll(Duration.ofMillis(5000)).let { records ->
                 if (records.isEmpty || records.all { record ->
@@ -66,8 +70,8 @@ class VedtakConsumer(
         }
         consumer.unsubscribe()
         consumer.close()
-        log.info("Prosessert $count events på ${(System.currentTimeMillis() - startMillis) / 1000} sekunder")
-        log.info("Tellere: ingen behandling: $ingenBehandlingTeller, allerede produsert: $alleredeProdusertTeller, inegen behandling i samme tidsrom: $ingenBehandlingSammeTidsromTeller")
+        logger.info("Prosessert $count events på ${forbruktTid(startMillis)}")
+        logger.info("Tellere: ingen behandling: $ingenBehandlingTeller, allerede produsert: $alleredeProdusertTeller, ingen behandling i samme tidsrom: $ingenBehandlingSammeTidsromTeller")
     }
 
     private fun lesProduserteVedtak(): MutableMap<String, List<String>> {
@@ -76,17 +80,17 @@ class VedtakConsumer(
             .bufferedReader(Charsets.UTF_8)
             .readLines()
             .map {
-                it.split(",").let {
-                    val dato = it[0]
-                    val aktørId = it[1]
-                    noe.merge(
-                        aktørId,
-                        listOf(dato)
-                    ) { eksisterende, neste -> eksisterende + neste }
+                it.split(",").let { (dato, aktørId) ->
+                    noe.merge(aktørId, listOf(dato)) { eksisterende, neste -> eksisterende + neste }
                 }
             }
         return noe
     }
+
+    private fun forbruktTid(startMillis: Long) =
+        Duration.ofMillis(currentTimeMillis() - startMillis).run {
+            "${toHours()}t${toMinutesPart()}m${toSecondsPart()}s"
+        }
 }
 
 
