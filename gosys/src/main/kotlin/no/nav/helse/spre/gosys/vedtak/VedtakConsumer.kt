@@ -2,6 +2,7 @@ package no.nav.helse.spre.gosys.vedtak
 
 import no.nav.helse.spre.gosys.objectMapper
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.common.PartitionInfo
 import org.apache.kafka.common.TopicPartition
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,11 +21,14 @@ class VedtakConsumer(
 //    private val vedtakMediator: VedtakMediator,
 //    private val duplikatsjekkDao: DuplikatsjekkDao
 ) {
-    val produserteVedtak by lazy { lesProduserteVedtak() }
-    val topicPartition = TopicPartition("tbd.rapid.v1", 0)
+    private val produserteVedtak by lazy { lesProduserteVedtak() }
+    private val topicName = "tbd.rapid.v1"
 
     fun consume() {
-        consumer.assign(listOf(topicPartition))
+        val topicPartitions: List<TopicPartition> = consumer.partitionsFor(topicName)
+            .map { info: PartitionInfo -> TopicPartition(topicName, info.partition()) }
+        consumer.assign(topicPartitions)
+        consumer.seekToBeginning(topicPartitions)
 
         var count = 0
         var ingenBehandlingTeller = 0
