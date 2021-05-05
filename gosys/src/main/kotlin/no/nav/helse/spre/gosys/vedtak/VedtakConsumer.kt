@@ -7,10 +7,7 @@ import org.apache.kafka.common.TopicPartition
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.System.currentTimeMillis
-import java.time.Duration
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
+import java.time.*
 import java.time.temporal.ChronoUnit
 import kotlin.math.absoluteValue
 
@@ -36,37 +33,36 @@ class VedtakConsumer(
         var ingenBehandlingSammeTidsromTeller = 0
         var finished = false
         val startMillis = currentTimeMillis()
+        val sluttidspunktMillis = LocalDate.of(2021, 3, 30).toEpochSecond(LocalTime.MIDNIGHT, ZoneOffset.UTC) * 1000
 
         Thread.setDefaultUncaughtExceptionHandler { _, throwable -> logger.error(throwable.message, throwable) }
         while (!finished) {
             consumer.poll(Duration.ofMillis(5000)).let { records ->
-                if (records.isEmpty || records.any { record ->
-                        record.timestamp().toLocalDate() > LocalDate.of(2021, 3, 29)
-                    }) {
+                if (records.isEmpty || records.any { record -> record.timestamp() > sluttidspunktMillis }) {
                     finished = true
                 }
                 records
-                    .filter { record -> objectMapper.readTree(record.value())["@event_name"].asText() == "utbetalt" }
+                    .map { record -> objectMapper.readTree(record.value()) to record.timestamp() }
+                    .filter { (event, _) -> event["@event_name"].asText() == "utbetalt" }
                     .onEach {
                         if (count++ % 100 == (Math.random() * 100).toInt()) logger.info("Har prosessert $count events")
                     }
-                    .forEach { record ->
-                        val timestamp = record.timestamp().toLocalDate()
-                        val aktørId = objectMapper.readTree(record.value())["aktørId"].asText()
-                        val hendelseId = objectMapper.readTree(record.value())["@id"].asText()
+                    .forEach { (event, timestamp) ->
+                        val aktørId = event["aktørId"].asText()
+                        val hendelseId = event["@id"].asText()
                         val datoer = produserteVedtak[aktørId]
 
                         if (datoer == null) {
-//                            vedtakMediator.opprettVedtak(VedtakMessage(record))
+//                            vedtakMediator.opprettVedtak(VedtakMessage(event))
                             ingenBehandlingTeller++
                         } else {
                             if (datoer.any { dato ->
-                                    ChronoUnit.DAYS.between(LocalDate.parse(dato), timestamp).absoluteValue < 2
+                                    ChronoUnit.DAYS.between(LocalDate.parse(dato), timestamp.toLocalDate()).absoluteValue < 2
                                 }) {
 //                                duplikatsjekkDao.insertAlleredeProdusertVedtak(hendelseId)
                                 alleredeProdusertTeller++
                             } else {
-//                                vedtakMediator.opprettVedtak(VedtakMessage(record))
+//                                vedtakMediator.opprettVedtak(VedtakMessage(event))
                                 ingenBehandlingSammeTidsromTeller++
                             }
                         }
