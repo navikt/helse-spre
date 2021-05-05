@@ -34,6 +34,7 @@ class VedtakConsumer(
         var finished = false
         val startMillis = currentTimeMillis()
         val sluttidspunktMillis = LocalDate.of(2021, 3, 30).toEpochSecond(LocalTime.MIDNIGHT, ZoneOffset.UTC) * 1000
+        val datoerMedManglendePdfs = mutableMapOf<LocalDate, Int>()
 
         Thread.setDefaultUncaughtExceptionHandler { _, throwable -> logger.error(throwable.message, throwable) }
         while (!finished) {
@@ -52,12 +53,14 @@ class VedtakConsumer(
                         val hendelseId = event["@id"].asText()
                         val datoer = produserteVedtak[aktørId]
 
+                        val recordDato = timestamp.toLocalDate()
                         if (datoer == null) {
 //                            vedtakMediator.opprettVedtak(VedtakMessage(event))
+                            datoerMedManglendePdfs.merge(recordDato, 1) { total, neste -> total + neste}
                             ingenBehandlingTeller++
                         } else {
                             if (datoer.any { dato ->
-                                    ChronoUnit.DAYS.between(LocalDate.parse(dato), timestamp.toLocalDate()).absoluteValue < 2
+                                    ChronoUnit.DAYS.between(LocalDate.parse(dato), recordDato).absoluteValue < 2
                                 }) {
 //                                duplikatsjekkDao.insertAlleredeProdusertVedtak(hendelseId)
                                 alleredeProdusertTeller++
@@ -73,6 +76,7 @@ class VedtakConsumer(
         consumer.close()
         logger.info("Prosessert $count events på ${forbruktTid(startMillis)}")
         logger.info("Tellere: ingen behandling: $ingenBehandlingTeller, allerede produsert: $alleredeProdusertTeller, ingen behandling i samme tidsrom: $ingenBehandlingSammeTidsromTeller")
+        logger.info("Datoer med antall manglende PDF-er: $datoerMedManglendePdfs")
     }
 
     private fun lesProduserteVedtak(): MutableMap<String, List<String>> {
