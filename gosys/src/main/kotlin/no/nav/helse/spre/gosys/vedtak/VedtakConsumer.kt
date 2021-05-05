@@ -40,8 +40,8 @@ class VedtakConsumer(
         Thread.setDefaultUncaughtExceptionHandler { _, throwable -> logger.error(throwable.message, throwable) }
         while (!finished) {
             consumer.poll(Duration.ofMillis(5000)).let { records ->
-                if (records.isEmpty || records.all { record ->
-                        record.timestamp().toLocalDate() < LocalDate.of(2021, 3, 30)
+                if (records.isEmpty || records.any { record ->
+                        record.timestamp().toLocalDate() > LocalDate.of(2021, 3, 29)
                     }) {
                     finished = true
                 }
