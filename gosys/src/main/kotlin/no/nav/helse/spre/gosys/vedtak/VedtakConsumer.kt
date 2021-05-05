@@ -47,7 +47,9 @@ class VedtakConsumer(
                 }
                 records
                     .filter { record -> objectMapper.readTree(record.value())["@event_name"].asText() == "utbetalt" }
-                    .onEach { count++ }
+                    .onEach {
+                        if (count++ % 100 == (Math.random() * 100).toInt()) logger.info("Har prosessert $count events")
+                    }
                     .forEach { record ->
                         val timestamp =
                             LocalDate.ofInstant(Instant.ofEpochMilli(record.timestamp()), ZoneId.systemDefault())
