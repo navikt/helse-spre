@@ -16,7 +16,8 @@ import io.ktor.jackson.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import java.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -37,6 +38,7 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.*
 
 internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -45,12 +47,12 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
 internal val log: Logger = LoggerFactory.getLogger("spregosys")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
-fun main() {
+suspend fun main() {
     val rapidsConnection = launchApplication(System.getenv())
     rapidsConnection.start()
 }
 
-fun launchApplication(
+suspend fun launchApplication(
     environment: Map<String, String>
 ): RapidsConnection {
     val serviceUser = readServiceUserCredentials()
@@ -68,7 +70,9 @@ fun launchApplication(
     val dataSource = dataSourceBuilder.getDataSource()
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
     val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
-    startRyddejobbConsumer(environment)
+    withContext(Dispatchers.IO) {
+        startRyddejobbConsumer(environment)
+    }
     val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient, duplikatsjekkDao)
 
