@@ -17,7 +17,8 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -50,6 +51,8 @@ internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 suspend fun main() {
     val rapidsConnection = launchApplication(System.getenv())
     rapidsConnection.start()
+    log.info("rapidsConnection startet")
+
 }
 
 suspend fun launchApplication(
@@ -70,9 +73,11 @@ suspend fun launchApplication(
     val dataSource = dataSourceBuilder.getDataSource()
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
     val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
-    withContext(Dispatchers.IO) {
+    log.info("klar til å starte coroutine for bonus-consumer")
+    GlobalScope.launch(Dispatchers.IO) {
         startRyddejobbConsumer(environment)
     }
+    log.info("bonus-consumer startet-ish")
     val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient, duplikatsjekkDao)
 
