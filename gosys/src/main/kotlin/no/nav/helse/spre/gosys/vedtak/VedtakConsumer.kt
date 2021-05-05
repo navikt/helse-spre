@@ -41,7 +41,7 @@ class VedtakConsumer(
         while (!finished) {
             consumer.poll(Duration.ofMillis(5000)).let { records ->
                 if (records.isEmpty || records.all { record ->
-                        record.timestamp() < LocalDate.of(2021, 3, 30).toEpochDay()
+                        record.timestamp().toLocalDate() < LocalDate.of(2021, 3, 30)
                     }) {
                     finished = true
                 }
@@ -51,8 +51,7 @@ class VedtakConsumer(
                         if (count++ % 100 == (Math.random() * 100).toInt()) logger.info("Har prosessert $count events")
                     }
                     .forEach { record ->
-                        val timestamp =
-                            LocalDate.ofInstant(Instant.ofEpochMilli(record.timestamp()), ZoneId.systemDefault())
+                        val timestamp = record.timestamp().toLocalDate()
                         val aktørId = objectMapper.readTree(record.value())["aktørId"].asText()
                         val hendelseId = objectMapper.readTree(record.value())["@id"].asText()
                         val datoer = produserteVedtak[aktørId]
@@ -98,5 +97,7 @@ class VedtakConsumer(
             "${toHours()}t${toMinutesPart()}m${toSecondsPart()}s"
         }
 }
+
+private fun Long.toLocalDate() = LocalDate.ofInstant(Instant.ofEpochMilli(this), ZoneId.systemDefault())
 
 
