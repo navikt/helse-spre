@@ -7,6 +7,10 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 
 val objectMapper = jacksonObjectMapper().apply {
     registerModule(JavaTimeModule())
@@ -22,6 +26,9 @@ fun main() {
 @KtorExperimentalAPI
 fun launchApplication(env: Environment) {
     val dataSource = DataSourceBuilder(env.db).getMigratedDataSource()
+
+    val git_sha = System.getenv("GIT_SHA") ?: "IKKE SATT"
+    log.info("Setter git_sha $git_sha")
 
     val dokumentDao = DokumentDao(dataSource)
     val koblingDao = KoblingDao(dataSource)

@@ -142,7 +142,7 @@ jobs:
         env:
           CLUSTER: ${{ matrix.cluster }}
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          VAR: team=${{ needs.generate_vars.outputs.team }},app=${{ matrix.project }}
+          VAR: team=${{ needs.generate_vars.outputs.team }},app=${{ matrix.project }},git_sha=${{ $GITHUB_SHA }}
 
   snyk:
     name: check vulnerabilities
