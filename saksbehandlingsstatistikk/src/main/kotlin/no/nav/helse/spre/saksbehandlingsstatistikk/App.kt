@@ -27,7 +27,7 @@ fun main() {
 fun launchApplication(env: Environment) {
     val dataSource = DataSourceBuilder(env.db).getMigratedDataSource()
 
-    val git_sha = System.getenv("GIT_SHA") ?: "IKKE SATT"
+    val git_sha = System.getenv()["GIT_SHA"].toString()
     log.info("Setter git_sha $git_sha")
 
     val dokumentDao = DokumentDao(dataSource)

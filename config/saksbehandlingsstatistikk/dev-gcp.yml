@@ -7,5 +7,4 @@ kafkaResetPolicy: earliest
 env:
   - name: KAFKA_EXTRA_TOPIC
     value: tbd.temp-dokumenter-v1
-  - name: GIT_SHA
-    value: "{{ git_sha }}"
+
