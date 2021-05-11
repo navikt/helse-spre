@@ -3,10 +3,8 @@ package no.nav.helse.spre.saksbehandlingsstatistikk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.spre.saksbehandlingsstatistikk.Avsender.SPLEIS
-import no.nav.helse.spre.saksbehandlingsstatistikk.BehandlingStatus.AVSLUTTET
+import no.nav.helse.spre.saksbehandlingsstatistikk.TestUtil.assertJsonEquals
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestUtil.finnSøknadDokumentId
-import no.nav.helse.spre.saksbehandlingsstatistikk.YtelseType.SYKEPENGER
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -57,24 +55,39 @@ internal class EndToEndTest {
         val sendtTilDVH = utgiver.meldinger[0]
         val expected = StatistikkEvent(
             aktorId = "aktørens id",
-            behandlingStatus = AVSLUTTET,
             behandlingId = søknad.søknadDokumentId,
-            behandlingType = BehandlingType.SØKNAD,
             tekniskTid = sendtTilDVH.tekniskTid,
             funksjonellTid = LocalDateTime.parse("2021-03-09T18:23:27.769"),
             mottattDato = "2021-01-01T00:00",
             registrertDato = "2021-01-01T00:00",
-            ytelseType = SYKEPENGER,
-            utenlandstilsnitt = Utenlandstilsnitt.NEI,
-            totrinnsbehandling = Totrinnsbehandling.NEI,
-            avsender = SPLEIS,
             saksbehandlerIdent = "Knut",
-            ansvarligEnhetKode = AnsvarligEnhetKode.FIREFIREÅTTEÅTTE,
-            ansvarligEnhetType = AnsvarligEnhetType.NORG,
             versjon = sendtTilDVH.versjon
         )
 
         assertEquals(expected, sendtTilDVH)
+
+        val expectedString = """
+            {
+              "aktorId": "${expected.aktorId}",
+              "behandlingId": "${expected.behandlingId}",
+              "funksjonellTid": "${expected.funksjonellTid}",
+              "mottattDato": "${expected.mottattDato}",
+              "registrertDato": "${expected.registrertDato}",
+              "saksbehandlerIdent": "Knut",
+              "tekniskTid": "${expected.tekniskTid}",
+              "versjon": "null",
+              "avsender": "SPLEIS",
+              "ansvarligEnhetType": "NORG",
+              "ansvarligEnhetKode": "FIREFIREÅTTEÅTTE",
+              "totrinnsbehandling": "NEI",
+              "utenlandstilsnitt": "NEI",
+              "ytelseType": "SYKEPENGER",
+              "behandlingStatus": "AVSLUTTET",
+              "behandlingType": "SØKNAD"
+            }
+        """.trimIndent()
+
+        assertJsonEquals(expectedString, objectMapper.writeValueAsString(expected))
     }
 
     @Test
@@ -104,7 +117,12 @@ internal class EndToEndTest {
     fun `Ignorerer vedtaksperiode_endret-events med dato fra før vi har en komplett dokumentdatabase`() {
         val søknad = Søknad(randomUUID(), randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
 
-        testRapid.sendTestMessage(vedtaksperiodeEndretMessageUtdatert(listOf(søknad.søknadHendelseId), "TIL_GODKJENNING"))
+        testRapid.sendTestMessage(
+            vedtaksperiodeEndretMessageUtdatert(
+                listOf(søknad.søknadHendelseId),
+                "TIL_GODKJENNING"
+            )
+        )
 
         assert(utgiver.meldinger.isEmpty())
     }
@@ -143,8 +161,9 @@ fun nyttDokumentData() = NyttDokumentData(
     LocalDateTime.parse("2021-01-01T00:00:00"),
 )
 
-val NyttDokumentData.sendtSøknadNavMessage get() =
-    """{
+val NyttDokumentData.sendtSøknadNavMessage
+    get() =
+        """{
             "@event_name": "sendt_søknad_nav",
             "@id": "${this.hendelseId}",
             "id": "${this.søknadId}",
@@ -160,8 +179,9 @@ private fun vedtakFattetMessage(hendelseIder: List<UUID>, vedtaksperiodeId: UUID
             "vedtaksperiodeId": "$vedtaksperiodeId"
         }"""
 
-val VedtaksperiodeEndretData.json get() =
-    """{
+val VedtaksperiodeEndretData.json
+    get() =
+        """{
             "@event_name": "vedtaksperiode_endret",
             "gjeldendeTilstand": "AVVENTER_GODKJENNING",
             "hendelser": [${this.hendelser.joinToString { """"$it"""" }}],

@@ -8,21 +8,21 @@ import java.util.*
 data class StatistikkEvent(
     val aktorId: String,
     val behandlingId: UUID,
-    val tekniskTid: LocalDateTime = LocalDateTime.now(),
     val funksjonellTid: LocalDateTime,
     val mottattDato: String,
     val registrertDato: String,
-    val behandlingType: BehandlingType  = BehandlingType.SØKNAD,
-    val behandlingStatus: BehandlingStatus = BehandlingStatus.AVSLUTTET,
-    val ytelseType: YtelseType = SYKEPENGER,
-    val utenlandstilsnitt: Utenlandstilsnitt = Utenlandstilsnitt.NEI,
-    val totrinnsbehandling: Totrinnsbehandling = Totrinnsbehandling.NEI,
-    val ansvarligEnhetKode: AnsvarligEnhetKode = AnsvarligEnhetKode.FIREFIREÅTTEÅTTE,
-    val ansvarligEnhetType: AnsvarligEnhetType = AnsvarligEnhetType.NORG,
-    val versjon: String = System.getenv()["GIT_SHA"].toString(),
-    val avsender: Avsender = SPLEIS,
     val saksbehandlerIdent: String,
+    val tekniskTid: LocalDateTime = LocalDateTime.now(),
+    val versjon: String = System.getenv()["GIT_SHA"].toString(),
 ) {
+    val avsender: Avsender = SPLEIS
+    val ansvarligEnhetType: AnsvarligEnhetType = AnsvarligEnhetType.NORG
+    val ansvarligEnhetKode: AnsvarligEnhetKode = AnsvarligEnhetKode.FIREFIREÅTTEÅTTE
+    val totrinnsbehandling: Totrinnsbehandling = Totrinnsbehandling.NEI
+    val utenlandstilsnitt: Utenlandstilsnitt = Utenlandstilsnitt.NEI
+    val ytelseType: YtelseType = SYKEPENGER
+    val behandlingStatus: BehandlingStatus = BehandlingStatus.AVSLUTTET
+    val behandlingType: BehandlingType  = BehandlingType.SØKNAD
     companion object {
         fun toStatistikkEvent(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
             aktorId = vedtakFattetData.aktørId,

@@ -7,6 +7,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.Assertions
 import java.util.*
 import javax.sql.DataSource
 
@@ -38,6 +39,10 @@ object TestUtil {
             queryOf(query, søknadHendelseId)
                 .map { row -> UUID.fromString(row.string("dokument_id")) }.asSingle
         )
+    }
+
+    fun assertJsonEquals(expected: String, actual:String) {
+        Assertions.assertEquals(objectMapper.readTree(expected), objectMapper.readTree(actual))
     }
 }
 
