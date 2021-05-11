@@ -16,7 +16,7 @@ internal class VedtaksperiodeGodkjentRiver(
         River(rapidsConnection).apply {
             validate { message ->
                 message.demandValue("@event_name", "vedtaksperiode_godkjent")
-                message.requireKey("vedtaksperiodeId", "saksbehandlerIdent")
+                message.requireKey("vedtaksperiodeId", "saksbehandlerIdent", "@opprettet")
             }
         }.register(this)
     }
@@ -29,16 +29,13 @@ internal class VedtaksperiodeGodkjentRiver(
             log.info("Kunne ikke finne søknad for vedtaksperiode ${vedtak.vedtaksperiodeId}")
             return
         }
-        søknadDao.upsertSøknad(søknad.saksbehandlerIdent(vedtak.saksbehandlerIdent))
+        søknadDao.upsertSøknad(vedtak.anrik(søknad))
         log.info("vedtaksperiode_godkjent lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        tjenestekall.info("Noe gikk galt: {}", problems.toExtendedReport())
+        log.error("Forstod ikke vedtaksperiode_godkjent (se sikkerLog for detaljer)")
+        tjenestekall.error("Forstod ikke vedtaksperiode_godkjent: ${problems.toExtendedReport()}")
     }
 
-    override fun onSevere(error: MessageProblems.MessageException, context: MessageContext) {
-        if (!error.problems.toExtendedReport().contains("Demanded @event_name is not string"))
-            tjenestekall.info("Noe gikk galt: {}", error.problems.toExtendedReport())
-    }
 }

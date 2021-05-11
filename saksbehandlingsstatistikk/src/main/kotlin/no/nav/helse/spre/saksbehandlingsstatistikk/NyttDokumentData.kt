@@ -8,19 +8,22 @@ import java.util.*
 data class NyttDokumentData(
     val hendelseId: UUID,
     val søknadId: UUID,
-    val mottattDato: LocalDateTime,
-    val registrertDato: LocalDateTime
+    val hendelseOpprettet: LocalDateTime
 ) {
     val asSøknad
         get() =
-            Søknad(hendelseId, søknadId, mottattDato, registrertDato)
+            Søknad(
+                søknadHendelseId = hendelseId,
+                søknadDokumentId = søknadId,
+                rapportert = hendelseOpprettet,
+                registrertDato = hendelseOpprettet
+            )
 
     companion object {
         fun fromJson(packet: JsonMessage) = NyttDokumentData(
             hendelseId = UUID.fromString(packet["@id"].textValue()),
             søknadId = UUID.fromString(packet["id"].textValue()),
-            mottattDato = packet["sendtNav"].asLocalDateTime(),
-            registrertDato = packet["rapportertDato"].asLocalDateTime(),
+            hendelseOpprettet = packet["@opprettet"].asLocalDateTime(),
         )
     }
 }

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
+import java.util.UUID.randomUUID
 
 internal class EndToEndTest {
     private val testRapid = TestRapid()
@@ -36,16 +37,20 @@ internal class EndToEndTest {
     }
 
     @Test
-    fun `Spleis reagerer på søknad`() {
+    fun `Happy path`() {
         val søknad = Søknad(
-            UUID.randomUUID(),
-            UUID.randomUUID(),
+            randomUUID(),
+            randomUUID(),
             LocalDateTime.now(),
             LocalDateTime.now()
         )
 
+
         testRapid.sendTestMessage(sendtSøknadNavMessage(søknad))
-        testRapid.sendTestMessage(vedtakFattetMessage(listOf(søknad.hendelseId)))
+        val vedtaksperiodeId = randomUUID()
+        testRapid.sendTestMessage(VedtaksperiodeEndretData(listOf(søknad.søknadHendelseId), vedtaksperiodeId).json)
+        testRapid.sendTestMessage(vedtaksperiodeGodkjentMessage("Knut", vedtaksperiodeId))
+        testRapid.sendTestMessage(vedtakFattetMessage(listOf(søknad.søknadHendelseId)))
 
         assert(utgiver.meldinger.size == 1)
 
@@ -53,17 +58,17 @@ internal class EndToEndTest {
         val expected = StatistikkEvent(
             aktorId = "aktørens id",
             behandlingStatus = AVSLUTTET,
-            behandlingId = søknad.dokumentId,
+            behandlingId = søknad.søknadDokumentId,
             behandlingType = BehandlingType.SØKNAD,
             tekniskTid = sendtTilDVH.tekniskTid,
-            funksjonellTid = LocalDateTime.parse("2021-03-09T18:23:27.76939"),
+            funksjonellTid = LocalDateTime.parse("2021-03-09T18:23:27.769"),
             mottattDato = "2021-01-01T00:00",
             registrertDato = "2021-01-01T00:00",
             ytelseType = SYKEPENGER,
             utenlandstilsnitt = Utenlandstilsnitt.NEI,
             totrinnsbehandling = Totrinnsbehandling.NEI,
             avsender = SPLEIS,
-            saksbehandlerIdent = null,
+            saksbehandlerIdent = "Knut",
             ansvarligEnhetKode = AnsvarligEnhetKode.FIREFIREÅTTEÅTTE,
             ansvarligEnhetType = AnsvarligEnhetType.NORG,
             versjon = sendtTilDVH.versjon
@@ -74,32 +79,32 @@ internal class EndToEndTest {
 
     @Test
     fun `lagrer søknad til basen`() {
-        val søknadHendelseId = UUID.randomUUID()
-        val søknad = Søknad(søknadHendelseId, UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
+        val søknadHendelseId = randomUUID()
+        val søknad = Søknad(søknadHendelseId, randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
 
         testRapid.sendTestMessage(sendtSøknadNavMessage(søknad))
 
         val søknadDokumentId = finnSøknadDokumentId(søknadHendelseId)
-        assertEquals(søknad.dokumentId, søknadDokumentId)
+        assertEquals(søknad.søknadDokumentId, søknadDokumentId)
     }
 
     @Test
     fun `håndterer duplikate dokumenter`() {
-        val søknadHendelseId = UUID.randomUUID()
-        val søknad = Søknad(søknadHendelseId, UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
+        val søknadHendelseId = randomUUID()
+        val søknad = Søknad(søknadHendelseId, randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
 
         testRapid.sendTestMessage(sendtSøknadArbeidsgiverMessage(søknad))
         testRapid.sendTestMessage(sendtSøknadNavMessage(søknad))
 
         val søknadDokumentId = finnSøknadDokumentId(søknadHendelseId)
-        assertEquals(søknad.dokumentId, søknadDokumentId)
+        assertEquals(søknad.søknadDokumentId, søknadDokumentId)
     }
 
     @Test
     fun `Ignorerer vedtaksperiode_endret-events med dato fra før vi har en komplett dokumentdatabase`() {
-        val søknad = Søknad(UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
+        val søknad = Søknad(randomUUID(), randomUUID(), LocalDateTime.now(), LocalDateTime.now(), null)
 
-        testRapid.sendTestMessage(vedtaksperiodeEndretMessageUtdatert(listOf(søknad.hendelseId), "TIL_GODKJENNING"))
+        testRapid.sendTestMessage(vedtaksperiodeEndretMessageUtdatert(listOf(søknad.søknadHendelseId), "TIL_GODKJENNING"))
 
         assert(utgiver.meldinger.isEmpty())
     }
@@ -107,7 +112,7 @@ internal class EndToEndTest {
     @Test
     fun `lagrer saksbehandlingsløp for søknad`() {
 
-        val vedtaksperiodeId = UUID.randomUUID()
+        val vedtaksperiodeId = randomUUID()
         val saksbehandlerIdent = "AA10000"
 
         val nyttDokumentData = nyttDokumentData()
@@ -115,6 +120,7 @@ internal class EndToEndTest {
         val søknad = nyttDokumentData.asSøknad
             .saksbehandlerIdent(saksbehandlerIdent)
             .vedtaksperiodeId(vedtaksperiodeId)
+            .vedtakFattet(LocalDateTime.parse("2021-03-09T18:23:27.769"))
 
 
 
@@ -132,10 +138,9 @@ internal class EndToEndTest {
 }
 
 fun nyttDokumentData() = NyttDokumentData(
-    UUID.randomUUID(),
-    UUID.randomUUID(),
+    randomUUID(),
+    randomUUID(),
     LocalDateTime.parse("2021-01-01T00:00:00"),
-    LocalDateTime.parse("2021-01-01T01:00:00"),
 )
 
 val NyttDokumentData.sendtSøknadNavMessage get() =
@@ -143,8 +148,7 @@ val NyttDokumentData.sendtSøknadNavMessage get() =
             "@event_name": "sendt_søknad_nav",
             "@id": "${this.hendelseId}",
             "id": "${this.søknadId}",
-            "sendtNav": "${this.mottattDato}",
-            "rapportertDato": "${this.registrertDato}"
+            "@opprettet": "${this.hendelseOpprettet}"
         }"""
 
 private fun vedtakFattetMessage(hendelseIder: List<UUID>, vedtaksperiodeId: UUID) =
@@ -161,7 +165,7 @@ val VedtaksperiodeEndretData.json get() =
             "@event_name": "vedtaksperiode_endret",
             "gjeldendeTilstand": "AVVENTER_GODKJENNING",
             "hendelser": [${this.hendelser.joinToString { """"$it"""" }}],
-            "@opprettet": "2021-03-09T18:23:27.76939",
+            "@opprettet": "2021-03-09T18:23:27.769",
             "aktørId": "aktørens id",
             "vedtaksperiodeId": "${this.vedtaksperiodeId}"
         }"""
@@ -169,7 +173,7 @@ val VedtaksperiodeEndretData.json get() =
 fun vedtaksperiodeGodkjentMessage(saksbehandlerIdent: String, vedtaksperiodeId: UUID) =
     """{
             "@event_name": "vedtaksperiode_godkjent",
-            "@opprettet": "2021-03-09T18:23:27.76939",
+            "@opprettet": "2021-03-09T18:23:27.769",
             "saksbehandlerIdent": "${saksbehandlerIdent}",
             "vedtaksperiodeId": "${vedtaksperiodeId}"
         }"""
@@ -179,36 +183,34 @@ fun vedtaksperiodeEndretMessageUtdatert(hendelser: List<UUID>, tilstand: String)
             "@event_name": "vedtaksperiode_endret",
             "gjeldendeTilstand": "$tilstand",
             "hendelser": [${hendelser.joinToString { """"$it"""" }}],
-            "@opprettet": "2021-03-09T18:23:27.76939",
+            "@opprettet": "2021-03-09T18:23:27.769",
             "aktørId": "aktørens id",
-            "vedtaksperiodeId": "${UUID.randomUUID()}"
+            "vedtaksperiodeId": "${randomUUID()}"
         }"""
 
 fun vedtakFattetMessage(hendelser: List<UUID>) =
     """{
             "@event_name": "vedtak_fattet",
             "hendelser": [${hendelser.joinToString { """"$it"""" }}],
-            "@opprettet": "2021-03-09T18:23:27.76939",
-            "utbetalingId": "${UUID.randomUUID()}",
+            "@opprettet": "2021-03-09T18:23:27.769",
+            "utbetalingId": "${randomUUID()}",
             "aktørId": "aktørens id",
-            "vedtaksperiodeId": "${UUID.randomUUID()}"
+            "vedtaksperiodeId": "${randomUUID()}"
         }"""
 
 fun sendtSøknadNavMessage(søknad: Søknad) =
     """{
             "@event_name": "sendt_søknad_nav",
-            "@id": "${søknad.hendelseId}",
-            "id": "${søknad.dokumentId}",
-            "sendtNav": "2021-01-01T00:00:00",
-            "rapportertDato": "2021-01-01T00:00:00"
+            "@id": "${søknad.søknadHendelseId}",
+            "id": "${søknad.søknadDokumentId}",
+            "@opprettet": "2021-01-01T00:00:00"
         }"""
 
 
 private fun sendtSøknadArbeidsgiverMessage(søknad: Søknad) =
     """{
             "@event_name": "sendt_søknad_arbeidsgiver",
-            "@id": "${søknad.hendelseId}",
-            "id": "${søknad.dokumentId}",
-            "sendtNav": "2021-01-01T00:00:00",
-            "rapportertDato": "2021-01-01T00:00:00"
+            "@id": "${søknad.søknadHendelseId}",
+            "id": "${søknad.søknadDokumentId}",
+            "@opprettet": "2021-01-01T00:00:00"
         }"""

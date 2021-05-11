@@ -13,10 +13,7 @@ internal class NyttDokumentRiver(
 ) : River.PacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.requireKey("@id") }
-            validate { it.interestedIn("id") }
-            validate { it.interestedIn("sendtNav", JsonNode::asLocalDateTime) }
-            validate { it.interestedIn("rapportertDato", JsonNode::asLocalDateTime) }
+            validate { it.requireKey("@id", "@opprettet", "id") }
             validate { it.requireAny("@event_name", listOf("sendt_søknad_nav", "sendt_søknad_arbeidsgiver")) }
         }.register(this)
     }

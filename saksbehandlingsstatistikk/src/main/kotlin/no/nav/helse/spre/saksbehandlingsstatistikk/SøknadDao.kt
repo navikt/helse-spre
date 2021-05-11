@@ -11,20 +11,25 @@ class SøknadDao(private val dataSource: DataSource) {
     fun upsertSøknad(søknad: Søknad) {
         @Language("PostgreSQL")
         val query =
-            """INSERT INTO søknad(hendelse_id, dokument_id, mottatt_dato, registrert_dato)
-VALUES (:hendelseId, :dokumentId, :mottattDato, :registrertDato)
-ON CONFLICT (hendelse_id) DO UPDATE SET vedtaksperiode_id = :vedtaksperiodeId, saksbehandler_ident = :saksbehandlerIdent"""
+            """INSERT INTO søknad(hendelse_id, dokument_id, mottatt_dato, registrert_dato, vedtak_fattet)
+VALUES (:hendelseId, :dokumentId, :mottattDato, :registrertDato, :vedtakFattet)
+ON CONFLICT (hendelse_id)
+    DO UPDATE SET vedtaksperiode_id   = :vedtaksperiodeId,
+                  saksbehandler_ident = :saksbehandlerIdent,
+                  vedtak_fattet       = :vedtakFattet
+   """
         sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
                     query,
                     mapOf(
-                        "hendelseId" to søknad.hendelseId,
-                        "dokumentId" to søknad.dokumentId,
-                        "mottattDato" to søknad.mottattDato,
+                        "hendelseId" to søknad.søknadHendelseId,
+                        "dokumentId" to søknad.søknadDokumentId,
+                        "mottattDato" to søknad.rapportert,
                         "registrertDato" to søknad.registrertDato,
                         "vedtaksperiodeId" to søknad.vedtaksperiodeId,
-                        "saksbehandlerIdent" to søknad.saksbehandlerIdent
+                        "saksbehandlerIdent" to søknad.saksbehandlerIdent,
+                        "vedtakFattet" to søknad.vedtakFattet
                     )
                 ).asUpdate
             )

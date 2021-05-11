@@ -31,8 +31,4 @@ internal class VedtakFattetRiver(
         tjenestekall.info("Noe gikk galt: {}", problems.toExtendedReport())
     }
 
-    override fun onSevere(error: MessageProblems.MessageException, context: MessageContext) {
-        if (!error.problems.toExtendedReport().contains("Demanded @event_name is not string"))
-            tjenestekall.info("Noe gikk galt: {}", error.problems.toExtendedReport())
-    }
 }

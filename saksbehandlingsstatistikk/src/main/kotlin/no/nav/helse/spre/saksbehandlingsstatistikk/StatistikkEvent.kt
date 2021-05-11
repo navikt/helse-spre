@@ -7,13 +7,13 @@ import java.util.*
 
 data class StatistikkEvent(
     val aktorId: String,
-    val behandlingId: UUID?,
+    val behandlingId: UUID,
     val tekniskTid: LocalDateTime = LocalDateTime.now(),
     val funksjonellTid: LocalDateTime,
-    val mottattDato: String?,
-    val registrertDato: String?,
-    val behandlingType: BehandlingType?,
-    val behandlingStatus: BehandlingStatus,
+    val mottattDato: String,
+    val registrertDato: String,
+    val behandlingType: BehandlingType  = BehandlingType.SØKNAD,
+    val behandlingStatus: BehandlingStatus = BehandlingStatus.AVSLUTTET,
     val ytelseType: YtelseType = SYKEPENGER,
     val utenlandstilsnitt: Utenlandstilsnitt = Utenlandstilsnitt.NEI,
     val totrinnsbehandling: Totrinnsbehandling = Totrinnsbehandling.NEI,
@@ -21,18 +21,16 @@ data class StatistikkEvent(
     val ansvarligEnhetType: AnsvarligEnhetType = AnsvarligEnhetType.NORG,
     val versjon: String = System.getenv()["GIT_SHA"].toString(),
     val avsender: Avsender = SPLEIS,
-    val saksbehandlerIdent: String?,
+    val saksbehandlerIdent: String,
 ) {
     companion object {
         fun toStatistikkEvent(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
             aktorId = vedtakFattetData.aktørId,
-            behandlingStatus = BehandlingStatus.AVSLUTTET,
-            behandlingId = søknad.dokumentId,
-            behandlingType = BehandlingType.SØKNAD,
-            funksjonellTid = vedtakFattetData.opprettet,
-            mottattDato = søknad.mottattDato.toString(),
+            behandlingId = søknad.søknadDokumentId,
+            mottattDato = søknad.rapportert.toString(),
             registrertDato = søknad.registrertDato.toString(),
-            saksbehandlerIdent = søknad.saksbehandlerIdent
+            saksbehandlerIdent = søknad.saksbehandlerIdent!!,
+            funksjonellTid = søknad.vedtakFattet!!
         )
     }
 }
