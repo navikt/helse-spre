@@ -26,6 +26,7 @@ internal class EndToEndTest {
 
     @BeforeEach
     fun setup() {
+        global.setVersjon("kremfjes")
         testRapid.reset()
         sessionOf(dataSource).use { session ->
             @Language("PostgreSQL")
@@ -61,7 +62,6 @@ internal class EndToEndTest {
             mottattDato = "2021-01-01T00:00",
             registrertDato = "2021-01-01T00:00",
             saksbehandlerIdent = "Knut",
-            versjon = sendtTilDVH.versjon
         )
 
         assertEquals(expected, sendtTilDVH)
@@ -75,7 +75,7 @@ internal class EndToEndTest {
               "registrertDato": "${expected.registrertDato}",
               "saksbehandlerIdent": "Knut",
               "tekniskTid": "${expected.tekniskTid}",
-              "versjon": "null",
+              "versjon": "kremfjes",
               "avsender": "SPLEIS",
               "ansvarligEnhetType": "NORG",
               "ansvarligEnhetKode": "FIREFIREÅTTEÅTTE",

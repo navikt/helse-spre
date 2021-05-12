@@ -26,8 +26,8 @@ fun main() {
 
 @KtorExperimentalAPI
 fun launchApplication(env: Environment) {
-    val gitSha = System.getenv()["GIT_SHA"].toString()
-    log.info("Starter spre-saksbehandlingsstatistikk versjon $gitSha")
+    global.setVersjon()
+    log.info("Starter spre-saksbehandlingsstatistikk versjon ${global.versjon}")
     val dataSource = DataSourceBuilder(env.db).getMigratedDataSource()
     val søknadDao = SøknadDao(dataSource)
     val producer =

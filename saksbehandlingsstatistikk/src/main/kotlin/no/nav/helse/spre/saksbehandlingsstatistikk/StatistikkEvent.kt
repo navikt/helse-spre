@@ -13,7 +13,6 @@ data class StatistikkEvent(
     val registrertDato: String,
     val saksbehandlerIdent: String,
     val tekniskTid: LocalDateTime = LocalDateTime.now(),
-    val versjon: String = System.getenv()["GIT_SHA"].toString(),
 ) {
     val avsender: Avsender = SPLEIS
     val ansvarligEnhetType: AnsvarligEnhetType = AnsvarligEnhetType.NORG
@@ -22,7 +21,9 @@ data class StatistikkEvent(
     val utenlandstilsnitt: Utenlandstilsnitt = Utenlandstilsnitt.NEI
     val ytelseType: YtelseType = SYKEPENGER
     val behandlingStatus: BehandlingStatus = BehandlingStatus.AVSLUTTET
-    val behandlingType: BehandlingType  = BehandlingType.SØKNAD
+    val behandlingType: BehandlingType = BehandlingType.SØKNAD
+    val versjon: String = global.versjon
+
     companion object {
         fun toStatistikkEvent(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
             aktorId = vedtakFattetData.aktørId,

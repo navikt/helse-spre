@@ -5,11 +5,11 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
-import java.util.Properties
+import java.util.*
 
 data class Environment(
     val raw: Map<String, String>,
-    val db: DB
+    val db: DB,
 ) {
     constructor(raw: Map<String, String>) : this(
         raw = raw,
@@ -32,6 +32,16 @@ data class Environment(
         val jdbcUrl: String = "jdbc:postgresql://${host}:${port}/${name}"
     }
 }
+
+object global {
+    private var v : String? = null;
+    fun setVersjon(it: String = System.getenv().getValue("GIT_SHA")) {
+        v = it;
+    }
+
+    val versjon get() = v!!
+}
+
 
 fun loadBaseConfig(env: Map<String, String>): Properties = Properties().also {
     it[(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG)] = env["KAFKA_BROKERS"]
