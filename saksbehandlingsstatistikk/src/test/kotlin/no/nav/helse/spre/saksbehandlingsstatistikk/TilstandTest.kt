@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID.randomUUID
 
-internal class EndToEndTest {
+internal class TilstandTest {
     private val testRapid = TestRapid()
     private val dataSource = TestUtil.dataSource
     private val søknadDao = SøknadDao(dataSource)
@@ -40,8 +40,30 @@ internal class EndToEndTest {
         }
     }
 
+
     @Test
-    fun `Happy path`() {
+    fun `lagrer søknad til basen`() {
+        val nyttDokument = nyttDokumentData()
+
+        testRapid.sendTestMessage(nyttDokument.json())
+
+        val søknadDokumentId = finnSøknadDokumentId(nyttDokument.hendelseId)
+        assertEquals(nyttDokument.søknadId, søknadDokumentId)
+    }
+
+    @Test
+    fun `håndterer duplikate dokumenter`() {
+        val nyttDokument = nyttDokumentData()
+
+        testRapid.sendTestMessage(nyttDokument.json("sendt_søknad_arbeidsgiver"))
+        testRapid.sendTestMessage(nyttDokument.json())
+
+        val søknadDokumentId = finnSøknadDokumentId(nyttDokument.hendelseId)
+        assertEquals(nyttDokument.søknadId, søknadDokumentId)
+    }
+
+    @Test
+    fun `lagrer saksbehandlingsløp for søknad`() {
         val nyttDokumentData = nyttDokumentData()
 
         val vedtaksperiodeEndret = vedtaksperiodeEndretData()
@@ -50,30 +72,17 @@ internal class EndToEndTest {
         val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent()
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
-        val vedtakFattet = vedtakFattet()
-            .hendelse(nyttDokumentData.hendelseId)
+        val søknad = nyttDokumentData.asSøknad
+            .saksbehandlerIdent(vedtaksperiodeGodkjent.saksbehandlerIdent)
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+            .vedtakFattet(vedtaksperiodeGodkjent.vedtakFattet)
 
         testRapid.sendTestMessage(nyttDokumentData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(vedtaksperiodeGodkjent.json)
-        testRapid.sendTestMessage(vedtakFattet.json)
 
-        assertEquals(1, utgiver.meldinger.size)
-
-        val sendtTilDVH = utgiver.meldinger[0]
-
-        val expected = StatistikkEvent(
-            aktorId = vedtakFattet.aktørId,
-            behandlingId = nyttDokumentData.søknadId,
-            tekniskTid = sendtTilDVH.tekniskTid,
-            funksjonellTid = vedtaksperiodeGodkjent.vedtakFattet,
-            mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
-            registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
-            saksbehandlerIdent = vedtaksperiodeGodkjent.saksbehandlerIdent,
-        )
-
-        assertEquals(expected, sendtTilDVH)
+        assertEquals(søknad, søknadDao.finnSøknad(listOf(nyttDokumentData.hendelseId)))
+        assertEquals(søknad, søknadDao.finnSøknad(vedtaksperiodeEndret.vedtaksperiodeId))
     }
 
 }

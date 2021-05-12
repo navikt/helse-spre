@@ -12,6 +12,8 @@ data class VedtakFattetData(
     val hendelser: List<UUID>,
     val vedtaksperiodeId: UUID,
 ) {
+    fun hendelse(it: UUID) = copy(hendelser = hendelser + it)
+    fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
 
 
     companion object {

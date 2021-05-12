@@ -46,6 +46,44 @@ object TestUtil {
             "expected: $expected, actual: $actual"
         }
     }
+
+
+
+    fun NyttDokumentData.json(eventType: String = "sendt_søknad_nav") =
+        """{
+            "@event_name": "$eventType",
+            "@id": "${this.hendelseId}",
+            "id": "${this.søknadId}",
+            "@opprettet": "${this.hendelseOpprettet}"
+        }"""
+
+    val VedtakFattetData.json
+        get() =
+            """{
+            "@event_name": "vedtak_fattet",
+            "@opprettet": "$opprettet",
+            "aktørId": "$aktørId",
+            "hendelser": [${hendelser.joinToString { """"$it"""" }}],
+            "vedtaksperiodeId": "$vedtaksperiodeId"
+        }"""
+
+    fun VedtaksperiodeEndretData.json(tilstand: String = "AVVENTER_GODKJENNING")=
+        """{
+            "@event_name": "vedtaksperiode_endret",
+            "gjeldendeTilstand": "$tilstand",
+            "hendelser": [${this.hendelser.joinToString { """"$it"""" }}],
+            "aktørId": "aktørens id",
+            "vedtaksperiodeId": "${this.vedtaksperiodeId}"
+        }"""
+
+    val VedtaksperiodeGodkjentData.json
+        get() =
+            """{
+            "@event_name": "vedtaksperiode_godkjent",
+            "@opprettet": "$vedtakFattet",
+            "saksbehandlerIdent": "$saksbehandlerIdent",
+            "vedtaksperiodeId": "$vedtaksperiodeId"
+        }"""
 }
 
 class LokalUtgiver : Utgiver {

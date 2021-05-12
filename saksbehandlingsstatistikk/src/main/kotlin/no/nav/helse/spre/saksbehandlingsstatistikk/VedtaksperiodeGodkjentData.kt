@@ -15,6 +15,9 @@ data class VedtaksperiodeGodkjentData(
         .saksbehandlerIdent(saksbehandlerIdent)
         .vedtakFattet(vedtakFattet)
 
+    fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
+    fun saksbehandlerIdent(it: String) = copy(saksbehandlerIdent = it)
+
     companion object {
         fun fromJson(packet: JsonMessage) =
             VedtaksperiodeGodkjentData(
