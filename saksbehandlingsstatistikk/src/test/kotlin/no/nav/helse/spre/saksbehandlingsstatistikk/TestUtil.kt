@@ -7,7 +7,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import java.util.*
 import javax.sql.DataSource
 
@@ -41,8 +41,10 @@ object TestUtil {
         )
     }
 
-    fun assertJsonEquals(expected: String, actual:String) {
-        Assertions.assertEquals(objectMapper.readTree(expected), objectMapper.readTree(actual))
+    fun assertJsonEquals(expected: String, actual: String) {
+        assertEquals(objectMapper.readTree(expected), objectMapper.readTree(actual)) {
+            "expected: $expected, actual: $actual"
+        }
     }
 }
 
