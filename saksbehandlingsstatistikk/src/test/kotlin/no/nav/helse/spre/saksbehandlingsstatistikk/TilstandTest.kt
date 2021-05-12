@@ -4,19 +4,14 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.nyttDokumentData
-import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtakFattet
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeEndretData
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeGodkjent
-import no.nav.helse.spre.saksbehandlingsstatistikk.TestUtil.assertJsonEquals
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestUtil.finnSøknadDokumentId
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestUtil.json
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
-import java.util.UUID.randomUUID
 
 internal class TilstandTest {
     private val testRapid = TestRapid()
