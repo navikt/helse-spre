@@ -61,7 +61,6 @@ object TestUtil {
         get() =
             """{
             "@event_name": "vedtak_fattet",
-            "@opprettet": "$opprettet",
             "aktørId": "$aktørId",
             "hendelser": [${hendelser.joinToString { """"$it"""" }}],
             "vedtaksperiodeId": "$vedtaksperiodeId"

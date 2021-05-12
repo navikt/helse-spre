@@ -22,7 +22,6 @@ object TestData {
     private fun randomIndent() = "${randomString(('A'..'Z'), 1)}${randomString(('0'..'9'), 6)}"
 
     fun vedtakFattet() = VedtakFattetData(
-        LocalDateTime.now().minusHours(1).truncatedTo(ChronoUnit.MILLIS),
         randomIndent(),
         emptyList(),
         UUID.randomUUID(),
