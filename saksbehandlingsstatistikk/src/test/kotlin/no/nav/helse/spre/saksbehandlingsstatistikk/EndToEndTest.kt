@@ -49,7 +49,7 @@ internal class EndToEndTest {
         val vedtaksperiodeId = randomUUID()
         testRapid.sendTestMessage(VedtaksperiodeEndretData(listOf(søknad.søknadHendelseId), vedtaksperiodeId).json)
         testRapid.sendTestMessage(vedtaksperiodeGodkjentMessage("Knut", vedtaksperiodeId))
-        testRapid.sendTestMessage(vedtakFattetMessage(listOf(søknad.søknadHendelseId)))
+        testRapid.sendTestMessage(vedtakFattetMessage(listOf(søknad.søknadHendelseId), randomUUID()))
 
         assert(utgiver.meldinger.size == 1)
 
