@@ -23,7 +23,12 @@ internal class VedtakFattetRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = VedtakFattetData.fromJson(packet)
-        spreService.spre(vedtak)
+        try {
+            spreService.spre(vedtak)
+        } catch (e: Exception) {
+            tjenestekall.info("Noe gikk galt under behandling av pakke: {}", packet.toJson())
+            throw e
+        }
         log.info("vedtak_fattet lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
     }
 

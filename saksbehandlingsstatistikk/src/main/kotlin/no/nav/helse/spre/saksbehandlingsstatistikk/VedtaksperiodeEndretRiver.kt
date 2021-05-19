@@ -16,13 +16,15 @@ internal class VedtaksperiodeEndretRiver(
         River(rapidsConnection).apply {
             validate { message ->
                 message.demandValue("@event_name", "vedtaksperiode_endret")
-                message.requireValue("gjeldendeTilstand", "AVVENTER_GODKJENNING")
+                message.interestedIn("gjeldendeTilstand")
                 message.requireKey("hendelser", "vedtaksperiodeId")
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        if (packet["gjeldendeTilstand"].asText() != "AVVENTER_GODKJENNING") return
+
         val vedtak = VedtaksperiodeEndretData.fromJson(packet)
         val søknad = søknadDao.finnSøknad(vedtak.hendelser)
 
@@ -35,7 +37,7 @@ internal class VedtaksperiodeEndretRiver(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        tjenestekall.info("Noe gikk galt: {}", problems.toExtendedReport())
+        tjenestekall.info("Melding matchet ikke alle valideringene: {}", problems.toExtendedReport())
     }
 
 }

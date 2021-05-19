@@ -24,4 +24,3 @@ internal class SpreService(
         utgiver.publiserStatistikk(StatistikkEvent.toStatistikkEvent(søknad, vedtakFattetData))
     }
 }
-
