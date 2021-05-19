@@ -21,6 +21,7 @@ internal class SpreService(
                         "Søknadsdata har vedtaksperiodeId ${søknad.vedtaksperiodeId}, " +
                         "vedtak_fattet-event har vedtaksperiodeId ${vedtakFattetData.vedtaksperiodeId}"
             )
-        utgiver.publiserStatistikk(StatistikkEvent.toStatistikkEvent(søknad, vedtakFattetData))
+
+        utgiver.publiserStatistikk(vedtakFattetData.lagStatistikkEvent(søknad))
     }
 }

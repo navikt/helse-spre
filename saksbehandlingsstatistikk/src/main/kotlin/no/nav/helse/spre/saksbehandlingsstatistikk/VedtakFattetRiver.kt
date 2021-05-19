@@ -17,6 +17,7 @@ internal class VedtakFattetRiver(
             validate { message ->
                 message.demandValue("@event_name", "vedtak_fattet")
                 message.requireKey("hendelser", "aktørId", "vedtaksperiodeId")
+                message.interestedIn("@forårsaket_av.event_name", "@opprettet")
             }
         }.register(this)
     }

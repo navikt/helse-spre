@@ -63,10 +63,24 @@ object TestUtil {
             "@event_name": "vedtak_fattet",
             "aktørId": "$aktørId",
             "hendelser": [${hendelser.joinToString { """"$it"""" }}],
-            "vedtaksperiodeId": "$vedtaksperiodeId"
+            "vedtaksperiodeId": "$vedtaksperiodeId",
+            "@opprettet": "$avsluttetISpleis"
         }"""
 
-    fun VedtaksperiodeEndretData.json(tilstand: String = "AVVENTER_GODKJENNING")=
+    val VedtakFattetData.jsonAvsluttetUtenGodkjenning
+        get() =
+            """{
+            "@event_name": "vedtak_fattet",
+            "aktørId": "$aktørId",
+            "hendelser": [${hendelser.joinToString { """"$it"""" }}],
+            "vedtaksperiodeId": "$vedtaksperiodeId",
+            "@opprettet": "$avsluttetISpleis",
+            "@forårsaket_av": {
+                "event_name": "sendt_søknad_arbeidsgiver"
+            }
+        }"""
+
+    fun VedtaksperiodeEndretData.json(tilstand: String = "AVVENTER_GODKJENNING") =
         """{
             "@event_name": "vedtaksperiode_endret",
             "gjeldendeTilstand": "$tilstand",

@@ -8,6 +8,7 @@ import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtakFattet
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeEndretData
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeGodkjent
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestUtil.json
+import no.nav.helse.spre.saksbehandlingsstatistikk.TestUtil.jsonAvsluttetUtenGodkjenning
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -65,6 +66,37 @@ internal class EndToEndTest {
             mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
             registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
             saksbehandlerIdent = vedtaksperiodeGodkjent.saksbehandlerIdent,
+        )
+
+        assertEquals(expected, sendtTilDVH)
+    }
+
+    @Test
+    fun `Sort of Happy path`() {
+        val nyttDokumentData = nyttDokumentData()
+
+        val vedtaksperiodeEndret = vedtaksperiodeEndretData()
+                .hendelse(nyttDokumentData.hendelseId)
+
+        val vedtakFattet = vedtakFattet()
+                .hendelse(nyttDokumentData.hendelseId)
+
+        testRapid.sendTestMessage(nyttDokumentData.json())
+        testRapid.sendTestMessage(vedtaksperiodeEndret.json())
+        testRapid.sendTestMessage(vedtakFattet.jsonAvsluttetUtenGodkjenning)
+
+        assertEquals(1, utgiver.meldinger.size)
+
+        val sendtTilDVH = utgiver.meldinger[0]
+
+        val expected = StatistikkEvent(
+                aktorId = vedtakFattet.aktørId,
+                behandlingId = nyttDokumentData.søknadId,
+                tekniskTid = sendtTilDVH.tekniskTid,
+                funksjonellTid = vedtakFattet.avsluttetISpleis,
+                mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
+                registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
+                saksbehandlerIdent = "SPLEIS",
         )
 
         assertEquals(expected, sendtTilDVH)

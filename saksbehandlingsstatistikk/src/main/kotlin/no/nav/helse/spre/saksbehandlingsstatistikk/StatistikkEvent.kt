@@ -25,13 +25,22 @@ data class StatistikkEvent(
     val versjon: String = global.versjon
 
     companion object {
-        fun toStatistikkEvent(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
-            aktorId = vedtakFattetData.aktørId,
-            behandlingId = søknad.søknadDokumentId,
-            mottattDato = søknad.rapportert.toString(),
-            registrertDato = søknad.registrertDato.toString(),
-            saksbehandlerIdent = søknad.saksbehandlerIdent!!,
-            funksjonellTid = søknad.vedtakFattet!!
+        fun statistikkEvent(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
+                aktorId = vedtakFattetData.aktørId,
+                behandlingId = søknad.søknadDokumentId,
+                mottattDato = søknad.rapportert.toString(),
+                registrertDato = søknad.registrertDato.toString(),
+                saksbehandlerIdent = søknad.saksbehandlerIdent!!,
+                funksjonellTid = søknad.vedtakFattet!!
+        )
+
+        fun statistikkEventForSøknadAvsluttetAvSpleis(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
+                aktorId = vedtakFattetData.aktørId,
+                behandlingId = søknad.søknadDokumentId,
+                mottattDato = søknad.rapportert.toString(),
+                registrertDato = søknad.registrertDato.toString(),
+                saksbehandlerIdent = "SPLEIS",
+                funksjonellTid = vedtakFattetData.avsluttetISpleis
         )
     }
 }

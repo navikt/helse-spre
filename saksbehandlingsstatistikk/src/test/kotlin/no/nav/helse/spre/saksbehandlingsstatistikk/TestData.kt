@@ -25,6 +25,8 @@ object TestData {
         randomIndent(),
         emptyList(),
         UUID.randomUUID(),
+        LocalDateTime.now(),
+        false
     )
 
     fun randomString(charPool: CharRange, length: Int) = (1..length)
