@@ -32,7 +32,7 @@ class SerdeTest {
               "versjon": "kremfjes",
               "avsender": "SPLEIS",
               "ansvarligEnhetType": "NORG",
-              "ansvarligEnhetKode": "FIREFIREÅTTEÅTTE",
+              "ansvarligEnhetKode": "4488",
               "totrinnsbehandling": "NEI",
               "utenlandstilsnitt": "NEI",
               "ytelseType": "SYKEPENGER",

@@ -3,6 +3,7 @@ package no.nav.helse.spre.saksbehandlingsstatistikk
 import no.nav.helse.spre.saksbehandlingsstatistikk.Avsender.SPLEIS
 import no.nav.helse.spre.saksbehandlingsstatistikk.YtelseType.SYKEPENGER
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 data class StatistikkEvent(
@@ -12,11 +13,11 @@ data class StatistikkEvent(
     val mottattDato: String,
     val registrertDato: String,
     val saksbehandlerIdent: String,
-    val tekniskTid: LocalDateTime = LocalDateTime.now(),
+    val tekniskTid: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
 ) {
     val avsender: Avsender = SPLEIS
     val ansvarligEnhetType: AnsvarligEnhetType = AnsvarligEnhetType.NORG
-    val ansvarligEnhetKode: AnsvarligEnhetKode = AnsvarligEnhetKode.FIREFIREÅTTEÅTTE
+    val ansvarligEnhetKode: String = AnsvarligEnhetKode.FIREFIREÅTTEÅTTE.toString()
     val totrinnsbehandling: Totrinnsbehandling = Totrinnsbehandling.NEI
     val utenlandstilsnitt: Utenlandstilsnitt = Utenlandstilsnitt.NEI
     val ytelseType: YtelseType = SYKEPENGER
