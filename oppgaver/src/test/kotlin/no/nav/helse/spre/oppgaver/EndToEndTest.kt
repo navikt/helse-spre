@@ -32,6 +32,9 @@ class EndToEndTest {
     private val mockProducer = mockk<KafkaProducer<String, OppgaveDTO>> {
         every { send(capture(captureslot)) } returns mockk()
     }
+    private val mockHendelseIkkeHåndtertToggle = mockk<HendelseIkkeHåndtertToggle> {
+        every { enabled() } returns true
+    }
 
     @BeforeAll
     fun setup() {
@@ -55,13 +58,14 @@ class EndToEndTest {
 
         oppgaveDAO = OppgaveDAO(dataSource)
 
-        rapid.registerRivers(oppgaveDAO, mockProducer)
+        rapid.registerRivers(oppgaveDAO, mockProducer, mockHendelseIkkeHåndtertToggle)
     }
 
     @BeforeEach
     fun reset() {
         captureslot.clear()
         rapid.reset()
+        every { mockHendelseIkkeHåndtertToggle.enabled() } returns true
     }
 
     @Test
@@ -92,7 +96,7 @@ class EndToEndTest {
             tilstand = "AVSLUTTET"
         )
 
-        assertOppgave(Utsett, søknad1DokumentId, DokumentTypeDTO.Søknad, captureslot[0].value())
+        assertOppgave(Utsett, søknad1DokumentId, Søknad, captureslot[0].value())
         assertOppgave(
             Utsett,
             inntektsmeldingDokumentId,
@@ -102,7 +106,7 @@ class EndToEndTest {
         assertOppgave(
             Ferdigbehandlet,
             søknad1DokumentId,
-            DokumentTypeDTO.Søknad,
+            Søknad,
             captureslot[2].value()
         )
         assertOppgave(
@@ -139,11 +143,11 @@ class EndToEndTest {
         )
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
 
-        assertOppgave(Utsett, søknad1DokumentId, DokumentTypeDTO.Søknad, captureslot[0].value())
+        assertOppgave(Utsett, søknad1DokumentId, Søknad, captureslot[0].value())
         assertOppgave(
             Ferdigbehandlet,
             søknad1DokumentId,
-            DokumentTypeDTO.Søknad,
+            Søknad,
             captureslot[1].value()
         )
         assertEquals(2, captureslot.size)
@@ -161,7 +165,7 @@ class EndToEndTest {
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "TIL_INFOTRYGD")
 
-        assertOppgave(Opprett, søknad1DokumentId, DokumentTypeDTO.Søknad, captureslot[0].value())
+        assertOppgave(Opprett, søknad1DokumentId, Søknad, captureslot[0].value())
         assertEquals(1, captureslot.size)
 
         assertEquals(1, rapid.inspektør.size)
@@ -526,6 +530,96 @@ class EndToEndTest {
     }
 
     @Test
+    fun `mottar hendelse_ikke_håndtert uten at hendelsen er tidligere lest`() {
+        val hendelseId = UUID.randomUUID()
+        sendHendelseIkkeHåndtert(hendelseId)
+        assertTrue(captureslot.isEmpty())
+        assertEquals(0, rapid.inspektør.size)
+    }
+
+    @Test
+    fun `spleis håndterer ikke søknad og vi mottar aldri vedtaksperiode_endret`() {
+        val søknadId = UUID.randomUUID()
+        val hendelseId = UUID.randomUUID()
+        sendSøknad(hendelseId, søknadId)
+        sendHendelseIkkeHåndtert(hendelseId)
+
+        assertEquals(1, captureslot.size)
+        assertEquals(søknadId, captureslot[0].value().dokumentId)
+        assertEquals(Opprett, captureslot[0].value().oppdateringstype)
+
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", hendelseId).size)
+    }
+
+    @Test
+    fun `HendelseIkkeHåndtert togglet av`() {
+        every { mockHendelseIkkeHåndtertToggle.enabled() } returns false
+
+        val søknadId = UUID.randomUUID()
+        val hendelseId = UUID.randomUUID()
+        sendSøknad(hendelseId, søknadId)
+        sendHendelseIkkeHåndtert(hendelseId)
+
+        assertEquals(0, captureslot.size)
+        assertEquals(0, rapid.inspektør.events("oppgavestyring_opprett", hendelseId).size)
+    }
+
+    @Test
+    fun `spleis håndterer ikke søknad og vi mottar vedtaksperiode_endret uten søknadId`() {
+        val søknadId = UUID.randomUUID()
+        val hendelseId = UUID.randomUUID()
+
+        sendSøknad(hendelseId, søknadId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(UUID.randomUUID()), // eksempelvis sykmeldingen
+            tilstand = "TIL_INFOTRYGD"
+        )
+        sendHendelseIkkeHåndtert(hendelseId)
+        assertEquals(1, captureslot.size)
+        assertEquals(søknadId, captureslot[0].value().dokumentId)
+        assertEquals(Opprett, captureslot[0].value().oppdateringstype)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", hendelseId).size)
+    }
+
+    @Test
+    fun `spleis håndterer ikke søknad og vi mottar vedtaksperiode_endret med søknadId`() {
+        val søknadId = UUID.randomUUID()
+        val hendelseId = UUID.randomUUID()
+
+        sendSøknad(hendelseId, søknadId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(hendelseId),
+            tilstand = "AVVENTER_HISTORIKK"
+        )
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(hendelseId),
+            tilstand = "TIL_INFOTRYGD"
+        )
+        sendHendelseIkkeHåndtert(hendelseId)
+        assertEquals(2, captureslot.size)
+        assertEquals(søknadId, captureslot[0].value().dokumentId)
+        assertEquals(Utsett, captureslot[0].value().oppdateringstype)
+        assertEquals(søknadId, captureslot[1].value().dokumentId)
+        assertEquals(Opprett, captureslot[1].value().oppdateringstype)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", hendelseId).size)
+    }
+
+    @Test
+    fun `spleis håndterer ikke søknad og sier ifra flere ganger`() {
+        val søknadId = UUID.randomUUID()
+        val hendelseId = UUID.randomUUID()
+
+        sendSøknad(hendelseId, søknadId)
+        sendHendelseIkkeHåndtert(hendelseId)
+        sendHendelseIkkeHåndtert(hendelseId)
+
+        assertEquals(1, captureslot.size)
+        assertEquals(søknadId, captureslot[0].value().dokumentId)
+        assertEquals(Opprett, captureslot[0].value().oppdateringstype)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", hendelseId).size)
+    }
+
+    @Test
     fun `oppretter oppgaver for søknad og inntektsmelding når perioden går til infotrygd`() {
         val periode = UUID.randomUUID()
         val søknadId1 = UUID.randomUUID()
@@ -588,6 +682,10 @@ class EndToEndTest {
         rapid.sendTestMessage(inntektsmelding(hendelseId, dokumentId))
     }
 
+    private fun sendHendelseIkkeHåndtert(hendelseId: UUID) {
+        rapid.sendTestMessage(hendelseIkkeHåndtert(hendelseId))
+    }
+
     private fun sendInntektsmeldingLagtPåKjøl(hendelseId: UUID) {
         rapid.sendTestMessage(inntektsmeldingLagtPåKjøl(hendelseId))
     }
@@ -623,6 +721,14 @@ fun inntektsmeldingLagtPåKjøl(
     hendelseId: UUID,
 ) = """{
             "@event_name": "inntektsmelding_lagt_på_kjøl",
+            "hendelseId": "$hendelseId"
+        }"""
+
+
+fun hendelseIkkeHåndtert(
+    hendelseId: UUID,
+) = """{
+            "@event_name": "hendelse_ikke_håndtert",
             "hendelseId": "$hendelseId"
         }"""
 
