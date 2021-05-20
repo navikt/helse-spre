@@ -45,13 +45,12 @@ fun launchApplication(
 
 internal fun RapidsConnection.registerRivers(
     oppgaveDAO: OppgaveDAO,
-    oppgaveProducer: KafkaProducer<String, OppgaveDTO>,
-    hendelseIkkeHåndtertToggle: HendelseIkkeHåndtertToggle = HendelseIkkeHåndtertToggle()
+    oppgaveProducer: KafkaProducer<String, OppgaveDTO>
 ) {
     RegistrerSøknader(this, oppgaveDAO)
     RegistrerInntektsmeldinger(this, oppgaveDAO)
     HåndterVedtaksperiodeendringer(this, oppgaveDAO, oppgaveProducer)
     HåndterInntektsmeldingLagtPåKjøl(this, oppgaveDAO, oppgaveProducer)
-    HåndterHendelseIkkeHåndtert(this, oppgaveDAO, oppgaveProducer, hendelseIkkeHåndtertToggle)
+    HåndterHendelseIkkeHåndtert(this, oppgaveDAO, oppgaveProducer)
 }
 

@@ -10,8 +10,7 @@ import java.util.*
 class HåndterHendelseIkkeHåndtert(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
-    oppgaveProducer: KafkaProducer<String, OppgaveDTO>,
-    private val hendelseIkkeHåndtertToggle: HendelseIkkeHåndtertToggle
+    oppgaveProducer: KafkaProducer<String, OppgaveDTO>
 ) : River.PacketListener {
 
     private val observer = OppgaveObserver(oppgaveDAO, oppgaveProducer, rapidsConnection)
@@ -26,11 +25,11 @@ class HåndterHendelseIkkeHåndtert(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         UUID.fromString(packet["hendelseId"].asText()).let { hendelseId ->
             oppgaveDAO.finnOppgave(hendelseId)?.setObserver(observer)?.let { oppgave ->
-                if (hendelseIkkeHåndtertToggle.enabled()) Hendelse.TilInfotrygd.accept(oppgave)
-                else log.info("Oppgave på hendelseId: {} av type: {} med dokumentId: {}, ville ført til oppgaveopprettelse",
-                    hendelseId,
-                    oppgave.dokumentType,
-                    oppgave.dokumentId
+                Hendelse.TilInfotrygd.accept(oppgave)
+                log.info("Oppgave på hendelseId: {} av type: {} med dokumentId: {}, fører til oppgaveopprettelse",
+                hendelseId,
+                oppgave.dokumentType,
+                oppgave.dokumentId
                 )
             } ?: log.info("Mottok hendelse_ikke_håndtert-event: {}, men vi har ikke en tilhørende søknad",
                  hendelseId

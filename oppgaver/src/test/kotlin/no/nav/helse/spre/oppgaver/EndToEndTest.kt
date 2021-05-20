@@ -32,9 +32,6 @@ class EndToEndTest {
     private val mockProducer = mockk<KafkaProducer<String, OppgaveDTO>> {
         every { send(capture(captureslot)) } returns mockk()
     }
-    private val mockHendelseIkkeHåndtertToggle = mockk<HendelseIkkeHåndtertToggle> {
-        every { enabled() } returns true
-    }
 
     @BeforeAll
     fun setup() {
@@ -58,14 +55,13 @@ class EndToEndTest {
 
         oppgaveDAO = OppgaveDAO(dataSource)
 
-        rapid.registerRivers(oppgaveDAO, mockProducer, mockHendelseIkkeHåndtertToggle)
+        rapid.registerRivers(oppgaveDAO, mockProducer)
     }
 
     @BeforeEach
     fun reset() {
         captureslot.clear()
         rapid.reset()
-        every { mockHendelseIkkeHåndtertToggle.enabled() } returns true
     }
 
     @Test
@@ -552,19 +548,6 @@ class EndToEndTest {
     }
 
     @Test
-    fun `HendelseIkkeHåndtert togglet av`() {
-        every { mockHendelseIkkeHåndtertToggle.enabled() } returns false
-
-        val søknadId = UUID.randomUUID()
-        val hendelseId = UUID.randomUUID()
-        sendSøknad(hendelseId, søknadId)
-        sendHendelseIkkeHåndtert(hendelseId)
-
-        assertEquals(0, captureslot.size)
-        assertEquals(0, rapid.inspektør.events("oppgavestyring_opprett", hendelseId).size)
-    }
-
-    @Test
     fun `spleis håndterer ikke søknad og vi mottar vedtaksperiode_endret uten søknadId`() {
         val søknadId = UUID.randomUUID()
         val hendelseId = UUID.randomUUID()
@@ -731,5 +714,3 @@ fun hendelseIkkeHåndtert(
             "@event_name": "hendelse_ikke_håndtert",
             "hendelseId": "$hendelseId"
         }"""
-
-
