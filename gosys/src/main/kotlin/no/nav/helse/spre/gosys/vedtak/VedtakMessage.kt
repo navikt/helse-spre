@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -26,9 +27,59 @@ data class VedtakMessage private constructor(
     private val utbetaling: Utbetaling,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>
 ) {
+
+    companion object {
+        fun fraVedtakOgUtbetaling(vedtak: VedtakFattetData, utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling): VedtakMessage {
+            if (utbetaling.fødselsnummer != vedtak.fødselsnummer) throw IllegalStateException(
+                "Alvorlig feil: Vedtaket peker på utbetaling med et annet fødselnummer"
+            )
+            return VedtakMessage(vedtak, utbetaling)
+        }
+    }
+
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
+
+    constructor(vedtak: VedtakFattetData, utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling):
+            this(
+                hendelseId = vedtak.id,
+                opprettet = vedtak.opprettet,
+                fødselsnummer = vedtak.fødselsnummer,
+                aktørId = vedtak.aktørId,
+                fom = vedtak.fom,
+                tom = vedtak.tom,
+                organisasjonsnummer = utbetaling.organisasjonsnummer,
+                gjenståendeSykedager = utbetaling.gjenståendeSykedager,
+                automatiskBehandling = utbetaling.automatiskBehandling,
+                godkjentAv = utbetaling.ident,
+                maksdato = utbetaling.maksdato,
+                sykepengegrunnlag = vedtak.sykepengegrunnlag,
+                utbetaling = utbetaling.arbeidsgiverOppdrag.takeIf { it.fagområde == "SPREF" }!!.let { oppdrag ->
+                    Utbetaling(
+                        fagområde = Utbetaling.Fagområde.SPREF,
+                        fagsystemId = oppdrag.fagsystemId,
+                        totalbeløp = oppdrag.nettoBeløp,
+                        utbetalingslinjer = oppdrag.utbetalingslinjer.map { utbetalingslinje ->
+                            Utbetaling.Utbetalingslinje(
+                                dagsats = utbetalingslinje.dagsats,
+                                fom = utbetalingslinje.fom,
+                                tom = utbetalingslinje.tom,
+                                grad = utbetalingslinje.grad.toInt(),
+                                beløp = utbetalingslinje.dagsats,
+                                mottaker = "arbeidsgiver"
+                            )
+                        }
+                    )
+                },
+                ikkeUtbetalteDager = utbetaling.ikkeUtbetalingsdager.map { dag ->
+                    IkkeUtbetaltDag(
+                        dato = dag.dato,
+                        type = dag.type,
+                        begrunnelser = dag.begrunnelser
+                    )
+                }
+            )
 
     constructor(packet: JsonMessage) :
             this(

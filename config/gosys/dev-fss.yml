@@ -26,4 +26,6 @@ env:
     value: spre-gosys
   - name: VAULT_MOUNTPATH
     value: postgresql/preprod-fss/
+  - name: SPLIT_VEDTAK_OG_UTBETALING
+    value: "true"
 
