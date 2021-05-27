@@ -112,9 +112,6 @@ internal class FeriepengerRiverTest {
         utbetalt: LocalDateTime = LocalDate.of(2021, 5, 31).atTime(13, 37)
     ) = """
     {
-      "type": "FERIEPENGER",
-      "forrigeStatus": "OVERFØRT",
-      "gjeldendeStatus": "UTBETALT",
       "arbeidsgiverOppdrag": {
         "mottaker": "123456789",
         "linjer": [
@@ -137,7 +134,7 @@ internal class FeriepengerRiverTest {
         "fom": "-999999999-01-01",
         "tom": "-999999999-01-01"
       },
-      "@event_name": "utbetaling_endret",
+      "@event_name": "feriepenger_utbetalt",
       "@id": "${UUID.randomUUID()}",
       "@opprettet": "2021-05-31T13:37:00.000000000",
       "aktørId": "123456",
@@ -151,9 +148,6 @@ internal class FeriepengerRiverTest {
         utbetalt: LocalDateTime = LocalDate.of(2021, 5, 31).atTime(13, 37)
     ) = """
     {
-      "type": "FERIEPENGER",
-      "forrigeStatus": "OVERFØRT",
-      "gjeldendeStatus": "UTBETALT",
       "arbeidsgiverOppdrag": {
         "mottaker": "123456789",
         "linjer": [
@@ -182,7 +176,7 @@ internal class FeriepengerRiverTest {
         "fom": "2021-05-01",
         "tom": "2021-05-31"
       },
-      "@event_name": "utbetaling_endret",
+      "@event_name": "feriepenger_utbetalt",
       "@id": "${UUID.randomUUID()}",
       "@opprettet": "2021-05-31T13:37:00.000000000",
       "aktørId": "123456",
