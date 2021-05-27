@@ -13,9 +13,7 @@ class FeriepengerRiver(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue("@event_name", "utbetaling_endret")
-                it.demandValue("type", "FERIEPENGER")
-                it.demandValue("gjeldendeStatus", "UTBETALT")
+                it.demandValue("@event_name", "feriepenger_utbetalt")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
                 it.requireKey(
                     "@id",
