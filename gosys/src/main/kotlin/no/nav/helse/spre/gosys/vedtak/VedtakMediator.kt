@@ -2,8 +2,8 @@ package no.nav.helse.spre.gosys.vedtak
 
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.*
-import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
+import java.lang.IllegalArgumentException
 
 class VedtakMediator(
     private val pdfClient: PdfClient,
@@ -11,12 +11,12 @@ class VedtakMediator(
     private val duplikatsjekkDao: DuplikatsjekkDao
 ) {
     internal fun opprettVedtak(vedtakMessage: VedtakMessage) {
-        if(vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
+        if (vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
         duplikatsjekkDao.sjekkDuplikat(vedtakMessage.hendelseId) {
             runBlocking {
                 val pdf = pdfClient.hentVedtakPdf(vedtakMessage.toVedtakPdfPayload())
                 val journalpostPayload = JournalpostPayload(
-                    tittel = "Vedtak om sykepenger",
+                    tittel = notatTittel(vedtakMessage.type),
                     bruker = JournalpostPayload.Bruker(id = vedtakMessage.fødselsnummer),
                     dokumenter = listOf(
                         JournalpostPayload.Dokument(
@@ -30,6 +30,15 @@ class VedtakMediator(
                     else log.warn("Feil oppstod under journalføring av vedtak")
                 }
             }
+        }
+    }
+
+    private fun notatTittel(type: Utbetaling.Utbetalingtype): String {
+        return when (type) {
+            Utbetaling.Utbetalingtype.UTBETALING -> "Vedtak om sykepenger"
+            Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Vedtak om etterutbetaling av sykepenger"
+            Utbetaling.Utbetalingtype.REVURDERING -> "Vedtak om revurdering av sykepenger"
+            Utbetaling.Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
         }
     }
 }

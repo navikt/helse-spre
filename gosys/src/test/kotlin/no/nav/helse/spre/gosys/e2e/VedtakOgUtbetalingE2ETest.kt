@@ -146,8 +146,11 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val utbetalingId = UUID.randomUUID()
         testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
         testRapid.sendTestMessage(utbetalingUtbetaltEnAvvistDag(id = id, utbetalingId = utbetalingId))
-        assertJournalPostOgVedtakPdf(id,
-        expectedPdfPayload = vedtakPdfPayloadMedEnAvvistDag())
+        assertJournalPostOgVedtakPdf(
+            id,
+            expectedPdfPayload = vedtakPdfPayloadMedEnAvvistDag(),
+            expectedJournalpost("Vedtak om revurdering av sykepenger")
+        )
     }
 
     @Test
@@ -160,7 +163,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         }
     }
 
-    private fun assertJournalPostOgVedtakPdf(id: UUID, expectedPdfPayload: VedtakPdfPayload = vedtakPdfPayload()) = runBlocking {
+    private fun assertJournalPostOgVedtakPdf(id: UUID, expectedPdfPayload: VedtakPdfPayload = vedtakPdfPayload(), journalpostPayload: JournalpostPayload = expectedJournalpost()) = runBlocking {
         val joarkRequest = capturedJoarkRequests.single()
         val joarkRequestBody = withContext(Dispatchers.IO) { joarkRequest.body.toByteArray() }
         val joarkPayload =
@@ -169,7 +172,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
         assertEquals(id.toString(), joarkRequest.headers["Nav-Consumer-Token"])
         assertEquals("application/json", joarkRequest.body.contentType.toString())
-        assertEquals(expectedJournalpost(), joarkPayload)
+        assertEquals(journalpostPayload, joarkPayload)
 
         val pdfRequest = capturedPdfRequests.single()
         val pdfPayload =
@@ -276,9 +279,9 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
 
 
-    private fun expectedJournalpost(): JournalpostPayload {
+    private fun expectedJournalpost(tittel: String = "Vedtak om sykepenger"): JournalpostPayload {
         return JournalpostPayload(
-            tittel = "Vedtak om sykepenger",
+            tittel = tittel,
             journalpostType = "NOTAT",
             tema = "SYK",
             behandlingstema = "ab0061",
