@@ -19,10 +19,13 @@ data class Utbetaling(
     val maksdato: LocalDate,
     val automatiskBehandling: Boolean,
     val arbeidsgiverOppdrag: OppdragDto,
-    val type: String,
+    val type: Utbetalingtype,
     val ident: String,
     val ikkeUtbetalingsdager: List<UtbetalingdagDto>
 ) {
+
+    enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
+
     companion object {
         fun fromJson(packet: JsonMessage): Utbetaling {
             val arbeidsgiverOppdrag = packet["arbeidsgiverOppdrag"].let { oppdrag ->
@@ -55,18 +58,20 @@ data class Utbetaling(
                 maksdato = packet["maksdato"].asLocalDate(),
                 automatiskBehandling = packet["automatiskBehandling"].asBoolean(),
                 arbeidsgiverOppdrag = arbeidsgiverOppdrag,
-                type = packet["type"].asText(),
+                type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
                 ikkeUtbetalingsdager = packet["utbetalingsdager"].toList()
-                    .filter {dag -> erIkkeUtbetaltDag(dag) }
-                    .map { dag -> UtbetalingdagDto(
-                        dato = dag["dato"].asLocalDate(),
-                        type = dag["type"].asText(),
-                        begrunnelser = dag.path("begrunnelser").takeUnless(JsonNode::isMissingOrNull)
-                            ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList())
+                    .filter { dag -> erIkkeUtbetaltDag(dag) }
+                    .map { dag ->
+                        UtbetalingdagDto(
+                            dato = dag["dato"].asLocalDate(),
+                            type = dag["type"].asText(),
+                            begrunnelser = dag.path("begrunnelser").takeUnless(JsonNode::isMissingOrNull)
+                                ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList())
                     }
             )
         }
+
 
         fun fromJson(packet: JsonNode): Utbetaling {
             val arbeidsgiverOppdrag = packet["arbeidsgiverOppdrag"].let { oppdrag ->
@@ -99,17 +104,18 @@ data class Utbetaling(
                 maksdato = packet["maksdato"].asLocalDate(),
                 automatiskBehandling = packet["automatiskBehandling"].asBoolean(),
                 arbeidsgiverOppdrag = arbeidsgiverOppdrag,
-                type = packet["type"].asText(),
+                type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
                 ikkeUtbetalingsdager = packet["utbetalingsdager"].toList()
                     .filter(::erIkkeUtbetaltDag)
-                    .map { dag -> UtbetalingdagDto(
+                    .map { dag ->
+                        UtbetalingdagDto(
                             dato = dag["dato"].asLocalDate(),
                             type = dag["type"].asText(),
                             begrunnelser = dag.path("begrunnelser").takeUnless(JsonNode::isMissingOrNull)
                                 ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList()
                         )
-                }
+                    }
             )
         }
 

@@ -5,13 +5,15 @@ package no.nav.helse.spre.gosys.io
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 class IO {
     @Serializable
-    data class Vedtak (
+    data class Vedtak(
         val aktørId: String,
         val fødselsnummer: String,
         val organisasjonsnummer: String,
@@ -26,6 +28,7 @@ class IO {
         val maksdato: LocalDate,
         val `@id`: UUID,
         val `@opprettet`: LocalDateTime,
+        val utbetalingtype: Utbetalingtype = Utbetalingtype.UTBETALING
     )
 
     @Serializable

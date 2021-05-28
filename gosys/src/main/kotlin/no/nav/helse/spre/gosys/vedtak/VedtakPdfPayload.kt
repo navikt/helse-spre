@@ -5,6 +5,7 @@ import java.time.LocalDate
 data class VedtakPdfPayload(
     val fødselsnummer: String,
     val fagsystemId: String,
+    val type: String,
     val fom: LocalDate,
     val tom: LocalDate,
     val linjer: List<Linje>,

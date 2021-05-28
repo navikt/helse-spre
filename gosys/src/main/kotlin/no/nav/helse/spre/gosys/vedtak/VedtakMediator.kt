@@ -3,6 +3,7 @@ package no.nav.helse.spre.gosys.vedtak
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.*
 import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 
 class VedtakMediator(
     private val pdfClient: PdfClient,
@@ -10,6 +11,7 @@ class VedtakMediator(
     private val duplikatsjekkDao: DuplikatsjekkDao
 ) {
     internal fun opprettVedtak(vedtakMessage: VedtakMessage) {
+        if(vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
         duplikatsjekkDao.sjekkDuplikat(vedtakMessage.hendelseId) {
             runBlocking {
                 val pdf = pdfClient.hentVedtakPdf(vedtakMessage.toVedtakPdfPayload())

@@ -54,6 +54,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             VedtakPdfPayload(
                 fødselsnummer = "12345678910",
                 fagsystemId = "123",
+                type = "UTBETALING",
                 fom = LocalDate.of(2021, 5, 6),
                 tom = LocalDate.of(2021, 5, 16),
                 organisasjonsnummer = "123456789",
@@ -140,7 +141,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `en avvist dag med begrunnelse`() {
+    fun `en avvist dag med begrunnelse revurdering`() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
         testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
@@ -181,6 +182,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         VedtakPdfPayload(
             fødselsnummer = "12345678910",
             fagsystemId = "123",
+            type = "UTBETALING",
             fom = LocalDate.of(2021, 5, 6),
             tom = LocalDate.of(2021, 5, 16),
             organisasjonsnummer = "123456789",
@@ -208,6 +210,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         VedtakPdfPayload(
             fødselsnummer = "12345678910",
             fagsystemId = "123",
+            type = "REVURDERING",
             fom = LocalDate.of(2021, 5, 6),
             tom = LocalDate.of(2021, 5, 16),
             organisasjonsnummer = "123456789",
@@ -242,6 +245,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         VedtakPdfPayload(
             fødselsnummer = "12345678910",
             fagsystemId = "123",
+            type = "UTBETALING",
             fom = LocalDate.of(2021, 5, 6),
             tom = LocalDate.of(2021, 5, 16),
             organisasjonsnummer = "123456789",
@@ -485,7 +489,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
   "gjenståendeSykedager": "31",
   "ident": "Automatisk behandlet",
   "epost": "tbd@nav.no",
-  "type": "UTBETALING",
+  "type": "REVURDERING",
   "tidspunkt": "${LocalDateTime.now()}",
   "automatiskBehandling": "true",
   "arbeidsgiverOppdrag": {

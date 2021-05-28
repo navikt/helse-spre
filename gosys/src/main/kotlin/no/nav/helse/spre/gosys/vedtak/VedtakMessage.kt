@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -15,6 +16,7 @@ data class VedtakMessage private constructor(
     val hendelseId: UUID,
     val fødselsnummer: String,
     val aktørId: String,
+    val type: Utbetalingtype,
     private val opprettet: LocalDateTime,
     private val fom: LocalDate,
     private val tom: LocalDate,
@@ -47,6 +49,7 @@ data class VedtakMessage private constructor(
                 opprettet = vedtak.opprettet,
                 fødselsnummer = vedtak.fødselsnummer,
                 aktørId = vedtak.aktørId,
+                type = utbetaling.type,
                 fom = vedtak.fom,
                 tom = vedtak.tom,
                 organisasjonsnummer = utbetaling.organisasjonsnummer,
@@ -87,6 +90,7 @@ data class VedtakMessage private constructor(
                 opprettet = packet["@opprettet"].asLocalDateTime(),
                 fødselsnummer = packet["fødselsnummer"].asText(),
                 aktørId = packet["aktørId"].asText(),
+                type = Utbetalingtype.UTBETALING,
                 fom = packet["fom"].asLocalDate(),
                 tom = packet["tom"].asLocalDate(),
                 organisasjonsnummer = packet["organisasjonsnummer"].asText(),
@@ -128,6 +132,7 @@ data class VedtakMessage private constructor(
                 opprettet = vedtak.`@opprettet`,
                 fødselsnummer = vedtak.fødselsnummer,
                 aktørId = vedtak.aktørId,
+                type = vedtak.utbetalingtype,
                 fom = vedtak.fom,
                 tom = vedtak.tom,
                 organisasjonsnummer = vedtak.organisasjonsnummer,
@@ -143,6 +148,7 @@ data class VedtakMessage private constructor(
     internal fun toVedtakPdfPayload() = VedtakPdfPayload(
         fagsystemId = utbetaling.fagsystemId,
         totaltTilUtbetaling = utbetaling.totalbeløp,
+        type = type.toString(),
         linjer = utbetaling.utbetalingslinjer.map {
             VedtakPdfPayload.Linje(
                 fom = it.fom,
