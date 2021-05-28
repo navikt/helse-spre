@@ -6,6 +6,7 @@ import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
+import java.lang.IllegalArgumentException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -148,7 +149,7 @@ data class VedtakMessage private constructor(
     internal fun toVedtakPdfPayload() = VedtakPdfPayload(
         fagsystemId = utbetaling.fagsystemId,
         totaltTilUtbetaling = utbetaling.totalbeløp,
-        type = type.toString(),
+        type = lesbarTittel(),
         linjer = utbetaling.utbetalingslinjer.map {
             VedtakPdfPayload.Linje(
                 fom = it.fom,
@@ -193,6 +194,16 @@ data class VedtakMessage private constructor(
                 )
             }
     )
+
+    private fun lesbarTittel(): String{
+        return when (this.type){
+            Utbetalingtype.UTBETALING -> "utbetalt"
+            Utbetalingtype.ETTERUTBETALING -> "etterutbetaling av"
+            Utbetalingtype.REVURDERING -> "revurdering av"
+            Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
+        }
+        }
+
 
     private fun mapBegrunnelser(begrunnelser: List<String>): List<String> = begrunnelser.map {
         when (it) {
