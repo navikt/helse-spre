@@ -149,7 +149,10 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertJournalPostOgVedtakPdf(
             id,
             expectedPdfPayload = vedtakPdfPayloadMedEnAvvistDag(),
-            expectedJournalpost("Vedtak om revurdering av sykepenger")
+            expectedJournalpost(
+                journalpostTittel = "Vedtak om revurdering av sykepenger",
+                dokumentTittel = "Sykepenger revurdert i ny løsning, 06.05.2021 - 16.05.2021"
+            )
         )
     }
 
@@ -279,9 +282,9 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
 
 
-    private fun expectedJournalpost(tittel: String = "Vedtak om sykepenger"): JournalpostPayload {
+    private fun expectedJournalpost(journalpostTittel: String = "Vedtak om sykepenger", dokumentTittel: String = "Sykepenger behandlet i ny løsning, 06.05.2021 - 16.05.2021"): JournalpostPayload {
         return JournalpostPayload(
-            tittel = tittel,
+            tittel = journalpostTittel,
             journalpostType = "NOTAT",
             tema = "SYK",
             behandlingstema = "ab0061",
@@ -295,7 +298,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             ),
             dokumenter = listOf(
                 JournalpostPayload.Dokument(
-                    tittel = "Sykepenger behandlet i ny løsning, 06.05.2021 - 16.05.2021",
+                    tittel = dokumentTittel,
                     dokumentvarianter = listOf(
                         JournalpostPayload.Dokument.DokumentVariant(
                             filtype = "PDFA",

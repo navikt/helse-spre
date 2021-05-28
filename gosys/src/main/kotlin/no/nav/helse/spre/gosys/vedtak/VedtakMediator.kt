@@ -16,11 +16,11 @@ class VedtakMediator(
             runBlocking {
                 val pdf = pdfClient.hentVedtakPdf(vedtakMessage.toVedtakPdfPayload())
                 val journalpostPayload = JournalpostPayload(
-                    tittel = notatTittel(vedtakMessage.type),
+                    tittel = journalpostTittel(vedtakMessage.type),
                     bruker = JournalpostPayload.Bruker(id = vedtakMessage.fødselsnummer),
                     dokumenter = listOf(
                         JournalpostPayload.Dokument(
-                            tittel = "Sykepenger behandlet i ny løsning, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}",
+                            tittel = dokumentTittel(vedtakMessage),
                             dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdf))
                         )
                     )
@@ -33,7 +33,17 @@ class VedtakMediator(
         }
     }
 
-    private fun notatTittel(type: Utbetaling.Utbetalingtype): String {
+    private fun dokumentTittel(vedtakMessage: VedtakMessage): String {
+        return when(vedtakMessage.type){
+            Utbetaling.Utbetalingtype.UTBETALING -> "Sykepenger behandlet i ny løsning, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
+            Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Sykepenger etterutbetalt i ny løsning, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
+            Utbetaling.Utbetalingtype.REVURDERING -> "Sykepenger revurdert i ny løsning, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
+            Utbetaling.Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
+        }
+    }
+
+
+    private fun journalpostTittel(type: Utbetaling.Utbetalingtype): String {
         return when (type) {
             Utbetaling.Utbetalingtype.UTBETALING -> "Vedtak om sykepenger"
             Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Vedtak om etterutbetaling av sykepenger"
