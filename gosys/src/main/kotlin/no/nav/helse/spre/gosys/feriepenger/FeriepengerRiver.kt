@@ -40,7 +40,7 @@ class FeriepengerRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Oppdaget feriepenger-event {}", StructuredArguments.keyValue("id", packet["@id"].asText()))
-        sikkerLogg.info(packet.toJson())
+        sikkerLogg.info("feriepenger_utbetalt lest inn: {}", packet.toJson())
 
         val feriepengerMessage = FeriepengerMessage(packet)
         feriepengerMediator.opprettFeriepenger(feriepengerMessage)

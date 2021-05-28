@@ -2,10 +2,10 @@ package no.nav.helse.spre.gosys.vedtak
 
 import com.fasterxml.jackson.databind.JsonNode
 import net.logstash.logback.argument.StructuredArguments.keyValue
-import no.nav.helse.spre.gosys.log
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.sikkerLogg
-import java.util.UUID
+import java.util.*
 
 class VedtakRiver(
     private val rapidsConnection: RapidsConnection,
@@ -37,7 +37,7 @@ class VedtakRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Oppdaget utbetalingevent {}", keyValue("id", UUID.fromString(packet["@id"].asText())))
-        sikkerLogg.info(packet.toJson())
+        sikkerLogg.info("utbetalt-event lest inn: {}", packet.toJson())
 
         try {
             vedtakMediator.opprettVedtak(VedtakMessage(packet))
