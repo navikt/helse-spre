@@ -9,10 +9,8 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.gosys.*
-import no.nav.helse.spre.gosys.setupDataSourceMedFlyway
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import org.junit.jupiter.api.BeforeEach
-import java.util.*
 
 internal abstract class AbstractE2ETest {
 
@@ -45,19 +43,28 @@ internal abstract class AbstractE2ETest {
             engine {
                 addHandler { request ->
                     when (request.url.fullPath) {
-                        "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> {
-                            capturedJoarkRequests.add(request)
-                            respond("Hello, world")
-                        }
-                        "/api/v1/genpdf/spre-gosys/vedtak" -> {
-                            capturedPdfRequests.add(request)
-                            respond("Test".toByteArray())
-                        }
+
+                        "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> handlerForJoark(request)
+
+                        "/api/v1/genpdf/spre-gosys/vedtak" -> handlerForPdfKall(request)
+
+                        "/api/v1/genpdf/spre-gosys/annullering" -> handlerForPdfKall(request)
+
                         else -> error("Unhandled ${request.url.fullPath}")
                     }
                 }
             }
         }
+    }
+
+    open fun MockRequestHandleScope.handlerForJoark(request: HttpRequestData): HttpResponseData {
+        capturedJoarkRequests.add(request)
+        return respond("Hello, world")
+    }
+
+    open fun MockRequestHandleScope.handlerForPdfKall(request: HttpRequestData): HttpResponseData {
+        capturedPdfRequests.add(request)
+        return respond("Test".toByteArray())
     }
 
 }

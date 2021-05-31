@@ -1,16 +1,11 @@
 package no.nav.helse.spre.gosys.annullering
 
-import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.json.*
-import io.ktor.client.request.*
-import io.ktor.http.*
 import io.ktor.util.*
-import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.spre.gosys.*
+import no.nav.helse.spre.gosys.JournalpostPayload
+import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
+import no.nav.helse.spre.gosys.objectMapper
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -19,20 +14,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-internal class AnnulleringRiverTest {
-    private val testRapid = TestRapid()
-    private val stsMock: StsRestClient = mockk {
-        coEvery { token() }.returns("6B70C162-8AAB-4B56-944D-7F092423FE4B")
-    }
-    private val mockClient = httpclient()
-    private val joarkClient = JoarkClient("https://url.no", stsMock, mockClient)
-    private val pdfClient = PdfClient(mockClient)
-    val dataSource = setupDataSourceMedFlyway()
-    val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
+internal class AnnulleringRiverTest : AbstractE2ETest() {
     private val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
-
-    private var capturedJoarkRequests = mutableListOf<HttpRequestData>()
-    private var capturedPdfRequests = mutableListOf<HttpRequestData>()
 
     init {
         AnnulleringRiver(testRapid, annulleringMediator)
@@ -93,29 +76,6 @@ internal class AnnulleringRiverTest {
         testRapid.sendTestMessage(annullering)
 
         assertEquals(1, capturedJoarkRequests.size)
-    }
-
-    private fun httpclient(): HttpClient {
-        return HttpClient(MockEngine) {
-            install(JsonFeature) {
-                serializer = JacksonSerializer(objectMapper)
-            }
-            engine {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> {
-                            capturedJoarkRequests.add(request)
-                            respond("Hello, world")
-                        }
-                        "/api/v1/genpdf/spre-gosys/annullering" -> {
-                            capturedPdfRequests.add(request)
-                            respond("Test".toByteArray())
-                        }
-                        else -> error("Unhandled ${request.url.fullPath}")
-                    }
-                }
-            }
-        }
     }
 
     @Language("JSON")
