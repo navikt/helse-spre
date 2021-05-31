@@ -28,10 +28,15 @@ import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
 import no.nav.helse.spre.gosys.io.IO
+import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
+import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
+import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtak.VedtakConsumer
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage
 import no.nav.helse.spre.gosys.vedtak.VedtakRiver
+import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
+import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -77,11 +82,21 @@ fun launchApplication(
     val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient, duplikatsjekkDao)
 
+    val vedtakFattetDao = VedtakFattetDao(dataSource)
+    val utbetalingDao = UtbetalingDao(dataSource)
+
+    val nyeEventsToggle = System.getenv()["SPLIT_VEDTAK_OG_UTBETALING"]?.toBoolean() ?: false
+
     return RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(environment)).build()
         .apply {
             VedtakRiver(this, vedtakMediator)
             AnnulleringRiver(this, annulleringMediator)
             FeriepengerRiver(this, feriepengerMediator)
+            if (nyeEventsToggle) {
+                VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, vedtakMediator)
+                UtbetalingUtbetaltRiver(this, utbetalingDao, vedtakFattetDao, vedtakMediator)
+                UtbetalingUtenUtbetalingRiver(this, utbetalingDao, vedtakFattetDao, vedtakMediator)
+            }
         }
 }
 
@@ -94,7 +109,7 @@ fun startRyddejobbConsumer(env: Map<String, String>) {
         put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
         put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, env.getValue("KAFKA_KEYSTORE_PATH"))
         put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
-        put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         put(ConsumerConfig.GROUP_ID_CONFIG, "spre-gosys-laste-v1")
         put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
     }

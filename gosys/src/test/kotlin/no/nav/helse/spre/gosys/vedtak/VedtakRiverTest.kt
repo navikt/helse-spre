@@ -1,52 +1,23 @@
 package no.nav.helse.spre.gosys.vedtak
 
-import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.json.*
-import io.ktor.client.request.*
-import io.ktor.http.*
 import io.ktor.util.*
-import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.spre.gosys.*
+import no.nav.helse.spre.gosys.JournalpostPayload
+import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
+import no.nav.helse.spre.gosys.objectMapper
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.*
 
 @KtorExperimentalAPI
-class VedtakRiverTest {
-
-    private val testRapid = TestRapid()
-    private val stsMock: StsRestClient = mockk {
-        coEvery { token() }.returns("6B70C162-8AAB-4B56-944D-7F092423FE4B")
-    }
-    private val mockClient = httpclient()
-    private val joarkClient = JoarkClient("https://url.no", stsMock, mockClient)
-    private val pdfClient = PdfClient(mockClient)
-
-    val dataSource = setupDataSourceMedFlyway()
-    val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
-
-    private val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
+internal class VedtakRiverTest: AbstractE2ETest() {
     private val godkjentAv = "A123456"
-
-    private var capturedJoarkRequests = mutableListOf<HttpRequestData>()
-    private var capturedPdfRequests = mutableListOf<HttpRequestData>()
 
     init {
         VedtakRiver(testRapid, vedtakMediator)
-    }
-
-    @BeforeEach
-    fun setup() {
-        testRapid.reset()
-        capturedJoarkRequests.clear()
-        capturedPdfRequests.clear()
     }
 
     @Test
@@ -69,6 +40,7 @@ class VedtakRiverTest {
         val expectedPdfPayload = VedtakPdfPayload(
             fødselsnummer = "fnr",
             fagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY",
+            type = "utbetalt",
             fom = LocalDate.of(2020, 5, 11),
             tom = LocalDate.of(2020, 5, 30),
             organisasjonsnummer = "orgnummer",
@@ -111,6 +83,7 @@ class VedtakRiverTest {
         val expectedPdfPayload = VedtakPdfPayload(
             fødselsnummer = "12345678910",
             fagsystemId = "V7E6ZHOCKJDNZNQMCAU23MQ47A",
+            type = "utbetalt",
             fom = LocalDate.of(2020, 5, 16),
             tom = LocalDate.of(2020, 5, 17),
             organisasjonsnummer = "123456789",
@@ -151,6 +124,7 @@ class VedtakRiverTest {
             behandlingsdato = LocalDate.of(2020, 5, 20),
             dagerIgjen = 48,
             automatiskBehandling = false,
+            type = "utbetalt",
             godkjentAv = godkjentAv,
             totaltTilUtbetaling = 15000,
             ikkeUtbetalteDager = listOf(),
@@ -174,7 +148,6 @@ class VedtakRiverTest {
                 )
             )
         )
-
         assertEquals(expectedPdfPayload, pdfPayload)
     }
 
@@ -203,6 +176,7 @@ class VedtakRiverTest {
             organisasjonsnummer = "orgnummer",
             behandlingsdato = LocalDate.of(2020, 5, 4),
             dagerIgjen = 233,
+            type = "utbetalt",
             automatiskBehandling = false,
             godkjentAv = godkjentAv,
             totaltTilUtbetaling = 8586,
@@ -251,6 +225,7 @@ class VedtakRiverTest {
             organisasjonsnummer = "orgnummer",
             behandlingsdato = LocalDate.of(2020, 5, 4),
             dagerIgjen = 233,
+            type = "utbetalt",
             automatiskBehandling = false,
             godkjentAv = godkjentAv,
             totaltTilUtbetaling = 8586,
@@ -285,29 +260,6 @@ class VedtakRiverTest {
         testRapid.sendTestMessage(vedtak)
 
         assertEquals(1, capturedJoarkRequests.size)
-    }
-
-    private fun httpclient(): HttpClient {
-        return HttpClient(MockEngine) {
-            install(JsonFeature) {
-                serializer = JacksonSerializer(objectMapper)
-            }
-            engine {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> {
-                            capturedJoarkRequests.add(request)
-                            respond("Hello, world")
-                        }
-                        "/api/v1/genpdf/spre-gosys/vedtak" -> {
-                            capturedPdfRequests.add(request)
-                            respond("Test".toByteArray())
-                        }
-                        else -> error("Unhandled ${request.url.fullPath}")
-                    }
-                }
-            }
-        }
     }
 
     private fun expectedJournalpost(): JournalpostPayload {

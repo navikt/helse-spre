@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
+import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
+import java.lang.IllegalArgumentException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -14,6 +17,7 @@ data class VedtakMessage private constructor(
     val hendelseId: UUID,
     val fødselsnummer: String,
     val aktørId: String,
+    val type: Utbetalingtype,
     private val opprettet: LocalDateTime,
     private val fom: LocalDate,
     private val tom: LocalDate,
@@ -26,9 +30,60 @@ data class VedtakMessage private constructor(
     private val utbetaling: Utbetaling,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>
 ) {
+
+    companion object {
+        fun fraVedtakOgUtbetaling(vedtak: VedtakFattetData, utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling): VedtakMessage {
+            if (utbetaling.fødselsnummer != vedtak.fødselsnummer) throw IllegalStateException(
+                "Alvorlig feil: Vedtaket peker på utbetaling med et annet fødselnummer"
+            )
+            return VedtakMessage(vedtak, utbetaling)
+        }
+    }
+
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
+
+    constructor(vedtak: VedtakFattetData, utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling):
+            this(
+                hendelseId = vedtak.id,
+                opprettet = vedtak.opprettet,
+                fødselsnummer = vedtak.fødselsnummer,
+                aktørId = vedtak.aktørId,
+                type = utbetaling.type,
+                fom = vedtak.fom,
+                tom = vedtak.tom,
+                organisasjonsnummer = utbetaling.organisasjonsnummer,
+                gjenståendeSykedager = utbetaling.gjenståendeSykedager,
+                automatiskBehandling = utbetaling.automatiskBehandling,
+                godkjentAv = utbetaling.ident,
+                maksdato = utbetaling.maksdato,
+                sykepengegrunnlag = vedtak.sykepengegrunnlag,
+                utbetaling = utbetaling.arbeidsgiverOppdrag.takeIf { it.fagområde == "SPREF" }!!.let { oppdrag ->
+                    Utbetaling(
+                        fagområde = Utbetaling.Fagområde.SPREF,
+                        fagsystemId = oppdrag.fagsystemId,
+                        totalbeløp = oppdrag.nettoBeløp,
+                        utbetalingslinjer = oppdrag.utbetalingslinjer.map { utbetalingslinje ->
+                            Utbetaling.Utbetalingslinje(
+                                dagsats = utbetalingslinje.dagsats,
+                                fom = utbetalingslinje.fom,
+                                tom = utbetalingslinje.tom,
+                                grad = utbetalingslinje.grad.toInt(),
+                                beløp = utbetalingslinje.dagsats,
+                                mottaker = "arbeidsgiver"
+                            )
+                        }
+                    )
+                },
+                ikkeUtbetalteDager = utbetaling.ikkeUtbetalingsdager.map { dag ->
+                    IkkeUtbetaltDag(
+                        dato = dag.dato,
+                        type = dag.type,
+                        begrunnelser = dag.begrunnelser
+                    )
+                }
+            )
 
     constructor(packet: JsonMessage) :
             this(
@@ -36,6 +91,7 @@ data class VedtakMessage private constructor(
                 opprettet = packet["@opprettet"].asLocalDateTime(),
                 fødselsnummer = packet["fødselsnummer"].asText(),
                 aktørId = packet["aktørId"].asText(),
+                type = Utbetalingtype.UTBETALING,
                 fom = packet["fom"].asLocalDate(),
                 tom = packet["tom"].asLocalDate(),
                 organisasjonsnummer = packet["organisasjonsnummer"].asText(),
@@ -77,6 +133,7 @@ data class VedtakMessage private constructor(
                 opprettet = vedtak.`@opprettet`,
                 fødselsnummer = vedtak.fødselsnummer,
                 aktørId = vedtak.aktørId,
+                type = vedtak.utbetalingtype,
                 fom = vedtak.fom,
                 tom = vedtak.tom,
                 organisasjonsnummer = vedtak.organisasjonsnummer,
@@ -92,6 +149,7 @@ data class VedtakMessage private constructor(
     internal fun toVedtakPdfPayload() = VedtakPdfPayload(
         fagsystemId = utbetaling.fagsystemId,
         totaltTilUtbetaling = utbetaling.totalbeløp,
+        type = lesbarTittel(),
         linjer = utbetaling.utbetalingslinjer.map {
             VedtakPdfPayload.Linje(
                 fom = it.fom,
@@ -136,6 +194,16 @@ data class VedtakMessage private constructor(
                 )
             }
     )
+
+    private fun lesbarTittel(): String{
+        return when (this.type){
+            Utbetalingtype.UTBETALING -> "utbetalt"
+            Utbetalingtype.ETTERUTBETALING -> "etterutbetaling av"
+            Utbetalingtype.REVURDERING -> "revurdering av"
+            Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
+        }
+        }
+
 
     private fun mapBegrunnelser(begrunnelser: List<String>): List<String> = begrunnelser.map {
         when (it) {
