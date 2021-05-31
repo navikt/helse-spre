@@ -84,49 +84,6 @@ data class VedtakMessage private constructor(
                     )
                 }
             )
-
-    constructor(packet: JsonMessage) :
-            this(
-                hendelseId = UUID.fromString(packet["@id"].asText()),
-                opprettet = packet["@opprettet"].asLocalDateTime(),
-                fødselsnummer = packet["fødselsnummer"].asText(),
-                aktørId = packet["aktørId"].asText(),
-                type = Utbetalingtype.UTBETALING,
-                fom = packet["fom"].asLocalDate(),
-                tom = packet["tom"].asLocalDate(),
-                organisasjonsnummer = packet["organisasjonsnummer"].asText(),
-                gjenståendeSykedager = packet["gjenståendeSykedager"].asInt(),
-                automatiskBehandling = packet["automatiskBehandling"].asBoolean(),
-                godkjentAv = packet["godkjentAv"].asText(),
-                maksdato = packet["maksdato"].asOptionalLocalDate(),
-                sykepengegrunnlag = packet["sykepengegrunnlag"].asDouble(),
-                utbetaling = packet["utbetalt"].find { it["fagområde"].asText() == "SPREF" }!!.let { utbetaling ->
-                    Utbetaling(
-                        fagområde = Utbetaling.Fagområde.SPREF,
-                        fagsystemId = utbetaling["fagsystemId"].asText(),
-                        totalbeløp = utbetaling["totalbeløp"].asInt(),
-                        utbetalingslinjer = utbetaling["utbetalingslinjer"].map { utbetalingslinje ->
-                            Utbetaling.Utbetalingslinje(
-                                dagsats = utbetalingslinje["dagsats"].asInt(),
-                                fom = utbetalingslinje["fom"].asLocalDate(),
-                                tom = utbetalingslinje["tom"].asLocalDate(),
-                                grad = utbetalingslinje["grad"].asInt(),
-                                beløp = utbetalingslinje["beløp"].asInt(),
-                                mottaker = "arbeidsgiver"
-                            )
-                        }
-                    )
-                },
-                ikkeUtbetalteDager = packet["ikkeUtbetalteDager"].map { dag ->
-                    IkkeUtbetaltDag(
-                        dato = dag["dato"].asLocalDate(),
-                        type = dag["type"].asText(),
-                        begrunnelser = dag.path("begrunnelser").takeUnless(JsonNode::isMissingOrNull)
-                            ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList()
-                    )
-                }
-            )
-
     constructor(vedtak: IO.Vedtak) :
             this(
                 hendelseId = vedtak.`@id`,

@@ -34,7 +34,6 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtak.VedtakConsumer
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage
-import no.nav.helse.spre.gosys.vedtak.VedtakRiver
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import org.apache.kafka.clients.CommonClientConfigs
