@@ -92,7 +92,6 @@ fun launchApplication(
                 VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, vedtakMediator)
                 UtbetalingUtbetaltRiver(this, utbetalingDao, vedtakFattetDao, vedtakMediator)
                 UtbetalingUtenUtbetalingRiver(this, utbetalingDao, vedtakFattetDao, vedtakMediator)
-                VedtakRiver(this, vedtakMediator)
         }
 }
 
