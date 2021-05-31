@@ -47,15 +47,13 @@ internal class VedtakFattetRiver(
         val id = packet["@id"].asText().let { UUID.fromString(it) }
         val utbetalingId = packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let { UUID.fromString(it.asText()) }
         val vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
-        log.info("vedtak_fattet leses inn for vedtaksperiode med vedtaksperiodeId ${vedtaksperiodeId}")
+        log.info("vedtak_fattet leses inn for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId")
 
         val vedtakFattet = VedtakFattetData.fromJson(packet)
         vedtakFattetDao.lagre(vedtakFattet, packet.toJson())
-        log.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId ${vedtaksperiodeId} på id ${id}")
+        log.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
 
-        if (utbetalingId == null) return
-
-        val utbetaling = utbetalingDao.finnUtbetalingData(utbetalingId) ?: return
+        val utbetaling = utbetalingId?.let(utbetalingDao::finnUtbetalingData) ?: return
 
         vedtakMediator.opprettVedtak(fraVedtakOgUtbetaling(vedtakFattet, utbetaling))
 

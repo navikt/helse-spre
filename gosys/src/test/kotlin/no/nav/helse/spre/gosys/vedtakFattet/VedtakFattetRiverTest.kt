@@ -60,5 +60,4 @@ internal class VedtakFattetRiverTest: AbstractE2ETest() {
 }
     """
 
-
 }
