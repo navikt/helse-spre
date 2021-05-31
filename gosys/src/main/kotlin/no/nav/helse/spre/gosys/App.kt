@@ -89,13 +89,15 @@ fun launchApplication(
 
     return RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(environment)).build()
         .apply {
-            VedtakRiver(this, vedtakMediator)
             AnnulleringRiver(this, annulleringMediator)
             FeriepengerRiver(this, feriepengerMediator)
             if (nyeEventsToggle) {
                 VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, vedtakMediator)
                 UtbetalingUtbetaltRiver(this, utbetalingDao, vedtakFattetDao, vedtakMediator)
                 UtbetalingUtenUtbetalingRiver(this, utbetalingDao, vedtakFattetDao, vedtakMediator)
+            }
+            else {
+                VedtakRiver(this, vedtakMediator)
             }
         }
 }
