@@ -76,7 +76,7 @@ fun launchApplication(
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
     val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
     GlobalScope.launch(Dispatchers.IO) {
-        startRyddejobbConsumer(environment)
+        startRyddejobbConsumer(environment, vedtakMediator, duplikatsjekkDao)
     }
     val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient, duplikatsjekkDao)
@@ -94,7 +94,7 @@ fun launchApplication(
         }
 }
 
-fun startRyddejobbConsumer(env: Map<String, String>) {
+fun startRyddejobbConsumer(env: Map<String, String>, vedtakMediator: VedtakMediator, duplikatsjekkDao: DuplikatsjekkDao) {
     val kafkaConfig = Properties().apply {
         put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, env.getValue("KAFKA_BROKERS"))
         put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL")
@@ -104,10 +104,14 @@ fun startRyddejobbConsumer(env: Map<String, String>) {
         put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, env.getValue("KAFKA_KEYSTORE_PATH"))
         put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-        put(ConsumerConfig.GROUP_ID_CONFIG, "spre-gosys-laste-v1")
+        put(ConsumerConfig.GROUP_ID_CONFIG, "spre-gosys-laste-v2")
         put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
     }
-    VedtakConsumer(KafkaConsumer(kafkaConfig, StringDeserializer(), StringDeserializer())).consume()
+    VedtakConsumer(
+        consumer = KafkaConsumer(kafkaConfig, StringDeserializer(), StringDeserializer()),
+        vedtakMediator = vedtakMediator,
+        duplikatsjekkDao = duplikatsjekkDao,
+    ).consume()
 }
 
 fun Application.wiring(
