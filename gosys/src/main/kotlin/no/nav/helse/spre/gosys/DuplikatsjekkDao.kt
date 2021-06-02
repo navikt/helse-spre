@@ -23,14 +23,20 @@ class DuplikatsjekkDao(private val datasource: DataSource) {
         }
     }
 
-    fun insertAlleredeProdusertVedtak(hendelseId: String) {
+    fun insertAlleredeProdusertVedtak(hendelseIds: Collection<String>) {
         sessionOf(datasource).use {
             @Language("PostgreSQL")
-            val query = "INSERT INTO duplikatsjekk (id) VALUES (?) ON CONFLICT DO NOTHING;"
+            val query = """
+                INSERT INTO
+                    duplikatsjekk (id)
+                VALUES
+                    ${hendelseIds.joinToString { "(?)" }}
+                ON CONFLICT DO NOTHING;
+            """.trimIndent()
             it.run(
                 queryOf(
                     query,
-                    UUID.fromString(hendelseId)
+                    *hendelseIds.map(UUID::fromString).toTypedArray<UUID>()
                 ).asUpdate
             )
 

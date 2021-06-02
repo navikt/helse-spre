@@ -16,6 +16,9 @@ import io.ktor.jackson.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -71,6 +74,10 @@ fun launchApplication(
 
     val dataSource = dataSourceBuilder.getDataSource()
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
+
+    GlobalScope.launch(Dispatchers.IO) {
+        startRyddejobbConsumer(environment, duplikatsjekkDao)
+    }
     val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
     val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient, duplikatsjekkDao)
@@ -88,7 +95,7 @@ fun launchApplication(
         }
 }
 
-fun startRyddejobbConsumer(env: Map<String, String>, vedtakMediator: VedtakMediator, duplikatsjekkDao: DuplikatsjekkDao) {
+fun startRyddejobbConsumer(env: Map<String, String>, duplikatsjekkDao: DuplikatsjekkDao) {
     val kafkaConfig = Properties().apply {
         put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, env.getValue("KAFKA_BROKERS"))
         put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL")
@@ -103,7 +110,6 @@ fun startRyddejobbConsumer(env: Map<String, String>, vedtakMediator: VedtakMedia
     }
     VedtakConsumer(
         consumer = KafkaConsumer(kafkaConfig, StringDeserializer(), StringDeserializer()),
-        vedtakMediator = vedtakMediator,
         duplikatsjekkDao = duplikatsjekkDao,
     ).consume()
 }
