@@ -14,7 +14,7 @@ import java.time.temporal.ChronoUnit
 import kotlin.math.absoluteValue
 
 internal val logger: Logger = LoggerFactory.getLogger("re-lesing")
-internal val sikretLogger: Logger = LoggerFactory.getLogger("tjenestekall")
+internal val sikretLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
 class VedtakConsumer(
     private val consumer: KafkaConsumer<String, String>,
@@ -22,6 +22,7 @@ class VedtakConsumer(
     private val duplikatsjekkDao: DuplikatsjekkDao
 ) {
     private val produserteVedtak by lazy { lesProduserteVedtak() }
+    private val hendelserMedProduserteVedtakEtterFørsteKjøring by lazy { lesHendelserMedProduserteVedtakEtterRelesing() }
     private val topicName = "tbd.rapid.v1"
 
     fun consume() {
@@ -34,9 +35,9 @@ class VedtakConsumer(
         var finished = false
         val startMillis = currentTimeMillis()
         val sluttidspunktMillis = LocalDate.of(2021, 3, 21).toEpochSecond(LocalTime.MIDNIGHT, ZoneOffset.UTC) * 1000
-        val produsereForDatoer = mutableMapOf<LocalDate, Int>()
+        val produsertForDatoer = mutableMapOf<LocalDate, Int>()
         val hendelseIdToAktørId = mutableMapOf<String, String>()
-        var nyePdferÅProdusere = 0
+        var nyePdferProdusert = 0
         var nyeInsertsIDuplikattabellen = 0
 
         Thread.setDefaultUncaughtExceptionHandler { _, throwable -> logger.error(throwable.message, throwable) }
@@ -51,6 +52,13 @@ class VedtakConsumer(
                     .filter { (event, _) -> event["@event_name"].asText() == "utbetalt" }
                     .onEach {
                         if (count++ % 100 == (Math.random() * 100).toInt()) logger.info("Har prosessert $count events")
+                    }
+                    .filterNot { (event, _) ->
+                        val hendelseId = event["@id"].asText()
+                        if (hendelseId in hendelserMedProduserteVedtakEtterFørsteKjøring) {
+                            logger.info("Allerede produsert for $hendelseId")
+                            true
+                        } else false
                     }
                     .forEach { (event, timestamp) ->
                         val aktørId = event["aktørId"].asText()
@@ -69,8 +77,8 @@ class VedtakConsumer(
                             )
                             vedtakMediator.opprettVedtak(VedtakMessage(event))
                             hendelseIdToAktørId[hendelseId] = aktørId
-                            produsereForDatoer.merge(recordDato, 1) { total, neste -> total + neste}
-                            nyePdferÅProdusere++
+                            produsertForDatoer.merge(recordDato, 1, Int::plus)
+                            nyePdferProdusert++
                         } else {
                             logger.info(
                                 "Vi har allerede produsert PDF for {}, legges til i duplikattabellen",
@@ -85,23 +93,29 @@ class VedtakConsumer(
         consumer.unsubscribe()
         consumer.close()
         logger.info("Prosessert $count events på ${forbruktTid(startMillis)}")
-        logger.info("Tellere: Antall PDF-er vi tenker å produsere: $nyePdferÅProdusere, nye inserts i duplikattabellen: $nyeInsertsIDuplikattabellen")
-        logger.info("Datoer med manglende PDF-er: $produsereForDatoer")
-        sikretLogger.info("Produsere PDF-er for $hendelseIdToAktørId")
+        logger.info("Tellere: Antall PDF-er produsert: $nyePdferProdusert, nye inserts i duplikattabellen: $nyeInsertsIDuplikattabellen")
+        logger.info("Datoer med manglende PDF-er: $produsertForDatoer")
+        sikretLogg.info("Produsert PDF-er for $hendelseIdToAktørId")
     }
 
-    private fun lesProduserteVedtak(): MutableMap<String, List<String>> {
-        val noe = mutableMapOf<String, List<String>>()
+    private fun lesProduserteVedtak(): Map<String, Set<String>> {
+        val datoerForAktørId = mutableMapOf<String, Set<String>>()
         this::class.java.getResourceAsStream("/vedtak_produsert.txt")!!
             .bufferedReader(Charsets.UTF_8)
             .readLines()
             .map {
                 it.split(",").let { (dato, aktørId) ->
-                    noe.merge(aktørId, listOf(dato)) { eksisterende, neste -> eksisterende + neste }
+                    datoerForAktørId.merge(aktørId, setOf(dato), Set<String>::plus)
                 }
             }
-        return noe
+        return datoerForAktørId
     }
+
+    private fun lesHendelserMedProduserteVedtakEtterRelesing(): Set<String> =
+        this::class.java.getResourceAsStream("/hendelse_ider_relest.txt")!!
+            .bufferedReader(Charsets.UTF_8)
+            .readLines()
+            .toSet()
 
     private fun forbruktTid(startMillis: Long) =
         Duration.ofMillis(currentTimeMillis() - startMillis).run {

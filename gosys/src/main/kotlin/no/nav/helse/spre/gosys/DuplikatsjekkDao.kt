@@ -30,7 +30,7 @@ class DuplikatsjekkDao(private val datasource: DataSource) {
             it.run(
                 queryOf(
                     query,
-                    hendelseId
+                    UUID.fromString(hendelseId)
                 ).asUpdate
             )
 

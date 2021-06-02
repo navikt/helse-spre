@@ -104,7 +104,7 @@ fun startRyddejobbConsumer(env: Map<String, String>, vedtakMediator: VedtakMedia
         put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, env.getValue("KAFKA_KEYSTORE_PATH"))
         put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-        put(ConsumerConfig.GROUP_ID_CONFIG, "spre-gosys-laste-v2")
+        put(ConsumerConfig.GROUP_ID_CONFIG, "spre-gosys-laste-v3")
         put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
     }
     VedtakConsumer(
