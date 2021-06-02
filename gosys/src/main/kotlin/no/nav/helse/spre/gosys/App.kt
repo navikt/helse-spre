@@ -16,9 +16,6 @@ import io.ktor.jackson.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -75,9 +72,6 @@ fun launchApplication(
     val dataSource = dataSourceBuilder.getDataSource()
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
     val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
-    GlobalScope.launch(Dispatchers.IO) {
-        startRyddejobbConsumer(environment, vedtakMediator, duplikatsjekkDao)
-    }
     val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient, duplikatsjekkDao)
 
