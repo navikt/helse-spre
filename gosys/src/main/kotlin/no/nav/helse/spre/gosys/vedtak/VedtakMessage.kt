@@ -92,7 +92,7 @@ data class VedtakMessage private constructor(
                 }
             )
 
-    constructor(vedtak: VedtakFattetData, utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling):
+    constructor(vedtak: VedtakFattetData, utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling) :
             this(
                 hendelseId = vedtak.id,
                 opprettet = vedtak.opprettet,
@@ -124,14 +124,16 @@ data class VedtakMessage private constructor(
                         }
                     )
                 },
-                ikkeUtbetalteDager = utbetaling.ikkeUtbetalingsdager.map { dag ->
-                    IkkeUtbetaltDag(
-                        dato = dag.dato,
-                        type = dag.type,
-                        begrunnelser = dag.begrunnelser
-                    )
-                }
+                ikkeUtbetalteDager = utbetaling.ikkeUtbetalingsdager.filterNot { dag -> dag.dato.isBefore(vedtak.skjæringstidspunkt) }
+                    .map { dag ->
+                        IkkeUtbetaltDag(
+                            dato = dag.dato,
+                            type = dag.type,
+                            begrunnelser = dag.begrunnelser
+                        )
+                    }
             )
+
     constructor(vedtak: IO.Vedtak) :
             this(
                 hendelseId = vedtak.`@id`,
@@ -200,14 +202,14 @@ data class VedtakMessage private constructor(
             }
     )
 
-    private fun lesbarTittel(): String{
-        return when (this.type){
+    private fun lesbarTittel(): String {
+        return when (this.type) {
             Utbetalingtype.UTBETALING -> "utbetalt"
             Utbetalingtype.ETTERUTBETALING -> "etterutbetaling av"
             Utbetalingtype.REVURDERING -> "revurdering av"
             Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
         }
-        }
+    }
 
 
     private fun mapBegrunnelser(begrunnelser: List<String>): List<String> = begrunnelser.map {

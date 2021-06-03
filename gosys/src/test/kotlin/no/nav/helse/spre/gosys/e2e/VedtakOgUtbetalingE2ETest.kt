@@ -157,6 +157,15 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     }
 
     @Test
+    fun `arbeidsdager før skjæringstidspunkt`() {
+        val id = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(utbetalingUtbetaltEnAvvistDagFørSkjæringstidspunkt(id = id, utbetalingId = utbetalingId))
+        assertJournalPostOgVedtakPdf(id, vedtakPdfPayloadArbeidsdagFørSkjæringstidspunkt(), expectedJournalpost())
+    }
+
+    @Test
     fun `vedtak og utbetaling som linkes med ulik fnr`(){
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
@@ -198,6 +207,40 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             godkjentAv = "Automatisk behandlet",
             totaltTilUtbetaling = 38360,
             ikkeUtbetalteDager = listOf(),
+            dagsats = 1431,
+            sykepengegrunnlag = 565260.0,
+            maksdato = LocalDate.of(2021, 7, 15),
+            linjer = listOf(
+                VedtakPdfPayload.Linje(
+                    fom = LocalDate.of(2021, 5, 6),
+                    tom = LocalDate.of(2021, 5, 16),
+                    grad = 100,
+                    beløp = 1431,
+                    mottaker = "arbeidsgiver"
+                )
+            )
+        )
+
+    private fun vedtakPdfPayloadArbeidsdagFørSkjæringstidspunkt() =
+        VedtakPdfPayload(
+            fødselsnummer = "12345678910",
+            fagsystemId = "123",
+            type = "utbetalt",
+            fom = LocalDate.of(2021, 5, 6),
+            tom = LocalDate.of(2021, 5, 16),
+            organisasjonsnummer = "123456789",
+            behandlingsdato = LocalDate.of(2021, 5, 25),
+            dagerIgjen = 31,
+            automatiskBehandling = true,
+            godkjentAv = "Automatisk behandlet",
+            totaltTilUtbetaling = 38360,
+            ikkeUtbetalteDager = listOf(
+                VedtakPdfPayload.IkkeUtbetalteDager(
+                fom = LocalDate.of(2021, 5, 14),
+                tom = LocalDate.of(2021, 5, 14),
+                grunn = "Ferie/Permisjon",
+                begrunnelser = listOf()
+            )),
             dagsats = 1431,
             sykepengegrunnlag = 565260.0,
             maksdato = LocalDate.of(2021, 7, 15),
@@ -339,7 +382,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     "6977170d-5a99-4e7f-8d5f-93bda94a9ba3",
     "15aa9c84-a9cc-4787-b82a-d5447aa3fab1"
   ],
-  "skjæringstidspunkt": "2021-01-07",
+  "skjæringstidspunkt": "2021-05-06",
   "sykepengegrunnlag": 565260.0,
   "inntekt": 47105.0,
   "aktørId": "123",
@@ -733,6 +776,110 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
           "dato": "2021-05-16",
           "type": "Fridag"
         }
+  ],
+  "@opprettet": "${LocalDateTime.now()}",
+  "aktørId": "123",
+  "organisasjonsnummer": "123456789"
+}
+    """
+
+    @Language("json")
+    private fun utbetalingUtbetaltEnAvvistDagFørSkjæringstidspunkt(
+        id: UUID = UUID.randomUUID(),
+        utbetalingId: UUID = UUID.randomUUID()
+    ) = """{
+  "@id": "$id",
+  "fødselsnummer": "12345678910",
+  "utbetalingId": "$utbetalingId",
+  "@event_name": "utbetaling_utbetalt",
+  "fom": "2021-05-06",
+  "tom": "2021-05-16",
+  "maksdato": "2021-07-15",
+  "forbrukteSykedager": "217",
+  "gjenståendeSykedager": "31",
+  "ident": "Automatisk behandlet",
+  "epost": "tbd@nav.no",
+  "type": "UTBETALING",
+  "tidspunkt": "${LocalDateTime.now()}",
+  "automatiskBehandling": "true",
+  "arbeidsgiverOppdrag": {
+    "mottaker": "123456789",
+    "fagområde": "SPREF",
+    "linjer": [
+      {
+        "fom": "2021-05-06",
+        "tom": "2021-05-16",
+        "dagsats": 1431,
+        "lønn": 2193,
+        "grad": 100.0,
+        "stønadsdager": 35,
+        "totalbeløp": 38360,
+        "endringskode": "UEND",
+        "delytelseId": 1,
+        "klassekode": "SPREFAG-IOP"
+      }
+    ],
+    "fagsystemId": "123",
+    "endringskode": "ENDR",
+    "tidsstempel": "${LocalDateTime.now()}",
+    "nettoBeløp": "38360",
+    "stønadsdager": 35,
+    "fom": "2021-05-06",
+    "tom": "2021-05-16"
+  },
+  "utbetalingsdager": [
+    {
+      "dato": "2017-05-05",
+      "type": "Arbeidsdag"
+    },
+    {
+      "dato": "2021-05-05",
+      "type": "Arbeidsdag"
+    },
+    {
+      "dato": "2021-05-06",
+      "type": "NavDag"
+    },
+    {
+      "dato": "2021-05-07",
+      "type": "NavDag"
+    },
+    {
+      "dato": "2021-05-08",
+      "type": "NavHelgeDag"
+    },
+    {
+      "dato": "2021-05-09",
+      "type": "NavHelgeDag"
+    },
+    {
+      "dato": "2021-05-10",
+      "type": "NavDag"
+    },
+    {
+      "dato": "2021-05-11",
+      "type": "NavDag"
+    },
+    {
+      "dato": "2021-05-12",
+      "type": "NavDag"
+    },
+    {
+      "dato": "2021-05-13",
+      "type": "NavDag"
+    },
+    {
+      "dato": "2021-05-14",
+      "type": "Fridag"
+    },
+    {
+      "dato": "2021-05-15",
+      "type": "NavHelgeDag"
+    },
+    {
+      "dato": "2021-05-16",
+      "type": "NavHelgeDag"
+    }
   ],
   "@opprettet": "${LocalDateTime.now()}",
   "aktørId": "123",

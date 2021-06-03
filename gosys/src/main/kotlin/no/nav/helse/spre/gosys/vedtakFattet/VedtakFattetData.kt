@@ -19,6 +19,7 @@ data class VedtakFattetData(
     val sykepengegrunnlag: Double,
     val fom: LocalDate,
     val tom: LocalDate,
+    val skjæringstidspunkt: LocalDate,
     val utbetalingId: UUID?
 ) {
     companion object {
@@ -32,6 +33,7 @@ data class VedtakFattetData(
             sykepengegrunnlag = packet["sykepengegrunnlag"].asDouble(),
             fom = packet["fom"].asLocalDate(),
             tom = packet["tom"].asLocalDate(),
+            skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),
             utbetalingId = packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let {
                 UUID.fromString(it.asText())
             }
@@ -47,6 +49,7 @@ data class VedtakFattetData(
             sykepengegrunnlag = packet["sykepengegrunnlag"].asDouble(),
             fom = packet["fom"].asLocalDate(),
             tom = packet["tom"].asLocalDate(),
+            skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),
             utbetalingId = packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let {
                 UUID.fromString(it.asText())
             }
