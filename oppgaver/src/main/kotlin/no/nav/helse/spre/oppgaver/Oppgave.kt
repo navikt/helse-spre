@@ -1,12 +1,14 @@
 package no.nav.helse.spre.oppgaver
 
+import java.time.LocalDateTime
 import java.util.*
 
 class Oppgave(
     val hendelseId: UUID,
     val dokumentId: UUID,
     var tilstand: Tilstand = Tilstand.DokumentOppdaget,
-    val dokumentType: DokumentType
+    val dokumentType: DokumentType,
+    val sistEndret: LocalDateTime?,
 ) {
     private var observer: Observer? = null
     fun setObserver(observer: Observer) = apply {

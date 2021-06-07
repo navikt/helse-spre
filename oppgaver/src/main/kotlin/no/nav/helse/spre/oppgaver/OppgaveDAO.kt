@@ -35,7 +35,8 @@ class OppgaveDAO(
                         DatabaseTilstand.KortInntektsmeldingFerdigbehandlet -> Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet
                         DatabaseTilstand.KortSøknadFerdigbehandlet -> Oppgave.Tilstand.KortSøknadFerdigbehandlet
                     },
-                    dokumentType = DokumentType.valueOf(rs.string("dokument_type"))
+                    dokumentType = DokumentType.valueOf(rs.string("dokument_type")),
+                    sistEndret = rs.localDateTimeOrNull("sist_endret")
                 )
             }
             .asSingle
@@ -46,7 +47,7 @@ class OppgaveDAO(
         using(sessionOf(dataSource)) { session ->
             session.run(
                 queryOf(
-                    "INSERT INTO oppgave_tilstand(hendelse_id, dokument_id, dokument_type) VALUES(?, ?, CAST(? AS dokument_type)) ON CONFLICT (hendelse_id) DO NOTHING;",
+                    "INSERT INTO oppgave_tilstand(hendelse_id, dokument_id, dokument_type, sist_endret) VALUES(?, ?, CAST(? AS dokument_type), NOW()) ON CONFLICT (hendelse_id) DO NOTHING;",
                     hendelseId,
                     dokumentId,
                     dokumentType.name
@@ -57,7 +58,7 @@ class OppgaveDAO(
     fun oppdaterTilstand(oppgave: Oppgave) = using(sessionOf(dataSource)) { session ->
         session.run(
             queryOf(
-                "UPDATE oppgave_tilstand SET tilstand=CAST(? AS tilstand_type) WHERE hendelse_id=?;",
+                "UPDATE oppgave_tilstand SET tilstand=CAST(? AS tilstand_type), sist_endret = NOW() WHERE hendelse_id=?;",
                 oppgave.tilstand.toDBTilstand().name, oppgave.hendelseId
             ).asUpdate
         )

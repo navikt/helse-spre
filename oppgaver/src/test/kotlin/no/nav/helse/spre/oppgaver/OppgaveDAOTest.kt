@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -61,8 +63,11 @@ internal class OppgaveDAOTest {
             dokumentId = dokumentId,
             tilstand = Oppgave.Tilstand.DokumentOppdaget,
             dokumentType = DokumentType.Søknad,
-            oppgave = requireNotNull(oppgave)
+            oppgave = requireNotNull(oppgave),
         )
+        oppgaveDAO.oppdaterTilstand(oppgave)
+        assertTrue(oppgaveDAO.finnOppgave(hendelseId)!!.sistEndret!!.isAfter(oppgave.sistEndret))
+
     }
 
     private fun assertEquals(
@@ -76,5 +81,6 @@ internal class OppgaveDAOTest {
         assertEquals(dokumentId, oppgave.dokumentId)
         assertEquals(tilstand, oppgave.tilstand)
         assertEquals(dokumentType, oppgave.dokumentType)
+        assertTrue(ChronoUnit.SECONDS.between(LocalDateTime.now(), oppgave.sistEndret) < 5)
     }
 }

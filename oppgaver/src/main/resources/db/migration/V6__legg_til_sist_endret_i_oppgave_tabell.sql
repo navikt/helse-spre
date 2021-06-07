@@ -1,0 +1,1 @@
+ALTER TABLE oppgave_tilstand ADD sist_endret TIMESTAMP;
