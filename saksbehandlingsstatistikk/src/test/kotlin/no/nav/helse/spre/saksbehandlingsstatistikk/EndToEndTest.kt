@@ -66,6 +66,7 @@ internal class EndToEndTest {
             mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
             registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
             saksbehandlerIdent = vedtaksperiodeGodkjent.saksbehandlerIdent,
+            automatiskbehandling = true
         )
 
         assertEquals(expected, sendtTilDVH)
@@ -90,13 +91,14 @@ internal class EndToEndTest {
         val sendtTilDVH = utgiver.meldinger[0]
 
         val expected = StatistikkEvent(
-                aktorId = vedtakFattet.aktørId,
-                behandlingId = nyttDokumentData.søknadId,
-                tekniskTid = sendtTilDVH.tekniskTid,
-                funksjonellTid = vedtakFattet.avsluttetISpleis,
-                mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
-                registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
-                saksbehandlerIdent = "SPLEIS",
+            aktorId = vedtakFattet.aktørId,
+            behandlingId = nyttDokumentData.søknadId,
+            tekniskTid = sendtTilDVH.tekniskTid,
+            funksjonellTid = vedtakFattet.avsluttetISpleis,
+            mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
+            registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
+            saksbehandlerIdent = "SPLEIS",
+            automatiskbehandling = true,
         )
 
         assertEquals(expected, sendtTilDVH)

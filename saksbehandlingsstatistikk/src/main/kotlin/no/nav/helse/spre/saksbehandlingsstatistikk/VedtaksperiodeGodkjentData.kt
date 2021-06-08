@@ -9,21 +9,25 @@ import java.util.*
 data class VedtaksperiodeGodkjentData(
     val vedtaksperiodeId: UUID,
     val saksbehandlerIdent: String,
-    val vedtakFattet: LocalDateTime
+    val vedtakFattet: LocalDateTime,
+    val automatiskBehandling: Boolean,
 ) {
     fun anrik(søknad: Søknad) = søknad
         .saksbehandlerIdent(saksbehandlerIdent)
         .vedtakFattet(vedtakFattet)
+        .automatiskBehandling(automatiskBehandling)
 
     fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
     fun saksbehandlerIdent(it: String) = copy(saksbehandlerIdent = it)
+    fun automatiskBehandling(it: Boolean) = copy(automatiskBehandling = it)
 
     companion object {
         fun fromJson(packet: JsonMessage) =
             VedtaksperiodeGodkjentData(
                 vedtaksperiodeId = packet["vedtaksperiodeId"].asUuid(),
                 saksbehandlerIdent = packet["saksbehandlerIdent"].asText(),
-                vedtakFattet = packet["@opprettet"].asLocalDateTime()
+                vedtakFattet = packet["@opprettet"].asLocalDateTime(),
+                automatiskBehandling = packet["automatiskBehandling"].asBoolean(),
             )
     }
 }

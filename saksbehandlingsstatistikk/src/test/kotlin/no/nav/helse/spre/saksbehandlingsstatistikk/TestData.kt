@@ -17,6 +17,7 @@ object TestData {
         UUID.randomUUID(),
         randomIndent(),
         LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
+        true
     )
 
     private fun randomIndent() = "${randomString(('A'..'Z'), 1)}${randomString(('0'..'9'), 6)}"

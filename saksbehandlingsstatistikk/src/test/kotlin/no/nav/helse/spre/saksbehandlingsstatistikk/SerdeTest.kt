@@ -18,6 +18,7 @@ class SerdeTest {
             mottattDato = LocalDateTime.parse("2024-03-09T18:23:27.769").toString(),
             registrertDato = LocalDateTime.parse("2025-03-09T18:23:27.769").toString(),
             saksbehandlerIdent = "A121212",
+            automatiskbehandling = null
         )
 
         val expectedString = """

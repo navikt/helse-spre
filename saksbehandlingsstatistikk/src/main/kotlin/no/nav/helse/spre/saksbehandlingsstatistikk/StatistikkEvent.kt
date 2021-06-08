@@ -14,6 +14,7 @@ data class StatistikkEvent(
     val registrertDato: String,
     val saksbehandlerIdent: String,
     val tekniskTid: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
+    val automatiskbehandling: Boolean?,
 ) {
     val avsender: Avsender = SPLEIS
     val ansvarligEnhetType: AnsvarligEnhetType = AnsvarligEnhetType.NORG
@@ -27,22 +28,25 @@ data class StatistikkEvent(
 
     companion object {
         fun statistikkEvent(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
-                aktorId = vedtakFattetData.aktørId,
-                behandlingId = søknad.søknadDokumentId,
-                mottattDato = søknad.rapportert.toString(),
-                registrertDato = søknad.registrertDato.toString(),
-                saksbehandlerIdent = søknad.saksbehandlerIdent!!,
-                funksjonellTid = søknad.vedtakFattet!!
+            aktorId = vedtakFattetData.aktørId,
+            behandlingId = søknad.søknadDokumentId,
+            mottattDato = søknad.rapportert.toString(),
+            registrertDato = søknad.registrertDato.toString(),
+            saksbehandlerIdent = søknad.saksbehandlerIdent!!,
+            funksjonellTid = søknad.vedtakFattet!!,
+            automatiskbehandling = søknad.automatiskBehandling
         )
 
-        fun statistikkEventForSøknadAvsluttetAvSpleis(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
+        fun statistikkEventForSøknadAvsluttetAvSpleis(søknad: Søknad, vedtakFattetData: VedtakFattetData) =
+            StatistikkEvent(
                 aktorId = vedtakFattetData.aktørId,
                 behandlingId = søknad.søknadDokumentId,
                 mottattDato = søknad.rapportert.toString(),
                 registrertDato = søknad.registrertDato.toString(),
                 saksbehandlerIdent = "SPLEIS",
-                funksjonellTid = vedtakFattetData.avsluttetISpleis
-        )
+                funksjonellTid = vedtakFattetData.avsluttetISpleis,
+                automatiskbehandling = true,
+            )
     }
 }
 
@@ -81,3 +85,5 @@ enum class AnsvarligEnhetKode(private val kode: Int) {
 enum class AnsvarligEnhetType {
     NORG
 }
+
+

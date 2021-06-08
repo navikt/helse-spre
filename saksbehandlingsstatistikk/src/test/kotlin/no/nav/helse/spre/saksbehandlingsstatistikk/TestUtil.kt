@@ -48,7 +48,6 @@ object TestUtil {
     }
 
 
-
     fun NyttDokumentData.json(eventType: String = "sendt_søknad_nav") =
         """{
             "@event_name": "$eventType",
@@ -95,7 +94,8 @@ object TestUtil {
             "@event_name": "vedtaksperiode_godkjent",
             "@opprettet": "$vedtakFattet",
             "saksbehandlerIdent": "$saksbehandlerIdent",
-            "vedtaksperiodeId": "$vedtaksperiodeId"
+            "vedtaksperiodeId": "$vedtaksperiodeId",
+            "automatiskBehandling": "$automatiskBehandling"
         }"""
 }
 
