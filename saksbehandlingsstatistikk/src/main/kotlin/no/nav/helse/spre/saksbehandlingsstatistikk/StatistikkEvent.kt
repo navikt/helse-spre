@@ -14,7 +14,8 @@ data class StatistikkEvent(
     val registrertDato: String,
     val saksbehandlerIdent: String,
     val tekniskTid: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
-    val automatiskbehandling: Boolean?,
+    val automatiskbehandling: Boolean? = null,
+    val resultat: Resultat,
 ) {
     val avsender: Avsender = SPLEIS
     val ansvarligEnhetType: AnsvarligEnhetType = AnsvarligEnhetType.NORG
@@ -26,7 +27,34 @@ data class StatistikkEvent(
     val behandlingType: BehandlingType = BehandlingType.SØKNAD
     val versjon: String = global.versjon
 
+
     companion object {
+        fun statistikkEventForAvvist(søknad: Søknad, vedtakperiodeForkastetData: VedtaksperiodeForkastetData) = StatistikkEvent(
+            aktorId = vedtakperiodeForkastetData.aktørId,
+            funksjonellTid = vedtakperiodeForkastetData.vedtaksperiodeForkastet,
+            saksbehandlerIdent = søknad.saksbehandlerIdent!!,
+            behandlingId = søknad.søknadDokumentId,
+            mottattDato = søknad.rapportert.toString(),
+            registrertDato = søknad.registrertDato.toString(),
+            automatiskbehandling = søknad.automatiskBehandling,
+            resultat = Resultat.AVVIST,
+        )
+
+        fun statistikkEventForAvvistAvSpleis(
+            søknad: Søknad,
+            vedtaksperiodeForkastetData: VedtaksperiodeForkastetData
+        ) = StatistikkEvent(
+            aktorId = vedtaksperiodeForkastetData.aktørId,
+            funksjonellTid = vedtaksperiodeForkastetData.vedtaksperiodeForkastet,
+            saksbehandlerIdent = "SPLEIS",
+            behandlingId = søknad.søknadDokumentId,
+            mottattDato = søknad.rapportert.toString(),
+            registrertDato = søknad.registrertDato.toString(),
+            automatiskbehandling = true,
+            resultat = Resultat.AVVIST,
+        )
+
+
         fun statistikkEvent(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
             aktorId = vedtakFattetData.aktørId,
             behandlingId = søknad.søknadDokumentId,
@@ -34,8 +62,10 @@ data class StatistikkEvent(
             registrertDato = søknad.registrertDato.toString(),
             saksbehandlerIdent = søknad.saksbehandlerIdent!!,
             funksjonellTid = søknad.vedtakFattet!!,
-            automatiskbehandling = søknad.automatiskBehandling
-        )
+            automatiskbehandling = søknad.automatiskBehandling,
+            resultat = Resultat.INNVILGET,
+
+            )
 
         fun statistikkEventForSøknadAvsluttetAvSpleis(søknad: Søknad, vedtakFattetData: VedtakFattetData) =
             StatistikkEvent(
@@ -46,7 +76,10 @@ data class StatistikkEvent(
                 saksbehandlerIdent = "SPLEIS",
                 funksjonellTid = vedtakFattetData.avsluttetISpleis,
                 automatiskbehandling = true,
+                resultat = Resultat.INNVILGET,
             )
+
+
     }
 }
 
@@ -86,4 +119,8 @@ enum class AnsvarligEnhetType {
     NORG
 }
 
+enum class Resultat {
+    INNVILGET,
+    AVVIST
+}
 

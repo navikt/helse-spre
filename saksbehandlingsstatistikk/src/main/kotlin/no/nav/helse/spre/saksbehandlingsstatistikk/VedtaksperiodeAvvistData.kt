@@ -6,7 +6,7 @@ import no.nav.helse.spre.saksbehandlingsstatistikk.util.JsonUtil.asUuid
 import java.time.LocalDateTime
 import java.util.*
 
-data class VedtaksperiodeGodkjentData(
+data class VedtaksperiodeAvvistData(
     val vedtaksperiodeId: UUID,
     val saksbehandlerIdent: String,
     val vedtakFattet: LocalDateTime,
@@ -16,7 +16,7 @@ data class VedtaksperiodeGodkjentData(
         .saksbehandlerIdent(saksbehandlerIdent)
         .vedtakFattet(vedtakFattet)
         .automatiskBehandling(automatiskBehandling)
-        .resultat("INNVILGET")
+        .resultat("AVVIST")
 
     fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
     fun saksbehandlerIdent(it: String) = copy(saksbehandlerIdent = it)
@@ -24,7 +24,7 @@ data class VedtaksperiodeGodkjentData(
 
     companion object {
         fun fromJson(packet: JsonMessage) =
-            VedtaksperiodeGodkjentData(
+            VedtaksperiodeAvvistData(
                 vedtaksperiodeId = packet["vedtaksperiodeId"].asUuid(),
                 saksbehandlerIdent = packet["saksbehandlerIdent"].asText(),
                 vedtakFattet = packet["@opprettet"].asLocalDateTime(),

@@ -24,4 +24,16 @@ internal class SpreService(
 
         utgiver.publiserStatistikk(vedtakFattetData.lagStatistikkEvent(søknad))
     }
+
+    internal fun spre(vedtaksperiodeForkastetData: VedtaksperiodeForkastetData) {
+        val søknad =
+            requireNotNull(søknadDao.finnSøknad(vedtaksperiodeForkastetData.vedtaksperiodeId)) {
+                "Finner ikke søknad for vedtaksperiode forkastet, med id=${vedtaksperiodeForkastetData.vedtaksperiodeId}"
+            }
+        if (søknad.resultat.isNullOrEmpty()) {
+            utgiver.publiserStatistikk(StatistikkEvent.statistikkEventForAvvistAvSpleis(søknad, vedtaksperiodeForkastetData))
+        }else{
+            utgiver.publiserStatistikk(StatistikkEvent.statistikkEventForAvvist(søknad, vedtaksperiodeForkastetData))
+        }
+    }
 }

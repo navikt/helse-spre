@@ -16,7 +16,7 @@ data class NyttDokumentData(
                 søknadHendelseId = hendelseId,
                 søknadDokumentId = søknadId,
                 rapportert = hendelseOpprettet,
-                registrertDato = hendelseOpprettet
+                registrertDato = hendelseOpprettet,
             )
 
     companion object {

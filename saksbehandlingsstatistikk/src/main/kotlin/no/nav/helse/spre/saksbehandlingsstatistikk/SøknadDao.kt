@@ -17,7 +17,8 @@ ON CONFLICT (hendelse_id)
     DO UPDATE SET vedtaksperiode_id   = :vedtaksperiodeId,
                   saksbehandler_ident = :saksbehandlerIdent,
                   vedtak_fattet       = :vedtakFattet,
-                  automatisk_behandling = :automatiskBehandling
+                  automatisk_behandling = :automatiskBehandling,
+                  resultat              = :resultat 
    """
         sessionOf(dataSource).use { session ->
             session.run(
@@ -32,6 +33,7 @@ ON CONFLICT (hendelse_id)
                         "saksbehandlerIdent" to søknad.saksbehandlerIdent,
                         "vedtakFattet" to søknad.vedtakFattet,
                         "automatiskBehandling" to søknad.automatiskBehandling,
+                        "resultat" to søknad.resultat,
                     )
                 ).asUpdate
             )

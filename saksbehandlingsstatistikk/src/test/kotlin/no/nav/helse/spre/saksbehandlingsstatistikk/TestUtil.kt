@@ -97,6 +97,26 @@ object TestUtil {
             "vedtaksperiodeId": "$vedtaksperiodeId",
             "automatiskBehandling": "$automatiskBehandling"
         }"""
+
+    val VedtaksperiodeForkastetData.json
+        get() =
+            """{
+            "@event_name": "vedtaksperiode_forkastet",
+            "@opprettet": "$vedtaksperiodeForkastet",
+            "vedtaksperiodeId": "$vedtaksperiodeId",
+            "aktørId": "$aktørId"
+        }"""
+
+    val VedtaksperiodeAvvistData.json
+        get() =
+            """{
+            "@event_name": "vedtaksperiode_godkjent",
+            "@opprettet": "$vedtakFattet",
+            "saksbehandlerIdent": "$saksbehandlerIdent",
+            "vedtaksperiodeId": "$vedtaksperiodeId",
+            "automatiskBehandling": "$automatiskBehandling"
+        }"""
+
 }
 
 class LokalUtgiver : Utgiver {

@@ -1,5 +1,6 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
@@ -18,9 +19,11 @@ class SerdeTest {
             mottattDato = LocalDateTime.parse("2024-03-09T18:23:27.769").toString(),
             registrertDato = LocalDateTime.parse("2025-03-09T18:23:27.769").toString(),
             saksbehandlerIdent = "A121212",
-            automatiskbehandling = null
+            automatiskbehandling = null,
+            resultat = Resultat.INNVILGET
         )
 
+        @Language("JSON")
         val expectedString = """
             {
               "aktorId": "${original.aktorId}",
@@ -38,7 +41,8 @@ class SerdeTest {
               "utenlandstilsnitt": "NEI",
               "ytelseType": "SYKEPENGER",
               "behandlingStatus": "AVSLUTTET",
-              "behandlingType": "SØKNAD"
+              "behandlingType": "SØKNAD",
+              "resultat": "INNVILGET"
             }
         """.trimIndent()
 

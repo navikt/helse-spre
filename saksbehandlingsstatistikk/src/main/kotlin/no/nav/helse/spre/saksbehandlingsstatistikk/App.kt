@@ -1,6 +1,5 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -55,6 +54,8 @@ internal fun RapidsConnection.setupRivers(
 ) {
     NyttDokumentRiver(this, søknadDao)
     VedtaksperiodeEndretRiver(this, søknadDao)
-    VedtakFattetRiver(this, spreService)
     VedtaksperiodeGodkjentRiver(this, søknadDao)
+    VedtaksperiodeAvvistRiver(this, søknadDao)
+    VedtakFattetRiver(this, spreService)
+    VedtaksperiodeForkastetRiver(this, spreService)
 }
