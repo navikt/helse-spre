@@ -15,6 +15,7 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.temporal.ChronoUnit
 
 internal class EndToEndTest {
     private val testRapid = TestRapid()
@@ -50,6 +51,7 @@ internal class EndToEndTest {
 
         val vedtakFattet = vedtakFattet()
             .hendelse(nyttDokumentData.hendelseId)
+            .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
         testRapid.sendTestMessage(nyttDokumentData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
@@ -64,7 +66,7 @@ internal class EndToEndTest {
             aktorId = vedtakFattet.aktørId,
             behandlingId = nyttDokumentData.søknadId,
             tekniskTid = sendtTilDVH.tekniskTid,
-            funksjonellTid = vedtaksperiodeGodkjent.vedtakFattet,
+            funksjonellTid = vedtakFattet.avsluttetISpleis.truncatedTo(ChronoUnit.MILLIS),
             mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
             registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
             saksbehandlerIdent = vedtaksperiodeGodkjent.saksbehandlerIdent,
@@ -84,7 +86,7 @@ internal class EndToEndTest {
 
         val vedtakFattet = vedtakFattet()
             .hendelse(nyttDokumentData.hendelseId)
-
+            .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
         testRapid.sendTestMessage(nyttDokumentData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
@@ -116,7 +118,6 @@ internal class EndToEndTest {
         val vedtaksperiodeEndret = vedtaksperiodeEndretData()
             .hendelse(nyttDokumentData.hendelseId)
 
-
         val vedtaksperiodeForkastet = vedtaksperiodeForkastet().vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
         testRapid.sendTestMessage(nyttDokumentData.json())
@@ -131,7 +132,7 @@ internal class EndToEndTest {
             aktorId = vedtaksperiodeForkastet.aktørId,
             behandlingId = nyttDokumentData.søknadId,
             tekniskTid = sendtTilDVH.tekniskTid,
-            funksjonellTid = vedtaksperiodeForkastet.vedtaksperiodeForkastet,
+            funksjonellTid = vedtaksperiodeForkastet.vedtaksperiodeForkastet.truncatedTo(ChronoUnit.MILLIS),
             mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
             registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
             saksbehandlerIdent = "SPLEIS",
@@ -168,7 +169,7 @@ internal class EndToEndTest {
             aktorId = vedtaksperiodeForkastet.aktørId,
             behandlingId = nyttDokumentData.søknadId,
             tekniskTid = sendtTilDVH.tekniskTid,
-            funksjonellTid = vedtaksperiodeForkastet.vedtaksperiodeForkastet,
+            funksjonellTid = vedtaksperiodeForkastet.vedtaksperiodeForkastet.truncatedTo(ChronoUnit.MILLIS),
             mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
             registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
             saksbehandlerIdent = vedtaksperiodeAvvist.saksbehandlerIdent,

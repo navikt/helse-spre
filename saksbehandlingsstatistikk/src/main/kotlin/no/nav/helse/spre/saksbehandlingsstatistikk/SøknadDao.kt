@@ -18,7 +18,7 @@ ON CONFLICT (hendelse_id)
                   saksbehandler_ident = :saksbehandlerIdent,
                   vedtak_fattet       = :vedtakFattet,
                   automatisk_behandling = :automatiskBehandling,
-                  resultat              = :resultat 
+                  resultat              = :resultat
    """
         sessionOf(dataSource).use { session ->
             session.run(

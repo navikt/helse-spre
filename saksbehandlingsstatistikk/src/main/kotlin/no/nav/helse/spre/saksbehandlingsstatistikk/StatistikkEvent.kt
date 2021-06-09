@@ -31,7 +31,7 @@ data class StatistikkEvent(
     companion object {
         fun statistikkEventForAvvist(søknad: Søknad, vedtakperiodeForkastetData: VedtaksperiodeForkastetData) = StatistikkEvent(
             aktorId = vedtakperiodeForkastetData.aktørId,
-            funksjonellTid = vedtakperiodeForkastetData.vedtaksperiodeForkastet,
+            funksjonellTid = søknad.vedtakFattet!!,
             saksbehandlerIdent = søknad.saksbehandlerIdent!!,
             behandlingId = søknad.søknadDokumentId,
             mottattDato = søknad.rapportert.toString(),
@@ -45,12 +45,12 @@ data class StatistikkEvent(
             vedtaksperiodeForkastetData: VedtaksperiodeForkastetData
         ) = StatistikkEvent(
             aktorId = vedtaksperiodeForkastetData.aktørId,
-            funksjonellTid = vedtaksperiodeForkastetData.vedtaksperiodeForkastet,
-            saksbehandlerIdent = "SPLEIS",
+            funksjonellTid = søknad.vedtakFattet!!,
+            saksbehandlerIdent = søknad.saksbehandlerIdent!!,
             behandlingId = søknad.søknadDokumentId,
             mottattDato = søknad.rapportert.toString(),
             registrertDato = søknad.registrertDato.toString(),
-            automatiskbehandling = true,
+            automatiskbehandling = søknad.automatiskBehandling,
             resultat = Resultat.AVVIST,
         )
 
@@ -64,8 +64,7 @@ data class StatistikkEvent(
             funksjonellTid = søknad.vedtakFattet!!,
             automatiskbehandling = søknad.automatiskBehandling,
             resultat = Resultat.INNVILGET,
-
-            )
+        )
 
         fun statistikkEventForSøknadAvsluttetAvSpleis(søknad: Søknad, vedtakFattetData: VedtakFattetData) =
             StatistikkEvent(
@@ -73,13 +72,11 @@ data class StatistikkEvent(
                 behandlingId = søknad.søknadDokumentId,
                 mottattDato = søknad.rapportert.toString(),
                 registrertDato = søknad.registrertDato.toString(),
-                saksbehandlerIdent = "SPLEIS",
+                saksbehandlerIdent = søknad.saksbehandlerIdent!!,
                 funksjonellTid = vedtakFattetData.avsluttetISpleis,
-                automatiskbehandling = true,
+                automatiskbehandling = søknad.automatiskBehandling,
                 resultat = Resultat.INNVILGET,
             )
-
-
     }
 }
 

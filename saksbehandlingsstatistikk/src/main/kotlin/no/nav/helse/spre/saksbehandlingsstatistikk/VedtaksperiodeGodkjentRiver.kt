@@ -17,7 +17,6 @@ internal class VedtaksperiodeGodkjentRiver(
             validate { message ->
                 message.demandValue("@event_name", "vedtaksperiode_godkjent")
                 message.requireKey("vedtaksperiodeId", "saksbehandlerIdent", "@opprettet", "automatiskBehandling")
-
             }
         }.register(this)
     }

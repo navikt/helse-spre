@@ -12,7 +12,7 @@ internal class SpreService(
 
     internal fun spre(vedtakFattetData: VedtakFattetData) {
         val søknad =
-            requireNotNull(søknadDao.finnSøknad(vedtakFattetData.hendelser)) {
+            checkNotNull(søknadDao.finnSøknad(vedtakFattetData.hendelser)) {
                 "Finner ikke søknad for vedtak_fattet, med hendelseIder=${vedtakFattetData.hendelser}"
             }
         if (søknad.vedtaksperiodeId != vedtakFattetData.vedtaksperiodeId)
@@ -22,18 +22,23 @@ internal class SpreService(
                         "vedtak_fattet-event har vedtaksperiodeId ${vedtakFattetData.vedtaksperiodeId}"
             )
 
-        utgiver.publiserStatistikk(vedtakFattetData.lagStatistikkEvent(søknad))
+        val melding = if (søknad.saksbehandlerIdent == "SPLEIS")
+            StatistikkEvent.statistikkEventForSøknadAvsluttetAvSpleis(søknad, vedtakFattetData)
+        else StatistikkEvent.statistikkEvent(søknad, vedtakFattetData)
+
+        utgiver.publiserStatistikk(melding)
     }
 
     internal fun spre(vedtaksperiodeForkastetData: VedtaksperiodeForkastetData) {
         val søknad =
-            requireNotNull(søknadDao.finnSøknad(vedtaksperiodeForkastetData.vedtaksperiodeId)) {
-                "Finner ikke søknad for vedtaksperiode forkastet, med id=${vedtaksperiodeForkastetData.vedtaksperiodeId}"
+            checkNotNull(søknadDao.finnSøknad(vedtaksperiodeForkastetData.vedtaksperiodeId)) {
+                "Finner ikke søknad for vedtaksperiode_forkastet, med id=${vedtaksperiodeForkastetData.vedtaksperiodeId}"
             }
-        if (søknad.resultat.isNullOrEmpty()) {
-            utgiver.publiserStatistikk(StatistikkEvent.statistikkEventForAvvistAvSpleis(søknad, vedtaksperiodeForkastetData))
-        }else{
-            utgiver.publiserStatistikk(StatistikkEvent.statistikkEventForAvvist(søknad, vedtaksperiodeForkastetData))
-        }
+
+        val melding = if (søknad.saksbehandlerIdent == "SPLEIS")
+            StatistikkEvent.statistikkEventForAvvistAvSpleis(søknad, vedtaksperiodeForkastetData)
+        else StatistikkEvent.statistikkEventForAvvist(søknad, vedtaksperiodeForkastetData)
+
+        utgiver.publiserStatistikk(melding)
     }
 }

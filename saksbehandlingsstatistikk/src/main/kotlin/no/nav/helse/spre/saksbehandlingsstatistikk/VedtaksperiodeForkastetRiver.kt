@@ -10,6 +10,7 @@ private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 internal class VedtaksperiodeForkastetRiver(
     rapidsConnection: RapidsConnection,
     private val spreService: SpreService,
+    private val søknadDao: SøknadDao,
 ) : River.PacketListener {
 
     init {
@@ -23,6 +24,15 @@ internal class VedtaksperiodeForkastetRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = VedtaksperiodeForkastetData.fromJson(packet)
+        val søknad = søknadDao.finnSøknad(vedtak.vedtaksperiodeId)
+        if (søknad == null) {
+            log.info("Kunne ikke finne søknad for vedtaksperiode ${vedtak.vedtaksperiodeId}")
+            return
+        }
+
+        if (søknad.bleAvsluttetAvSpleis) søknadDao.upsertSøknad(søknad.vedtakFattet(vedtak.vedtaksperiodeForkastet).automatiskBehandling(true).saksbehandlerIdent("SPLEIS")) else
+            søknadDao.upsertSøknad(søknad.vedtakFattet(vedtak.vedtaksperiodeForkastet))
+
 
         try {
             spreService.spre(vedtak)

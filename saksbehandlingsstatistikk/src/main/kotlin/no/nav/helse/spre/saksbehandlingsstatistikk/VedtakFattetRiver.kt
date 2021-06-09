@@ -9,7 +9,8 @@ private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 
 internal class VedtakFattetRiver(
     rapidsConnection: RapidsConnection,
-    private val spreService: SpreService
+    private val spreService: SpreService,
+    private val søknadDao: SøknadDao,
 ) : River.PacketListener {
 
     init {
@@ -24,6 +25,14 @@ internal class VedtakFattetRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = VedtakFattetData.fromJson(packet)
+        val søknad = søknadDao.finnSøknad(vedtak.vedtaksperiodeId)
+        if (søknad == null) {
+            log.info("Kunne ikke finne søknad for vedtaksperiode ${vedtak.vedtaksperiodeId}")
+            return
+        }
+
+        søknadDao.upsertSøknad(vedtak.anrik(søknad))
+
         try {
             spreService.spre(vedtak)
         } catch (e: Exception) {

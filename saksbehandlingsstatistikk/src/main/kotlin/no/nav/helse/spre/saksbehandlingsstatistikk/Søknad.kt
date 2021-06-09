@@ -21,6 +21,9 @@ data class Søknad(
     fun automatiskBehandling(it: Boolean?) = copy(automatiskBehandling = it)
     fun resultat(it: String) = copy(resultat = it)
 
+    val bleAvsluttetAvSpleis
+        get() = resultat.isNullOrEmpty()
+
     companion object {
         fun fromSql(row: Row): Søknad {
             val automatiskBehandling = row.boolean("automatisk_behandling")
@@ -35,7 +38,7 @@ data class Søknad(
                 saksbehandlerIdent = row.stringOrNull("saksbehandler_ident"),
                 vedtakFattet = row.localDateTimeOrNull("vedtak_fattet"),
                 automatiskBehandling = if (wasNull) null else automatiskBehandling,
-                resultat = row.stringOrNull("resultat")
+                resultat = row.stringOrNull("resultat"),
             )
         }
     }

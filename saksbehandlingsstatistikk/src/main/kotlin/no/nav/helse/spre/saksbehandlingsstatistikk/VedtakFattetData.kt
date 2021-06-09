@@ -14,14 +14,15 @@ data class VedtakFattetData(
     val erAvsluttetUtenGodkjenning: Boolean
 ) {
     fun hendelse(it: UUID) = copy(hendelser = hendelser + it)
+    fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
 
-    fun lagStatistikkEvent(søknad: Søknad): StatistikkEvent {
-        return if (erAvsluttetUtenGodkjenning) {
-            StatistikkEvent.statistikkEventForSøknadAvsluttetAvSpleis(søknad, this)
-        } else {
-            StatistikkEvent.statistikkEvent(søknad, this)
+    fun anrik(søknad: Søknad) = søknad.vedtakFattet(avsluttetISpleis).resultat("INNVILGET")
+        .let {
+            when (erAvsluttetUtenGodkjenning) {
+                true -> it.saksbehandlerIdent("SPLEIS").automatiskBehandling(true)
+                else -> it
+            }
         }
-    }
 
     companion object {
         fun fromJson(packet: JsonMessage) = VedtakFattetData(
