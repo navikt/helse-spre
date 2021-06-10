@@ -6,7 +6,9 @@ on:
     - main
     paths:
     - 'config/saksbehandlingsstatistikk/aiven-dev.yml'
-    - 'config/saksbehandlingsstatistikk/aiven-temp-dokumenter.yml'
+    - 'config/saksbehandlingsstatistikk/aiven-temp-dokumenter-dev.yml'
+    - 'config/saksbehandlingsstatistikk/aiven-prod.yml'
+    - 'config/saksbehandlingsstatistikk/aiven-temp-dokumenter-prod.yml'
 
 jobs:
   deployDev:
@@ -18,4 +20,15 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
-          RESOURCE: config/saksbehandlingsstatistikk/aiven-dev.yml,config/saksbehandlingsstatistikk/aiven-temp-dokumenter.yml
+          RESOURCE: config/saksbehandlingsstatistikk/aiven-dev.yml,config/saksbehandlingsstatistikk/aiven-temp-dokumenter-dev.yml
+
+  deployProd:
+    name: apply kafka-topic i prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: prod-gcp
+          RESOURCE: config/saksbehandlingsstatistikk/aiven-prod.yml,config/saksbehandlingsstatistikk/aiven-temp-dokumenter-prod.yml

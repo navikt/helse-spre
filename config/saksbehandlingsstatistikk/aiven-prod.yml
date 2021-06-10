@@ -6,7 +6,7 @@ metadata:
   labels:
     team: tbd
 spec:
-  pool: nav-dev
+  pool: nav-prod
   config:
     cleanupPolicy: delete
     minimumInSyncReplicas: 1
@@ -19,8 +19,5 @@ spec:
       application: spre-saksbehandlingsstatistikk
       access: readwrite
     - team: ptsak
-      application: pt-sak-sykepenger-dev
-      access: read
-    - team: ptsak
-      application: pt-sak-sykepenger-preprod
+      application: pt-sak-sykepenger
       access: read

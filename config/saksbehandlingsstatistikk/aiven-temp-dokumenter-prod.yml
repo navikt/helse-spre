@@ -1,26 +1,23 @@
 apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
-  name: aapen-sykepenger-saksbehandlingsstatistikk
+  name: temp-dokumenter-v1
   namespace: tbd
   labels:
     team: tbd
 spec:
-  pool: nav-dev
+  pool: nav-prod
   config:
     cleanupPolicy: delete
     minimumInSyncReplicas: 1
     partitions: 1
     replication: 2
     retentionBytes: -1
-    retentionHours: 2200
+    retentionHours: 168
   acl:
     - team: tbd
-      application: spre-saksbehandlingsstatistikk
+      application: spill-av
       access: readwrite
-    - team: ptsak
-      application: pt-sak-sykepenger-dev
-      access: read
-    - team: ptsak
-      application: pt-sak-sykepenger-preprod
+    - team: tbd
+      application: spre-saksbehandlingsstatistikk
       access: read
