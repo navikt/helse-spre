@@ -42,7 +42,7 @@ fun launchApplication(env: Environment) {
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env.raw))
         .build()
         .apply {
-            setupRivers(spreService, søknadDao)
+            NyttDokumentRiver(this, søknadDao)
             start()
         }
 
