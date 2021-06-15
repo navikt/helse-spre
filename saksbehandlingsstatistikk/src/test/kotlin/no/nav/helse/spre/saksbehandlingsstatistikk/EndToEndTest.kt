@@ -3,6 +3,7 @@ package no.nav.helse.spre.saksbehandlingsstatistikk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
+import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.ikkeGodkjentGodkjenningBehovsLøsning
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.nyttDokumentData
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtakFattet
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeAvvist
@@ -173,6 +174,42 @@ internal class EndToEndTest {
             mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
             registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
             saksbehandlerIdent = vedtaksperiodeAvvist.saksbehandlerIdent,
+            automatiskbehandling = true,
+            resultat = Resultat.AVVIST,
+        )
+
+        assertEquals(expected, sendtTilDVH)
+    }
+
+    @Test
+    fun `Avvist av spesialist eller menneske før avvist event`() {
+        val nyttDokumentData = nyttDokumentData()
+
+        val vedtaksperiodeEndret = vedtaksperiodeEndretData()
+            .hendelse(nyttDokumentData.hendelseId)
+
+        val ikkegodkjentBehovsLøsning = ikkeGodkjentGodkjenningBehovsLøsning()
+            .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+
+        val vedtaksperiodeForkastet = vedtaksperiodeForkastet().vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+
+        testRapid.sendTestMessage(nyttDokumentData.json())
+        testRapid.sendTestMessage(vedtaksperiodeEndret.json())
+        testRapid.sendTestMessage(ikkegodkjentBehovsLøsning.json)
+        testRapid.sendTestMessage(vedtaksperiodeForkastet.json)
+
+        assertEquals(1, utgiver.meldinger.size)
+
+        val sendtTilDVH = utgiver.meldinger[0]
+
+        val expected = StatistikkEvent(
+            aktorId = vedtaksperiodeForkastet.aktørId,
+            behandlingId = nyttDokumentData.søknadId,
+            tekniskTid = sendtTilDVH.tekniskTid,
+            funksjonellTid = vedtaksperiodeForkastet.vedtaksperiodeForkastet.truncatedTo(ChronoUnit.MILLIS),
+            mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
+            registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
+            saksbehandlerIdent = ikkegodkjentBehovsLøsning.saksbehandlerIdent,
             automatiskbehandling = true,
             resultat = Resultat.AVVIST,
         )

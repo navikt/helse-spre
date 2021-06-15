@@ -117,6 +117,20 @@ object TestUtil {
             "automatiskBehandling": "$automatiskBehandling"
         }"""
 
+    val GodkjenningsBehovLøsningData.json
+        get() =
+            """{
+            "@behov": ["Godkjenning"],
+            "vedtaksperiodeId": "$vedtaksperiodeId",
+            "@løsning": {
+                "Godkjenning": {
+                    "godkjenttidspunkt": "$vedtakFattet",
+                    "saksbehandlerIdent": "$saksbehandlerIdent",
+                    "godkjent": "false",
+                    "automatiskBehandling": "$automatiskBehandling"
+                }
+            }
+        }"""
 }
 
 class LokalUtgiver : Utgiver {

@@ -43,8 +43,15 @@ object TestData {
         true
     )
 
+    fun ikkeGodkjentGodkjenningBehovsLøsning() = GodkjenningsBehovLøsningData(
+        UUID.randomUUID(),
+        randomIndent(),
+        LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
+        true,
+    )
+
     fun randomString(charPool: CharRange, length: Int) = (1..length)
-        .map { i -> kotlin.random.Random.nextInt(0, charPool.toList().size) }
+        .map { _ -> kotlin.random.Random.nextInt(0, charPool.toList().size) }
         .map(charPool.toList()::get)
         .joinToString("")
 

@@ -7,39 +7,38 @@ import org.slf4j.LoggerFactory
 private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 
-internal class VedtaksperiodeForkastetRiver(
+internal class GodkjenningsBehovLøsningRiver(
     rapidsConnection: RapidsConnection,
-    private val spreService: SpreService,
-    private val søknadDao: SøknadDao,
+    private val søknadDao: SøknadDao
 ) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
             validate { message ->
-                message.demandValue("@event_name", "vedtaksperiode_forkastet")
-                message.requireKey("@opprettet", "aktørId", "vedtaksperiodeId")
+                message.demandAll("@behov", listOf("Godkjenning"))
+                message.demandValue("@løsning.Godkjenning.godkjent", "false")
+                message.requireKey("@løsning")
+                message.requireKey("vedtaksperiodeId")
+                message.requireKey(
+                    "@løsning.Godkjenning.godkjenttidspunkt",
+                    "@løsning.Godkjenning.saksbehandlerIdent",
+                    "@løsning.Godkjenning.automatiskBehandling",
+                )
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val vedtak = VedtaksperiodeForkastetData.fromJson(packet)
+        val vedtak = GodkjenningsBehovLøsningData.fromJson(packet)
+
         val søknad = søknadDao.finnSøknad(vedtak.vedtaksperiodeId)
+
         if (søknad == null) {
             log.info("Kunne ikke finne søknad for vedtaksperiode ${vedtak.vedtaksperiodeId}")
             return
         }
-
-        if (søknad.bleAvsluttetAvSpleis) søknadDao.upsertSøknad(søknad.vedtakFattet(vedtak.vedtaksperiodeForkastet).automatiskBehandling(true).saksbehandlerIdent("SPLEIS"))
-        else søknadDao.upsertSøknad(søknad.vedtakFattet(vedtak.vedtaksperiodeForkastet))
-
-        try {
-            spreService.spre(vedtak)
-        } catch (e: Exception) {
-            tjenestekall.info("Noe gikk galt under behandling av vedtaksperiode_forkastet: {}", packet.toJson())
-            throw e
-        }
-        log.info("vedtaksperiode_forkastet lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
+        søknadDao.upsertSøknad(vedtak.anrik(søknad))
+        log.info("Ikke godkjent Godkjenningsbehovsløsning lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
