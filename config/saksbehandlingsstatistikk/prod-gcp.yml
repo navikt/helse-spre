@@ -1,0 +1,9 @@
+kafkaPool: nav-prod
+gcp:
+  type: POSTGRES_12
+  databaseName: spre-saksbehandlingsstatistikk
+kafkaConsumerGroup: tbd-spre-saksbehandlingsstatistikk-v1
+kafkaResetPolicy: earliest
+env:
+  - name: KAFKA_EXTRA_TOPIC
+    value: tbd.temp-dokumenter-v3

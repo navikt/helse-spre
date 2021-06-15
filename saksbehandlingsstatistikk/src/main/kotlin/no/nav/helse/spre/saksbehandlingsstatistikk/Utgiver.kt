@@ -16,7 +16,7 @@ class KafkaUtgiver (private val kafka : KafkaProducer<String, String>) : Utgiver
         val eventString = objectMapper.writeValueAsString(statistikkEvent)
         kafka.send(
             ProducerRecord(
-                "tbd.aapen-sykepenger-saksbehandlingsstatistikk-utviklingstopic",
+                "tbd.aapen-sykepenger-saksbehandlingsstatistikk",
                 "FNR",
                 eventString
             )
