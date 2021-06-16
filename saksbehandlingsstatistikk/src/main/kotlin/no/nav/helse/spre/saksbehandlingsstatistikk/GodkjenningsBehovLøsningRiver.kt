@@ -19,7 +19,7 @@ internal class GodkjenningsBehovLøsningRiver(
         River(rapidsConnection).apply {
             validate { message ->
                 message.demandAll("@behov", listOf("Godkjenning"))
-                message.demandValue("@løsning.Godkjenning.godkjent", "false")
+                message.demandValue("@løsning.Godkjenning.godkjent", false)
                 message.requireKey("@løsning")
                 message.requireKey("vedtaksperiodeId")
                 message.requireKey(

@@ -126,7 +126,7 @@ object TestUtil {
                 "Godkjenning": {
                     "godkjenttidspunkt": "$vedtakFattet",
                     "saksbehandlerIdent": "$saksbehandlerIdent",
-                    "godkjent": "false",
+                    "godkjent": false,
                     "automatiskBehandling": "$automatiskBehandling"
                 }
             }
