@@ -3,7 +3,7 @@ package no.nav.helse.spre.saksbehandlingsstatistikk
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.nyttDokumentData
+import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.søknadData
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeEndretData
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeGodkjent
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestUtil.finnSøknadDokumentId
@@ -37,45 +37,45 @@ internal class TilstandTest {
 
     @Test
     fun `lagrer søknad til basen`() {
-        val nyttDokument = nyttDokumentData()
+        val søknadData = søknadData()
 
-        testRapid.sendTestMessage(nyttDokument.json())
+        testRapid.sendTestMessage(søknadData.json())
 
-        val søknadDokumentId = finnSøknadDokumentId(nyttDokument.hendelseId)
-        assertEquals(nyttDokument.søknadId, søknadDokumentId)
+        val søknadDokumentId = finnSøknadDokumentId(søknadData.hendelseId)
+        assertEquals(søknadData.søknadId, søknadDokumentId)
     }
 
     @Test
     fun `håndterer duplikate dokumenter`() {
-        val nyttDokument = nyttDokumentData()
+        val søknadData = søknadData()
 
-        testRapid.sendTestMessage(nyttDokument.json("sendt_søknad_arbeidsgiver"))
-        testRapid.sendTestMessage(nyttDokument.json())
+        testRapid.sendTestMessage(søknadData.json("sendt_søknad_arbeidsgiver"))
+        testRapid.sendTestMessage(søknadData.json())
 
-        val søknadDokumentId = finnSøknadDokumentId(nyttDokument.hendelseId)
-        assertEquals(nyttDokument.søknadId, søknadDokumentId)
+        val søknadDokumentId = finnSøknadDokumentId(søknadData.hendelseId)
+        assertEquals(søknadData.søknadId, søknadDokumentId)
     }
 
     @Test
     fun `lagrer saksbehandlingsløp for automatisk behandlet søknad`() {
-        val nyttDokumentData = nyttDokumentData()
+        val søknadData = søknadData()
 
         val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(nyttDokumentData.hendelseId)
+            .hendelse(søknadData.hendelseId)
 
         val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent()
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
-        val expected = nyttDokumentData.asSøknad
+        val expected = søknadData.asSøknad
             .saksbehandlerIdent(vedtaksperiodeGodkjent.saksbehandlerIdent)
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
             .vedtakFattet(vedtaksperiodeGodkjent.vedtakFattet)
 
-        testRapid.sendTestMessage(nyttDokumentData.json())
+        testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(vedtaksperiodeGodkjent.json)
 
-        val lagretSøknad = søknadDao.finnSøknad(listOf(nyttDokumentData.hendelseId))
+        val lagretSøknad = søknadDao.finnSøknad(listOf(søknadData.hendelseId))
 
         assertEquals(expected.saksbehandlerIdent, lagretSøknad?.saksbehandlerIdent)
         assertEquals(expected.vedtaksperiodeId, lagretSøknad?.vedtaksperiodeId)
@@ -92,25 +92,25 @@ internal class TilstandTest {
 
     @Test
     fun `lagrer saksbehandlingsløp for manuelt behandlet søknad`() {
-        val nyttDokumentData = nyttDokumentData()
+        val søknadData = søknadData()
 
         val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(nyttDokumentData.hendelseId)
+            .hendelse(søknadData.hendelseId)
 
         val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent()
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
             .automatiskBehandling(false)
 
-        val expected = nyttDokumentData.asSøknad
+        val expected = søknadData.asSøknad
             .saksbehandlerIdent(vedtaksperiodeGodkjent.saksbehandlerIdent)
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
             .vedtakFattet(vedtaksperiodeGodkjent.vedtakFattet)
 
-        testRapid.sendTestMessage(nyttDokumentData.json())
+        testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(vedtaksperiodeGodkjent.json)
 
-        val lagretSøknad = søknadDao.finnSøknad(listOf(nyttDokumentData.hendelseId))
+        val lagretSøknad = søknadDao.finnSøknad(listOf(søknadData.hendelseId))
 
         assertEquals(expected.saksbehandlerIdent, lagretSøknad?.saksbehandlerIdent)
         assertEquals(expected.vedtaksperiodeId, lagretSøknad?.vedtaksperiodeId)

@@ -12,7 +12,7 @@ private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 
 private val counter = Counter.build("sendt_soeknad_event", "Teller antall events av type sendt_søknad").register()
 
-internal class NyttDokumentRiver(
+internal class SøknadRiver(
     rapidsConnection: RapidsConnection,
     private val søknadDao: SøknadDao
 ) : River.PacketListener {
@@ -24,9 +24,9 @@ internal class NyttDokumentRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val nyttDokument = NyttDokumentData.fromJson(packet)
-        søknadDao.upsertSøknad(nyttDokument.asSøknad)
-        log.info("Søknad med id ${nyttDokument.søknadId} og hendelseId ${nyttDokument.hendelseId} lagret")
+        val søknadData = SøknadData.fromJson(packet)
+        søknadDao.upsertSøknad(søknadData.asSøknad)
+        log.info("Søknad med id ${søknadData.søknadId} og hendelseId ${søknadData.hendelseId} lagret")
         counter.inc()
     }
 

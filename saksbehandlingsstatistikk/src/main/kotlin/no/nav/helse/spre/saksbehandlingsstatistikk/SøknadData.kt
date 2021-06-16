@@ -5,7 +5,7 @@ import no.nav.helse.rapids_rivers.asLocalDateTime
 import java.time.LocalDateTime
 import java.util.*
 
-data class NyttDokumentData(
+data class SøknadData(
     val hendelseId: UUID,
     val søknadId: UUID,
     val hendelseOpprettet: LocalDateTime
@@ -20,7 +20,7 @@ data class NyttDokumentData(
             )
 
     companion object {
-        fun fromJson(packet: JsonMessage) = NyttDokumentData(
+        fun fromJson(packet: JsonMessage) = SøknadData(
             hendelseId = UUID.fromString(packet["@id"].textValue()),
             søknadId = UUID.fromString(packet["id"].textValue()),
             hendelseOpprettet = packet["@opprettet"].asLocalDateTime(),

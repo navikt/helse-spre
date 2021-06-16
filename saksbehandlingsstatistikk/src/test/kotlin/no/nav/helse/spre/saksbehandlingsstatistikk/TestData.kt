@@ -7,7 +7,7 @@ import java.util.*
 object TestData {
     fun vedtaksperiodeEndretData() = VedtaksperiodeEndretData(listOf(), UUID.randomUUID())
 
-    fun nyttDokumentData() = NyttDokumentData(
+    fun søknadData() = SøknadData(
         UUID.randomUUID(),
         UUID.randomUUID(),
         LocalDateTime.now().minusDays(2).truncatedTo(ChronoUnit.MILLIS),

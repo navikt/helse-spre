@@ -4,7 +4,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.ikkeGodkjentGodkjenningBehovsLøsning
-import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.nyttDokumentData
+import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.søknadData
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtakFattet
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeAvvist
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeEndretData
@@ -42,19 +42,19 @@ internal class EndToEndTest {
 
     @Test
     fun `Innvilget av Spesialist eller menneske`() {
-        val nyttDokumentData = nyttDokumentData()
+        val søknadData = søknadData()
 
         val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(nyttDokumentData.hendelseId)
+            .hendelse(søknadData.hendelseId)
 
         val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent()
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
         val vedtakFattet = vedtakFattet()
-            .hendelse(nyttDokumentData.hendelseId)
+            .hendelse(søknadData.hendelseId)
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
-        testRapid.sendTestMessage(nyttDokumentData.json())
+        testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(vedtaksperiodeGodkjent.json)
         testRapid.sendTestMessage(vedtakFattet.json)
@@ -65,11 +65,11 @@ internal class EndToEndTest {
 
         val expected = StatistikkEvent(
             aktorId = vedtakFattet.aktørId,
-            behandlingId = nyttDokumentData.søknadId,
+            behandlingId = søknadData.søknadId,
             tekniskTid = sendtTilDVH.tekniskTid,
             funksjonellTid = vedtakFattet.avsluttetISpleis.truncatedTo(ChronoUnit.MILLIS),
-            mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
-            registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
+            mottattDato = søknadData.hendelseOpprettet.toString(),
+            registrertDato = søknadData.hendelseOpprettet.toString(),
             saksbehandlerIdent = vedtaksperiodeGodkjent.saksbehandlerIdent,
             automatiskbehandling = true,
             resultat = Resultat.INNVILGET,
@@ -80,16 +80,16 @@ internal class EndToEndTest {
 
     @Test
     fun `Innvilget av spleis`() {
-        val nyttDokumentData = nyttDokumentData()
+        val søknadData = søknadData()
 
         val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(nyttDokumentData.hendelseId)
+            .hendelse(søknadData.hendelseId)
 
         val vedtakFattet = vedtakFattet()
-            .hendelse(nyttDokumentData.hendelseId)
+            .hendelse(søknadData.hendelseId)
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
-        testRapid.sendTestMessage(nyttDokumentData.json())
+        testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(vedtakFattet.jsonAvsluttetUtenGodkjenning)
 
@@ -99,11 +99,11 @@ internal class EndToEndTest {
 
         val expected = StatistikkEvent(
             aktorId = vedtakFattet.aktørId,
-            behandlingId = nyttDokumentData.søknadId,
+            behandlingId = søknadData.søknadId,
             tekniskTid = sendtTilDVH.tekniskTid,
             funksjonellTid = vedtakFattet.avsluttetISpleis,
-            mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
-            registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
+            mottattDato = søknadData.hendelseOpprettet.toString(),
+            registrertDato = søknadData.hendelseOpprettet.toString(),
             saksbehandlerIdent = "SPLEIS",
             automatiskbehandling = true,
             resultat = Resultat.INNVILGET,
@@ -114,14 +114,14 @@ internal class EndToEndTest {
 
     @Test
     fun `Avvist av spleis`() {
-        val nyttDokumentData = nyttDokumentData()
+        val søknadData = søknadData()
 
         val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(nyttDokumentData.hendelseId)
+            .hendelse(søknadData.hendelseId)
 
         val vedtaksperiodeForkastet = vedtaksperiodeForkastet().vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
-        testRapid.sendTestMessage(nyttDokumentData.json())
+        testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(vedtaksperiodeForkastet.json)
 
@@ -131,11 +131,11 @@ internal class EndToEndTest {
 
         val expected = StatistikkEvent(
             aktorId = vedtaksperiodeForkastet.aktørId,
-            behandlingId = nyttDokumentData.søknadId,
+            behandlingId = søknadData.søknadId,
             tekniskTid = sendtTilDVH.tekniskTid,
             funksjonellTid = vedtaksperiodeForkastet.vedtaksperiodeForkastet.truncatedTo(ChronoUnit.MILLIS),
-            mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
-            registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
+            mottattDato = søknadData.hendelseOpprettet.toString(),
+            registrertDato = søknadData.hendelseOpprettet.toString(),
             saksbehandlerIdent = "SPLEIS",
             automatiskbehandling = true,
             resultat = Resultat.AVVIST,
@@ -146,10 +146,10 @@ internal class EndToEndTest {
 
     @Test
     fun `Avvist av spesialist eller menneske`() {
-        val nyttDokumentData = nyttDokumentData()
+        val søknadData = søknadData()
 
         val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(nyttDokumentData.hendelseId)
+            .hendelse(søknadData.hendelseId)
 
         val vedtaksperiodeAvvist = vedtaksperiodeAvvist()
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
@@ -157,7 +157,7 @@ internal class EndToEndTest {
         val vedtaksperiodeForkastet = vedtaksperiodeForkastet().vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
 
-        testRapid.sendTestMessage(nyttDokumentData.json())
+        testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(vedtaksperiodeAvvist.json)
         testRapid.sendTestMessage(vedtaksperiodeForkastet.json)
@@ -168,11 +168,11 @@ internal class EndToEndTest {
 
         val expected = StatistikkEvent(
             aktorId = vedtaksperiodeForkastet.aktørId,
-            behandlingId = nyttDokumentData.søknadId,
+            behandlingId = søknadData.søknadId,
             tekniskTid = sendtTilDVH.tekniskTid,
             funksjonellTid = vedtaksperiodeForkastet.vedtaksperiodeForkastet.truncatedTo(ChronoUnit.MILLIS),
-            mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
-            registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
+            mottattDato = søknadData.hendelseOpprettet.toString(),
+            registrertDato = søknadData.hendelseOpprettet.toString(),
             saksbehandlerIdent = vedtaksperiodeAvvist.saksbehandlerIdent,
             automatiskbehandling = true,
             resultat = Resultat.AVVIST,
@@ -183,17 +183,17 @@ internal class EndToEndTest {
 
     @Test
     fun `Avvist av spesialist eller menneske før avvist event`() {
-        val nyttDokumentData = nyttDokumentData()
+        val søknadData = søknadData()
 
         val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(nyttDokumentData.hendelseId)
+            .hendelse(søknadData.hendelseId)
 
         val ikkegodkjentBehovsLøsning = ikkeGodkjentGodkjenningBehovsLøsning()
             .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
         val vedtaksperiodeForkastet = vedtaksperiodeForkastet().vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
 
-        testRapid.sendTestMessage(nyttDokumentData.json())
+        testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(ikkegodkjentBehovsLøsning.json)
         testRapid.sendTestMessage(vedtaksperiodeForkastet.json)
@@ -204,11 +204,11 @@ internal class EndToEndTest {
 
         val expected = StatistikkEvent(
             aktorId = vedtaksperiodeForkastet.aktørId,
-            behandlingId = nyttDokumentData.søknadId,
+            behandlingId = søknadData.søknadId,
             tekniskTid = sendtTilDVH.tekniskTid,
             funksjonellTid = vedtaksperiodeForkastet.vedtaksperiodeForkastet.truncatedTo(ChronoUnit.MILLIS),
-            mottattDato = nyttDokumentData.hendelseOpprettet.toString(),
-            registrertDato = nyttDokumentData.hendelseOpprettet.toString(),
+            mottattDato = søknadData.hendelseOpprettet.toString(),
+            registrertDato = søknadData.hendelseOpprettet.toString(),
             saksbehandlerIdent = ikkegodkjentBehovsLøsning.saksbehandlerIdent,
             automatiskbehandling = true,
             resultat = Resultat.AVVIST,

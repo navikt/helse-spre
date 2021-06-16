@@ -52,7 +52,7 @@ internal fun RapidsConnection.setupRivers(
     spreService: SpreService,
     søknadDao: SøknadDao,
 ) {
-    NyttDokumentRiver(this, søknadDao)
+    SøknadRiver(this, søknadDao)
     VedtaksperiodeEndretRiver(this, søknadDao)
     VedtaksperiodeGodkjentRiver(this, søknadDao)
     VedtaksperiodeAvvistRiver(this, søknadDao)

@@ -48,7 +48,7 @@ object TestUtil {
     }
 
 
-    fun NyttDokumentData.json(eventType: String = "sendt_søknad_nav") =
+    fun SøknadData.json(eventType: String = "sendt_søknad_nav") =
         """{
             "@event_name": "$eventType",
             "@id": "${this.hendelseId}",
