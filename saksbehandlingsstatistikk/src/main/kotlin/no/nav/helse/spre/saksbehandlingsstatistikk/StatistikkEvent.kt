@@ -65,7 +65,7 @@ data class StatistikkEvent(
             mottattDato = søknad.rapportert.toString(),
             registrertDato = søknad.registrertDato.toString(),
             saksbehandlerIdent = søknad.saksbehandlerIdent ?: "ukjent".also { log.info("manglet saksbehandlerIdent") },
-            funksjonellTid = søknad.vedtakFattet!!,
+            funksjonellTid = vedtakFattetData.avsluttetISpleis,
             automatiskbehandling = søknad.automatiskBehandling,
             resultat = Resultat.INNVILGET,
         )
