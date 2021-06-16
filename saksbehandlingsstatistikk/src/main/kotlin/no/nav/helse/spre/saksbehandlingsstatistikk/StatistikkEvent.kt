@@ -2,9 +2,13 @@ package no.nav.helse.spre.saksbehandlingsstatistikk
 
 import no.nav.helse.spre.saksbehandlingsstatistikk.Avsender.SPLEIS
 import no.nav.helse.spre.saksbehandlingsstatistikk.YtelseType.SYKEPENGER
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
+
+private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 
 data class StatistikkEvent(
     val aktorId: String,
@@ -60,7 +64,7 @@ data class StatistikkEvent(
             behandlingId = søknad.søknadDokumentId,
             mottattDato = søknad.rapportert.toString(),
             registrertDato = søknad.registrertDato.toString(),
-            saksbehandlerIdent = søknad.saksbehandlerIdent!!,
+            saksbehandlerIdent = søknad.saksbehandlerIdent ?: "ukjent".also { log.info("manglet saksbehandlerIdent") },
             funksjonellTid = søknad.vedtakFattet!!,
             automatiskbehandling = søknad.automatiskBehandling,
             resultat = Resultat.INNVILGET,
