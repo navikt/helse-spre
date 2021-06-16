@@ -1,7 +1,6 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.*
 
 object TestData {
@@ -10,13 +9,13 @@ object TestData {
     fun søknadData() = SøknadData(
         UUID.randomUUID(),
         UUID.randomUUID(),
-        LocalDateTime.now().minusDays(2).truncatedTo(ChronoUnit.MILLIS),
+        LocalDateTime.now().minusDays(2),
     )
 
     fun vedtaksperiodeGodkjent() = VedtaksperiodeGodkjentData(
         UUID.randomUUID(),
         randomIndent(),
-        LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
+        LocalDateTime.now().minusDays(1),
         true
     )
 
@@ -39,14 +38,14 @@ object TestData {
     fun vedtaksperiodeAvvist() = VedtaksperiodeAvvistData(
         UUID.randomUUID(),
         randomIndent(),
-        LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
+        LocalDateTime.now().minusDays(1),
         true
     )
 
     fun ikkeGodkjentGodkjenningBehovsLøsning() = GodkjenningsBehovLøsningData(
         UUID.randomUUID(),
         randomIndent(),
-        LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
+        LocalDateTime.now().minusDays(1),
         true,
     )
 

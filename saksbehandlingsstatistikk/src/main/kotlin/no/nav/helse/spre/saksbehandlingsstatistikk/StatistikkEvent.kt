@@ -5,7 +5,6 @@ import no.nav.helse.spre.saksbehandlingsstatistikk.YtelseType.SYKEPENGER
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.*
 
 private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
@@ -17,7 +16,7 @@ data class StatistikkEvent(
     val mottattDato: String,
     val registrertDato: String,
     val saksbehandlerIdent: String,
-    val tekniskTid: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
+    val tekniskTid: LocalDateTime = LocalDateTime.now(),
     val automatiskbehandling: Boolean? = null,
     val resultat: Resultat,
 ) {
