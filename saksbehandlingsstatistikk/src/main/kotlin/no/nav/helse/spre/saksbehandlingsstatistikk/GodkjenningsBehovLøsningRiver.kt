@@ -1,11 +1,14 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
+import io.prometheus.client.Counter
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
+
+private val counter = Counter.build("godkjenningsbehovloesning_events", "Teller antall events av type godkjenningsbehovløsning").register()
 
 internal class GodkjenningsBehovLøsningRiver(
     rapidsConnection: RapidsConnection,
@@ -39,6 +42,7 @@ internal class GodkjenningsBehovLøsningRiver(
         }
         søknadDao.upsertSøknad(vedtak.anrik(søknad))
         log.info("Ikke godkjent Godkjenningsbehovsløsning lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
+        counter.inc()
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

@@ -1,11 +1,14 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
+import io.prometheus.client.Counter
 import no.nav.helse.rapids_rivers.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
+
+private val counter = Counter.build("vedtak_fattet_events", "Teller antall events av type vedtak_fattet").register()
 
 internal class VedtakFattetRiver(
     rapidsConnection: RapidsConnection,
@@ -40,6 +43,7 @@ internal class VedtakFattetRiver(
             throw e
         }
         log.info("vedtak_fattet lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
+        counter.inc()
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
