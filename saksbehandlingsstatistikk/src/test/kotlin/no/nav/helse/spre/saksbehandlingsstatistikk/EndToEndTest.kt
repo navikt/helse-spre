@@ -67,7 +67,7 @@ internal class EndToEndTest {
             aktorId = vedtakFattet.aktørId,
             behandlingId = søknadData.søknadId,
             tekniskTid = sendtTilDVH.tekniskTid,
-            funksjonellTid = vedtakFattet.avsluttetISpleis.truncatedTo(ChronoUnit.MILLIS),
+            funksjonellTid = vedtakFattet.avsluttetISpleis,
             mottattDato = søknadData.hendelseOpprettet.toString(),
             registrertDato = søknadData.hendelseOpprettet.toString(),
             saksbehandlerIdent = vedtaksperiodeGodkjent.saksbehandlerIdent,
