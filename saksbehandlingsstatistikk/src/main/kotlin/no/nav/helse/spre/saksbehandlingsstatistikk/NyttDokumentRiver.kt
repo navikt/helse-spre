@@ -24,17 +24,10 @@ internal class NyttDokumentRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-
-        when (packet["@event_name"].textValue()) {
-            "sendt_søknad_nav", "sendt_søknad_arbeidsgiver" -> {
-                val nyttDokument = NyttDokumentData.fromJson(packet)
-                søknadDao.upsertSøknad(nyttDokument.asSøknad)
-                log.info("Søknad med id ${nyttDokument.søknadId} og hendelseId ${nyttDokument.hendelseId} lagret")
-                counter.inc()
-            }
-            else -> throw IllegalStateException("Ukjent event (etter whitelist :mind_blown:)")
-        }
+        val nyttDokument = NyttDokumentData.fromJson(packet)
+        søknadDao.upsertSøknad(nyttDokument.asSøknad)
+        log.info("Søknad med id ${nyttDokument.søknadId} og hendelseId ${nyttDokument.hendelseId} lagret")
+        counter.inc()
     }
-
 
 }
