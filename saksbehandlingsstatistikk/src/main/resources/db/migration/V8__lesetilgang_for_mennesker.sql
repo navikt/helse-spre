@@ -5,7 +5,7 @@ $do$
         IF NOT EXISTS (
             SELECT
             FROM   pg_catalog.pg_roles
-            WHERE  rolname = 'my_user'
+            WHERE  rolname = 'cloudsqliamuser'
         )
         THEN
             CREATE ROLE cloudsqliamuser;
