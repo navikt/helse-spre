@@ -34,12 +34,26 @@ internal class VedtakFattetRiver(
             return
         }
 
-        søknadDao.upsertSøknad(vedtak.anrik(søknad))
+        val anriketSøknad = vedtak.anrik(søknad)
+        søknadDao.upsertSøknad(anriketSøknad)
 
         try {
             spreService.spre(vedtak)
         } catch (e: Exception) {
-            tjenestekall.info("Noe gikk galt under behandling av vedtak_fattet. melding: {}. søknad: {}", packet.toJson(), søknad)
+            tjenestekall.info(
+                "Noe gikk galt under behandling av vedtak_fattet \nmelding: {}\n søknad: {}\n error: {}",
+                packet.toJson(),
+                anriketSøknad,
+                e
+            )
+
+            val søknadFraHendelser = søknadDao.finnSøknad(vedtak.hendelser)
+            val søknadFraVedtaksperiodeID = søknadDao.finnSøknad(vedtak.vedtaksperiodeId)
+            tjenestekall.info(
+                "søknad fra hendelser: {}. søknad fra vedtaksperiodeId: {}",
+                søknadFraHendelser,
+                søknadFraVedtaksperiodeID
+            )
             throw e
         }
         log.info("vedtak_fattet lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
