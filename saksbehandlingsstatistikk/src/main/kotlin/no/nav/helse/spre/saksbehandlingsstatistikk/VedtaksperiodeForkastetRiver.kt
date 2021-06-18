@@ -33,17 +33,7 @@ internal class VedtaksperiodeForkastetRiver(
             return
         }
 
-        if (søknad.bleAvsluttetAvSpleis)
-            søknadDao.upsertSøknad(
-                søknad
-                    .vedtakFattet(vedtak.vedtaksperiodeForkastet)
-                    .automatiskBehandling(true)
-                    .saksbehandlerIdent("SPLEIS")
-                )
-        else
-            søknadDao.upsertSøknad(
-                søknad.vedtakFattet(vedtak.vedtaksperiodeForkastet)
-            )
+        søknadDao.upsertSøknad(vedtak.anrik(søknad))
 
         try {
             spreService.spre(vedtak)

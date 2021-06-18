@@ -9,7 +9,6 @@ internal class SpreService(
     private val utgiver: Utgiver,
     private val søknadDao: SøknadDao
 ) {
-
     internal fun spre(vedtakFattetData: VedtakFattetData) {
         val søknad =
             checkNotNull(søknadDao.finnSøknad(vedtakFattetData.hendelser)) {
@@ -22,11 +21,7 @@ internal class SpreService(
                         "vedtak_fattet-event har vedtaksperiodeId ${vedtakFattetData.vedtaksperiodeId}"
             )
 
-        val melding = if (søknad.saksbehandlerIdent == "SPLEIS")
-            StatistikkEvent.statistikkEventForSøknadAvsluttetAvSpleis(søknad, vedtakFattetData)
-        else StatistikkEvent.statistikkEvent(søknad, vedtakFattetData)
-
-        utgiver.publiserStatistikk(melding)
+        spre(søknad, vedtakFattetData.aktørId)
     }
 
     internal fun spre(vedtaksperiodeForkastetData: VedtaksperiodeForkastetData) {
@@ -35,10 +30,11 @@ internal class SpreService(
                 "Finner ikke søknad for vedtaksperiode_forkastet, med id=${vedtaksperiodeForkastetData.vedtaksperiodeId}"
             }
 
-        val melding = if (søknad.saksbehandlerIdent == "SPLEIS")
-            StatistikkEvent.statistikkEventForAvvistAvSpleis(søknad, vedtaksperiodeForkastetData)
-        else StatistikkEvent.statistikkEventForAvvist(søknad, vedtaksperiodeForkastetData)
+        spre(søknad, vedtaksperiodeForkastetData.aktørId)
+    }
 
+    private fun spre(søknad: Søknad, aktørId: String) {
+        val melding = StatistikkEvent.statistikkEvent(søknad, aktørId)
         utgiver.publiserStatistikk(melding)
     }
 }

@@ -31,56 +31,25 @@ data class StatistikkEvent(
     val behandlingType: BehandlingType = BehandlingType.SØKNAD
     val versjon: String = global.versjon
 
-
     companion object {
-        fun statistikkEventForAvvist(søknad: Søknad, vedtakperiodeForkastetData: VedtaksperiodeForkastetData) = StatistikkEvent(
-            aktorId = vedtakperiodeForkastetData.aktørId,
-            funksjonellTid = søknad.vedtakFattet!!,
-            saksbehandlerIdent = søknad.saksbehandlerIdent!!,
-            behandlingId = søknad.søknadDokumentId,
-            mottattDato = søknad.rapportert.toString(),
-            registrertDato = søknad.registrertDato.toString(),
-            automatiskbehandling = søknad.automatiskBehandling,
-            resultat = Resultat.AVVIST,
-        )
-
-        fun statistikkEventForAvvistAvSpleis(
+        fun statistikkEvent(
             søknad: Søknad,
-            vedtaksperiodeForkastetData: VedtaksperiodeForkastetData
+            aktørId: String,
         ) = StatistikkEvent(
-            aktorId = vedtaksperiodeForkastetData.aktørId,
+            aktorId = aktørId,
+            behandlingId = søknad.søknadDokumentId,
+            mottattDato = søknad.rapportert.toString(),
+            registrertDato = søknad.registrertDato.toString(),
+            saksbehandlerIdent = søknad.saksbehandlerIdent ?: "ukjent".also {
+                log.info(
+                    "manglet saksbehandlerIdent for søknadDokumentId {}",
+                    søknad.søknadDokumentId
+                )
+            },
             funksjonellTid = søknad.vedtakFattet!!,
-            saksbehandlerIdent = søknad.saksbehandlerIdent!!,
-            behandlingId = søknad.søknadDokumentId,
-            mottattDato = søknad.rapportert.toString(),
-            registrertDato = søknad.registrertDato.toString(),
             automatiskbehandling = søknad.automatiskBehandling,
-            resultat = Resultat.AVVIST,
+            resultat = Resultat.valueOf(søknad.resultat!!),
         )
-
-
-        fun statistikkEvent(søknad: Søknad, vedtakFattetData: VedtakFattetData) = StatistikkEvent(
-            aktorId = vedtakFattetData.aktørId,
-            behandlingId = søknad.søknadDokumentId,
-            mottattDato = søknad.rapportert.toString(),
-            registrertDato = søknad.registrertDato.toString(),
-            saksbehandlerIdent = søknad.saksbehandlerIdent ?: "ukjent".also { log.info("manglet saksbehandlerIdent") },
-            funksjonellTid = vedtakFattetData.avsluttetISpleis,
-            automatiskbehandling = søknad.automatiskBehandling,
-            resultat = Resultat.INNVILGET,
-        )
-
-        fun statistikkEventForSøknadAvsluttetAvSpleis(søknad: Søknad, vedtakFattetData: VedtakFattetData) =
-            StatistikkEvent(
-                aktorId = vedtakFattetData.aktørId,
-                behandlingId = søknad.søknadDokumentId,
-                mottattDato = søknad.rapportert.toString(),
-                registrertDato = søknad.registrertDato.toString(),
-                saksbehandlerIdent = søknad.saksbehandlerIdent!!,
-                funksjonellTid = vedtakFattetData.avsluttetISpleis,
-                automatiskbehandling = søknad.automatiskBehandling,
-                resultat = Resultat.INNVILGET,
-            )
     }
 }
 

@@ -26,13 +26,13 @@ object TestData {
         randomIndent(),
         emptyList(),
         UUID.randomUUID(),
-        LocalDateTime.now(),
+        LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         false
     )
 
     fun vedtaksperiodeForkastet() = VedtaksperiodeForkastetData(
         UUID.randomUUID(),
-        LocalDateTime.now(),
+        LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         randomIndent(),
     )
 

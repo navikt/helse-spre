@@ -13,6 +13,13 @@ data class VedtaksperiodeForkastetData(
 ) {
     fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
 
+    fun anrik(søknad: Søknad) = søknad.vedtakFattet(vedtaksperiodeForkastet).resultat("AVVIST")
+        .let {
+            when (søknad.bleAvsluttetAvSpleis) {
+                true -> it.saksbehandlerIdent("SPLEIS").automatiskBehandling(true)
+                else -> it
+            }
+        }
 
     companion object {
         fun fromJson(packet: JsonMessage) = VedtaksperiodeForkastetData(

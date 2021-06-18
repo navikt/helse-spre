@@ -39,7 +39,7 @@ internal class VedtakFattetRiver(
         try {
             spreService.spre(vedtak)
         } catch (e: Exception) {
-            tjenestekall.info("Noe gikk galt under behandling av vedtak_fattet: {}", packet.toJson())
+            tjenestekall.info("Noe gikk galt under behandling av vedtak_fattet. melding: {}. søknad: {}", packet.toJson(), søknad)
             throw e
         }
         log.info("vedtak_fattet lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
