@@ -33,13 +33,22 @@ internal class VedtaksperiodeForkastetRiver(
             return
         }
 
-        if (søknad.bleAvsluttetAvSpleis) søknadDao.upsertSøknad(søknad.vedtakFattet(vedtak.vedtaksperiodeForkastet).automatiskBehandling(true).saksbehandlerIdent("SPLEIS"))
-        else søknadDao.upsertSøknad(søknad.vedtakFattet(vedtak.vedtaksperiodeForkastet))
+        if (søknad.bleAvsluttetAvSpleis)
+            søknadDao.upsertSøknad(
+                søknad
+                    .vedtakFattet(vedtak.vedtaksperiodeForkastet)
+                    .automatiskBehandling(true)
+                    .saksbehandlerIdent("SPLEIS")
+                )
+        else
+            søknadDao.upsertSøknad(
+                søknad.vedtakFattet(vedtak.vedtaksperiodeForkastet)
+            )
 
         try {
             spreService.spre(vedtak)
         } catch (e: Exception) {
-            tjenestekall.info("Noe gikk galt under behandling av vedtaksperiode_forkastet: {}", packet.toJson())
+            tjenestekall.info("Noe gikk galt under behandling av vedtaksperiode_forkastet. melding: {}. søknad: {}", packet.toJson(), søknad)
             throw e
         }
         log.info("vedtaksperiode_forkastet lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
