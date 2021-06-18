@@ -41,7 +41,10 @@ internal class VedtakFattetRiver(
             spreService.spre(vedtak)
         } catch (e: Exception) {
             tjenestekall.info(
-                "Noe gikk galt under behandling av vedtak_fattet \nmelding: {}\n søknad: {}\n error: {}",
+                "Noe gikk galt under behandling av vedtak_fattet\n" +
+                        "melding: {}\n" +
+                        "søknad: {}\n" +
+                        "error: {}",
                 packet.toJson(),
                 anriketSøknad,
                 e

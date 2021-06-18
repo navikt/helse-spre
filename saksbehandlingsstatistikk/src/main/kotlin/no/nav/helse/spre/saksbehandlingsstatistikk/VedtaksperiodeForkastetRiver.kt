@@ -40,7 +40,10 @@ internal class VedtaksperiodeForkastetRiver(
             spreService.spre(vedtak)
         } catch (e: Exception) {
             tjenestekall.info(
-                "Noe gikk galt under behandling av vedtaksperiode_forkastet \nmelding: {}\n søknad: {}\n error: {}",
+                "Noe gikk galt under behandling av vedtaksperiode_forkastet\n" +
+                        "melding: {}\n" +
+                        "søknad: {}\n" +
+                        "error: {}",
                 packet.toJson(),
                 anriketSøknad,
                 e
