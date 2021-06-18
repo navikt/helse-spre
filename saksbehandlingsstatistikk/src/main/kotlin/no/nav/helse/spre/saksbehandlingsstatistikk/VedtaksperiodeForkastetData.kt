@@ -11,7 +11,6 @@ data class VedtaksperiodeForkastetData(
     val vedtaksperiodeForkastet: LocalDateTime,
     val aktørId: String
 ) {
-    fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
 
     fun anrik(søknad: Søknad) = søknad.vedtakFattet(vedtaksperiodeForkastet).resultat("AVVIST")
         .let {

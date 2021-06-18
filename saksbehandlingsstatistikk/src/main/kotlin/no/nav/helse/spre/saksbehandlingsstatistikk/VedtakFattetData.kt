@@ -13,8 +13,6 @@ data class VedtakFattetData(
     val avsluttetISpleis: LocalDateTime,
     val erAvsluttetUtenGodkjenning: Boolean
 ) {
-    fun hendelse(it: UUID) = copy(hendelser = hendelser + it)
-    fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
 
     fun anrik(søknad: Søknad) = søknad.vedtakFattet(avsluttetISpleis).resultat("INNVILGET")
         .let {

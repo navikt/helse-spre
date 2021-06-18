@@ -12,14 +12,13 @@ data class VedtaksperiodeGodkjentData(
     val vedtakFattet: LocalDateTime,
     val automatiskBehandling: Boolean,
 ) {
+
     fun anrik(søknad: Søknad) = søknad
         .saksbehandlerIdent(saksbehandlerIdent)
         .vedtakFattet(vedtakFattet)
         .automatiskBehandling(automatiskBehandling)
         .resultat("INNVILGET")
 
-    fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
-    fun saksbehandlerIdent(it: String) = copy(saksbehandlerIdent = it)
     fun automatiskBehandling(it: Boolean) = copy(automatiskBehandling = it)
 
     companion object {
