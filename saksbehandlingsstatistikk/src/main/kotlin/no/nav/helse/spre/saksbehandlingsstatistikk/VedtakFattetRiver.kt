@@ -28,7 +28,7 @@ internal class VedtakFattetRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = VedtakFattetData.fromJson(packet)
-        val søknad = søknadDao.finnSøknad(vedtak.vedtaksperiodeId)
+        val søknad = søknadDao.finnSøknad(vedtak.hendelser)
         if (søknad == null) {
             log.info("Kunne ikke finne søknad for vedtaksperiode ${vedtak.vedtaksperiodeId}")
             return

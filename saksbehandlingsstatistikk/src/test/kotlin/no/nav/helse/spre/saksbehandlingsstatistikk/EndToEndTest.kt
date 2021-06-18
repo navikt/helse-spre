@@ -16,7 +16,7 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.temporal.ChronoUnit
+import java.util.*
 
 internal class EndToEndTest {
     private val testRapid = TestRapid()
@@ -82,15 +82,11 @@ internal class EndToEndTest {
     fun `Innvilget av spleis`() {
         val søknadData = søknadData()
 
-        val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(søknadData.hendelseId)
-
         val vedtakFattet = vedtakFattet()
             .hendelse(søknadData.hendelseId)
-            .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+            .vedtaksperiodeId(UUID.randomUUID())
 
         testRapid.sendTestMessage(søknadData.json())
-        testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(vedtakFattet.jsonAvsluttetUtenGodkjenning)
 
         assertEquals(1, utgiver.meldinger.size)

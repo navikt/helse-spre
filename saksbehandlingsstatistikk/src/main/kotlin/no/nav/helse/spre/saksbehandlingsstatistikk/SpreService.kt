@@ -11,8 +11,8 @@ internal class SpreService(
 ) {
     internal fun spre(vedtakFattetData: VedtakFattetData) {
         val søknad =
-            checkNotNull(søknadDao.finnSøknad(vedtakFattetData.vedtaksperiodeId)) {
-                "Finner ikke søknad for vedtak_fattet, med vedtaksperiodeId=${vedtakFattetData.vedtaksperiodeId}"
+            checkNotNull(søknadDao.finnSøknad(vedtakFattetData.hendelser)) {
+                "Finner ikke søknad for vedtak_fattet, med hendelseIder=${vedtakFattetData.vedtaksperiodeId}"
             }
         if (søknad.vedtaksperiodeId != vedtakFattetData.vedtaksperiodeId)
             log.info(
