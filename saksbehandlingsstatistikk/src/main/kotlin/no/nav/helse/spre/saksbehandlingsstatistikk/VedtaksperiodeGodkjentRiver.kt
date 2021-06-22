@@ -26,13 +26,12 @@ internal class VedtaksperiodeGodkjentRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = VedtaksperiodeGodkjentData.fromJson(packet)
-        val søknad = søknadDao.finnSøknad(vedtak.vedtaksperiodeId)
-
-        if (søknad == null) {
+        val søknader = søknadDao.finnSøknader(vedtak.vedtaksperiodeId)
+        if (søknader.isEmpty()) {
             log.info("Kunne ikke finne søknad for vedtaksperiode ${vedtak.vedtaksperiodeId}")
             return
         }
-        søknadDao.upsertSøknad(vedtak.anrik(søknad))
+        søknader.forEach { søknadDao.upsertSøknad(vedtak.anrik(it)) }
         log.info("vedtaksperiode_godkjent lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
         counter.inc()
     }

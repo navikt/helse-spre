@@ -53,7 +53,7 @@ internal class EndToEndTest {
         )
 
         val vedtakFattet = vedtakFattet(
-            hendelse = søknadData.hendelseId,
+            hendelser = listOf(søknadData.hendelseId),
             vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
         )
 
@@ -86,7 +86,7 @@ internal class EndToEndTest {
         val søknadData = søknadData()
 
         val vedtakFattet = vedtakFattet(
-            hendelse = søknadData.hendelseId,
+            hendelser = listOf(søknadData.hendelseId),
             vedtaksperiodeId = UUID.randomUUID()
         )
 
@@ -145,6 +145,110 @@ internal class EndToEndTest {
         )
 
         assertEquals(expected, sendtTilDVH)
+    }
+
+    @Test
+    fun `Forkastet mens perioden er til godkjenning`() {
+        val søknadData1 = søknadData()
+        val vedtaksperiodeEndret1 = vedtaksperiodeEndretData(søknadData1.hendelseId)
+
+        val søknadData2 = søknadData()
+        val vedtaksperiodeEndret2 = VedtaksperiodeEndretData(
+            listOf(søknadData1.hendelseId, søknadData2.hendelseId),
+            vedtaksperiodeEndret1.vedtaksperiodeId
+        )
+
+        val vedtaksperiodeAvvist = vedtaksperiodeAvvist(vedtaksperiodeId = vedtaksperiodeEndret2.vedtaksperiodeId)
+
+        val vedtaksperiodeForkastet = vedtaksperiodeForkastet(vedtaksperiodeEndret2.vedtaksperiodeId)
+
+        testRapid.sendTestMessage(søknadData1.json())
+        testRapid.sendTestMessage(vedtaksperiodeEndret1.json())
+        testRapid.sendTestMessage(søknadData2.json())
+        testRapid.sendTestMessage(vedtaksperiodeEndret2.json())
+        testRapid.sendTestMessage(vedtaksperiodeAvvist.json)
+        testRapid.sendTestMessage(vedtaksperiodeForkastet.json)
+
+        assertEquals(2, utgiver.meldinger.size)
+
+        val sendtTilDVH1 = utgiver.meldinger[0]
+
+        val expected1 = StatistikkEvent(
+            aktorId = vedtaksperiodeForkastet.aktørId,
+            behandlingId = søknadData1.søknadId,
+            tekniskTid = sendtTilDVH1.tekniskTid,
+            funksjonellTid = vedtaksperiodeForkastet.vedtaksperiodeForkastet,
+            mottattDato = søknadData1.hendelseOpprettet.toString(),
+            registrertDato = søknadData1.hendelseOpprettet.toString(),
+            saksbehandlerIdent = vedtaksperiodeAvvist.saksbehandlerIdent,
+            automatiskbehandling = true,
+            resultat = Resultat.AVVIST,
+        )
+
+        assertEquals(expected1, sendtTilDVH1)
+
+        val sendtTilDVH2 = utgiver.meldinger[1]
+
+        val expected2 = expected1.copy(
+            behandlingId = søknadData2.søknadId,
+            tekniskTid = sendtTilDVH2.tekniskTid,
+            mottattDato = søknadData2.hendelseOpprettet.toString(),
+            registrertDato = søknadData2.hendelseOpprettet.toString()
+        )
+
+        assertEquals(expected2, sendtTilDVH2)
+    }
+
+    @Test
+    fun `Sender event for hver søknad ved godkjenning`() {
+        val opprinneligSøknadData = søknadData()
+        val korrigertSøknadData = søknadData()
+        val vedtaksperiodeEndret = VedtaksperiodeEndretData(
+            listOf(opprinneligSøknadData.hendelseId, korrigertSøknadData.hendelseId),
+            UUID.randomUUID()
+        )
+
+        val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent(vedtaksperiodeEndret.vedtaksperiodeId)
+            .automatiskBehandling(false)
+
+        val vedtakFattet = vedtakFattet(
+            listOf(opprinneligSøknadData.hendelseId, korrigertSøknadData.hendelseId),
+            vedtaksperiodeEndret.vedtaksperiodeId
+        )
+
+        testRapid.sendTestMessage(opprinneligSøknadData.json())
+        testRapid.sendTestMessage(korrigertSøknadData.json())
+        testRapid.sendTestMessage(vedtaksperiodeEndret.json())
+        testRapid.sendTestMessage(vedtaksperiodeGodkjent.json)
+        testRapid.sendTestMessage(vedtakFattet.json)
+
+        assertEquals(2, utgiver.meldinger.size)
+
+        val sendtTilDVH1 = utgiver.meldinger[0]
+        val sendtTilDVH2 = utgiver.meldinger[1]
+
+        val expected1 = StatistikkEvent(
+            aktorId = vedtakFattet.aktørId,
+            behandlingId = opprinneligSøknadData.søknadId,
+            tekniskTid = sendtTilDVH1.tekniskTid,
+            funksjonellTid = vedtakFattet.avsluttetISpleis,
+            mottattDato = opprinneligSøknadData.hendelseOpprettet.toString(),
+            registrertDato = opprinneligSøknadData.hendelseOpprettet.toString(),
+            saksbehandlerIdent = vedtaksperiodeGodkjent.saksbehandlerIdent,
+            automatiskbehandling = false,
+            resultat = Resultat.INNVILGET,
+        )
+
+        assertEquals(expected1, sendtTilDVH1)
+
+        val expected2 = expected1.copy(
+            behandlingId = korrigertSøknadData.søknadId,
+            tekniskTid = sendtTilDVH2.tekniskTid,
+            mottattDato = korrigertSøknadData.hendelseOpprettet.toString(),
+            registrertDato = korrigertSøknadData.hendelseOpprettet.toString(),
+        )
+
+        assertEquals(expected2, sendtTilDVH2)
     }
 
     @Test

@@ -27,14 +27,12 @@ internal class VedtaksperiodeForkastetRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = VedtaksperiodeForkastetData.fromJson(packet)
-        val søknad = søknadDao.finnSøknad(vedtak.vedtaksperiodeId)
-        if (søknad == null) {
+        val søknader = søknadDao.finnSøknader(vedtak.vedtaksperiodeId)
+        if (søknader.isEmpty()) {
             log.info("Kunne ikke finne søknad for vedtaksperiode ${vedtak.vedtaksperiodeId}")
             return
         }
-
-        val anriketSøknad = vedtak.anrik(søknad)
-        søknadDao.upsertSøknad(anriketSøknad)
+        søknader.forEach { søknadDao.upsertSøknad(vedtak.anrik(it)) }
 
         try {
             spreService.spre(vedtak)
@@ -42,10 +40,8 @@ internal class VedtaksperiodeForkastetRiver(
             tjenestekall.info(
                 "Noe gikk galt under behandling av vedtaksperiode_forkastet\n" +
                         "melding: {}\n" +
-                        "søknad: {}\n" +
                         "error: {}",
                 packet.toJson(),
-                anriketSøknad,
                 e
             )
 

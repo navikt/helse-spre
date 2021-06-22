@@ -28,14 +28,12 @@ internal class VedtakFattetRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = VedtakFattetData.fromJson(packet)
-        val søknad = søknadDao.finnSøknad(vedtak.hendelser)
-        if (søknad == null) {
+        val søknader = søknadDao.finnSøknader(vedtak.hendelser)
+        if (søknader.isEmpty()) {
             log.info("Kunne ikke finne søknad for vedtaksperiode ${vedtak.vedtaksperiodeId}")
             return
         }
-
-        val anriketSøknad = vedtak.anrik(søknad)
-        søknadDao.upsertSøknad(anriketSøknad)
+        søknader.forEach { søknadDao.upsertSøknad(vedtak.anrik(it)) }
 
         try {
             spreService.spre(vedtak)
@@ -43,19 +41,9 @@ internal class VedtakFattetRiver(
             tjenestekall.info(
                 "Noe gikk galt under behandling av vedtak_fattet\n" +
                         "melding: {}\n" +
-                        "søknad: {}\n" +
                         "error: {}",
                 packet.toJson(),
-                anriketSøknad,
                 e
-            )
-
-            val søknadFraHendelser = søknadDao.finnSøknad(vedtak.hendelser)
-            val søknadFraVedtaksperiodeID = søknadDao.finnSøknad(vedtak.vedtaksperiodeId)
-            tjenestekall.info(
-                "søknad fra hendelser: {}. søknad fra vedtaksperiodeId: {}",
-                søknadFraHendelser,
-                søknadFraVedtaksperiodeID
             )
             throw e
         }

@@ -77,19 +77,19 @@ internal class TilstandTest {
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(vedtaksperiodeGodkjent.json)
 
-        val lagretSøknad = søknadDao.finnSøknad(listOf(søknadData.hendelseId))
+        val lagretSøknad = søknadDao.finnSøknader(listOf(søknadData.hendelseId)).first()
 
-        assertEquals(expected.saksbehandlerIdent, lagretSøknad?.saksbehandlerIdent)
-        assertEquals(expected.vedtaksperiodeId, lagretSøknad?.vedtaksperiodeId)
-        assertEquals(expected.vedtakFattet, lagretSøknad?.vedtakFattet)
-        assertEquals(true, lagretSøknad?.automatiskBehandling)
+        assertEquals(expected.saksbehandlerIdent, lagretSøknad.saksbehandlerIdent)
+        assertEquals(expected.vedtaksperiodeId, lagretSøknad.vedtaksperiodeId)
+        assertEquals(expected.vedtakFattet, lagretSøknad.vedtakFattet)
+        assertEquals(true, lagretSøknad.automatiskBehandling)
 
-        val lagretSøknadVedtaksperiode = søknadDao.finnSøknad(vedtaksperiodeEndret.vedtaksperiodeId)
+        val lagretSøknadVedtaksperiode = søknadDao.finnSøknader(vedtaksperiodeEndret.vedtaksperiodeId).first()
 
-        assertEquals(expected.saksbehandlerIdent, lagretSøknadVedtaksperiode?.saksbehandlerIdent)
-        assertEquals(expected.vedtaksperiodeId, lagretSøknadVedtaksperiode?.vedtaksperiodeId)
-        assertEquals(expected.vedtakFattet, lagretSøknadVedtaksperiode?.vedtakFattet)
-        assertEquals(true, lagretSøknadVedtaksperiode?.automatiskBehandling)
+        assertEquals(expected.saksbehandlerIdent, lagretSøknadVedtaksperiode.saksbehandlerIdent)
+        assertEquals(expected.vedtaksperiodeId, lagretSøknadVedtaksperiode.vedtaksperiodeId)
+        assertEquals(expected.vedtakFattet, lagretSøknadVedtaksperiode.vedtakFattet)
+        assertEquals(true, lagretSøknadVedtaksperiode.automatiskBehandling)
     }
 
     @Test
@@ -113,19 +113,19 @@ internal class TilstandTest {
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
         testRapid.sendTestMessage(vedtaksperiodeGodkjent.json)
 
-        val lagretSøknad = søknadDao.finnSøknad(listOf(søknadData.hendelseId))
+        val lagretSøknad = søknadDao.finnSøknader(listOf(søknadData.hendelseId)).first()
 
-        assertEquals(expected.saksbehandlerIdent, lagretSøknad?.saksbehandlerIdent)
-        assertEquals(expected.vedtaksperiodeId, lagretSøknad?.vedtaksperiodeId)
-        assertEquals(expected.vedtakFattet, lagretSøknad?.vedtakFattet)
-        assertEquals(false, lagretSøknad?.automatiskBehandling)
+        assertEquals(expected.saksbehandlerIdent, lagretSøknad.saksbehandlerIdent)
+        assertEquals(expected.vedtaksperiodeId, lagretSøknad.vedtaksperiodeId)
+        assertEquals(expected.vedtakFattet, lagretSøknad.vedtakFattet)
+        assertEquals(false, lagretSøknad.automatiskBehandling)
 
-        val lagretSøknadVedtaksperiode = søknadDao.finnSøknad(vedtaksperiodeEndret.vedtaksperiodeId)
+        val lagretSøknadVedtaksperiode = søknadDao.finnSøknader(vedtaksperiodeEndret.vedtaksperiodeId).first()
 
-        assertEquals(expected.saksbehandlerIdent, lagretSøknadVedtaksperiode?.saksbehandlerIdent)
-        assertEquals(expected.vedtaksperiodeId, lagretSøknadVedtaksperiode?.vedtaksperiodeId)
-        assertEquals(expected.vedtakFattet, lagretSøknadVedtaksperiode?.vedtakFattet)
-        assertEquals(false, lagretSøknadVedtaksperiode?.automatiskBehandling)
+        assertEquals(expected.saksbehandlerIdent, lagretSøknadVedtaksperiode.saksbehandlerIdent)
+        assertEquals(expected.vedtaksperiodeId, lagretSøknadVedtaksperiode.vedtaksperiodeId)
+        assertEquals(expected.vedtakFattet, lagretSøknadVedtaksperiode.vedtakFattet)
+        assertEquals(false, lagretSøknadVedtaksperiode.automatiskBehandling)
     }
 
 }

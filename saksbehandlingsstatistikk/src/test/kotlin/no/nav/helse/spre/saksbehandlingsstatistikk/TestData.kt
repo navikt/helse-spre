@@ -26,9 +26,9 @@ object TestData {
 
     private fun randomIndent() = "${randomString(('A'..'Z'), 1)}${randomString(('0'..'9'), 6)}"
 
-    fun vedtakFattet(hendelse: UUID, vedtaksperiodeId: UUID) = VedtakFattetData(
+    fun vedtakFattet(hendelser: List<UUID>, vedtaksperiodeId: UUID) = VedtakFattetData(
         randomIndent(),
-        listOf(hendelse),
+        hendelser,
         vedtaksperiodeId,
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         false

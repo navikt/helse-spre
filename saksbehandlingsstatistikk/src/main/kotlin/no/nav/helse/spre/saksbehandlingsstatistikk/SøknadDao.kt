@@ -40,21 +40,21 @@ ON CONFLICT (hendelse_id)
         }
     }
 
-    fun finnSøknad(hendelseIder: List<UUID>) = sessionOf(dataSource).use { session ->
+    fun finnSøknader(hendelseIder: List<UUID>) = sessionOf(dataSource).use { session ->
         @Language("PostgreSQL")
         val query = "SELECT * FROM søknad WHERE hendelse_id = ANY((?)::uuid[])"
         session.run(
             queryOf(query, hendelseIder.joinToString(prefix = "{", postfix = "}", separator = ",") { it.toString() })
-                .map(Søknad::fromSql).asSingle
+                .map(Søknad::fromSql).asList
         )
     }
 
-    fun finnSøknad(vedtaksperiodeId: UUID) = sessionOf(dataSource).use { session ->
+    fun finnSøknader(vedtaksperiodeId: UUID) = sessionOf(dataSource).use { session ->
         @Language("PostgreSQL")
         val query = "SELECT * FROM søknad WHERE vedtaksperiode_id = ?"
         session.run(
             queryOf(query, vedtaksperiodeId)
-                .map(Søknad::fromSql).asSingle
+                .map(Søknad::fromSql).asList
         )
     }
 }

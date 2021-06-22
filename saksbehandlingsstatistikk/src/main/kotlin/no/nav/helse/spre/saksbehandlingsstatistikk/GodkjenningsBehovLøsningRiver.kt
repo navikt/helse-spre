@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory
 private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 
-private val counter = Counter.build("godkjenningsbehovloesning_events", "Teller antall events av type godkjenningsbehovløsning").register()
+private val counter =
+    Counter.build("godkjenningsbehovloesning_events", "Teller antall events av type godkjenningsbehovløsning")
+        .register()
 
 internal class GodkjenningsBehovLøsningRiver(
     rapidsConnection: RapidsConnection,
@@ -34,13 +36,13 @@ internal class GodkjenningsBehovLøsningRiver(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val vedtak = GodkjenningsBehovLøsningData.fromJson(packet)
 
-        val søknad = søknadDao.finnSøknad(vedtak.vedtaksperiodeId)
-
-        if (søknad == null) {
+        val søknader = søknadDao.finnSøknader(vedtak.vedtaksperiodeId)
+        if (søknader.isEmpty()) {
             log.info("Kunne ikke finne søknad for vedtaksperiode ${vedtak.vedtaksperiodeId}")
             return
         }
-        søknadDao.upsertSøknad(vedtak.anrik(søknad))
+        søknader.forEach { søknadDao.upsertSøknad(vedtak.anrik(it)) }
+
         log.info("Ikke godkjent Godkjenningsbehovsløsning lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
         counter.inc()
     }

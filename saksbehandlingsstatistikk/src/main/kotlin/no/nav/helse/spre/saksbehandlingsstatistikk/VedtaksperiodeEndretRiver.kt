@@ -29,13 +29,12 @@ internal class VedtaksperiodeEndretRiver(
         if (packet["gjeldendeTilstand"].asText() != "AVVENTER_GODKJENNING") return
 
         val vedtak = VedtaksperiodeEndretData.fromJson(packet)
-        val søknad = søknadDao.finnSøknad(vedtak.hendelser)
-
-        if (søknad == null) {
+        val søknader = søknadDao.finnSøknader(vedtak.hendelser)
+        if (søknader.isEmpty()) {
             log.info("Kunne ikke finne søknad for hendelser ${vedtak.hendelser}")
             return
         }
-        søknadDao.upsertSøknad(søknad.vedtaksperiodeId(vedtak.vedtaksperiodeId))
+        søknader.forEach { søknadDao.upsertSøknad(it.vedtaksperiodeId(vedtak.vedtaksperiodeId)) }
         log.info("vedtaksperiode_endret lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
         counter.inc()
     }
