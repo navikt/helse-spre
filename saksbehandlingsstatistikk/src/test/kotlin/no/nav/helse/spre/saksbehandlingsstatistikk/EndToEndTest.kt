@@ -44,15 +44,18 @@ internal class EndToEndTest {
     fun `Innvilget av Spesialist eller menneske`() {
         val søknadData = søknadData()
 
-        val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(søknadData.hendelseId)
+        val vedtaksperiodeEndret = vedtaksperiodeEndretData(
+            hendelse = søknadData.hendelseId
+        )
 
-        val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent()
-            .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+        val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent(
+            vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
+        )
 
-        val vedtakFattet = vedtakFattet()
-            .hendelse(søknadData.hendelseId)
-            .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+        val vedtakFattet = vedtakFattet(
+            hendelse = søknadData.hendelseId,
+            vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
+        )
 
         testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
@@ -82,9 +85,10 @@ internal class EndToEndTest {
     fun `Innvilget av spleis`() {
         val søknadData = søknadData()
 
-        val vedtakFattet = vedtakFattet()
-            .hendelse(søknadData.hendelseId)
-            .vedtaksperiodeId(UUID.randomUUID())
+        val vedtakFattet = vedtakFattet(
+            hendelse = søknadData.hendelseId,
+            vedtaksperiodeId = UUID.randomUUID()
+        )
 
         testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtakFattet.jsonAvsluttetUtenGodkjenning)
@@ -112,10 +116,13 @@ internal class EndToEndTest {
     fun `Avvist av spleis`() {
         val søknadData = søknadData()
 
-        val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(søknadData.hendelseId)
+        val vedtaksperiodeEndret = vedtaksperiodeEndretData(
+            hendelse = søknadData.hendelseId
+        )
 
-        val vedtaksperiodeForkastet = vedtaksperiodeForkastet().vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+        val vedtaksperiodeForkastet = vedtaksperiodeForkastet(
+            vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
+        )
 
         testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())
@@ -144,13 +151,17 @@ internal class EndToEndTest {
     fun `Avvist av spesialist eller menneske`() {
         val søknadData = søknadData()
 
-        val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(søknadData.hendelseId)
+        val vedtaksperiodeEndret = vedtaksperiodeEndretData(
+            hendelse = søknadData.hendelseId
+        )
 
-        val vedtaksperiodeAvvist = vedtaksperiodeAvvist()
-            .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+        val vedtaksperiodeAvvist = vedtaksperiodeAvvist(
+            vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
+        )
 
-        val vedtaksperiodeForkastet = vedtaksperiodeForkastet().vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+        val vedtaksperiodeForkastet = vedtaksperiodeForkastet(
+            vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
+        )
 
 
         testRapid.sendTestMessage(søknadData.json())
@@ -181,13 +192,17 @@ internal class EndToEndTest {
     fun `Avvist av spesialist eller menneske før avvist event`() {
         val søknadData = søknadData()
 
-        val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(søknadData.hendelseId)
+        val vedtaksperiodeEndret = vedtaksperiodeEndretData(
+            hendelse = søknadData.hendelseId
+        )
 
-        val ikkegodkjentBehovsLøsning = ikkeGodkjentGodkjenningBehovsLøsning()
-            .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+        val ikkegodkjentBehovsLøsning = ikkeGodkjentGodkjenningBehovsLøsning(
+            vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
+        )
 
-        val vedtaksperiodeForkastet = vedtaksperiodeForkastet().vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+        val vedtaksperiodeForkastet = vedtaksperiodeForkastet(
+            vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
+        )
 
         testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())

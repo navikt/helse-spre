@@ -18,10 +18,6 @@ data class GodkjenningsBehovLøsningData(
         .automatiskBehandling(automatiskBehandling)
         .resultat("AVVIST")
 
-    fun vedtaksperiodeId(it: UUID) = copy(vedtaksperiodeId = it)
-    fun saksbehandlerIdent(it: String) = copy(saksbehandlerIdent = it)
-    fun automatiskBehandling(it: Boolean) = copy(automatiskBehandling = it)
-
     companion object {
         fun fromJson(packet: JsonMessage) =
             GodkjenningsBehovLøsningData(

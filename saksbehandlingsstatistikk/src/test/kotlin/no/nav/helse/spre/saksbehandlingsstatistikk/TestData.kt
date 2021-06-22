@@ -5,7 +5,11 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 object TestData {
-    fun vedtaksperiodeEndretData() = VedtaksperiodeEndretData(listOf(), UUID.randomUUID())
+
+    fun vedtaksperiodeEndretData(hendelse: UUID) = VedtaksperiodeEndretData(
+        listOf(hendelse),
+        UUID.randomUUID()
+    )
 
     fun søknadData() = SøknadData(
         UUID.randomUUID(),
@@ -13,8 +17,8 @@ object TestData {
         LocalDateTime.now().minusDays(2).truncatedTo(ChronoUnit.MILLIS),
     )
 
-    fun vedtaksperiodeGodkjent() = VedtaksperiodeGodkjentData(
-        UUID.randomUUID(),
+    fun vedtaksperiodeGodkjent(vedtaksperiodeId: UUID) = VedtaksperiodeGodkjentData(
+        vedtaksperiodeId,
         randomIndent(),
         LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
         true
@@ -22,29 +26,29 @@ object TestData {
 
     private fun randomIndent() = "${randomString(('A'..'Z'), 1)}${randomString(('0'..'9'), 6)}"
 
-    fun vedtakFattet() = VedtakFattetData(
+    fun vedtakFattet(hendelse: UUID, vedtaksperiodeId: UUID) = VedtakFattetData(
         randomIndent(),
-        emptyList(),
-        UUID.randomUUID(),
+        listOf(hendelse),
+        vedtaksperiodeId,
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         false
     )
 
-    fun vedtaksperiodeForkastet() = VedtaksperiodeForkastetData(
-        UUID.randomUUID(),
+    fun vedtaksperiodeForkastet(vedtaksperiodeId: UUID) = VedtaksperiodeForkastetData(
+        vedtaksperiodeId,
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
         randomIndent(),
     )
 
-    fun vedtaksperiodeAvvist() = VedtaksperiodeAvvistData(
-        UUID.randomUUID(),
+    fun vedtaksperiodeAvvist(vedtaksperiodeId: UUID) = VedtaksperiodeAvvistData(
+        vedtaksperiodeId,
         randomIndent(),
         LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
         true
     )
 
-    fun ikkeGodkjentGodkjenningBehovsLøsning() = GodkjenningsBehovLøsningData(
-        UUID.randomUUID(),
+    fun ikkeGodkjentGodkjenningBehovsLøsning(vedtaksperiodeId: UUID) = GodkjenningsBehovLøsningData(
+        vedtaksperiodeId,
         randomIndent(),
         LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
         true,

@@ -60,11 +60,13 @@ internal class TilstandTest {
     fun `lagrer saksbehandlingsløp for automatisk behandlet søknad`() {
         val søknadData = søknadData()
 
-        val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(søknadData.hendelseId)
+        val vedtaksperiodeEndret = vedtaksperiodeEndretData(
+            hendelse = søknadData.hendelseId
+        )
 
-        val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent()
-            .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
+        val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent(
+            vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
+        )
 
         val expected = søknadData.asSøknad
             .saksbehandlerIdent(vedtaksperiodeGodkjent.saksbehandlerIdent)
@@ -94,12 +96,13 @@ internal class TilstandTest {
     fun `lagrer saksbehandlingsløp for manuelt behandlet søknad`() {
         val søknadData = søknadData()
 
-        val vedtaksperiodeEndret = vedtaksperiodeEndretData()
-            .hendelse(søknadData.hendelseId)
+        val vedtaksperiodeEndret = vedtaksperiodeEndretData(
+            hendelse = søknadData.hendelseId
+        )
 
-        val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent()
-            .vedtaksperiodeId(vedtaksperiodeEndret.vedtaksperiodeId)
-            .automatiskBehandling(false)
+        val vedtaksperiodeGodkjent = vedtaksperiodeGodkjent(
+            vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
+        ).automatiskBehandling(false)
 
         val expected = søknadData.asSøknad
             .saksbehandlerIdent(vedtaksperiodeGodkjent.saksbehandlerIdent)

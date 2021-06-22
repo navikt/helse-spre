@@ -8,7 +8,6 @@ data class VedtaksperiodeEndretData(
     val hendelser: List<UUID>,
     val vedtaksperiodeId: UUID,
 ) {
-    fun hendelse(it: UUID) = copy(hendelser = hendelser + it)
 
     companion object {
         fun fromJson(packet: JsonMessage) = VedtaksperiodeEndretData(
