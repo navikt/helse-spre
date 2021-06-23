@@ -3,14 +3,13 @@ package no.nav.helse.spre.oppgaver
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.time.LocalDateTime
 import java.util.*
 
 class OppgaveObserver(
     private val oppgaveDAO: OppgaveDAO,
-    private val oppgaveProducer: KafkaProducer<String, OppgaveDTO>,
+    private val oppgaveProducers: List<OppgaveProducer>,
     private val rapidsConnection: RapidsConnection
 ) : Oppgave.Observer {
 
@@ -19,9 +18,9 @@ class OppgaveObserver(
     }
 
     override fun publiser(oppgave: Oppgave) {
-        oppgaveProducer.send(
+        oppgaveProducers.forEach { it.kafkaproducer().send(
             ProducerRecord(
-                oppgaveTopicName, OppgaveDTO(
+                it.topic(), OppgaveDTO(
                     dokumentType = oppgave.dokumentType.toDTO(),
                     oppdateringstype = oppgave.tilstand.toDTO(),
                     dokumentId = oppgave.dokumentId,
@@ -29,6 +28,9 @@ class OppgaveObserver(
                 )
             )
         )
+            log.info("Publiserer oppgave på topic ${it.topic()}") // midlertidig kode for å se at vi publiserer på aiven
+        }
+
         rapidsConnection.publish(
             JsonMessage.newMessage(
                 mapOf(

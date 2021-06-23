@@ -4,16 +4,15 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import org.apache.kafka.clients.producer.KafkaProducer
 import java.util.*
 
 class HåndterHendelseIkkeHåndtert(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
-    oppgaveProducer: KafkaProducer<String, OppgaveDTO>
+    oppgaveProducers: List<OppgaveProducer>
 ) : River.PacketListener {
 
-    private val observer = OppgaveObserver(oppgaveDAO, oppgaveProducer, rapidsConnection)
+    private val observer = OppgaveObserver(oppgaveDAO, oppgaveProducers, rapidsConnection)
 
     init {
         River(rapidsConnection).apply {

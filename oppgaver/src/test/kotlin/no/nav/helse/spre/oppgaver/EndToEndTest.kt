@@ -55,7 +55,7 @@ class EndToEndTest {
 
         oppgaveDAO = OppgaveDAO(dataSource)
 
-        rapid.registerRivers(oppgaveDAO, mockProducer)
+        rapid.registerRivers(oppgaveDAO, listOf(OppgaveProducer("et_topic", mockProducer)))
     }
 
     @BeforeEach
