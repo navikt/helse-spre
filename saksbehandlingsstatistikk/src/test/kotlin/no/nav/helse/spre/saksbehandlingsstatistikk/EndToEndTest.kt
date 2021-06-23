@@ -238,7 +238,7 @@ internal class EndToEndTest {
             saksbehandlerIdent = vedtaksperiodeGodkjent.saksbehandlerIdent,
             automatiskbehandling = false,
             resultat = Resultat.INNVILGET,
-            behandlingsType = BehandlingType.SØKNAD,
+            behandlingType = BehandlingType.SØKNAD,
 
         )
 
@@ -250,7 +250,7 @@ internal class EndToEndTest {
             mottattDato = korrigertSøknadData.hendelseOpprettet.toString(),
             registrertDato = korrigertSøknadData.hendelseOpprettet.toString(),
             relatertBehandlingId = korrigerer,
-            behandlingsType = BehandlingType.REVURDERING,
+            behandlingType = BehandlingType.REVURDERING,
         )
 
         assertEquals(expected2, sendtTilDVH2)

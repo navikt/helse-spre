@@ -21,7 +21,7 @@ data class StatistikkEvent(
     val tekniskTid: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
     val automatiskbehandling: Boolean? = null,
     val resultat: Resultat,
-    val behandlingsType: BehandlingType = BehandlingType.SØKNAD
+    val behandlingType: BehandlingType = BehandlingType.SØKNAD
 ) {
     val avsender: Avsender = SPLEIS
     val ansvarligEnhetType: AnsvarligEnhetType = AnsvarligEnhetType.NORG
@@ -51,7 +51,7 @@ data class StatistikkEvent(
             funksjonellTid = søknad.vedtakFattet!!,
             automatiskbehandling = søknad.automatiskBehandling,
             resultat = Resultat.valueOf(søknad.resultat!!),
-            behandlingsType = if (søknad.korrigerer == null) BehandlingType.SØKNAD else BehandlingType.REVURDERING
+            behandlingType = if (søknad.korrigerer == null) BehandlingType.SØKNAD else BehandlingType.REVURDERING
         )
     }
 }
