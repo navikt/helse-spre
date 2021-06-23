@@ -27,9 +27,7 @@ class OppgaveObserver(
                     timeout = LocalDateTime.now().plusDays(110)
                 )
             )
-        )
-            log.info("Publiserer oppgave på topic ${it.topic()}") // midlertidig kode for å se at vi publiserer på aiven
-        }
+        ) }
 
         rapidsConnection.publish(
             JsonMessage.newMessage(
