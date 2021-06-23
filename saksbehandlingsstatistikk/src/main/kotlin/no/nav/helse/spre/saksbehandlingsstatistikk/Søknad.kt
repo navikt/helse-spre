@@ -7,6 +7,7 @@ import java.util.*
 data class Søknad(
     val søknadHendelseId: UUID,
     val søknadDokumentId: UUID,
+    val korrigerer: UUID? = null,
     val rapportert: LocalDateTime,
     val registrertDato: LocalDateTime,
     val vedtaksperiodeId: UUID? = null,
@@ -32,6 +33,7 @@ data class Søknad(
             return Søknad(
                 søknadHendelseId = UUID.fromString(row.string("hendelse_id")),
                 søknadDokumentId = UUID.fromString(row.string("dokument_id")),
+                korrigerer = row.stringOrNull("korrigerer")?.let(UUID::fromString),
                 rapportert = row.localDateTime("mottatt_dato"),
                 registrertDato = row.localDateTime("registrert_dato"),
                 vedtaksperiodeId = row.stringOrNull("vedtaksperiode_id")?.let(UUID::fromString),

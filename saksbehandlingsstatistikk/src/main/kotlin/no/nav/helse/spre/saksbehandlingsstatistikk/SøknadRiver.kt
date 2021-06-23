@@ -1,10 +1,7 @@
 package no.nav.helse.spre.saksbehandlingsstatistikk
 
 import io.prometheus.client.Counter
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -19,6 +16,7 @@ internal class SøknadRiver(
     init {
         River(rapidsConnection).apply {
             validate { it.requireKey("@id", "@opprettet", "id") }
+            validate { it.interestedIn("korrigerer") }
             validate { it.requireAny("@event_name", listOf("sendt_søknad_nav", "sendt_søknad_arbeidsgiver")) }
         }.register(this)
     }
@@ -28,6 +26,10 @@ internal class SøknadRiver(
         søknadDao.upsertSøknad(søknadData.asSøknad)
         log.info("Søknad med id ${søknadData.søknadId} og hendelseId ${søknadData.hendelseId} lagret")
         counter.inc()
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        super.onError(problems, context)
     }
 
 }

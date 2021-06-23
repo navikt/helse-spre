@@ -53,7 +53,8 @@ object TestUtil {
             "@event_name": "$eventType",
             "@id": "${this.hendelseId}",
             "id": "${this.søknadId}",
-            "@opprettet": "${this.hendelseOpprettet}"
+            "@opprettet": "${this.hendelseOpprettet}",
+            "korrigerer": ${this.korrigerer?.let { """"$it"""" }}
         }"""
 
     val VedtakFattetData.json

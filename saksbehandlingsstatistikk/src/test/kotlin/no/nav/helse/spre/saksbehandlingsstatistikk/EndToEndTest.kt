@@ -202,7 +202,8 @@ internal class EndToEndTest {
     @Test
     fun `Sender event for hver søknad ved godkjenning`() {
         val opprinneligSøknadData = søknadData()
-        val korrigertSøknadData = søknadData()
+        val korrigerer = opprinneligSøknadData.søknadId
+        val korrigertSøknadData = søknadData(korrigerer)
         val vedtaksperiodeEndret = VedtaksperiodeEndretData(
             listOf(opprinneligSøknadData.hendelseId, korrigertSøknadData.hendelseId),
             UUID.randomUUID()
@@ -237,6 +238,8 @@ internal class EndToEndTest {
             saksbehandlerIdent = vedtaksperiodeGodkjent.saksbehandlerIdent,
             automatiskbehandling = false,
             resultat = Resultat.INNVILGET,
+            behandlingsType = BehandlingType.SØKNAD,
+
         )
 
         assertEquals(expected1, sendtTilDVH1)
@@ -246,6 +249,8 @@ internal class EndToEndTest {
             tekniskTid = sendtTilDVH2.tekniskTid,
             mottattDato = korrigertSøknadData.hendelseOpprettet.toString(),
             registrertDato = korrigertSøknadData.hendelseOpprettet.toString(),
+            relatertBehandlingId = korrigerer,
+            behandlingsType = BehandlingType.REVURDERING,
         )
 
         assertEquals(expected2, sendtTilDVH2)

@@ -11,10 +11,11 @@ object TestData {
         UUID.randomUUID()
     )
 
-    fun søknadData() = SøknadData(
+    fun søknadData(korrigerer: UUID? = null) = SøknadData(
         UUID.randomUUID(),
         UUID.randomUUID(),
         LocalDateTime.now().minusDays(2).truncatedTo(ChronoUnit.MILLIS),
+        korrigerer
     )
 
     fun vedtaksperiodeGodkjent(vedtaksperiodeId: UUID) = VedtaksperiodeGodkjentData(

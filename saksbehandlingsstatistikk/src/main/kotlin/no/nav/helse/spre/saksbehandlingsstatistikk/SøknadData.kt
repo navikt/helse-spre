@@ -8,7 +8,8 @@ import java.util.*
 data class SøknadData(
     val hendelseId: UUID,
     val søknadId: UUID,
-    val hendelseOpprettet: LocalDateTime
+    val hendelseOpprettet: LocalDateTime,
+    val korrigerer: UUID?,
 ) {
     val asSøknad
         get() =
@@ -17,6 +18,7 @@ data class SøknadData(
                 søknadDokumentId = søknadId,
                 rapportert = hendelseOpprettet,
                 registrertDato = hendelseOpprettet,
+                korrigerer = korrigerer,
             )
 
     companion object {
@@ -24,6 +26,7 @@ data class SøknadData(
             hendelseId = UUID.fromString(packet["@id"].textValue()),
             søknadId = UUID.fromString(packet["id"].textValue()),
             hendelseOpprettet = packet["@opprettet"].asLocalDateTime(),
+            korrigerer = packet["korrigerer"].textValue()?.let(UUID::fromString)
         )
     }
 }

@@ -13,6 +13,7 @@ private val log: Logger = LoggerFactory.getLogger("saksbehandlingsstatistikk")
 data class StatistikkEvent(
     val aktorId: String,
     val behandlingId: UUID,
+    val relatertBehandlingId: UUID? = null,
     val funksjonellTid: LocalDateTime,
     val mottattDato: String,
     val registrertDato: String,
@@ -20,6 +21,7 @@ data class StatistikkEvent(
     val tekniskTid: LocalDateTime = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
     val automatiskbehandling: Boolean? = null,
     val resultat: Resultat,
+    val behandlingsType: BehandlingType = BehandlingType.SØKNAD
 ) {
     val avsender: Avsender = SPLEIS
     val ansvarligEnhetType: AnsvarligEnhetType = AnsvarligEnhetType.NORG
@@ -28,7 +30,6 @@ data class StatistikkEvent(
     val utenlandstilsnitt: Utenlandstilsnitt = Utenlandstilsnitt.NEI
     val ytelseType: YtelseType = SYKEPENGER
     val behandlingStatus: BehandlingStatus = BehandlingStatus.AVSLUTTET
-    val behandlingType: BehandlingType = BehandlingType.SØKNAD
     val versjon: String = global.versjon
 
     companion object {
@@ -38,6 +39,7 @@ data class StatistikkEvent(
         ) = StatistikkEvent(
             aktorId = aktørId,
             behandlingId = søknad.søknadDokumentId,
+            relatertBehandlingId = søknad.korrigerer,
             mottattDato = søknad.rapportert.toString(),
             registrertDato = søknad.registrertDato.toString(),
             saksbehandlerIdent = søknad.saksbehandlerIdent ?: "ukjent".also {
@@ -49,6 +51,7 @@ data class StatistikkEvent(
             funksjonellTid = søknad.vedtakFattet!!,
             automatiskbehandling = søknad.automatiskBehandling,
             resultat = Resultat.valueOf(søknad.resultat!!),
+            behandlingsType = if (søknad.korrigerer == null) BehandlingType.SØKNAD else BehandlingType.REVURDERING
         )
     }
 }
