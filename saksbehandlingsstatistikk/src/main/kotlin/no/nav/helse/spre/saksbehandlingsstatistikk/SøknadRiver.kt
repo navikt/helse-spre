@@ -28,8 +28,4 @@ internal class SøknadRiver(
         counter.inc()
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext) {
-        super.onError(problems, context)
-    }
-
 }
