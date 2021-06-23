@@ -19,22 +19,25 @@ internal class VedtaksperiodeEndretRiver(
         River(rapidsConnection).apply {
             validate { message ->
                 message.demandValue("@event_name", "vedtaksperiode_endret")
-                message.interestedIn("gjeldendeTilstand")
                 message.requireKey("hendelser", "vedtaksperiodeId")
             }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        if (packet["gjeldendeTilstand"].asText() != "AVVENTER_GODKJENNING") return
-
         val vedtak = VedtaksperiodeEndretData.fromJson(packet)
         val søknader = søknadDao.finnSøknader(vedtak.hendelser)
+
         if (søknader.isEmpty()) {
             log.info("Kunne ikke finne søknad for hendelser ${vedtak.hendelser}")
             return
         }
-        søknader.forEach { søknadDao.upsertSøknad(it.vedtaksperiodeId(vedtak.vedtaksperiodeId)) }
+
+        val søknaderUtenVedtaksperiodeId = søknader.filter { it.vedtaksperiodeId == null }
+        if (søknaderUtenVedtaksperiodeId.isEmpty()) return
+
+        søknaderUtenVedtaksperiodeId.forEach { søknadDao.upsertSøknad(it.copy(vedtaksperiodeId = vedtak.vedtaksperiodeId)) }
+
         log.info("vedtaksperiode_endret lest inn for vedtaksperiode med id ${vedtak.vedtaksperiodeId}")
         counter.inc()
     }
