@@ -28,11 +28,6 @@ internal class VedtaksperiodeEndretRiver(
         val vedtak = VedtaksperiodeEndretData.fromJson(packet)
         val søknader = søknadDao.finnSøknader(vedtak.hendelser)
 
-        if (søknader.isEmpty()) {
-            log.info("Kunne ikke finne søknad for hendelser ${vedtak.hendelser}")
-            return
-        }
-
         val søknaderUtenVedtaksperiodeId = søknader.filter { it.vedtaksperiodeId == null }
         if (søknaderUtenVedtaksperiodeId.isEmpty()) return
 
