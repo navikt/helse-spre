@@ -459,18 +459,6 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter oppgave for inntektsmelding som ikke treffer noen perioder`() {
-        val inntektsmeldingHendelseId = UUID.randomUUID()
-        val inntektsmeldingId = UUID.randomUUID()
-
-        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingId)
-        sendInntektsmeldingLagtPåKjøl(inntektsmeldingHendelseId)
-
-        assertEquals(Utsett, captureslot[0].value().oppdateringstype)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
-    }
-
-    @Test
     fun `utsetter oppgave for inntektsmelding som treffer perioden i AVSLUTTET_UTEN_UTBETALING`() {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
@@ -669,10 +657,6 @@ class EndToEndTest {
         rapid.sendTestMessage(hendelseIkkeHåndtert(hendelseId))
     }
 
-    private fun sendInntektsmeldingLagtPåKjøl(hendelseId: UUID) {
-        rapid.sendTestMessage(inntektsmeldingLagtPåKjøl(hendelseId))
-    }
-
     private fun sendVedtaksperiodeEndret(
         hendelseIder: List<UUID>,
         tilstand: String,
@@ -698,13 +682,6 @@ fun vedtaksperiodeEndret(
             "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
             "gjeldendeTilstand": "$gjeldendeTilstand",
             "vedtaksperiodeId": "$vedtaksperiodeId"
-        }"""
-
-fun inntektsmeldingLagtPåKjøl(
-    hendelseId: UUID,
-) = """{
-            "@event_name": "inntektsmelding_lagt_på_kjøl",
-            "hendelseId": "$hendelseId"
         }"""
 
 
