@@ -23,23 +23,4 @@ class DuplikatsjekkDao(private val datasource: DataSource) {
         }
     }
 
-    fun insertAlleredeProdusertVedtak(hendelseIds: Collection<String>) {
-        sessionOf(datasource).use {
-            @Language("PostgreSQL")
-            val query = """
-                INSERT INTO
-                    duplikatsjekk (id)
-                VALUES
-                    ${hendelseIds.joinToString { "(?)" }}
-                ON CONFLICT DO NOTHING;
-            """.trimIndent()
-            it.run(
-                queryOf(
-                    query,
-                    *hendelseIds.map(UUID::fromString).toTypedArray<UUID>()
-                ).asUpdate
-            )
-
-        }
-    }
 }

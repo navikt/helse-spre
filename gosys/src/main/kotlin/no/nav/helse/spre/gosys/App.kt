@@ -10,17 +10,12 @@ import io.ktor.auth.*
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.features.json.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.jackson.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -70,9 +65,6 @@ fun launchApplication(
     val dataSource = dataSourceBuilder.getDataSource()
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
 
-    GlobalScope.launch(Dispatchers.IO) {
-        lesInnDuplikater(duplikatsjekkDao)
-    }
     val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
     val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient, duplikatsjekkDao)
@@ -88,17 +80,6 @@ fun launchApplication(
             UtbetalingUtbetaltRiver(this, utbetalingDao, vedtakFattetDao, vedtakMediator)
             UtbetalingUtenUtbetalingRiver(this, utbetalingDao, vedtakFattetDao, vedtakMediator)
         }
-}
-
-private suspend fun lesInnDuplikater(duplikatsjekkDao: DuplikatsjekkDao) {
-    val urlString =
-        "https://gist.githubusercontent.com/havstein/aa8c46d5aaf76aa1b672271def02cfb5/raw/4c19f3524729850e458bd786b36861fbfd5d95de/dupcliats"
-
-    HttpClient().get<HttpStatement>(urlString).execute {
-        it.readText().split("\n").chunked(1000).forEach { chunk ->
-            duplikatsjekkDao.insertAlleredeProdusertVedtak(chunk)
-        }
-    }
 }
 
 fun Application.wiring(
