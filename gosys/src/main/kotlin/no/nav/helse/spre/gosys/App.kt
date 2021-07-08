@@ -33,19 +33,12 @@ import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
-import no.nav.helse.spre.gosys.vedtak.VedtakConsumer
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
-import org.apache.kafka.clients.CommonClientConfigs
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.common.config.SslConfigs
-import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
 
 internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -78,9 +71,6 @@ fun launchApplication(
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
 
     GlobalScope.launch(Dispatchers.IO) {
-        startRyddejobbConsumer(environment, duplikatsjekkDao)
-    }
-    GlobalScope.launch(Dispatchers.IO) {
         lesInnDuplikater(duplikatsjekkDao)
     }
     val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
@@ -109,25 +99,6 @@ private suspend fun lesInnDuplikater(duplikatsjekkDao: DuplikatsjekkDao) {
             duplikatsjekkDao.insertAlleredeProdusertVedtak(chunk)
         }
     }
-}
-
-fun startRyddejobbConsumer(env: Map<String, String>, duplikatsjekkDao: DuplikatsjekkDao) {
-    val kafkaConfig = Properties().apply {
-        put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, env.getValue("KAFKA_BROKERS"))
-        put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL")
-        put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "")
-        put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, env.getValue("KAFKA_TRUSTSTORE_PATH"))
-        put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
-        put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, env.getValue("KAFKA_KEYSTORE_PATH"))
-        put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
-        put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-        put(ConsumerConfig.GROUP_ID_CONFIG, "spre-gosys-laste-v3")
-        put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
-    }
-    VedtakConsumer(
-        consumer = KafkaConsumer(kafkaConfig, StringDeserializer(), StringDeserializer()),
-        duplikatsjekkDao = duplikatsjekkDao,
-    ).consume()
 }
 
 fun Application.wiring(
