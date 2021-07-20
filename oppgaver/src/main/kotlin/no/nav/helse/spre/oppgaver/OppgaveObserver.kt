@@ -24,7 +24,7 @@ class OppgaveObserver(
                     dokumentType = oppgave.dokumentType.toDTO(),
                     oppdateringstype = oppgave.tilstand.toDTO(),
                     dokumentId = oppgave.dokumentId,
-                    timeout = LocalDateTime.now().plusDays(110)
+                    timeout = oppgave.tilstand.timeout(),
                 )
             )
         ) }
@@ -54,6 +54,11 @@ class OppgaveObserver(
         Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet,
         Oppgave.Tilstand.SpleisLest -> OppdateringstypeDTO.Utsett
         Oppgave.Tilstand.DokumentOppdaget -> error("skal ikke legge melding på topic om at dokument er oppdaget")
+    }
+
+    private fun Oppgave.Tilstand.timeout(): LocalDateTime? = when (this) {
+        Oppgave.Tilstand.SpleisLest -> LocalDateTime.now().plusDays(110)
+        else -> null
     }
 
     private fun Oppgave.Tilstand.toEventName(): String = when (this) {

@@ -19,6 +19,8 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit.MINUTES
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -92,24 +94,24 @@ class EndToEndTest {
             tilstand = "AVSLUTTET"
         )
 
-        assertOppgave(Utsett, søknad1DokumentId, Søknad, captureslot[0].value())
+        assertOppgave(Utsett, søknad1DokumentId, Søknad, oppgaveDTO = captureslot[0].value())
         assertOppgave(
             Utsett,
             inntektsmeldingDokumentId,
             Inntektsmelding,
-            captureslot[1].value()
+            oppgaveDTO = captureslot[1].value()
         )
         assertOppgave(
             Ferdigbehandlet,
             søknad1DokumentId,
             Søknad,
-            captureslot[2].value()
+            oppgaveDTO = captureslot[2].value()
         )
         assertOppgave(
             Ferdigbehandlet,
             inntektsmeldingDokumentId,
             Inntektsmelding,
-            captureslot[3].value()
+            oppgaveDTO = captureslot[3].value()
         )
         assertEquals(4, captureslot.size)
 
@@ -139,12 +141,12 @@ class EndToEndTest {
         )
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
 
-        assertOppgave(Utsett, søknad1DokumentId, Søknad, captureslot[0].value())
+        assertOppgave(Utsett, søknad1DokumentId, Søknad, LocalDateTime.now().plusDays(110), captureslot[0].value())
         assertOppgave(
             Ferdigbehandlet,
             søknad1DokumentId,
             Søknad,
-            captureslot[1].value()
+            oppgaveDTO = captureslot[1].value()
         )
         assertEquals(2, captureslot.size)
 
@@ -161,7 +163,7 @@ class EndToEndTest {
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "TIL_INFOTRYGD")
 
-        assertOppgave(Opprett, søknad1DokumentId, Søknad, captureslot[0].value())
+        assertOppgave(Opprett, søknad1DokumentId, Søknad, oppgaveDTO = captureslot[0].value())
         assertEquals(1, captureslot.size)
 
         assertEquals(1, rapid.inspektør.size)
@@ -181,13 +183,13 @@ class EndToEndTest {
             Utsett,
             inntektsmeldingDokumentId,
             Inntektsmelding,
-            captureslot[0].value()
+            oppgaveDTO = captureslot[0].value()
         )
         assertOppgave(
             Opprett,
             inntektsmeldingDokumentId,
             Inntektsmelding,
-            captureslot[1].value()
+            oppgaveDTO = captureslot[1].value()
         )
 
         assertEquals(2, rapid.inspektør.size)
@@ -249,19 +251,19 @@ class EndToEndTest {
             Utsett,
             inntektsmeldingDokumentId,
             Inntektsmelding,
-            captureslot[0].value()
+            oppgaveDTO = captureslot[0].value()
         )
         assertOppgave(
             Utsett,
             inntektsmeldingDokumentId,
             Inntektsmelding,
-            captureslot[1].value()
+            oppgaveDTO = captureslot[1].value()
         )
         assertOppgave(
             Ferdigbehandlet,
             søknadDokumentId,
             Søknad,
-            captureslot[2].value()
+            oppgaveDTO = captureslot[2].value()
         )
 
         assertEquals(3, captureslot.size)
@@ -302,9 +304,9 @@ class EndToEndTest {
 
         assertEquals(3, captureslot.size)
 
-        assertOppgave(Utsett, inntektsmeldingDokumentId, Inntektsmelding, captureslot[0].value())
-        assertOppgave(Utsett, inntektsmeldingDokumentId, Inntektsmelding, captureslot[1].value())
-        assertOppgave(Opprett, inntektsmeldingDokumentId, Inntektsmelding, captureslot[2].value())
+        assertOppgave(Utsett, inntektsmeldingDokumentId, Inntektsmelding, oppgaveDTO = captureslot[0].value())
+        assertOppgave(Utsett, inntektsmeldingDokumentId, Inntektsmelding, oppgaveDTO = captureslot[1].value())
+        assertOppgave(Opprett, inntektsmeldingDokumentId, Inntektsmelding, oppgaveDTO = captureslot[2].value())
     }
 
     @Test
@@ -634,11 +636,15 @@ class EndToEndTest {
         oppdateringstypeDTO: OppdateringstypeDTO,
         dokumentId: UUID,
         dokumentType: DokumentTypeDTO,
+        timeout: LocalDateTime? = null,
         oppgaveDTO: OppgaveDTO
     ) {
         assertEquals(dokumentId, oppgaveDTO.dokumentId)
         assertEquals(dokumentType, oppgaveDTO.dokumentType)
         assertEquals(oppdateringstypeDTO, oppgaveDTO.oppdateringstype)
+        timeout?.let {
+            assertEquals(0, MINUTES.between(timeout, oppgaveDTO.timeout))
+        }
     }
 
     private fun sendSøknad(hendelseId: UUID, dokumentId: UUID = UUID.randomUUID()) {
