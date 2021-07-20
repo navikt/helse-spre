@@ -94,25 +94,10 @@ class EndToEndTest {
             tilstand = "AVSLUTTET"
         )
 
-        assertOppgave(Utsett, søknad1DokumentId, Søknad, oppgaveDTO = captureslot[0].value())
-        assertOppgave(
-            Utsett,
-            inntektsmeldingDokumentId,
-            Inntektsmelding,
-            oppgaveDTO = captureslot[1].value()
-        )
-        assertOppgave(
-            Ferdigbehandlet,
-            søknad1DokumentId,
-            Søknad,
-            oppgaveDTO = captureslot[2].value()
-        )
-        assertOppgave(
-            Ferdigbehandlet,
-            inntektsmeldingDokumentId,
-            Inntektsmelding,
-            oppgaveDTO = captureslot[3].value()
-        )
+        captureslot[0].value().assertInnhold(Utsett, søknad1DokumentId, Søknad)
+        captureslot[1].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        captureslot[2].value().assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
+        captureslot[3].value().assertInnhold(Ferdigbehandlet, inntektsmeldingDokumentId, Inntektsmelding)
         assertEquals(4, captureslot.size)
 
         assertEquals(4, rapid.inspektør.size)
@@ -141,13 +126,8 @@ class EndToEndTest {
         )
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
 
-        assertOppgave(Utsett, søknad1DokumentId, Søknad, LocalDateTime.now().plusDays(110), captureslot[0].value())
-        assertOppgave(
-            Ferdigbehandlet,
-            søknad1DokumentId,
-            Søknad,
-            oppgaveDTO = captureslot[1].value()
-        )
+        captureslot[0].value().assertInnhold(Utsett, søknad1DokumentId, Søknad, LocalDateTime.now().plusDays(110))
+        captureslot[1].value().assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
         assertEquals(2, captureslot.size)
 
         assertEquals(2, rapid.inspektør.size)
@@ -163,7 +143,7 @@ class EndToEndTest {
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "TIL_INFOTRYGD")
 
-        assertOppgave(Opprett, søknad1DokumentId, Søknad, oppgaveDTO = captureslot[0].value())
+        captureslot[0].value().assertInnhold(Opprett, søknad1DokumentId, Søknad)
         assertEquals(1, captureslot.size)
 
         assertEquals(1, rapid.inspektør.size)
@@ -179,18 +159,8 @@ class EndToEndTest {
         sendVedtaksperiodeEndret(hendelseIder = listOf(inntektsmeldingHendelseId), tilstand = "AVVENTER_VILKÅRSPRØVING")
         sendVedtaksperiodeEndret(hendelseIder = listOf(inntektsmeldingHendelseId), tilstand = "TIL_INFOTRYGD")
 
-        assertOppgave(
-            Utsett,
-            inntektsmeldingDokumentId,
-            Inntektsmelding,
-            oppgaveDTO = captureslot[0].value()
-        )
-        assertOppgave(
-            Opprett,
-            inntektsmeldingDokumentId,
-            Inntektsmelding,
-            oppgaveDTO = captureslot[1].value()
-        )
+        captureslot[0].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        captureslot[1].value().assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
 
         assertEquals(2, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
@@ -247,24 +217,9 @@ class EndToEndTest {
             tilstand = "AVSLUTTET_UTEN_UTBETALING"
         )
 
-        assertOppgave(
-            Utsett,
-            inntektsmeldingDokumentId,
-            Inntektsmelding,
-            oppgaveDTO = captureslot[0].value()
-        )
-        assertOppgave(
-            Utsett,
-            inntektsmeldingDokumentId,
-            Inntektsmelding,
-            oppgaveDTO = captureslot[1].value()
-        )
-        assertOppgave(
-            Ferdigbehandlet,
-            søknadDokumentId,
-            Søknad,
-            oppgaveDTO = captureslot[2].value()
-        )
+        captureslot[0].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        captureslot[1].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        captureslot[2].value().assertInnhold(Ferdigbehandlet, søknadDokumentId, Søknad)
 
         assertEquals(3, captureslot.size)
         assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
@@ -304,9 +259,9 @@ class EndToEndTest {
 
         assertEquals(3, captureslot.size)
 
-        assertOppgave(Utsett, inntektsmeldingDokumentId, Inntektsmelding, oppgaveDTO = captureslot[0].value())
-        assertOppgave(Utsett, inntektsmeldingDokumentId, Inntektsmelding, oppgaveDTO = captureslot[1].value())
-        assertOppgave(Opprett, inntektsmeldingDokumentId, Inntektsmelding, oppgaveDTO = captureslot[2].value())
+        captureslot[0].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        captureslot[1].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        captureslot[2].value().assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
     }
 
     @Test
@@ -632,18 +587,17 @@ class EndToEndTest {
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingId).size)
     }
 
-    private fun assertOppgave(
+    private fun OppgaveDTO.assertInnhold(
         oppdateringstypeDTO: OppdateringstypeDTO,
         dokumentId: UUID,
         dokumentType: DokumentTypeDTO,
         timeout: LocalDateTime? = null,
-        oppgaveDTO: OppgaveDTO
     ) {
-        assertEquals(dokumentId, oppgaveDTO.dokumentId)
-        assertEquals(dokumentType, oppgaveDTO.dokumentType)
-        assertEquals(oppdateringstypeDTO, oppgaveDTO.oppdateringstype)
+        assertEquals(dokumentId, dokumentId)
+        assertEquals(dokumentType, dokumentType)
+        assertEquals(oppdateringstypeDTO, oppdateringstype)
         timeout?.let {
-            assertEquals(0, MINUTES.between(timeout, oppgaveDTO.timeout))
+            assertEquals(0, MINUTES.between(timeout, this.timeout))
         }
     }
 
