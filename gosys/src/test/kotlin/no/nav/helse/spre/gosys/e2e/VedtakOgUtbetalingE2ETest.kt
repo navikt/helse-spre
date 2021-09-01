@@ -12,14 +12,17 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.test.assertNotNull
 
@@ -35,21 +38,21 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         UtbetalingUtenUtbetalingRiver(testRapid, utbetalingDao, vedtakFattetDao, vedtakMediator)
     }
 
+    companion object {
+        fun LocalDate.formatted(): String = format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+    }
+
     @Test
     fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_utbetalt`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(
-            vedtakFattetMedUtbetaling(
-                vedtaksperiodeId = vedtaksperiodeId,
-                utbetalingId = utbetalingId
-            )
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId
         )
-        testRapid.sendTestMessage(
-            utbetalingUtbetalt(
-                utbetalingId = utbetalingId,
-                vedtaksperiodeIder = listOf(vedtaksperiodeId)
-            )
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeIder = listOf(vedtaksperiodeId)
         )
         assertJournalpost()
         assertVedtakPdf()
@@ -57,156 +60,181 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
     @Test
     fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_uten_utbetaling`() {
-        val id = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(utbetalingUtenUtbetaling(id = id, utbetalingId = utbetalingId))
-        assertJournalPostOgVedtakPdf(
-            id, expectedPdfPayload =
-            VedtakPdfPayload(
-                fødselsnummer = "12345678910",
-                fagsystemId = "123",
-                type = "utbetalt",
-                fom = LocalDate.of(2021, 5, 6),
-                tom = LocalDate.of(2021, 5, 16),
-                organisasjonsnummer = "123456789",
-                behandlingsdato = LocalDate.of(2021, 5, 25),
-                dagerIgjen = 31,
-                automatiskBehandling = true,
-                godkjentAv = "Automatisk behandlet",
+        sendVedtakFattet(vedtaksperiodeId = vedtaksperiodeId, utbetalingId = utbetalingId)
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeIder = listOf(vedtaksperiodeId),
+            sykdomstidslinje = fridager(1.januar, 31.januar)
+        )
+        assertJournalpost()
+        assertVedtakPdf(
+            expectedPdfPayload().copy(
                 totaltTilUtbetaling = 0,
+                linjer = emptyList(),
                 ikkeUtbetalteDager = listOf(
-                    VedtakPdfPayload.IkkeUtbetalteDager(
-                        fom = LocalDate.of(2021, 5, 6),
-                        tom = LocalDate.of(2021, 5, 16),
+                    IkkeUtbetalteDager(
+                        fom = 1.januar,
+                        tom = 31.januar,
                         grunn = "Ferie/Permisjon",
                         begrunnelser = emptyList()
                     )
                 ),
-                dagsats = null,
-                sykepengegrunnlag = 565260.0,
-                maksdato = LocalDate.of(2021, 7, 15),
-                linjer = emptyList()
+                dagsats = null
             )
         )
     }
 
     @Test
     fun `journalfører vedtak med utbetaling_utbetalt og deretter vedtak_fattet`() {
-        val id = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(utbetalingUtbetalt(hendelseId = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
-        assertJournalPostOgVedtakPdf(id)
+        sendUtbetaling(utbetalingId = utbetalingId, vedtaksperiodeIder = listOf(vedtaksperiodeId))
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+
+        assertEquals(1, capturedJoarkRequests.size)
+        assertJournalpost()
+        assertVedtakPdf()
     }
 
     @Test
     fun `journalfører ikke dobbelt vedtak`() {
-        val id = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(utbetalingUtbetalt(hendelseId = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(utbetalingUtbetalt(hendelseId = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+        sendUtbetaling(utbetalingId = utbetalingId, vedtaksperiodeIder = listOf(vedtaksperiodeId))
+
+        sendUtbetaling(utbetalingId = utbetalingId, vedtaksperiodeIder = listOf(vedtaksperiodeId))
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
         assertEquals(1, capturedJoarkRequests.size)
-        assertJournalPostOgVedtakPdf(id)
+        assertJournalpost()
+        assertVedtakPdf()
     }
 
     @Test
     fun `journalfører ikke uten å ha mottatt utbetaling`() {
-        val id = UUID.randomUUID()
-        val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
+        sendVedtakFattet()
         assertEquals(0, capturedJoarkRequests.size)
         assertEquals(0, capturedPdfRequests.size)
     }
 
     @Test
     fun `journalfører ikke uten å ha mottatt vedtak_fattet`() {
-        val id = UUID.randomUUID()
-        val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(utbetalingUtbetalt(hendelseId = id, utbetalingId = utbetalingId))
+        sendUtbetaling()
         assertEquals(0, capturedJoarkRequests.size)
         assertEquals(0, capturedPdfRequests.size)
     }
 
     @Test
     fun `journalfører ikke vedtak uten utbetalingId`() {
-        val id = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetUtenUtbetalingId(id = id))
-        testRapid.sendTestMessage(utbetalingUtbetalt(hendelseId = id))
+        sendVedtakFattet(utbetalingId = null)
+        sendUtbetaling()
         assertEquals(0, capturedJoarkRequests.size)
         assertEquals(0, capturedPdfRequests.size)
     }
 
-
     @Test
     fun `tar med arbeidsdager og kollapser over inneklemte fridager`() {
-        val id = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(utbetalingUtbetaltInneklemteFridager(id = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
-        assertJournalPostOgVedtakPdf(
-            id,
-            expectedPdfPayload = vedtakPdfPayloadInneklemteFridager()
+        val sykdomstidslinje =
+            utbetalingsdager(1.januar, 17.januar) +
+            arbeidsdager(18.januar) +
+            fridager(19.januar) +
+            arbeidsdager(20.januar)
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeIder = listOf(vedtaksperiodeId),
+            sykdomstidslinje = sykdomstidslinje
+        )
+        sendVedtakFattet(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeId = vedtaksperiodeId,
+            sykdomstidslinje = sykdomstidslinje
+        )
+        assertJournalpost(expectedJournalpost(1.januar, 20.januar))
+        val payload = actualPdfPayload()
+        assertEquals(
+            listOf(
+                IkkeUtbetalteDager(
+                    fom = 18.januar,
+                    tom = 20.januar,
+                    grunn = "Arbeidsdag",
+                    begrunnelser = emptyList()
+                )
+            ),
+            payload.ikkeUtbetalteDager
         )
     }
 
     @Test
     fun `en avvist dag med begrunnelse revurdering`() {
-        val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
         val vedtaksperiodeId = UUID.randomUUID()
-        testRapid.sendTestMessage(
-            vedtakFattetMedUtbetaling(
-                hendelseId = id,
-                vedtaksperiodeId = vedtaksperiodeId,
-                utbetalingId = utbetalingId
-            )
+        val sykdomstidslinje =
+            utbetalingsdager(1.januar, 16.januar) +
+            avvistDager(17.januar, begrunnelser = listOf("EtterDødsdato"))
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = sykdomstidslinje
         )
-        testRapid.sendTestMessage(
-            utbetalingUtbetalt(
-                utbetalingId = utbetalingId,
-                vedtaksperiodeIder = listOf(vedtaksperiodeId),
-                sykdomstidslinje = utbetalingsdager(6.mai(2021), 13.mai(2021)) + avvistDager(
-                    16.mai(2021),
-                    16.mai(2021),
-                    listOf("EtterDødsdato")
-                ),
-                type = "REVURDERING"
-            )
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeIder = listOf(vedtaksperiodeId),
+            sykdomstidslinje = sykdomstidslinje,
+            type = "REVURDERING"
         )
-        assertJournalPostOgVedtakPdf(
-            hendelseId = utbetalingId,
-            expectedPdfPayload = vedtakPdfPayloadMedEnAvvistDag(),
-            expectedJournalpost(
+        assertJournalpost(
+            expected = expectedJournalpost(
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
-                dokumentTittel = "Sykepenger revurdert i ny løsning, 06.05.2021 - 16.05.2021"
+                dokumentTittel = "Sykepenger revurdert i ny løsning, 01.01.2018 - 17.01.2018"
             )
+        )
+        val actual = actualPdfPayload()
+        assertEquals(
+            listOf(
+                IkkeUtbetalteDager(
+                    fom = 17.januar,
+                    tom = 17.januar,
+                    grunn = "Avvist dag",
+                    begrunnelser = listOf("Personen er død")
+                )
+            ), actual.ikkeUtbetalteDager
         )
     }
 
     @Test
     fun `arbeidsdager før skjæringstidspunkt`() {
-        val id = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(
-            utbetalingUtbetaltEnAvvistDagFørSkjæringstidspunkt(
-                id = id,
-                utbetalingId = utbetalingId
-            )
+        val sykdomstidslinje = utbetalingsdager(2.januar, 31.januar)
+        sendVedtakFattet(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeId = vedtaksperiodeId,
+            sykdomstidslinje = sykdomstidslinje
         )
-        assertJournalPostOgVedtakPdf(id, vedtakPdfPayloadArbeidsdagFørSkjæringstidspunkt(), expectedJournalpost())
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeIder = listOf(vedtaksperiodeId),
+            sykdomstidslinje = arbeidsdager(1.januar) + sykdomstidslinje
+        )
+
+        assertJournalpost(expectedJournalpost(2.januar, 31.januar))
+        val pdfPayload = actualPdfPayload()
+        assertEquals(2.januar, pdfPayload.fom)
+        assertEquals(31.januar, pdfPayload.tom)
+        assertTrue(pdfPayload.ikkeUtbetalteDager.isEmpty())
     }
 
     @Test
     fun `vedtak og utbetaling som linkes med ulik fnr`() {
-        val id = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId, fnr = "123"))
+        sendVedtakFattet(vedtaksperiodeId = vedtaksperiodeId, utbetalingId = utbetalingId, fødselsnummer = "123")
         assertThrows<IllegalStateException> {
-            testRapid.sendTestMessage(utbetalingUtenUtbetaling(id = id, utbetalingId = utbetalingId, fnr = "321 "))
+            sendUtbetaling(fødselsnummer = "321", utbetalingId = utbetalingId, vedtaksperiodeIder = listOf(vedtaksperiodeId))
         }
     }
 
@@ -223,7 +251,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             )
         )
         testRapid.sendTestMessage(
-            vedtakFattetMedUtbetaling(
+            vedtakFattet(
                 vedtaksperiodeId = v1,
                 utbetalingId = utbetalingId,
                 fom = 1.januar,
@@ -231,7 +259,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             )
         )
         testRapid.sendTestMessage(
-            vedtakFattetMedUtbetaling(
+            vedtakFattet(
                 vedtaksperiodeId = v2,
                 utbetalingId = utbetalingId,
                 fom = 1.februar,
@@ -254,7 +282,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val utbetalingId = UUID.randomUUID()
         val vedtaksperiodeIder = listOf(v1, v2)
         testRapid.sendTestMessage(
-            vedtakFattetMedUtbetaling(
+            vedtakFattet(
                 vedtaksperiodeId = v1,
                 utbetalingId = utbetalingId,
                 fom = 1.januar,
@@ -262,13 +290,13 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             )
         )
         testRapid.sendTestMessage(
-            utbetalingUtbetalt(
+            utbetaling(
                 utbetalingId = utbetalingId,
                 vedtaksperiodeIder = vedtaksperiodeIder
             )
         )
         testRapid.sendTestMessage(
-            vedtakFattetMedUtbetaling(
+            vedtakFattet(
                 vedtaksperiodeId = v2,
                 utbetalingId = utbetalingId,
                 fom = 1.februar,
@@ -291,7 +319,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val utbetalingId = UUID.randomUUID()
         val vedtaksperiodeIder = listOf(v1, v2)
         testRapid.sendTestMessage(
-            vedtakFattetMedUtbetaling(
+            vedtakFattet(
                 vedtaksperiodeId = v1,
                 utbetalingId = utbetalingId,
                 fom = 1.januar,
@@ -299,7 +327,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             )
         )
         testRapid.sendTestMessage(
-            vedtakFattetMedUtbetaling(
+            vedtakFattet(
                 vedtaksperiodeId = v2,
                 utbetalingId = utbetalingId,
                 fom = 1.februar,
@@ -307,7 +335,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             )
         )
         testRapid.sendTestMessage(
-            utbetalingUtbetalt(
+            utbetaling(
                 utbetalingId = utbetalingId,
                 vedtaksperiodeIder = vedtaksperiodeIder
             )
@@ -325,160 +353,56 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         requireNotNull(objectMapper.readValue(this@parsePayload.body.toByteArray(), T::class.java))
     }
 
-    private fun assertJournalPostOgVedtakPdf(
-        hendelseId: UUID,
-        expectedPdfPayload: VedtakPdfPayload = expectedPdfPayload(),
-        journalpostPayload: JournalpostPayload = expectedJournalpost()
-    ) = runBlocking {
+    fun assertJournalpost(expected: JournalpostPayload = expectedJournalpost()) {
         val joarkRequest = capturedJoarkRequests.single()
         val joarkPayload = joarkRequest.parsePayload<JournalpostPayload>()
 
         assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
-        assertEquals(hendelseId.toString(), joarkRequest.headers["Nav-Consumer-Token"])
+        assertNotNull(joarkRequest.headers["Nav-Consumer-Token"]) //TODO kanskje utbetalingId?
         assertEquals("application/json", joarkRequest.body.contentType.toString())
-        assertEquals(journalpostPayload, joarkPayload)
-
-        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
-        assertEquals(expectedPdfPayload, pdfPayload)
+        assertEquals(expected, joarkPayload)
     }
+
+    fun assertVedtakPdf(expected: VedtakPdfPayload = expectedPdfPayload()) {
+        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
+        assertEquals(expected, pdfPayload)
+    }
+
+    fun actualPdfPayload() = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
 
     private fun expectedPdfPayload() =
         VedtakPdfPayload(
             fødselsnummer = "12345678910",
             fagsystemId = "fagsystemId",
             type = "utbetalt",
-            fom = LocalDate.of(2021, 5, 6),
-            tom = LocalDate.of(2021, 5, 16),
+            fom = 1.januar,
+            tom = 31.januar,
             organisasjonsnummer = "123456789",
-            behandlingsdato = LocalDate.of(2021, 5, 25),
+            behandlingsdato = 31.januar,
             dagerIgjen = 31,
             automatiskBehandling = true,
             godkjentAv = "Automatisk behandlet",
-            totaltTilUtbetaling = 10017,
+            totaltTilUtbetaling = 32913,
             ikkeUtbetalteDager = listOf(),
             dagsats = 1431,
             sykepengegrunnlag = 565260.0,
             maksdato = LocalDate.of(2021, 7, 15),
             linjer = listOf(
                 VedtakPdfPayload.Linje(
-                    fom = LocalDate.of(2021, 5, 6),
-                    tom = LocalDate.of(2021, 5, 16),
+                    fom = 1.januar,
+                    tom = 31.januar,
                     grad = 100,
                     beløp = 1431,
                     mottaker = "arbeidsgiver"
                 )
             )
         )
-
-    private fun vedtakPdfPayloadArbeidsdagFørSkjæringstidspunkt() =
-        VedtakPdfPayload(
-            fødselsnummer = "12345678910",
-            fagsystemId = "123",
-            type = "utbetalt",
-            fom = LocalDate.of(2021, 5, 6),
-            tom = LocalDate.of(2021, 5, 16),
-            organisasjonsnummer = "123456789",
-            behandlingsdato = LocalDate.of(2021, 5, 25),
-            dagerIgjen = 31,
-            automatiskBehandling = true,
-            godkjentAv = "Automatisk behandlet",
-            totaltTilUtbetaling = 38360,
-            ikkeUtbetalteDager = listOf(
-                VedtakPdfPayload.IkkeUtbetalteDager(
-                    fom = LocalDate.of(2021, 5, 14),
-                    tom = LocalDate.of(2021, 5, 14),
-                    grunn = "Ferie/Permisjon",
-                    begrunnelser = listOf()
-                )
-            ),
-            dagsats = 1431,
-            sykepengegrunnlag = 565260.0,
-            maksdato = LocalDate.of(2021, 7, 15),
-            linjer = listOf(
-                VedtakPdfPayload.Linje(
-                    fom = LocalDate.of(2021, 5, 6),
-                    tom = LocalDate.of(2021, 5, 16),
-                    grad = 100,
-                    beløp = 1431,
-                    mottaker = "arbeidsgiver"
-                )
-            )
-        )
-
-    private fun vedtakPdfPayloadMedEnAvvistDag() =
-        VedtakPdfPayload(
-            fødselsnummer = "12345678910",
-            fagsystemId = "123",
-            type = "revurdering av",
-            fom = LocalDate.of(2021, 5, 6),
-            tom = LocalDate.of(2021, 5, 16),
-            organisasjonsnummer = "123456789",
-            behandlingsdato = LocalDate.of(2021, 5, 25),
-            dagerIgjen = 31,
-            automatiskBehandling = true,
-            godkjentAv = "Automatisk behandlet",
-            totaltTilUtbetaling = 38360,
-            ikkeUtbetalteDager = listOf(
-                VedtakPdfPayload.IkkeUtbetalteDager(
-                    fom = LocalDate.of(2021, 5, 14),
-                    tom = LocalDate.of(2021, 5, 14),
-                    grunn = "Avvist dag",
-                    begrunnelser = listOf("Personen er død")
-                )
-            ),
-            dagsats = 1431,
-            sykepengegrunnlag = 565260.0,
-            maksdato = LocalDate.of(2021, 7, 15),
-            linjer = listOf(
-                VedtakPdfPayload.Linje(
-                    fom = LocalDate.of(2021, 5, 6),
-                    tom = LocalDate.of(2021, 5, 13),
-                    grad = 100,
-                    beløp = 1431,
-                    mottaker = "arbeidsgiver"
-                )
-            )
-        )
-
-    private fun vedtakPdfPayloadInneklemteFridager() =
-        VedtakPdfPayload(
-            fødselsnummer = "12345678910",
-            fagsystemId = "123",
-            type = "utbetalt",
-            fom = LocalDate.of(2021, 5, 6),
-            tom = LocalDate.of(2021, 5, 16),
-            organisasjonsnummer = "123456789",
-            behandlingsdato = LocalDate.of(2021, 5, 25),
-            dagerIgjen = 31,
-            automatiskBehandling = true,
-            godkjentAv = "Automatisk behandlet",
-            totaltTilUtbetaling = 38360,
-            ikkeUtbetalteDager = listOf(
-                VedtakPdfPayload.IkkeUtbetalteDager(
-                    fom = LocalDate.of(2021, 5, 10),
-                    tom = LocalDate.of(2021, 5, 14),
-                    grunn = "Arbeidsdag",
-                    begrunnelser = emptyList()
-                )
-            ),
-            dagsats = 1431,
-            sykepengegrunnlag = 565260.0,
-            maksdato = LocalDate.of(2021, 7, 15),
-            linjer = listOf(
-                VedtakPdfPayload.Linje(
-                    fom = LocalDate.of(2021, 5, 6),
-                    tom = LocalDate.of(2021, 5, 9),
-                    grad = 100,
-                    beløp = 1431,
-                    mottaker = "arbeidsgiver"
-                )
-            )
-        )
-
 
     private fun expectedJournalpost(
+        fom: LocalDate = 1.januar,
+        tom: LocalDate = 31.januar,
         journalpostTittel: String = "Vedtak om sykepenger",
-        dokumentTittel: String = "Sykepenger behandlet i ny løsning, 06.05.2021 - 16.05.2021"
+        dokumentTittel: String = "Sykepenger behandlet i ny løsning, ${fom.formatted()} - ${tom.formatted()}"
     ): JournalpostPayload {
         return JournalpostPayload(
             tittel = journalpostTittel,
@@ -508,504 +432,128 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
     }
 
-    fun assertJournalpost(expected: JournalpostPayload = expectedJournalpost()) {
-        val joarkRequest = capturedJoarkRequests.single()
-        val joarkPayload = joarkRequest.parsePayload<JournalpostPayload>()
-
-        assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
-        assertNotNull(joarkRequest.headers["Nav-Consumer-Token"]) //TODO kanskje utbetalingId?
-        assertEquals("application/json", joarkRequest.body.contentType.toString())
-        assertEquals(expected, joarkPayload)
-    }
-
-    fun assertVedtakPdf(expected: VedtakPdfPayload = expectedPdfPayload()) {
-        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
-        assertEquals(expected, pdfPayload)
-    }
-
     @Language("json")
-    private fun vedtakFattetMedUtbetaling(
+    private fun vedtakFattet(
         hendelseId: UUID = UUID.randomUUID(),
         vedtaksperiodeId: UUID = UUID.randomUUID(),
         utbetalingId: UUID? = UUID.randomUUID(),
         fnr: String = "12345678910",
-        fom: LocalDate = 6.mai(2021),
-        tom: LocalDate = 16.mai(2021),
+        fom: LocalDate = 1.januar,
+        tom: LocalDate = 31.januar,
     ) = """{
-  "@id": "$hendelseId",
-  "vedtaksperiodeId": "$vedtaksperiodeId",
-  "fødselsnummer": "$fnr",
-  "utbetalingId": ${utbetalingId?.let { "\"$it\"" } ?: null},
-  "@event_name": "vedtak_fattet",
-  "@opprettet": "2021-05-25T13:12:24.922420993",
-  "fom": "$fom",
-  "tom": "$tom",
-  "@forårsaket_av": {
-    "behov": [
-      "Utbetaling"
+    "@id": "$hendelseId",
+    "vedtaksperiodeId": "$vedtaksperiodeId",
+    "fødselsnummer": "$fnr",
+    "utbetalingId": ${utbetalingId?.let { "\"$it\"" }},
+    "@event_name": "vedtak_fattet",
+    "@opprettet": "${tom.atStartOfDay()}",
+    "fom": "$fom",
+    "tom": "$tom",
+    "@forårsaket_av": {
+        "behov": [
+            "Utbetaling"
+        ],
+        "event_name": "behov",
+        "id": "6c7d5e27-c9cf-4e74-8662-a977f3f6a587",
+        "opprettet": "2021-05-25T13:12:22.535549467"
+    },
+    "hendelser": [
+        "65ca68fa-0f12-40f3-ac34-141fa77c4270",
+        "6977170d-5a99-4e7f-8d5f-93bda94a9ba3",
+        "15aa9c84-a9cc-4787-b82a-d5447aa3fab1"
     ],
-    "event_name": "behov",
-    "id": "6c7d5e27-c9cf-4e74-8662-a977f3f6a587",
-    "opprettet": "2021-05-25T13:12:22.535549467"
-  },
-  "hendelser": [
-    "65ca68fa-0f12-40f3-ac34-141fa77c4270",
-    "6977170d-5a99-4e7f-8d5f-93bda94a9ba3",
-    "15aa9c84-a9cc-4787-b82a-d5447aa3fab1"
-  ],
-  "skjæringstidspunkt": "2021-05-06",
-  "sykepengegrunnlag": 565260.0,
-  "inntekt": 47105.0,
-  "aktørId": "123",
-  "organisasjonsnummer": "123456789",
-  "system_read_count": 0
-}
-
-
-    """
+    "skjæringstidspunkt": "$fom",
+    "sykepengegrunnlag": 565260.0,
+    "inntekt": 47105.0,
+    "aktørId": "123",
+    "organisasjonsnummer": "123456789",
+    "system_read_count": 0
+}"""
 
     @Language("json")
-    private fun vedtakFattetUtenUtbetalingId(
-        id: UUID = UUID.randomUUID(),
-        vedtaksperiodeId: UUID = UUID.randomUUID()
+    private fun utbetaling(
+        fødselsnummer: String = "12345678910",
+        hendelseId: UUID = UUID.randomUUID(),
+        utbetalingId: UUID = UUID.randomUUID(),
+        vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID()),
+        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
+        type: String = "UTBETALING"
     ) = """{
-  "@id": "$id",
-  "vedtaksperiodeId": "$vedtaksperiodeId",
-  "fødselsnummer": "12345678910",
-  "@event_name": "vedtak_fattet",
-  "@opprettet": "2021-05-25T13:12:24.922420993",
-  "fom": "2021-05-06",
-  "tom": "2021-05-16",
-  "@forårsaket_av": {
-    "behov": [
-      "Utbetaling"
+    "@id": "$hendelseId",
+    "fødselsnummer": "$fødselsnummer",
+    "utbetalingId": "$utbetalingId",
+    "@event_name": ${if (sykdomstidslinje.none {it.type == Dagtype.UTBETALINGSDAG}) "\"utbetaling_uten_utbetaling\"" else "\"utbetaling_utbetalt\""},
+    "fom": "${sykdomstidslinje.first().dato}",
+    "tom": "${sykdomstidslinje.last().dato}",
+    "maksdato": "2021-07-15",
+    "forbrukteSykedager": "217",
+    "gjenståendeSykedager": "31",
+    "ident": "Automatisk behandlet",
+    "epost": "tbd@nav.no",
+    "type": "$type",
+    "tidspunkt": "${LocalDateTime.now()}",
+    "automatiskBehandling": "true",
+    "vedtaksperiodeIder": [
+        ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
     ],
-    "event_name": "behov",
-    "id": "6c7d5e27-c9cf-4e74-8662-a977f3f6a587",
-    "opprettet": "2021-05-25T13:12:22.535549467"
-  },
-  "hendelser": [
-    "65ca68fa-0f12-40f3-ac34-141fa77c4270",
-    "6977170d-5a99-4e7f-8d5f-93bda94a9ba3",
-    "15aa9c84-a9cc-4787-b82a-d5447aa3fab1"
-  ],
-  "skjæringstidspunkt": "2021-01-07",
-  "sykepengegrunnlag": 565260.0,
-  "inntekt": 47105.0,
-  "aktørId": "123",
-  "organisasjonsnummer": "123456789",
-  "system_read_count": 0
-}
-    """
+    "arbeidsgiverOppdrag": ${Oppdrag(sykdomstidslinje).toJson()},
+    "utbetalingsdager": ${sykdomstidslinje.toJson()},
+    "@opprettet": "${sykdomstidslinje.last().dato.atStartOfDay()}",
+    "aktørId": "123",
+    "organisasjonsnummer": "123456789"
+}"""
 
     private fun revurderingUtbetalt(
         id: UUID = UUID.randomUUID(),
         utbetalingId: UUID = UUID.randomUUID(),
         vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID())
-    ) = utbetalingUtbetalt(
+    ) = utbetaling(
         hendelseId = id,
         utbetalingId = utbetalingId,
         vedtaksperiodeIder = vedtaksperiodeIder,
         type = "REVURDERING"
     )
 
-    @Language("json")
-    private fun utbetalingUtbetalt(
+    private fun sendUtbetaling(
         hendelseId: UUID = UUID.randomUUID(),
+        fødselsnummer: String = "12345678910",
         utbetalingId: UUID = UUID.randomUUID(),
-        vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID()),
-        sykdomstidslinje: List<Dag> = utbetalingsdager(fom = 6.mai(2021), tom = 16.mai(2021)),
+        vedtaksperiodeIder: List<UUID> = emptyList(),
+        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING"
-    ) = """{
-  "@id": "$hendelseId",
-  "fødselsnummer": "12345678910",
-  "utbetalingId": "$utbetalingId",
-  "@event_name": "utbetaling_utbetalt",
-  "fom": "${sykdomstidslinje.first().dato}",
-  "tom": "${sykdomstidslinje.last().dato}",
-  "maksdato": "2021-07-15",
-  "forbrukteSykedager": "217",
-  "gjenståendeSykedager": "31",
-  "ident": "Automatisk behandlet",
-  "epost": "tbd@nav.no",
-  "type": "$type",
-  "tidspunkt": "${LocalDateTime.now()}",
-  "automatiskBehandling": "true",
-  "vedtaksperiodeIder": [
-    ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
-  ],
-  "arbeidsgiverOppdrag": ${Oppdrag(sykdomstidslinje).toJson()},
-  "utbetalingsdager": ${sykdomstidslinje.toJson()},
-  "@opprettet": "2021-05-25T13:12:24.922420993",
-  "aktørId": "123",
-  "organisasjonsnummer": "123456789"
-}
-    """
-
-    @Language("json")
-    private fun utbetalingUtbetaltEnAvvistDag(
-        id: UUID = UUID.randomUUID(),
-        vedtaksperiodeId: UUID = UUID.randomUUID(),
-        utbetalingId: UUID = UUID.randomUUID()
-    ) = """{
-  "@id": "$id",
-  "fødselsnummer": "12345678910",
-  "utbetalingId": "$utbetalingId",
-  "@event_name": "utbetaling_utbetalt",
-  "fom": "2021-05-06",
-  "tom": "2021-05-13",
-  "maksdato": "2021-07-15",
-  "forbrukteSykedager": "217",
-  "gjenståendeSykedager": "31",
-  "ident": "Automatisk behandlet",
-  "epost": "tbd@nav.no",
-  "type": "REVURDERING",
-  "tidspunkt": "${LocalDateTime.now()}",
-  "automatiskBehandling": "true",
-  "vedtaksperiodeIder": ["$vedtaksperiodeId"],
-  "arbeidsgiverOppdrag": {
-    "mottaker": "123456789",
-    "fagområde": "SPREF",
-    "linjer": [
-      {
-        "fom": "2021-05-06",
-        "tom": "2021-05-13",
-        "dagsats": 1431,
-        "lønn": 2193,
-        "grad": 100.0,
-        "stønadsdager": 35,
-        "totalbeløp": 38360,
-        "endringskode": "UEND",
-        "delytelseId": 1,
-        "klassekode": "SPREFAG-IOP"
-      }
-    ],
-    "fagsystemId": "123",
-    "endringskode": "ENDR",
-    "tidsstempel": "${LocalDateTime.now()}",
-    "nettoBeløp": "38360",
-    "stønadsdager": 35,
-    "fom": "2021-05-06",
-    "tom": "2021-05-13"
-  },
-  "utbetalingsdager": [
-        {
-          "dato": "2021-05-06",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-07",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-08",
-          "type": "NavHelgeDag"
-        },
-        {
-          "dato": "2021-05-09",
-          "type": "NavHelgeDag"
-        },
-        {
-          "dato": "2021-05-10",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-11",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-12",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-13",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-14",
-          "type": "AvvistDag",
-          "begrunnelser": ["EtterDødsdato"]
-        }
-  ],
-  "@opprettet": "${LocalDateTime.now()}",
-  "aktørId": "123",
-  "organisasjonsnummer": "123456789"
-}
-    """
-
-    @Language("json")
-    private fun utbetalingUtbetaltInneklemteFridager(
-        id: UUID = UUID.randomUUID(),
-        utbetalingId: UUID = UUID.randomUUID()
-    ) = """{
-  "@id": "$id",
-  "fødselsnummer": "12345678910",
-  "utbetalingId": "$utbetalingId",
-  "@event_name": "utbetaling_utbetalt",
-  "fom": "2021-05-06",
-  "tom": "2021-05-09",
-  "maksdato": "2021-07-15",
-  "forbrukteSykedager": "217",
-  "gjenståendeSykedager": "31",
-  "ident": "Automatisk behandlet",
-  "epost": "tbd@nav.no",
-  "type": "UTBETALING",
-  "tidspunkt": "${LocalDateTime.now()}",
-  "automatiskBehandling": "true",
-  "arbeidsgiverOppdrag": {
-    "mottaker": "123456789",
-    "fagområde": "SPREF",
-    "linjer": [
-      {
-        "fom": "2021-05-06",
-        "tom": "2021-05-09",
-        "dagsats": 1431,
-        "lønn": 2193,
-        "grad": 100.0,
-        "stønadsdager": 35,
-        "totalbeløp": 38360,
-        "endringskode": "UEND",
-        "delytelseId": 1,
-        "klassekode": "SPREFAG-IOP"
-      }
-    ],
-    "fagsystemId": "123",
-    "endringskode": "ENDR",
-    "tidsstempel": "${LocalDateTime.now()}",
-    "nettoBeløp": "38360",
-    "stønadsdager": 35,
-    "fom": "2021-05-06",
-    "tom": "2021-05-09"
-  },
-  "utbetalingsdager": [
-        {
-          "dato": "2021-05-06",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-07",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-08",
-          "type": "NavHelgeDag"
-        },
-        {
-          "dato": "2021-05-09",
-          "type": "NavHelgeDag"
-        },
-        {
-          "dato": "2021-05-10",
-          "type": "Arbeidsdag"
-        },
-        {
-          "dato": "2021-05-11",
-          "type": "Arbeidsdag"
-        },
-        {
-          "dato": "2021-05-12",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-13",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-14",
-          "type": "Arbeidsdag"
-        }
-  ],
-  "@opprettet": "${LocalDateTime.now()}",
-  "aktørId": "123",
-  "organisasjonsnummer": "123456789"
-}
-    """
-
-    @Language("json")
-    private fun utbetalingUtenUtbetaling(
-        id: UUID = UUID.randomUUID(),
-        utbetalingId: UUID = UUID.randomUUID(),
-        fnr: String = "12345678910"
-    ) = """{
-  "@id": "$id",
-  "fødselsnummer": "$fnr",
-  "utbetalingId": "$utbetalingId",
-  "@event_name": "utbetaling_utbetalt",
-  "fom": "2021-05-06",
-  "tom": "2021-05-16",
-  "maksdato": "2021-07-15",
-  "forbrukteSykedager": "217",
-  "gjenståendeSykedager": "31",
-  "ident": "Automatisk behandlet",
-  "epost": "tbd@nav.no",
-  "type": "UTBETALING",
-  "tidspunkt": "${LocalDateTime.now()}",
-  "automatiskBehandling": "true",
-  "arbeidsgiverOppdrag": {
-    "mottaker": "123456789",
-    "fagområde": "SPREF",
-    "linjer": [],
-    "fagsystemId": "123",
-    "endringskode": "ENDR",
-    "tidsstempel": "${LocalDateTime.now()}",
-    "nettoBeløp": "0",
-    "stønadsdager": 0,
-    "fom": "2021-05-06",
-    "tom": "2021-05-16"
-  },
-  "utbetalingsdager": [
-        {
-          "dato": "2021-05-06",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-07",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-08",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-09",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-10",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-11",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-12",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-13",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-14",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-15",
-          "type": "Fridag"
-        },
-        {
-          "dato": "2021-05-16",
-          "type": "Fridag"
-        }
-  ],
-  "@opprettet": "${LocalDateTime.now()}",
-  "aktørId": "123",
-  "organisasjonsnummer": "123456789"
-}
-    """
-
-    @Language("json")
-    private fun utbetalingUtbetaltEnAvvistDagFørSkjæringstidspunkt(
-        id: UUID = UUID.randomUUID(),
-        utbetalingId: UUID = UUID.randomUUID()
-    ) = """{
-  "@id": "$id",
-  "fødselsnummer": "12345678910",
-  "utbetalingId": "$utbetalingId",
-  "@event_name": "utbetaling_utbetalt",
-  "fom": "2021-05-06",
-  "tom": "2021-05-16",
-  "maksdato": "2021-07-15",
-  "forbrukteSykedager": "217",
-  "gjenståendeSykedager": "31",
-  "ident": "Automatisk behandlet",
-  "epost": "tbd@nav.no",
-  "type": "UTBETALING",
-  "tidspunkt": "${LocalDateTime.now()}",
-  "automatiskBehandling": "true",
-  "arbeidsgiverOppdrag": {
-    "mottaker": "123456789",
-    "fagområde": "SPREF",
-    "linjer": [
-      {
-        "fom": "2021-05-06",
-        "tom": "2021-05-16",
-        "dagsats": 1431,
-        "lønn": 2193,
-        "grad": 100.0,
-        "stønadsdager": 35,
-        "totalbeløp": 38360,
-        "endringskode": "UEND",
-        "delytelseId": 1,
-        "klassekode": "SPREFAG-IOP"
-      }
-    ],
-    "fagsystemId": "123",
-    "endringskode": "ENDR",
-    "tidsstempel": "${LocalDateTime.now()}",
-    "nettoBeløp": "38360",
-    "stønadsdager": 35,
-    "fom": "2021-05-06",
-    "tom": "2021-05-16"
-  },
-  "utbetalingsdager": [
-    {
-      "dato": "2017-05-05",
-      "type": "Arbeidsdag"
-    },
-    {
-      "dato": "2021-05-05",
-      "type": "Arbeidsdag"
-    },
-    {
-      "dato": "2021-05-06",
-      "type": "NavDag"
-    },
-    {
-      "dato": "2021-05-07",
-      "type": "NavDag"
-    },
-    {
-      "dato": "2021-05-08",
-      "type": "NavHelgeDag"
-    },
-    {
-      "dato": "2021-05-09",
-      "type": "NavHelgeDag"
-    },
-    {
-      "dato": "2021-05-10",
-      "type": "NavDag"
-    },
-    {
-      "dato": "2021-05-11",
-      "type": "NavDag"
-    },
-    {
-      "dato": "2021-05-12",
-      "type": "NavDag"
-    },
-    {
-      "dato": "2021-05-13",
-      "type": "NavDag"
-    },
-    {
-      "dato": "2021-05-14",
-      "type": "Fridag"
-    },
-    {
-      "dato": "2021-05-15",
-      "type": "NavHelgeDag"
-    },
-    {
-      "dato": "2021-05-16",
-      "type": "NavHelgeDag"
+    ) {
+        require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
+        testRapid.sendTestMessage(
+            utbetaling(
+                hendelseId = hendelseId,
+                fødselsnummer = fødselsnummer,
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = vedtaksperiodeIder,
+                sykdomstidslinje = sykdomstidslinje,
+                type = type
+            )
+        )
     }
-  ],
-  "@opprettet": "${LocalDateTime.now()}",
-  "aktørId": "123",
-  "organisasjonsnummer": "123456789"
-}
-    """
+
+    private fun sendVedtakFattet(
+        hendelseId: UUID = UUID.randomUUID(),
+        vedtaksperiodeId: UUID = UUID.randomUUID(),
+        utbetalingId: UUID? = UUID.randomUUID(),
+        fødselsnummer: String = "12345678910",
+        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar)
+    ) {
+        require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
+        testRapid.sendTestMessage(
+            vedtakFattet(
+                hendelseId = hendelseId,
+                fnr = fødselsnummer,
+                utbetalingId = utbetalingId,
+                vedtaksperiodeId = vedtaksperiodeId,
+                fom = sykdomstidslinje.first().dato,
+                tom = sykdomstidslinje.last().dato
+            )
+        )
+    }
+
+
 }
