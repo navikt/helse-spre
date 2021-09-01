@@ -58,5 +58,11 @@ ON CONFLICT (hendelse_id)
                 .map(Søknad::fromSql).asList
         )
     }
+
+    fun slettSøknad(hendelsesId: UUID) = sessionOf(dataSource).use { session ->
+        @Language("PostgreSQL")
+        val query = "DELETE FROM søknad WHERE hendelse_id = ?"
+        session.run(queryOf(query, hendelsesId).asUpdate)
+    }
 }
 
