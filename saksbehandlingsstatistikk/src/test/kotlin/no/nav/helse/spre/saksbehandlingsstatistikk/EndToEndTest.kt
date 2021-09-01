@@ -4,7 +4,6 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.ikkeGodkjentGodkjenningBehovsLøsning
-import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.søknadArbeidsgiverData
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.søknadData
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtakFattet
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeAvvist

@@ -10,6 +10,7 @@ import no.nav.helse.spre.saksbehandlingsstatistikk.TestUtil.finnSøknadDokumentI
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestUtil.json
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -43,6 +44,17 @@ internal class TilstandTest {
 
         val søknadDokumentId = finnSøknadDokumentId(søknadData.hendelseId)
         assertEquals(søknadData.søknadId, søknadDokumentId)
+    }
+
+    @Test
+    fun `lagret søknad til basen, blir slettet når man leser en arbeidsgiversøknad`() {
+        val søknadData = søknadData()
+
+        testRapid.sendTestMessage(søknadData.json())
+        testRapid.sendTestMessage(søknadData.json("sendt_søknad_arbeidsgiver"))
+
+        val søknadDokumentId = finnSøknadDokumentId(søknadData.hendelseId)
+        assertNull(søknadDokumentId)
     }
 
     @Test

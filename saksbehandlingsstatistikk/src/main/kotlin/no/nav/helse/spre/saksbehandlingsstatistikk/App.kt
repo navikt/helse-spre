@@ -36,7 +36,7 @@ fun launchApplication(env: Environment) {
         KafkaProducer<String, String>(
             loadBaseConfig(env.raw).toProducerConfig()
         )
-    val annonsør= KafkaUtgiver(producer)
+    val annonsør = KafkaUtgiver(producer)
     val spreService = SpreService(annonsør, søknadDao)
 
     RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(env.raw))
@@ -52,6 +52,7 @@ internal fun RapidsConnection.setupRivers(
     spreService: SpreService,
     søknadDao: SøknadDao,
 ) {
+    SletteArbeidsgiversøknadRiver(this, søknadDao)
     SøknadRiver(this, søknadDao)
     VedtaksperiodeEndretRiver(this, søknadDao)
     VedtaksperiodeGodkjentRiver(this, søknadDao)
