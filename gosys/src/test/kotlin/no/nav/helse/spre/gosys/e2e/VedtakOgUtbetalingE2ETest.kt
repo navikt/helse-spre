@@ -55,21 +55,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertVedtakPdf()
     }
 
-    fun assertJournalpost(expected: JournalpostPayload = expectedJournalpost()) {
-        val joarkRequest = capturedJoarkRequests.single()
-        val joarkPayload = joarkRequest.parsePayload<JournalpostPayload>()
-
-        assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
-        assertNotNull(joarkRequest.headers["Nav-Consumer-Token"]) //TODO kanskje utbetalingId?
-        assertEquals("application/json", joarkRequest.body.contentType.toString())
-        assertEquals(expected, joarkPayload)
-    }
-
-    fun assertVedtakPdf(expected: VedtakPdfPayload = expectedPdfPayload()) {
-        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
-        assertEquals(expected, pdfPayload)
-    }
-
     @Test
     fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_uten_utbetaling`() {
         val id = UUID.randomUUID()
@@ -521,6 +506,21 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 )
             )
         )
+    }
+
+    fun assertJournalpost(expected: JournalpostPayload = expectedJournalpost()) {
+        val joarkRequest = capturedJoarkRequests.single()
+        val joarkPayload = joarkRequest.parsePayload<JournalpostPayload>()
+
+        assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
+        assertNotNull(joarkRequest.headers["Nav-Consumer-Token"]) //TODO kanskje utbetalingId?
+        assertEquals("application/json", joarkRequest.body.contentType.toString())
+        assertEquals(expected, joarkPayload)
+    }
+
+    fun assertVedtakPdf(expected: VedtakPdfPayload = expectedPdfPayload()) {
+        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
+        assertEquals(expected, pdfPayload)
     }
 
     @Language("json")
