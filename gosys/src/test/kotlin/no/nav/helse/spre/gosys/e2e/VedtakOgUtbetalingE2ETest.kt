@@ -21,6 +21,7 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.test.assertNotNull
 
 @KtorExperimentalAPI
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
@@ -50,7 +51,23 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 vedtaksperiodeIder = listOf(vedtaksperiodeId)
             )
         )
-        assertJournalPostOgVedtakPdf(utbetalingId)
+        assertJournalpost()
+        assertVedtakPdf()
+    }
+
+    fun assertJournalpost(expected: JournalpostPayload = expectedJournalpost()) {
+        val joarkRequest = capturedJoarkRequests.single()
+        val joarkPayload = joarkRequest.parsePayload<JournalpostPayload>()
+
+        assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
+        assertNotNull(joarkRequest.headers["Nav-Consumer-Token"]) //TODO kanskje utbetalingId?
+        assertEquals("application/json", joarkRequest.body.contentType.toString())
+        assertEquals(expected, joarkPayload)
+    }
+
+    fun assertVedtakPdf(expected: VedtakPdfPayload = expectedPdfPayload()) {
+        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
+        assertEquals(expected, pdfPayload)
     }
 
     @Test
@@ -325,7 +342,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
     private fun assertJournalPostOgVedtakPdf(
         hendelseId: UUID,
-        expectedPdfPayload: VedtakPdfPayload = vedtakPdfPayload(),
+        expectedPdfPayload: VedtakPdfPayload = expectedPdfPayload(),
         journalpostPayload: JournalpostPayload = expectedJournalpost()
     ) = runBlocking {
         val joarkRequest = capturedJoarkRequests.single()
@@ -340,7 +357,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertEquals(expectedPdfPayload, pdfPayload)
     }
 
-    private fun vedtakPdfPayload() =
+    private fun expectedPdfPayload() =
         VedtakPdfPayload(
             fødselsnummer = "12345678910",
             fagsystemId = "fagsystemId",
