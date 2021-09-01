@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
-import no.nav.helse.spre.gosys.vedtak.VedtakMessage.Companion.fraVedtakOgUtbetaling
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -53,10 +52,10 @@ internal class VedtakFattetRiver(
         vedtakFattetDao.lagre(vedtakFattet, packet.toJson())
         log.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
 
-        val utbetaling = utbetalingId?.let(utbetalingDao::finnUtbetalingData) ?: return
-
-        vedtakMediator.opprettVedtak(fraVedtakOgUtbetaling(vedtakFattet, utbetaling))
-
+        if (utbetalingId != null) {
+            utbetalingDao.finnUtbetalingData(utbetalingId)
+                ?.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
+        }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

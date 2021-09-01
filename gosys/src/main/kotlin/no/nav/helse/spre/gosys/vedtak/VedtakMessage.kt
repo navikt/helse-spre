@@ -2,6 +2,7 @@ package no.nav.helse.spre.gosys.vedtak
 
 import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
 import java.time.LocalDate
@@ -43,6 +44,54 @@ data class VedtakMessage private constructor(
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
+
+    constructor(
+        fom: LocalDate,
+        tom: LocalDate,
+        sykepengegrunnlag: Double,
+        skjæringstidspunkt: LocalDate,
+        utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling
+    ) : this(
+        hendelseId = utbetaling.utbetalingId,
+        opprettet = utbetaling.opprettet,
+        fødselsnummer = utbetaling.fødselsnummer,
+        aktørId = utbetaling.aktørId,
+        type = utbetaling.type,
+        fom = fom,
+        tom = tom,
+        organisasjonsnummer = utbetaling.organisasjonsnummer,
+        gjenståendeSykedager = utbetaling.gjenståendeSykedager,
+        automatiskBehandling = utbetaling.automatiskBehandling,
+        godkjentAv = utbetaling.ident,
+        maksdato = utbetaling.maksdato,
+        sykepengegrunnlag = sykepengegrunnlag,
+        utbetaling = utbetaling.arbeidsgiverOppdrag.takeIf { it.fagområde == "SPREF" }!!.let { oppdrag ->
+            Utbetaling(
+                fagområde = Utbetaling.Fagområde.SPREF,
+                fagsystemId = oppdrag.fagsystemId,
+                totalbeløp = oppdrag.nettoBeløp,
+                utbetalingslinjer = oppdrag.utbetalingslinjer.map { utbetalingslinje ->
+                    Utbetaling.Utbetalingslinje(
+                        dagsats = utbetalingslinje.dagsats,
+                        fom = utbetalingslinje.fom,
+                        tom = utbetalingslinje.tom,
+                        grad = utbetalingslinje.grad.toInt(),
+                        beløp = utbetalingslinje.dagsats,
+                        mottaker = "arbeidsgiver"
+                    )
+                }
+            )
+        },
+        ikkeUtbetalteDager = utbetaling.ikkeUtbetalingsdager.filterNot { dag -> dag.dato.isBefore(skjæringstidspunkt) }
+            .map { dag ->
+                IkkeUtbetaltDag(
+                    dato = dag.dato,
+                    type = dag.type,
+                    begrunnelser = dag.begrunnelser
+                )
+            }
+    )
+
 
     constructor(vedtak: VedtakFattetData, utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling) :
             this(

@@ -3,8 +3,12 @@ package no.nav.helse.spre.gosys.utbetaling
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.asLocalDate
+import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.helse.spre.gosys.vedtak.VedtakMediator
+import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 data class Utbetaling(
@@ -21,8 +25,25 @@ data class Utbetaling(
     val arbeidsgiverOppdrag: OppdragDto,
     val type: Utbetalingtype,
     val ident: String,
-    val ikkeUtbetalingsdager: List<UtbetalingdagDto>
+    val vedtaksperiodeIder: List<UUID>,
+    val ikkeUtbetalingsdager: List<UtbetalingdagDto>,
+    val opprettet: LocalDateTime
 ) {
+
+    private fun alleVedtakOrNull(vedtakFattetDao: VedtakFattetDao) = vedtakFattetDao.finnVedtakFattetData(utbetalingId).let { vedtakFattetHendelser ->
+        // Hvis vi har alle vedtak knyttet til utbetalingen kan vi gå videre med opprettelse av dokument
+        if (vedtakFattetHendelser.all { it.id in vedtaksperiodeIder }) vedtakFattetHendelser
+        else null
+    }
+
+    internal fun avgjørVidereBehandling(vedtakFattetDao: VedtakFattetDao, vedtakMediator: VedtakMediator) {
+        alleVedtakOrNull(vedtakFattetDao)?.let {
+            val fom = it.minOf { it.fom }
+            val tom = it.maxOf { it.tom }
+            val vedtaksperiode = it.first()
+            vedtakMediator.opprettVedtak(fom, tom, vedtaksperiode.sykepengegrunnlag, vedtaksperiode.skjæringstidspunkt, this)
+        }
+    }
 
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
 
@@ -60,6 +81,8 @@ data class Utbetaling(
                 arbeidsgiverOppdrag = arbeidsgiverOppdrag,
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
+                vedtaksperiodeIder = packet["vedtaksperiodeIder"].toList().map { UUID.fromString(it.asText()) },
+                opprettet = packet["@opprettet"].asLocalDateTime(),
                 ikkeUtbetalingsdager = packet["utbetalingsdager"].toList()
                     .filter { dag -> erIkkeUtbetaltDag(dag) }
                     .map { dag ->
@@ -106,6 +129,8 @@ data class Utbetaling(
                 arbeidsgiverOppdrag = arbeidsgiverOppdrag,
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
+                vedtaksperiodeIder = packet["vedtaksperiodeIder"].toList().map { UUID.fromString(it.asText()) },
+                opprettet = packet["@opprettet"].asLocalDateTime(),
                 ikkeUtbetalingsdager = packet["utbetalingsdager"].toList()
                     .filter(::erIkkeUtbetaltDag)
                     .map { dag ->

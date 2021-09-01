@@ -1,9 +1,9 @@
 package no.nav.helse.spre.gosys.utbetaling
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ArrayNode
 import no.nav.helse.rapids_rivers.*
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
-import no.nav.helse.spre.gosys.vedtak.VedtakMessage.Companion.fraVedtakOgUtbetaling
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -36,6 +36,11 @@ internal class UtbetalingUtbetaltRiver(
                     "type",
                     "ident"
                 )
+                it.require("vedtaksperiodeIder") { node ->
+                    (node as ArrayNode).forEach { id ->
+                        UUID.fromString(id.asText())
+                    }
+                }
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
                 it.require("maksdato", JsonNode::asLocalDate)
@@ -52,11 +57,8 @@ internal class UtbetalingUtbetaltRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val utbetaling = lagreUtbetaling(packet, utbetalingDao)
-        val vedtakFattet = vedtakFattetDao.finnVedtakFattetData(utbetaling.utbetalingId) ?: return
-
-        vedtakMediator.opprettVedtak(fraVedtakOgUtbetaling(vedtakFattet, utbetaling))
+        utbetaling.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
     }
-
 }
 
 

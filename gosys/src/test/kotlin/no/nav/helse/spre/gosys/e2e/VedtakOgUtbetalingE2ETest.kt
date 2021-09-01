@@ -1,10 +1,10 @@
 package no.nav.helse.spre.gosys.e2e
 
 import io.ktor.client.engine.mock.*
+import io.ktor.client.request.*
 import io.ktor.util.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import no.nav.helse.spre.februar
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
@@ -13,14 +13,17 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
+import no.nav.helse.spre.januar
+import no.nav.helse.spre.mai
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.lang.IllegalStateException
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.streams.toList
 
 @KtorExperimentalAPI
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
@@ -144,7 +147,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `en avvist dag med begrunnelse revurdering`() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
+        val vedtaksperiodeId = UUID.randomUUID()
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, vedtaksperiodeId = vedtaksperiodeId, utbetalingId = utbetalingId))
         testRapid.sendTestMessage(utbetalingUtbetaltEnAvvistDag(id = id, utbetalingId = utbetalingId))
         assertJournalPostOgVedtakPdf(
             id,
@@ -175,21 +179,113 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         }
     }
 
+    @Test
+    fun testyMc() {
+        val v1 = UUID.randomUUID()
+        val v2 = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        val vedtaksperiodeIder = listOf(v1, v2)
+        testRapid.sendTestMessage(revurderingUtbetalt(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeIder = vedtaksperiodeIder
+        ))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
+            vedtaksperiodeId = v1,
+            utbetalingId = utbetalingId,
+            fom = 1.januar,
+            tom = 31.januar
+        ))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
+            vedtaksperiodeId = v2,
+            utbetalingId = utbetalingId,
+            fom = 1.februar,
+            tom = 28.februar
+        ))
+
+        assertEquals(1, capturedJoarkRequests.size)
+        assertEquals(1, capturedPdfRequests.size)
+
+        val payload = capturedPdfRequests.first().parsePayload<VedtakPdfPayload>()
+        assertEquals(1.januar, payload.fom)
+        assertEquals(28.februar, payload.tom)
+    }
+
+    @Test
+    fun testyMc2() {
+        val v1 = UUID.randomUUID()
+        val v2 = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        val vedtaksperiodeIder = listOf(v1, v2)
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
+            vedtaksperiodeId = v1,
+            utbetalingId = utbetalingId,
+            fom = 1.januar,
+            tom = 31.januar
+        ))
+        testRapid.sendTestMessage(utbetalingUtbetalt(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeIder = vedtaksperiodeIder
+        ))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
+            vedtaksperiodeId = v2,
+            utbetalingId = utbetalingId,
+            fom = 1.februar,
+            tom = 28.februar
+        ))
+
+        assertEquals(1, capturedJoarkRequests.size)
+        assertEquals(1, capturedPdfRequests.size)
+
+        val payload = capturedPdfRequests.first().parsePayload<VedtakPdfPayload>()
+        assertEquals(1.januar, payload.fom)
+        assertEquals(28.februar, payload.tom)
+    }
+
+    @Test
+    fun testyMc3() {
+        val v1 = UUID.randomUUID()
+        val v2 = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        val vedtaksperiodeIder = listOf(v1, v2)
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
+            vedtaksperiodeId = v1,
+            utbetalingId = utbetalingId,
+            fom = 1.januar,
+            tom = 31.januar
+        ))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
+            vedtaksperiodeId = v2,
+            utbetalingId = utbetalingId,
+            fom = 1.februar,
+            tom = 28.februar
+        ))
+        testRapid.sendTestMessage(utbetalingUtbetalt(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeIder = vedtaksperiodeIder
+        ))
+
+        assertEquals(1, capturedJoarkRequests.size)
+        assertEquals(1, capturedPdfRequests.size)
+
+        val payload = capturedPdfRequests.first().parsePayload<VedtakPdfPayload>()
+        assertEquals(1.januar, payload.fom)
+        assertEquals(28.februar, payload.tom)
+    }
+
+    private inline fun <reified T> HttpRequestData.parsePayload(): T = runBlocking {
+        requireNotNull(objectMapper.readValue(this@parsePayload.body.toByteArray(), T::class.java))
+    }
+
     private fun assertJournalPostOgVedtakPdf(id: UUID, expectedPdfPayload: VedtakPdfPayload = vedtakPdfPayload(), journalpostPayload: JournalpostPayload = expectedJournalpost()) = runBlocking {
         val joarkRequest = capturedJoarkRequests.single()
-        val joarkRequestBody = withContext(Dispatchers.IO) { joarkRequest.body.toByteArray() }
-        val joarkPayload =
-            requireNotNull(objectMapper.readValue(joarkRequestBody, JournalpostPayload::class.java))
+        val joarkPayload = joarkRequest.parsePayload<JournalpostPayload>()
 
         assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
         assertEquals(id.toString(), joarkRequest.headers["Nav-Consumer-Token"])
         assertEquals("application/json", joarkRequest.body.contentType.toString())
         assertEquals(journalpostPayload, joarkPayload)
 
-        val pdfRequest = capturedPdfRequests.single()
-        val pdfPayload =
-            requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), VedtakPdfPayload::class.java))
-
+        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
         assertEquals(expectedPdfPayload, pdfPayload)
     }
 
@@ -359,7 +455,9 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         id: UUID = UUID.randomUUID(),
         vedtaksperiodeId: UUID = UUID.randomUUID(),
         utbetalingId: UUID = UUID.randomUUID(),
-        fnr: String = "12345678910"
+        fnr: String = "12345678910",
+        fom: LocalDate = 6.mai(2021),
+        tom: LocalDate = 16.mai(2021)
     ) = """{
   "@id": "$id",
   "vedtaksperiodeId": "$vedtaksperiodeId",
@@ -367,8 +465,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
   "utbetalingId": "$utbetalingId",
   "@event_name": "vedtak_fattet",
   "@opprettet": "2021-05-25T13:12:24.922420993",
-  "fom": "2021-05-06",
-  "tom": "2021-05-16",
+  "fom": "$fom",
+  "tom": "$tom",
   "@forårsaket_av": {
     "behov": [
       "Utbetaling"
@@ -427,10 +525,18 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 }
     """
 
+    private fun revurderingUtbetalt(
+        id: UUID = UUID.randomUUID(),
+        utbetalingId: UUID = UUID.randomUUID(),
+        vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID())
+    ) = utbetalingUtbetalt(id, utbetalingId, vedtaksperiodeIder, "REVURDERING")
+
     @Language("json")
     private fun utbetalingUtbetalt(
         id: UUID = UUID.randomUUID(),
-        utbetalingId: UUID = UUID.randomUUID()
+        utbetalingId: UUID = UUID.randomUUID(),
+        vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID()),
+        type: String = "UTBETALING"
     ) = """{
   "@id": "$id",
   "fødselsnummer": "12345678910",
@@ -443,9 +549,12 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
   "gjenståendeSykedager": "31",
   "ident": "Automatisk behandlet",
   "epost": "tbd@nav.no",
-  "type": "UTBETALING",
+  "type": "$type",
   "tidspunkt": "${LocalDateTime.now()}",
   "automatiskBehandling": "true",
+  "vedtaksperiodeIder": [
+    ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
+  ],
   "arbeidsgiverOppdrag": {
     "mottaker": "123456789",
     "fagområde": "SPREF",
@@ -525,6 +634,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 @Language("json")
     private fun utbetalingUtbetaltEnAvvistDag(
         id: UUID = UUID.randomUUID(),
+        vedtaksperiodeId: UUID = UUID.randomUUID(),
         utbetalingId: UUID = UUID.randomUUID()
     ) = """{
   "@id": "$id",
@@ -541,6 +651,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
   "type": "REVURDERING",
   "tidspunkt": "${LocalDateTime.now()}",
   "automatiskBehandling": "true",
+  "vedtaksperiodeIder": ["$vedtaksperiodeId"],
   "arbeidsgiverOppdrag": {
     "mottaker": "123456789",
     "fagområde": "SPREF",
@@ -886,5 +997,4 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
   "organisasjonsnummer": "123456789"
 }
     """
-
 }
