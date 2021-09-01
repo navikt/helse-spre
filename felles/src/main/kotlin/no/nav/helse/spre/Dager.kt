@@ -9,19 +9,20 @@ fun arbeidsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, D
 fun fridager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FRIDAG)
 fun ukjentDager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.UKJENTDAG)
 fun foreldetDager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FORELDETDAG)
-fun avvistDager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.AVVISTDAG)
+fun avvistDager(fom: LocalDate, tom: LocalDate = fom, begrunnelser: List<String>) = dagerFraTil(fom, tom, Dagtype.AVVISTDAG, begrunnelser)
 
-private fun dagerFraTil(fom: LocalDate, tom: LocalDate, type: Dagtype): List<Dag> {
+private fun dagerFraTil(fom: LocalDate, tom: LocalDate, type: Dagtype, begrunnelser: List<String>? = null): List<Dag> {
     return fom.datesUntil(tom.plusDays(1)).map {
-        Dag(it, type)
+        Dag(it, type, begrunnelser)
     }.toList()
 }
 
-class Dag(val dato: LocalDate, private val type: Dagtype) {
+class Dag(val dato: LocalDate, private val type: Dagtype, private val begrunnelser: List<String>?) {
     override fun toString(): String {
         return """{
                    "dato": "$dato",
                    "type": "${if (dato.dayOfWeek in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)) type.helgenavn else type.vanligNavn}"
+                   ${if(begrunnelser != null) {",\"begrunnelser\": ${begrunnelser.map { "\"$it\"" }}"} else {""}}
                }"""
     }
 

@@ -4,7 +4,8 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.spre.februar
+import no.nav.helse.spre.*
+import no.nav.helse.spre.Dag.Companion.toJson
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
@@ -13,17 +14,13 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
-import no.nav.helse.spre.januar
-import no.nav.helse.spre.mai
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.streams.toList
 
 @KtorExperimentalAPI
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
@@ -39,18 +36,28 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
     @Test
     fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_utbetalt`() {
-        val id = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(utbetalingUtbetalt(id = id, utbetalingId = utbetalingId))
-        assertJournalPostOgVedtakPdf(id)
+        testRapid.sendTestMessage(
+            vedtakFattetMedUtbetaling(
+                vedtaksperiodeId = vedtaksperiodeId,
+                utbetalingId = utbetalingId
+            )
+        )
+        testRapid.sendTestMessage(
+            utbetalingUtbetalt(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = listOf(vedtaksperiodeId)
+            )
+        )
+        assertJournalPostOgVedtakPdf(utbetalingId)
     }
 
     @Test
     fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_uten_utbetaling`() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
         testRapid.sendTestMessage(utbetalingUtenUtbetaling(id = id, utbetalingId = utbetalingId))
         assertJournalPostOgVedtakPdf(
             id, expectedPdfPayload =
@@ -86,8 +93,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `journalfører vedtak med utbetaling_utbetalt og deretter vedtak_fattet`() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(utbetalingUtbetalt(id = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(utbetalingUtbetalt(hendelseId = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
         assertJournalPostOgVedtakPdf(id)
     }
 
@@ -95,10 +102,10 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `journalfører ikke dobbelt vedtak`() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(utbetalingUtbetalt(id = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(utbetalingUtbetalt(id = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(utbetalingUtbetalt(hendelseId = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(utbetalingUtbetalt(hendelseId = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
         assertEquals(1, capturedJoarkRequests.size)
         assertJournalPostOgVedtakPdf(id)
     }
@@ -107,7 +114,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `journalfører ikke uten å ha mottatt utbetaling`() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
         assertEquals(0, capturedJoarkRequests.size)
         assertEquals(0, capturedPdfRequests.size)
     }
@@ -116,7 +123,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `journalfører ikke uten å ha mottatt vedtak_fattet`() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(utbetalingUtbetalt(id = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(utbetalingUtbetalt(hendelseId = id, utbetalingId = utbetalingId))
         assertEquals(0, capturedJoarkRequests.size)
         assertEquals(0, capturedPdfRequests.size)
     }
@@ -125,7 +132,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `journalfører ikke vedtak uten utbetalingId`() {
         val id = UUID.randomUUID()
         testRapid.sendTestMessage(vedtakFattetUtenUtbetalingId(id = id))
-        testRapid.sendTestMessage(utbetalingUtbetalt(id = id))
+        testRapid.sendTestMessage(utbetalingUtbetalt(hendelseId = id))
         assertEquals(0, capturedJoarkRequests.size)
         assertEquals(0, capturedPdfRequests.size)
     }
@@ -136,7 +143,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
         testRapid.sendTestMessage(utbetalingUtbetaltInneklemteFridager(id = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
         assertJournalPostOgVedtakPdf(
             id,
             expectedPdfPayload = vedtakPdfPayloadInneklemteFridager()
@@ -148,10 +155,27 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
         val vedtaksperiodeId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, vedtaksperiodeId = vedtaksperiodeId, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(utbetalingUtbetaltEnAvvistDag(id = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(
+            vedtakFattetMedUtbetaling(
+                hendelseId = id,
+                vedtaksperiodeId = vedtaksperiodeId,
+                utbetalingId = utbetalingId
+            )
+        )
+        testRapid.sendTestMessage(
+            utbetalingUtbetalt(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = listOf(vedtaksperiodeId),
+                sykdomstidslinje = utbetalingsdager(6.mai(2021), 13.mai(2021)) + avvistDager(
+                    16.mai(2021),
+                    16.mai(2021),
+                    listOf("EtterDødsdato")
+                ),
+                type = "REVURDERING"
+            )
+        )
         assertJournalPostOgVedtakPdf(
-            id,
+            hendelseId = utbetalingId,
             expectedPdfPayload = vedtakPdfPayloadMedEnAvvistDag(),
             expectedJournalpost(
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
@@ -164,18 +188,23 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `arbeidsdager før skjæringstidspunkt`() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId))
-        testRapid.sendTestMessage(utbetalingUtbetaltEnAvvistDagFørSkjæringstidspunkt(id = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId))
+        testRapid.sendTestMessage(
+            utbetalingUtbetaltEnAvvistDagFørSkjæringstidspunkt(
+                id = id,
+                utbetalingId = utbetalingId
+            )
+        )
         assertJournalPostOgVedtakPdf(id, vedtakPdfPayloadArbeidsdagFørSkjæringstidspunkt(), expectedJournalpost())
     }
 
     @Test
-    fun `vedtak og utbetaling som linkes med ulik fnr`(){
+    fun `vedtak og utbetaling som linkes med ulik fnr`() {
         val id = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(id = id, utbetalingId = utbetalingId, fnr = "123"))
+        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(hendelseId = id, utbetalingId = utbetalingId, fnr = "123"))
         assertThrows<IllegalStateException> {
-            testRapid.sendTestMessage(utbetalingUtenUtbetaling(id = id, utbetalingId = utbetalingId, fnr= "321 "))
+            testRapid.sendTestMessage(utbetalingUtenUtbetaling(id = id, utbetalingId = utbetalingId, fnr = "321 "))
         }
     }
 
@@ -185,22 +214,28 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val v2 = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
         val vedtaksperiodeIder = listOf(v1, v2)
-        testRapid.sendTestMessage(revurderingUtbetalt(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeIder = vedtaksperiodeIder
-        ))
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
-            vedtaksperiodeId = v1,
-            utbetalingId = utbetalingId,
-            fom = 1.januar,
-            tom = 31.januar
-        ))
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
-            vedtaksperiodeId = v2,
-            utbetalingId = utbetalingId,
-            fom = 1.februar,
-            tom = 28.februar
-        ))
+        testRapid.sendTestMessage(
+            revurderingUtbetalt(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = vedtaksperiodeIder
+            )
+        )
+        testRapid.sendTestMessage(
+            vedtakFattetMedUtbetaling(
+                vedtaksperiodeId = v1,
+                utbetalingId = utbetalingId,
+                fom = 1.januar,
+                tom = 31.januar
+            )
+        )
+        testRapid.sendTestMessage(
+            vedtakFattetMedUtbetaling(
+                vedtaksperiodeId = v2,
+                utbetalingId = utbetalingId,
+                fom = 1.februar,
+                tom = 28.februar
+            )
+        )
 
         assertEquals(1, capturedJoarkRequests.size)
         assertEquals(1, capturedPdfRequests.size)
@@ -216,22 +251,28 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val v2 = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
         val vedtaksperiodeIder = listOf(v1, v2)
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
-            vedtaksperiodeId = v1,
-            utbetalingId = utbetalingId,
-            fom = 1.januar,
-            tom = 31.januar
-        ))
-        testRapid.sendTestMessage(utbetalingUtbetalt(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeIder = vedtaksperiodeIder
-        ))
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
-            vedtaksperiodeId = v2,
-            utbetalingId = utbetalingId,
-            fom = 1.februar,
-            tom = 28.februar
-        ))
+        testRapid.sendTestMessage(
+            vedtakFattetMedUtbetaling(
+                vedtaksperiodeId = v1,
+                utbetalingId = utbetalingId,
+                fom = 1.januar,
+                tom = 31.januar
+            )
+        )
+        testRapid.sendTestMessage(
+            utbetalingUtbetalt(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = vedtaksperiodeIder
+            )
+        )
+        testRapid.sendTestMessage(
+            vedtakFattetMedUtbetaling(
+                vedtaksperiodeId = v2,
+                utbetalingId = utbetalingId,
+                fom = 1.februar,
+                tom = 28.februar
+            )
+        )
 
         assertEquals(1, capturedJoarkRequests.size)
         assertEquals(1, capturedPdfRequests.size)
@@ -247,22 +288,28 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val v2 = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
         val vedtaksperiodeIder = listOf(v1, v2)
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
-            vedtaksperiodeId = v1,
-            utbetalingId = utbetalingId,
-            fom = 1.januar,
-            tom = 31.januar
-        ))
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(
-            vedtaksperiodeId = v2,
-            utbetalingId = utbetalingId,
-            fom = 1.februar,
-            tom = 28.februar
-        ))
-        testRapid.sendTestMessage(utbetalingUtbetalt(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeIder = vedtaksperiodeIder
-        ))
+        testRapid.sendTestMessage(
+            vedtakFattetMedUtbetaling(
+                vedtaksperiodeId = v1,
+                utbetalingId = utbetalingId,
+                fom = 1.januar,
+                tom = 31.januar
+            )
+        )
+        testRapid.sendTestMessage(
+            vedtakFattetMedUtbetaling(
+                vedtaksperiodeId = v2,
+                utbetalingId = utbetalingId,
+                fom = 1.februar,
+                tom = 28.februar
+            )
+        )
+        testRapid.sendTestMessage(
+            utbetalingUtbetalt(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = vedtaksperiodeIder
+            )
+        )
 
         assertEquals(1, capturedJoarkRequests.size)
         assertEquals(1, capturedPdfRequests.size)
@@ -276,12 +323,16 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         requireNotNull(objectMapper.readValue(this@parsePayload.body.toByteArray(), T::class.java))
     }
 
-    private fun assertJournalPostOgVedtakPdf(id: UUID, expectedPdfPayload: VedtakPdfPayload = vedtakPdfPayload(), journalpostPayload: JournalpostPayload = expectedJournalpost()) = runBlocking {
+    private fun assertJournalPostOgVedtakPdf(
+        hendelseId: UUID,
+        expectedPdfPayload: VedtakPdfPayload = vedtakPdfPayload(),
+        journalpostPayload: JournalpostPayload = expectedJournalpost()
+    ) = runBlocking {
         val joarkRequest = capturedJoarkRequests.single()
         val joarkPayload = joarkRequest.parsePayload<JournalpostPayload>()
 
         assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
-        assertEquals(id.toString(), joarkRequest.headers["Nav-Consumer-Token"])
+        assertEquals(hendelseId.toString(), joarkRequest.headers["Nav-Consumer-Token"])
         assertEquals("application/json", joarkRequest.body.contentType.toString())
         assertEquals(journalpostPayload, joarkPayload)
 
@@ -332,11 +383,12 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             totaltTilUtbetaling = 38360,
             ikkeUtbetalteDager = listOf(
                 VedtakPdfPayload.IkkeUtbetalteDager(
-                fom = LocalDate.of(2021, 5, 14),
-                tom = LocalDate.of(2021, 5, 14),
-                grunn = "Ferie/Permisjon",
-                begrunnelser = listOf()
-            )),
+                    fom = LocalDate.of(2021, 5, 14),
+                    tom = LocalDate.of(2021, 5, 14),
+                    grunn = "Ferie/Permisjon",
+                    begrunnelser = listOf()
+                )
+            ),
             dagsats = 1431,
             sykepengegrunnlag = 565260.0,
             maksdato = LocalDate.of(2021, 7, 15),
@@ -405,7 +457,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     tom = LocalDate.of(2021, 5, 14),
                     grunn = "Arbeidsdag",
                     begrunnelser = emptyList()
-                )),
+                )
+            ),
             dagsats = 1431,
             sykepengegrunnlag = 565260.0,
             maksdato = LocalDate.of(2021, 7, 15),
@@ -421,7 +474,10 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
 
 
-    private fun expectedJournalpost(journalpostTittel: String = "Vedtak om sykepenger", dokumentTittel: String = "Sykepenger behandlet i ny løsning, 06.05.2021 - 16.05.2021"): JournalpostPayload {
+    private fun expectedJournalpost(
+        journalpostTittel: String = "Vedtak om sykepenger",
+        dokumentTittel: String = "Sykepenger behandlet i ny løsning, 06.05.2021 - 16.05.2021"
+    ): JournalpostPayload {
         return JournalpostPayload(
             tittel = journalpostTittel,
             journalpostType = "NOTAT",
@@ -452,17 +508,17 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
     @Language("json")
     private fun vedtakFattetMedUtbetaling(
-        id: UUID = UUID.randomUUID(),
+        hendelseId: UUID = UUID.randomUUID(),
         vedtaksperiodeId: UUID = UUID.randomUUID(),
-        utbetalingId: UUID = UUID.randomUUID(),
+        utbetalingId: UUID? = UUID.randomUUID(),
         fnr: String = "12345678910",
         fom: LocalDate = 6.mai(2021),
-        tom: LocalDate = 16.mai(2021)
+        tom: LocalDate = 16.mai(2021),
     ) = """{
-  "@id": "$id",
+  "@id": "$hendelseId",
   "vedtaksperiodeId": "$vedtaksperiodeId",
   "fødselsnummer": "$fnr",
-  "utbetalingId": "$utbetalingId",
+  "utbetalingId": ${utbetalingId?.let { "\"$it\"" } ?: null},
   "@event_name": "vedtak_fattet",
   "@opprettet": "2021-05-25T13:12:24.922420993",
   "fom": "$fom",
@@ -529,21 +585,27 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         id: UUID = UUID.randomUUID(),
         utbetalingId: UUID = UUID.randomUUID(),
         vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID())
-    ) = utbetalingUtbetalt(id, utbetalingId, vedtaksperiodeIder, "REVURDERING")
+    ) = utbetalingUtbetalt(
+        hendelseId = id,
+        utbetalingId = utbetalingId,
+        vedtaksperiodeIder = vedtaksperiodeIder,
+        type = "REVURDERING"
+    )
 
     @Language("json")
     private fun utbetalingUtbetalt(
-        id: UUID = UUID.randomUUID(),
+        hendelseId: UUID = UUID.randomUUID(),
         utbetalingId: UUID = UUID.randomUUID(),
         vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID()),
+        sykdomstidslinje: List<Dag> = utbetalingsdager(fom = 5.mai(2021), tom = 16.mai(2021)),
         type: String = "UTBETALING"
     ) = """{
-  "@id": "$id",
+  "@id": "$hendelseId",
   "fødselsnummer": "12345678910",
   "utbetalingId": "$utbetalingId",
   "@event_name": "utbetaling_utbetalt",
-  "fom": "2021-05-06",
-  "tom": "2021-05-16",
+  "fom": "${sykdomstidslinje.first().dato}",
+  "tom": "${sykdomstidslinje.last().dato}",
   "maksdato": "2021-07-15",
   "forbrukteSykedager": "217",
   "gjenståendeSykedager": "31",
@@ -580,58 +642,14 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     "fom": "2021-05-06",
     "tom": "2021-05-16"
   },
-  "utbetalingsdager": [
-        {
-          "dato": "2021-05-06",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-07",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-08",
-          "type": "NavHelgeDag"
-        },
-        {
-          "dato": "2021-05-09",
-          "type": "NavHelgeDag"
-        },
-        {
-          "dato": "2021-05-10",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-11",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-12",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-13",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-14",
-          "type": "NavDag"
-        },
-        {
-          "dato": "2021-05-15",
-          "type": "NavHelgeDag"
-        },
-        {
-          "dato": "2021-05-16",
-          "type": "NavHelgeDag"
-        }
-  ],
-  "@opprettet": "${LocalDateTime.now()}",
+  "utbetalingsdager": ${sykdomstidslinje.toJson()},
+  "@opprettet": "2021-05-25T13:12:24.922420993",
   "aktørId": "123",
   "organisasjonsnummer": "123456789"
 }
     """
-@Language("json")
+
+    @Language("json")
     private fun utbetalingUtbetaltEnAvvistDag(
         id: UUID = UUID.randomUUID(),
         vedtaksperiodeId: UUID = UUID.randomUUID(),

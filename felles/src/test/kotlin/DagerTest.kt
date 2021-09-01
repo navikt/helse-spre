@@ -92,12 +92,13 @@ class DagerTest {
 
     @Test
     fun avvistDager() {
-        val dager = avvistDager(1.januar, 2.januar)
+        val dager = avvistDager(1.januar, 2.januar, listOf("avvist fordi"))
         val expected = objectMapper.readTree(dager.toJson())
         assertTrue(expected.isArray)
         assertEquals(2, expected.size())
         assertEquals(1.januar, expected[0]["dato"].asLocalDate())
         assertEquals(Dagtype.AVVISTDAG, Dagtype.from(expected[0]["type"].asText()))
+        assertEquals("avvist fordi", expected[0]["begrunnelser"][0].asText())
         assertEquals(2.januar, expected[1]["dato"].asLocalDate())
         assertEquals(Dagtype.AVVISTDAG, Dagtype.from(expected[1]["type"].asText()))
     }

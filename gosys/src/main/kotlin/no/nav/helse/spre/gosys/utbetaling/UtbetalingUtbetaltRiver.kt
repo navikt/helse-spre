@@ -36,11 +36,7 @@ internal class UtbetalingUtbetaltRiver(
                     "type",
                     "ident"
                 )
-                it.require("vedtaksperiodeIder") { node ->
-                    (node as ArrayNode).forEach { id ->
-                        UUID.fromString(id.asText())
-                    }
-                }
+                it.requireKey("vedtaksperiodeIder")
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
                 it.require("maksdato", JsonNode::asLocalDate)

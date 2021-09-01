@@ -32,7 +32,9 @@ data class Utbetaling(
 
     private fun alleVedtakOrNull(vedtakFattetDao: VedtakFattetDao) = vedtakFattetDao.finnVedtakFattetData(utbetalingId).let { vedtakFattetHendelser ->
         // Hvis vi har alle vedtak knyttet til utbetalingen kan vi gå videre med opprettelse av dokument
-        if (vedtakFattetHendelser.all { it.id in vedtaksperiodeIder }) vedtakFattetHendelser
+        // Hvis vi ikke har noen vedtak enda så null:
+        if(vedtakFattetHendelser.isEmpty()) return null
+        if (vedtakFattetHendelser.all { it.vedtaksperiodeId in vedtaksperiodeIder }) vedtakFattetHendelser
         else null
     }
 
