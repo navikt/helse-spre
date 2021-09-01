@@ -5,6 +5,8 @@ metadata:
   namespace: tbd
   labels:
     team: tbd
+  annotations:
+    kafka.nais.io/removeDataWhenResourceIsDeleted: "true"
 spec:
   pool: nav-dev
   config:
