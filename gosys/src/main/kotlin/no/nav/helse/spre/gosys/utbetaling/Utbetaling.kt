@@ -39,10 +39,13 @@ data class Utbetaling(
     }
 
     internal fun avgjørVidereBehandling(vedtakFattetDao: VedtakFattetDao, vedtakMediator: VedtakMediator) {
-        alleVedtakOrNull(vedtakFattetDao)?.let {
-            val fom = it.minOf { it.fom }
-            val tom = it.maxOf { it.tom }
-            val vedtaksperiode = it.first()
+        alleVedtakOrNull(vedtakFattetDao)?.let { vedtakFattetHendelser ->
+            val fom = vedtakFattetHendelser.minOf { it.fom }
+            val tom = vedtakFattetHendelser.maxOf { it.tom }
+            val vedtaksperiode = vedtakFattetHendelser.first()
+            check(vedtakFattetHendelser.all { it.fødselsnummer == fødselsnummer }) {
+                "Alvorlig feil: Vedtaket peker på utbetaling med et annet fødselnummer"
+            }
             vedtakMediator.opprettVedtak(fom, tom, vedtaksperiode.sykepengegrunnlag, vedtaksperiode.skjæringstidspunkt, this)
         }
     }
