@@ -343,7 +343,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     private fun vedtakPdfPayload() =
         VedtakPdfPayload(
             fødselsnummer = "12345678910",
-            fagsystemId = "123",
+            fagsystemId = "fagsystemId",
             type = "utbetalt",
             fom = LocalDate.of(2021, 5, 6),
             tom = LocalDate.of(2021, 5, 16),
@@ -352,7 +352,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             dagerIgjen = 31,
             automatiskBehandling = true,
             godkjentAv = "Automatisk behandlet",
-            totaltTilUtbetaling = 38360,
+            totaltTilUtbetaling = 10017,
             ikkeUtbetalteDager = listOf(),
             dagsats = 1431,
             sykepengegrunnlag = 565260.0,
@@ -597,7 +597,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         hendelseId: UUID = UUID.randomUUID(),
         utbetalingId: UUID = UUID.randomUUID(),
         vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID()),
-        sykdomstidslinje: List<Dag> = utbetalingsdager(fom = 5.mai(2021), tom = 16.mai(2021)),
+        sykdomstidslinje: List<Dag> = utbetalingsdager(fom = 6.mai(2021), tom = 16.mai(2021)),
         type: String = "UTBETALING"
     ) = """{
   "@id": "$hendelseId",
@@ -617,31 +617,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
   "vedtaksperiodeIder": [
     ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
   ],
-  "arbeidsgiverOppdrag": {
-    "mottaker": "123456789",
-    "fagområde": "SPREF",
-    "linjer": [
-      {
-        "fom": "2021-05-06",
-        "tom": "2021-05-16",
-        "dagsats": 1431,
-        "lønn": 2193,
-        "grad": 100.0,
-        "stønadsdager": 35,
-        "totalbeløp": 38360,
-        "endringskode": "UEND",
-        "delytelseId": 1,
-        "klassekode": "SPREFAG-IOP"
-      }
-    ],
-    "fagsystemId": "123",
-    "endringskode": "ENDR",
-    "tidsstempel": "${LocalDateTime.now()}",
-    "nettoBeløp": "38360",
-    "stønadsdager": 35,
-    "fom": "2021-05-06",
-    "tom": "2021-05-16"
-  },
+  "arbeidsgiverOppdrag": ${Oppdrag(sykdomstidslinje).toJson()},
   "utbetalingsdager": ${sykdomstidslinje.toJson()},
   "@opprettet": "2021-05-25T13:12:24.922420993",
   "aktørId": "123",

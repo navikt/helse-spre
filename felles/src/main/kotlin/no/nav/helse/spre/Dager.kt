@@ -17,7 +17,7 @@ private fun dagerFraTil(fom: LocalDate, tom: LocalDate, type: Dagtype, begrunnel
     }.toList()
 }
 
-class Dag(val dato: LocalDate, private val type: Dagtype, private val begrunnelser: List<String>?) {
+class Dag(val dato: LocalDate, val type: Dagtype, private val begrunnelser: List<String>?) {
     override fun toString(): String {
         return """{
                    "dato": "$dato",
