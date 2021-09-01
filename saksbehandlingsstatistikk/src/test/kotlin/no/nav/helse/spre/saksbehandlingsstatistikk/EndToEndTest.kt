@@ -4,6 +4,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.ikkeGodkjentGodkjenningBehovsLøsning
+import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.søknadArbeidsgiverData
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.søknadData
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtakFattet
 import no.nav.helse.spre.saksbehandlingsstatistikk.TestData.vedtaksperiodeAvvist
@@ -79,6 +80,27 @@ internal class EndToEndTest {
         )
 
         assertEquals(expected, sendtTilDVH)
+    }
+
+    @Test
+    fun `Arbeidsgiversøknad skal ikke føre til statistikkevent`() {
+        val søknadData = søknadData()
+
+        val vedtaksperiodeEndret = vedtaksperiodeEndretData(
+            hendelse = søknadData.hendelseId
+        )
+
+        val vedtakFattet = vedtakFattet(
+            hendelser = listOf(søknadData.hendelseId),
+            vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
+        )
+
+        testRapid.sendTestMessage(søknadData.json(eventType = "sendt_søknad_arbeidsgiver"))
+        testRapid.sendTestMessage(vedtaksperiodeEndret.json("MOTTATT_SYKMELDING_FERDIG_GAP"))
+        testRapid.sendTestMessage(vedtakFattet.json)
+
+        assertEquals(0, utgiver.meldinger.size)
+
     }
 
     @Test

@@ -17,7 +17,7 @@ internal class SøknadRiver(
         River(rapidsConnection).apply {
             validate { it.requireKey("@id", "@opprettet", "id") }
             validate { it.interestedIn("korrigerer") }
-            validate { it.requireAny("@event_name", listOf("sendt_søknad_nav", "sendt_søknad_arbeidsgiver")) }
+            validate { it.requireAny("@event_name", listOf("sendt_søknad_nav")) }
         }.register(this)
     }
 
