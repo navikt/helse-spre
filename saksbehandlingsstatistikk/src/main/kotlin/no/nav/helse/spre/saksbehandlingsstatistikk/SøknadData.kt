@@ -9,7 +9,7 @@ data class SøknadData(
     val hendelseId: UUID,
     val søknadId: UUID,
     val hendelseOpprettet: LocalDateTime,
-    val korrigerer: UUID?,
+    val korrigerer: UUID? = null,
 ) {
     val asSøknad
         get() =

@@ -46,17 +46,6 @@ internal class TilstandTest {
     }
 
     @Test
-    fun `håndterer duplikate dokumenter`() {
-        val søknadData = søknadData()
-
-        testRapid.sendTestMessage(søknadData.json("sendt_søknad_arbeidsgiver"))
-        testRapid.sendTestMessage(søknadData.json())
-
-        val søknadDokumentId = finnSøknadDokumentId(søknadData.hendelseId)
-        assertEquals(søknadData.søknadId, søknadDokumentId)
-    }
-
-    @Test
     fun `lagrer saksbehandlingsløp for automatisk behandlet søknad`() {
         val søknadData = søknadData()
 
