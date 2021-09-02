@@ -64,10 +64,10 @@ internal fun lagreUtbetaling(packet: JsonMessage, utbetalingDao: UtbetalingDao):
     val id = packet["@id"].asText().let { UUID.fromString(it) }
     val utbetalingId = packet["utbetalingId"].asText().let { UUID.fromString(it) }
     val event = packet["@event_name"].asText()
-    log.info("utbetaling_uten_utbetaling lest inn for utbetaling med id ${utbetalingId}")
+    log.info("$event lest inn for utbetaling med id $utbetalingId")
 
     val utbetalingData = Utbetaling.fromJson(packet)
     utbetalingDao.lagre(id, event, utbetalingData, packet.toJson())
-    log.info("${event} lagret for utbetaling med id ${utbetalingId} på id ${id}")
+    log.info("$event lagret for utbetaling med id $utbetalingId på id $id")
     return utbetalingData
 }
