@@ -2,6 +2,7 @@ package no.nav.helse.spre.gosys.utbetaling
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage.Companion.fraVedtakOgUtbetaling
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
@@ -16,6 +17,7 @@ internal class UtbetalingUtenUtbetalingRiver(
     rapidsConnection: RapidsConnection,
     private val utbetalingDao: UtbetalingDao,
     private val vedtakFattetDao: VedtakFattetDao,
+    private val duplikatsjekkDao: DuplikatsjekkDao,
     private val vedtakMediator: VedtakMediator
 ) : River.PacketListener {
 
@@ -51,10 +53,13 @@ internal class UtbetalingUtenUtbetalingRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val utbetaling = lagreUtbetaling(packet, utbetalingDao)
-        val vedtakFattet = vedtakFattetDao.finnVedtakFattetData(utbetaling.utbetalingId) ?: return
+        val id = UUID.fromString(packet["@id"].asText())
+        duplikatsjekkDao.sjekkDuplikat(id) {
+            val utbetaling = lagreUtbetaling(id, packet, utbetalingDao)
+            val vedtakFattet = vedtakFattetDao.finnVedtakFattetData(utbetaling.utbetalingId) ?: return@sjekkDuplikat
 
-        vedtakMediator.opprettVedtak(fraVedtakOgUtbetaling(vedtakFattet, utbetaling))
+            vedtakMediator.opprettVedtak(fraVedtakOgUtbetaling(vedtakFattet, utbetaling))
+        }
     }
 
 }

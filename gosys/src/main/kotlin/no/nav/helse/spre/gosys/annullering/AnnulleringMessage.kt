@@ -24,9 +24,9 @@ class AnnulleringMessage private constructor(
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
 
-    constructor(packet: JsonMessage) :
+    constructor(hendelseId: UUID, packet: JsonMessage) :
         this(
-            hendelseId = UUID.fromString(packet["@id"].asText()),
+            hendelseId = hendelseId,
             fødselsnummer = packet["fødselsnummer"].asText(),
             aktørId = packet["aktørId"].asText(),
             organisasjonsnummer = packet["organisasjonsnummer"].asText(),

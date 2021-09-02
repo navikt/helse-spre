@@ -3,32 +3,26 @@ package no.nav.helse.spre.gosys.vedtak
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.*
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
-import java.lang.IllegalArgumentException
+import java.time.LocalDate
 
-class VedtakMediator(
-    private val pdfClient: PdfClient,
-    private val joarkClient: JoarkClient,
-    private val duplikatsjekkDao: DuplikatsjekkDao
-) {
+class VedtakMediator(private val pdfClient: PdfClient, private val joarkClient: JoarkClient) {
     internal fun opprettVedtak(vedtakMessage: VedtakMessage) {
         if (vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
-        duplikatsjekkDao.sjekkDuplikat(vedtakMessage.hendelseId) {
-            runBlocking {
-                val pdf = pdfClient.hentVedtakPdf(vedtakMessage.toVedtakPdfPayload())
-                val journalpostPayload = JournalpostPayload(
-                    tittel = journalpostTittel(vedtakMessage.type),
-                    bruker = JournalpostPayload.Bruker(id = vedtakMessage.fødselsnummer),
-                    dokumenter = listOf(
-                        JournalpostPayload.Dokument(
-                            tittel = dokumentTittel(vedtakMessage),
-                            dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdf))
-                        )
+        runBlocking {
+            val pdf = pdfClient.hentVedtakPdf(vedtakMessage.toVedtakPdfPayload())
+            val journalpostPayload = JournalpostPayload(
+                tittel = journalpostTittel(vedtakMessage.type),
+                bruker = JournalpostPayload.Bruker(id = vedtakMessage.fødselsnummer),
+                dokumenter = listOf(
+                    JournalpostPayload.Dokument(
+                        tittel = dokumentTittel(vedtakMessage),
+                        dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdf))
                     )
                 )
-                joarkClient.opprettJournalpost(vedtakMessage.hendelseId, journalpostPayload).let { success ->
-                    if (success) log.info("Vedtak journalført for aktør: ${vedtakMessage.aktørId}")
-                    else log.warn("Feil oppstod under journalføring av vedtak")
-                }
+            )
+            joarkClient.opprettJournalpost(vedtakMessage.hendelseId, journalpostPayload).let { success ->
+                if (success) log.info("Vedtak journalført for aktør: ${vedtakMessage.aktørId}")
+                else log.warn("Feil oppstod under journalføring av vedtak")
             }
         }
     }

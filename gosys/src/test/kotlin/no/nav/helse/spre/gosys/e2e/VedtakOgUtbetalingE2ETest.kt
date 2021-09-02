@@ -33,9 +33,9 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     val utbetalingDao = UtbetalingDao(dataSource)
 
     init {
-        VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, vedtakMediator)
-        UtbetalingUtbetaltRiver(testRapid, utbetalingDao, vedtakFattetDao, vedtakMediator)
-        UtbetalingUtenUtbetalingRiver(testRapid, utbetalingDao, vedtakFattetDao, vedtakMediator)
+        VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
+        UtbetalingUtbetaltRiver(testRapid, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
+        UtbetalingUtenUtbetalingRiver(testRapid, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
     }
 
     companion object {

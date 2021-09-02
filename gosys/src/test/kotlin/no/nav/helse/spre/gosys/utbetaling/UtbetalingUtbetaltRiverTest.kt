@@ -14,7 +14,7 @@ internal class UtbetalingUtbetaltRiverTest: AbstractE2ETest() {
     val vedtakFattetDao = VedtakFattetDao(dataSource)
 
     init {
-        UtbetalingUtbetaltRiver(testRapid, utbetalingDao, vedtakFattetDao, vedtakMediator)
+        UtbetalingUtbetaltRiver(testRapid, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
     }
 
     @Test

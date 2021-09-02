@@ -65,20 +65,20 @@ fun launchApplication(
     val dataSource = dataSourceBuilder.getDataSource()
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
 
-    val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
-    val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
-    val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient, duplikatsjekkDao)
+    val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
+    val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient)
+    val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val utbetalingDao = UtbetalingDao(dataSource)
 
     return RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(environment)).build()
         .apply {
-            AnnulleringRiver(this, annulleringMediator)
-            FeriepengerRiver(this, feriepengerMediator)
-            VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, vedtakMediator)
-            UtbetalingUtbetaltRiver(this, utbetalingDao, vedtakFattetDao, vedtakMediator)
-            UtbetalingUtenUtbetalingRiver(this, utbetalingDao, vedtakFattetDao, vedtakMediator)
+            AnnulleringRiver(this, duplikatsjekkDao, annulleringMediator)
+            FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
+            VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
+            UtbetalingUtbetaltRiver(this, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
+            UtbetalingUtenUtbetalingRiver(this, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
         }
 }
 

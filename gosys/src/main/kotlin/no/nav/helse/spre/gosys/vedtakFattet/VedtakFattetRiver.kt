@@ -2,6 +2,7 @@ package no.nav.helse.spre.gosys.vedtakFattet
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage.Companion.fraVedtakOgUtbetaling
@@ -16,6 +17,7 @@ internal class VedtakFattetRiver(
     rapidsConnection: RapidsConnection,
     private val vedtakFattetDao: VedtakFattetDao,
     private val utbetalingDao: UtbetalingDao,
+    private val duplikatsjekkDao: DuplikatsjekkDao,
     private val vedtakMediator: VedtakMediator
 ) : River.PacketListener {
 
@@ -44,23 +46,24 @@ internal class VedtakFattetRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val id = packet["@id"].asText().let { UUID.fromString(it) }
-        val utbetalingId = packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let { UUID.fromString(it.asText()) }
-        val vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
-        log.info("vedtak_fattet leses inn for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId")
+        val id = UUID.fromString(packet["@id"].asText())
+        duplikatsjekkDao.sjekkDuplikat(id) {
+            val utbetalingId =
+                packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let { UUID.fromString(it.asText()) }
+            val vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
+            log.info("vedtak_fattet leses inn for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId")
 
-        val vedtakFattet = VedtakFattetData.fromJson(packet)
-        vedtakFattetDao.lagre(vedtakFattet, packet.toJson())
-        log.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
+            val vedtakFattet = VedtakFattetData.fromJson(id, packet)
+            vedtakFattetDao.lagre(vedtakFattet, packet.toJson())
+            log.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
 
-        val utbetaling = utbetalingId?.let(utbetalingDao::finnUtbetalingData) ?: return
+            val utbetaling = utbetalingId?.let(utbetalingDao::finnUtbetalingData) ?: return@sjekkDuplikat
 
-        vedtakMediator.opprettVedtak(fraVedtakOgUtbetaling(vedtakFattet, utbetaling))
-
+            vedtakMediator.opprettVedtak(fraVedtakOgUtbetaling(vedtakFattet, utbetaling))
+        }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         tjenestekall.info("Noe gikk galt: {}", problems.toExtendedReport())
     }
-
 }

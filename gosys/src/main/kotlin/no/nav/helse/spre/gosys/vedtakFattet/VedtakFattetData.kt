@@ -23,8 +23,8 @@ data class VedtakFattetData(
     val utbetalingId: UUID?
 ) {
     companion object {
-        fun fromJson(packet: JsonMessage) = VedtakFattetData(
-            id = packet["@id"].asText().let{UUID.fromString(it)},
+        fun fromJson(hendelseId: UUID, packet: JsonMessage) = VedtakFattetData(
+            id = hendelseId,
             aktørId = packet["aktørId"].asText(),
             fødselsnummer = packet["fødselsnummer"].asText(),
             opprettet = packet["@opprettet"].asLocalDateTime(),

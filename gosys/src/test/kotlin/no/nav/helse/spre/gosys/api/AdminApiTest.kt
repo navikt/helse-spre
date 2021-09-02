@@ -36,7 +36,7 @@ class AdminApiTest {
 
         val dataSource = setupDataSourceMedFlyway()
         val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
-        val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
+        val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
         val slot = mutableListOf<VedtakPdfPayload>()
 
         coEvery { pdfClient.hentVedtakPdf(capture(slot)) } returns ""

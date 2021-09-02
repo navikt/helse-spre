@@ -20,10 +20,10 @@ internal class FeriepengerRiverTest {
     private val pdfClient = mockk<PdfClient>(relaxed = true)
     val dataSource = setupDataSourceMedFlyway()
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
-    private val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient, duplikatsjekkDao)
+    private val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     init {
-        FeriepengerRiver(testRapid, feriepengerMediator)
+        FeriepengerRiver(testRapid, duplikatsjekkDao, feriepengerMediator)
     }
 
     @BeforeEach

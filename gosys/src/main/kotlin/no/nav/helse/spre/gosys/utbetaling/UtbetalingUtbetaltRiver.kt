@@ -2,6 +2,7 @@ package no.nav.helse.spre.gosys.utbetaling
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage.Companion.fraVedtakOgUtbetaling
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
@@ -16,6 +17,7 @@ internal class UtbetalingUtbetaltRiver(
     rapidsConnection: RapidsConnection,
     private val utbetalingDao: UtbetalingDao,
     private val vedtakFattetDao: VedtakFattetDao,
+    private val duplikatsjekkDao: DuplikatsjekkDao,
     private val vedtakMediator: VedtakMediator
 ) : River.PacketListener {
 
@@ -51,23 +53,23 @@ internal class UtbetalingUtbetaltRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val utbetaling = lagreUtbetaling(packet, utbetalingDao)
-        val vedtakFattet = vedtakFattetDao.finnVedtakFattetData(utbetaling.utbetalingId) ?: return
+        val id = UUID.fromString(packet["@id"].asText())
+        duplikatsjekkDao.sjekkDuplikat(id) {
+            val utbetaling = lagreUtbetaling(id, packet, utbetalingDao)
+            val vedtakFattet = vedtakFattetDao.finnVedtakFattetData(utbetaling.utbetalingId) ?: return@sjekkDuplikat
 
-        vedtakMediator.opprettVedtak(fraVedtakOgUtbetaling(vedtakFattet, utbetaling))
+            vedtakMediator.opprettVedtak(fraVedtakOgUtbetaling(vedtakFattet, utbetaling))
+        }
     }
-
 }
 
-
-internal fun lagreUtbetaling(packet: JsonMessage, utbetalingDao: UtbetalingDao): Utbetaling {
-    val id = packet["@id"].asText().let { UUID.fromString(it) }
+internal fun lagreUtbetaling(hendelseId: UUID, packet: JsonMessage, utbetalingDao: UtbetalingDao): Utbetaling {
     val utbetalingId = packet["utbetalingId"].asText().let { UUID.fromString(it) }
     val event = packet["@event_name"].asText()
     log.info("$event lest inn for utbetaling med id $utbetalingId")
 
     val utbetalingData = Utbetaling.fromJson(packet)
-    utbetalingDao.lagre(id, event, utbetalingData, packet.toJson())
-    log.info("$event lagret for utbetaling med id $utbetalingId på id $id")
+    utbetalingDao.lagre(hendelseId, event, utbetalingData, packet.toJson())
+    log.info("$event lagret for utbetaling med id $utbetalingId på id $hendelseId")
     return utbetalingData
 }

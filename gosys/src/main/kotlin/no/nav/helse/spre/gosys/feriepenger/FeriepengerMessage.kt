@@ -7,8 +7,8 @@ import no.nav.helse.rapids_rivers.asLocalDateTime
 import java.time.LocalDateTime
 import java.util.*
 
-class FeriepengerMessage(packet: JsonMessage) {
-    val hendelseId = UUID.fromString(packet["@id"].asText())
+class FeriepengerMessage(hendelseId: UUID, packet: JsonMessage) {
+    val hendelseId = hendelseId
     val fødselsnummer = packet["fødselsnummer"].asText()
     val aktørId = packet["aktørId"].asText()
     val oppdrag = mutableListOf<Oppdrag>()

@@ -1,10 +1,12 @@
-package no.nav.helse.spre.gosys.annullering
+package no.nav.helse.spre.gosys.e2e
 
 import io.ktor.client.engine.mock.*
 import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.JournalpostPayload
-import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
+import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
+import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayload
+import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
 import no.nav.helse.spre.gosys.objectMapper
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -14,11 +16,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-internal class AnnulleringRiverTest : AbstractE2ETest() {
-    private val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient, duplikatsjekkDao)
+internal class AnnulleringE2ETest : AbstractE2ETest() {
+    private val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient)
 
     init {
-        AnnulleringRiver(testRapid, annulleringMediator)
+        AnnulleringRiver(testRapid, duplikatsjekkDao, annulleringMediator)
     }
 
     @BeforeEach

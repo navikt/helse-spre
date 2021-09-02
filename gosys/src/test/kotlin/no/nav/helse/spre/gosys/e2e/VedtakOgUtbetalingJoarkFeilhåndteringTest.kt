@@ -21,8 +21,8 @@ internal class VedtakOgUtbetalingJoarkFeilhåndteringTest : AbstractE2ETest() {
     private val utbetalingDao = UtbetalingDao(dataSource)
 
     init {
-        VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, vedtakMediator)
-        UtbetalingUtbetaltRiver(testRapid, utbetalingDao, vedtakFattetDao, vedtakMediator)
+        VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
+        UtbetalingUtbetaltRiver(testRapid, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
     }
 
     @Test

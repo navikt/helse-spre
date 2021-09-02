@@ -11,7 +11,9 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.gosys.*
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.TestInstance
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal abstract class AbstractE2ETest {
 
     protected val testRapid = TestRapid()
@@ -26,7 +28,7 @@ internal abstract class AbstractE2ETest {
     }
     protected val joarkClient = JoarkClient("https://url.no", stsMock, mockClient)
     protected val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
-    protected val vedtakMediator = VedtakMediator(pdfClient, joarkClient, duplikatsjekkDao)
+    protected val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
 
     @BeforeEach
     internal fun abstractSetup() {

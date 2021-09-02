@@ -3,11 +3,14 @@ package no.nav.helse.spre.gosys.annullering
 import com.fasterxml.jackson.databind.JsonNode
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.sikkerLogg
+import java.util.*
 
 class AnnulleringRiver(
     rapidsConnection: RapidsConnection,
+    private val duplikatsjekkDao: DuplikatsjekkDao,
     private val annulleringMediator: AnnulleringMediator
 ) : River.PacketListener {
     init {
@@ -34,10 +37,13 @@ class AnnulleringRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        log.info("Oppdaget annullering-event {}", StructuredArguments.keyValue("id", packet["@id"].asText()))
-        sikkerLogg.info("utbetaling_annullert lest inn: {}", packet.toJson())
+        val id = UUID.fromString(packet["@id"].asText())
+        duplikatsjekkDao.sjekkDuplikat(id) {
+            log.info("Oppdaget annullering-event {}", StructuredArguments.keyValue("id", packet["@id"].asText()))
+            sikkerLogg.info("utbetaling_annullert lest inn: {}", packet.toJson())
 
-        val annulleringMessage = AnnulleringMessage(packet)
-        annulleringMediator.opprettAnnullering(annulleringMessage)
+            val annulleringMessage = AnnulleringMessage(id, packet)
+            annulleringMediator.opprettAnnullering(annulleringMessage)
+        }
     }
 }

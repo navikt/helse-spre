@@ -14,7 +14,7 @@ internal class VedtakFattetRiverTest: AbstractE2ETest() {
 
 
     init {
-        VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, vedtakMediator)
+        VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
     }
 
     @Test
