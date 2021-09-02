@@ -1,0 +1,1 @@
+ALTER TABLE vedtak_fattet DROP CONSTRAINT vedtak_fattet_utbetaling_id_key;

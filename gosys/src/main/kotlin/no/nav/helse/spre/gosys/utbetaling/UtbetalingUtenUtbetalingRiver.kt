@@ -1,6 +1,7 @@
 package no.nav.helse.spre.gosys.utbetaling
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ArrayNode
 import no.nav.helse.rapids_rivers.*
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
@@ -38,6 +39,11 @@ internal class UtbetalingUtenUtbetalingRiver(
                     "type",
                     "ident"
                 )
+                it.require("vedtaksperiodeIder") { node ->
+                    (node as ArrayNode).forEach { id ->
+                        UUID.fromString(id.asText())
+                    }
+                }
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
                 it.require("maksdato", JsonNode::asLocalDate)
@@ -56,11 +62,8 @@ internal class UtbetalingUtenUtbetalingRiver(
         val id = UUID.fromString(packet["@id"].asText())
         duplikatsjekkDao.sjekkDuplikat(id) {
             val utbetaling = lagreUtbetaling(id, packet, utbetalingDao)
-            val vedtakFattet = vedtakFattetDao.finnVedtakFattetData(utbetaling.utbetalingId) ?: return@sjekkDuplikat
-
-            vedtakMediator.opprettVedtak(fraVedtakOgUtbetaling(vedtakFattet, utbetaling))
+            utbetaling.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
         }
     }
-
 }
 
