@@ -6,6 +6,17 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import java.time.LocalDate
 
 class VedtakMediator(private val pdfClient: PdfClient, private val joarkClient: JoarkClient) {
+    internal fun opprettVedtak(
+        fom: LocalDate,
+        tom: LocalDate,
+        sykepengegrunnlag: Double,
+        skjæringstidspunkt: LocalDate,
+        utbetaling: Utbetaling
+    ) {
+        val vedtak = VedtakMessage(fom, tom, sykepengegrunnlag, skjæringstidspunkt, utbetaling)
+        opprettVedtak(vedtak)
+    }
+
     internal fun opprettVedtak(vedtakMessage: VedtakMessage) {
         if (vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
         runBlocking {

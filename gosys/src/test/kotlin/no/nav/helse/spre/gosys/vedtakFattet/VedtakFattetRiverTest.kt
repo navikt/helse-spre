@@ -5,6 +5,7 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
 import java.util.*
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 internal class VedtakFattetRiverTest: AbstractE2ETest() {
@@ -22,6 +23,15 @@ internal class VedtakFattetRiverTest: AbstractE2ETest() {
         val utbetalingId = UUID.randomUUID()
         testRapid.sendTestMessage(vedtakFattetMedUtbetaling(utbetalingId = utbetalingId))
         assertNotNull(vedtakFattetDao.finnVedtakFattetData(utbetalingId))
+    }
+
+    @Test
+    fun `kan lagre flere vedtak knyttet til samme utbetaling`() {
+        val utbetalingId = UUID.randomUUID()
+        sendUtbetaling(utbetalingId = utbetalingId)
+        sendVedtakFattet(utbetalingId = utbetalingId)
+        sendVedtakFattet(utbetalingId = utbetalingId)
+        assertEquals(2, vedtakFattetDao.finnVedtakFattetData(utbetalingId).size)
     }
 
     @Language("json")

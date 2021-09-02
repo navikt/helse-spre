@@ -3,8 +3,13 @@ package no.nav.helse.spre.gosys.utbetaling
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.asLocalDate
+import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.helse.spre.gosys.vedtak.VedtakMediator
+import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
+import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 data class Utbetaling(
@@ -21,8 +26,34 @@ data class Utbetaling(
     val arbeidsgiverOppdrag: OppdragDto,
     val type: Utbetalingtype,
     val ident: String,
-    val ikkeUtbetalingsdager: List<UtbetalingdagDto>
+    val vedtaksperiodeIder: List<UUID>,
+    val ikkeUtbetalingsdager: List<UtbetalingdagDto>,
+    val opprettet: LocalDateTime
 ) {
+
+    private fun alleVedtakOrNull(vedtakFattetDao: VedtakFattetDao) = vedtakFattetDao.finnVedtakFattetData(utbetalingId).let { vedtakFattetHendelser ->
+        // Hvis vi har alle vedtak knyttet til utbetalingen kan vi gå videre med opprettelse av dokument
+        // Hvis vi ikke har noen vedtak enda så null:
+        if(vedtakFattetHendelser.isEmpty()) return null
+        if (vedtaksperiodeIder.harAlle(vedtakFattetHendelser)) vedtakFattetHendelser
+        else null
+    }
+
+    private fun List<UUID>.harAlle(vedtakFattet: List<VedtakFattetData>) = all { vedtaksperiodeId ->
+        vedtaksperiodeId in vedtakFattet.map { it.vedtaksperiodeId }
+    }
+
+    internal fun avgjørVidereBehandling(vedtakFattetDao: VedtakFattetDao, vedtakMediator: VedtakMediator) {
+        alleVedtakOrNull(vedtakFattetDao)?.let { vedtakFattetHendelser ->
+            val fom = vedtakFattetHendelser.minOf { it.fom }
+            val tom = vedtakFattetHendelser.maxOf { it.tom }
+            val vedtaksperiode = vedtakFattetHendelser.first()
+            check(vedtakFattetHendelser.all { it.fødselsnummer == fødselsnummer }) {
+                "Alvorlig feil: Vedtaket peker på utbetaling med et annet fødselnummer"
+            }
+            vedtakMediator.opprettVedtak(fom, tom, vedtaksperiode.sykepengegrunnlag, vedtaksperiode.skjæringstidspunkt, this)
+        }
+    }
 
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
 
@@ -60,6 +91,9 @@ data class Utbetaling(
                 arbeidsgiverOppdrag = arbeidsgiverOppdrag,
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
+                vedtaksperiodeIder = packet["vedtaksperiodeIder"].toList()
+                    .map { UUID.fromString(it.asText()) },
+                opprettet = packet["@opprettet"].asLocalDateTime(),
                 ikkeUtbetalingsdager = packet["utbetalingsdager"].toList()
                     .filter { dag -> erIkkeUtbetaltDag(dag) }
                     .map { dag ->
@@ -106,6 +140,9 @@ data class Utbetaling(
                 arbeidsgiverOppdrag = arbeidsgiverOppdrag,
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
+                vedtaksperiodeIder = packet["vedtaksperiodeIder"].toList()
+                    .map { UUID.fromString(it.asText()) },
+                opprettet = packet["@opprettet"].asLocalDateTime(),
                 ikkeUtbetalingsdager = packet["utbetalingsdager"].toList()
                     .filter(::erIkkeUtbetaltDag)
                     .map { dag ->

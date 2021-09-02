@@ -38,13 +38,11 @@ class VedtakFattetDao(private val dataSource: DataSource) {
         }
     }
 
-    internal fun finnVedtakFattetData(utbetalingId: UUID): VedtakFattetData? = finnJsonHvisFinnes(utbetalingId)?.let {
-        fromJson(
-            it
-        )
+    internal fun finnVedtakFattetData(utbetalingId: UUID): List<VedtakFattetData> = finnJsonHvisFinnes(utbetalingId).let { vedtakFattetJson ->
+        vedtakFattetJson.map { fromJson(it) }
     }
 
-    private fun finnJsonHvisFinnes(utbetalingId: UUID): String? =
+    private fun finnJsonHvisFinnes(utbetalingId: UUID): List<String> =
         sessionOf(dataSource).use { session ->
             @Language("PostgreSQL")
             val query = "SELECT data FROM vedtak_fattet WHERE utbetaling_id = ?"
@@ -52,7 +50,7 @@ class VedtakFattetDao(private val dataSource: DataSource) {
                 queryOf(
                     query,
                     utbetalingId,
-                ).map { it.string("data") }.asSingle
+                ).map { it.string("data") }.asList
             )
         }
 
