@@ -57,6 +57,7 @@ class OppgaveObserver(
     }
 
     private fun Oppgave.Tilstand.timeout(): LocalDateTime? = when (this) {
+        Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet,
         Oppgave.Tilstand.SpleisLest -> LocalDateTime.now().plusDays(110)
         else -> null
     }
