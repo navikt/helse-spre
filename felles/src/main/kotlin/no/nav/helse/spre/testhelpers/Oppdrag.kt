@@ -2,6 +2,7 @@ package no.nav.helse.spre.testhelpers
 
 import java.time.DayOfWeek
 import java.time.LocalDateTime
+import kotlin.streams.toList
 
 /* Typet objekt for å lage en json-representasjon av et oppdrag, til bruk i test av
 * eventet utbetaling_utbetalt (og potensielt andre eventer)

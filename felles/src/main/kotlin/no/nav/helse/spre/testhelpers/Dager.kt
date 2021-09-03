@@ -2,6 +2,7 @@ package no.nav.helse.spre.testhelpers
 
 import java.time.DayOfWeek
 import java.time.LocalDate
+import kotlin.streams.toList
 
 fun utbetalingsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.UTBETALINGSDAG)
 fun arbeidsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.ARBEIDSDAG)
