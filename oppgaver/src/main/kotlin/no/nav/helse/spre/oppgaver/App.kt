@@ -20,6 +20,7 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .registerModule(JavaTimeModule())
 
 internal val log = LoggerFactory.getLogger("helse-spre-oppgaver")
+internal val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
 internal val onPremOppgaveTopicName = "aapen-helse-spre-oppgaver"
 internal val aivenOppgaveTopicName = "tbd.spre-oppgaver"
 

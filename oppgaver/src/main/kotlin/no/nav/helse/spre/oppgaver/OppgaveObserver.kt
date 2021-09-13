@@ -25,7 +25,9 @@ class OppgaveObserver(
                     oppdateringstype = oppgave.tilstand.toDTO(),
                     dokumentId = oppgave.dokumentId,
                     timeout = oppgave.tilstand.timeout(),
-                )
+                ).also { dto ->
+                    log.info("Legger oppgavestyringsmelding på rapid:\n{}", dto)
+                }
             )
         ) }
 
