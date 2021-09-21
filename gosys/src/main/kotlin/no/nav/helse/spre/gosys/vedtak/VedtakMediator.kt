@@ -10,10 +10,11 @@ class VedtakMediator(private val pdfClient: PdfClient, private val joarkClient: 
         fom: LocalDate,
         tom: LocalDate,
         sykepengegrunnlag: Double,
+        grunnlagForSykepengegrunnlag: Map<String, Double>,
         skjæringstidspunkt: LocalDate,
         utbetaling: Utbetaling
     ) {
-        val vedtak = VedtakMessage(fom, tom, sykepengegrunnlag, skjæringstidspunkt, utbetaling)
+        val vedtak = VedtakMessage(fom, tom, sykepengegrunnlag, grunnlagForSykepengegrunnlag, skjæringstidspunkt, utbetaling)
         opprettVedtak(vedtak)
     }
 

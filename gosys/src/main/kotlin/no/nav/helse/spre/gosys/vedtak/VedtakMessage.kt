@@ -2,7 +2,6 @@ package no.nav.helse.spre.gosys.vedtak
 
 import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.spre.gosys.log
-import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
 import java.time.LocalDate
@@ -25,6 +24,7 @@ data class VedtakMessage private constructor(
     private val godkjentAv: String,
     private val maksdato: LocalDate?,
     private val sykepengegrunnlag: Double,
+    private val grunnlagForSykepengegrunnlag: Map<String, Double>,
     private val utbetaling: Utbetaling,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>
 ) {
@@ -49,6 +49,7 @@ data class VedtakMessage private constructor(
         fom: LocalDate,
         tom: LocalDate,
         sykepengegrunnlag: Double,
+        grunnlagForSykepengegrunnlag: Map<String, Double>,
         skjæringstidspunkt: LocalDate,
         utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling
     ) : this(
@@ -65,6 +66,7 @@ data class VedtakMessage private constructor(
         godkjentAv = utbetaling.ident,
         maksdato = utbetaling.maksdato,
         sykepengegrunnlag = sykepengegrunnlag,
+        grunnlagForSykepengegrunnlag = grunnlagForSykepengegrunnlag,
         utbetaling = utbetaling.arbeidsgiverOppdrag.takeIf { it.fagområde == "SPREF" }!!.let { oppdrag ->
             Utbetaling(
                 fagområde = Utbetaling.Fagområde.SPREF,
@@ -108,6 +110,7 @@ data class VedtakMessage private constructor(
                 godkjentAv = utbetaling.ident,
                 maksdato = utbetaling.maksdato,
                 sykepengegrunnlag = vedtak.sykepengegrunnlag,
+                grunnlagForSykepengegrunnlag = vedtak.grunnlagForSykepengegrunnlag,
                 utbetaling = utbetaling.arbeidsgiverOppdrag.takeIf { it.fagområde == "SPREF" }!!.let { oppdrag ->
                     Utbetaling(
                         fagområde = Utbetaling.Fagområde.SPREF,
@@ -150,6 +153,7 @@ data class VedtakMessage private constructor(
                 godkjentAv = vedtak.godkjentAv,
                 maksdato = vedtak.maksdato,
                 sykepengegrunnlag = vedtak.sykepengegrunnlag,
+                grunnlagForSykepengegrunnlag = vedtak.grunnlagForSykepengegrunnlag,
                 utbetaling = Utbetaling(vedtak.utbetalt.find { it.fagområde == IO.Fagområde.SPREF }!!),
                 ikkeUtbetalteDager = vedtak.ikkeUtbetalteDager.map { IkkeUtbetaltDag(it) }
             )
@@ -178,6 +182,7 @@ data class VedtakMessage private constructor(
         godkjentAv = godkjentAv,
         maksdato = maksdato,
         sykepengegrunnlag = sykepengegrunnlag,
+        grunnlagForSykepengegrunnlag = grunnlagForSykepengegrunnlag,
         ikkeUtbetalteDager = ikkeUtbetalteDager
             .settSammenIkkeUtbetalteDager()
             .map {

@@ -47,6 +47,10 @@ val mockUtbetalinger = listOf(
     "automatiskBehandling": false,
     "opprettet": "2020-07-06T13:21:02.769962",
     "sykepengegrunnlag": 420000.0,
+    "grunnlagForSykepengegrunnlag": {
+      "123456789": 1234.56,
+      "987654321": 6543.21
+    },
     "månedsinntekt": 35000.0,
     "maksdato": "2021-05-28",
     "system_read_count": 0,

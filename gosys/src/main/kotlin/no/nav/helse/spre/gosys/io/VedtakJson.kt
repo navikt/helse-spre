@@ -3,13 +3,12 @@
 
 package no.nav.helse.spre.gosys.io
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
-import no.nav.helse.spre.gosys.utbetaling.Utbetaling
-import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 
 class IO {
     @Serializable
@@ -25,6 +24,7 @@ class IO {
         val godkjentAv: String,
         val automatiskBehandling: Boolean,
         val sykepengegrunnlag: Double,
+        val grunnlagForSykepengegrunnlag: Map<String, Double>,
         val maksdato: LocalDate,
         val `@id`: UUID,
         val `@opprettet`: LocalDateTime,

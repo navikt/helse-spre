@@ -8,7 +8,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-internal class VedtakFattetRiverTest: AbstractE2ETest() {
+internal class VedtakFattetRiverTest : AbstractE2ETest() {
 
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val utbetalingDao = UtbetalingDao(dataSource)
@@ -63,6 +63,10 @@ internal class VedtakFattetRiverTest: AbstractE2ETest() {
   ],
   "skjæringstidspunkt": "2021-01-07",
   "sykepengegrunnlag": 565260.0,
+  "grunnlagForSykepengegrunnlagPerArbeidsgiver": {
+    "123456789": 1234.56,
+    "987654321": 6543.21
+  },
   "inntekt": 47105.0,
   "aktørId": "9000011921123",
   "organisasjonsnummer": "123456789",

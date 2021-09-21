@@ -33,7 +33,8 @@ internal class VedtakFattetRiver(
                     "hendelser",
                     "sykepengegrunnlag",
                     "inntekt",
-                    "@forårsaket_av.event_name"
+                    "@forårsaket_av.event_name",
+                    "grunnlagForSykepengegrunnlagPerArbeidsgiver"
                 )
                 message.require("fom", JsonNode::asLocalDate)
                 message.require("tom", JsonNode::asLocalDate)

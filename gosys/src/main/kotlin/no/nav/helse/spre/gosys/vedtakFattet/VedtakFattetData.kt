@@ -1,10 +1,12 @@
 package no.nav.helse.spre.gosys.vedtakFattet
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.helse.spre.gosys.objectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -17,6 +19,7 @@ data class VedtakFattetData(
     val opprettet: LocalDateTime,
     val erAvsluttetUtenGodkjenning: Boolean,
     val sykepengegrunnlag: Double,
+    val grunnlagForSykepengegrunnlag: Map<String, Double>,
     val fom: LocalDate,
     val tom: LocalDate,
     val skjæringstidspunkt: LocalDate,
@@ -31,6 +34,7 @@ data class VedtakFattetData(
             vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText()),
             erAvsluttetUtenGodkjenning = packet["@forårsaket_av.event_name"].asText() == "sendt_søknad_arbeidsgiver",
             sykepengegrunnlag = packet["sykepengegrunnlag"].asDouble(),
+            grunnlagForSykepengegrunnlag = objectMapper.readValue(packet["grunnlagForSykepengegrunnlagPerArbeidsgiver"].toString(), object: TypeReference<Map<String, Double>>() {}),
             fom = packet["fom"].asLocalDate(),
             tom = packet["tom"].asLocalDate(),
             skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),
@@ -47,6 +51,7 @@ data class VedtakFattetData(
             vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText()),
             erAvsluttetUtenGodkjenning = packet["@forårsaket_av"]["event_name"].asText() == "sendt_søknad_arbeidsgiver",
             sykepengegrunnlag = packet["sykepengegrunnlag"].asDouble(),
+            grunnlagForSykepengegrunnlag = objectMapper.readValue(packet["grunnlagForSykepengegrunnlagPerArbeidsgiver"].toString(), object: TypeReference<Map<String, Double>>() {}),
             fom = packet["fom"].asLocalDate(),
             tom = packet["tom"].asLocalDate(),
             skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),

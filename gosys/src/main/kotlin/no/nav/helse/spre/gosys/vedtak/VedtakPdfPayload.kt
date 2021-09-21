@@ -18,7 +18,8 @@ data class VedtakPdfPayload(
     val ikkeUtbetalteDager: List<IkkeUtbetalteDager>,
     val dagsats: Int?,
     val maksdato: LocalDate?,
-    val sykepengegrunnlag: Double
+    val sykepengegrunnlag: Double,
+    val grunnlagForSykepengegrunnlag: Map<String, Double>
 ) {
     data class Linje(
         val fom: LocalDate,

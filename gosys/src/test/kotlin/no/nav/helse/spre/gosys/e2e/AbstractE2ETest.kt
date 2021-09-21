@@ -136,6 +136,7 @@ internal abstract class AbstractE2ETest {
             ikkeUtbetalteDager = ikkeUtbetalteDager,
             dagsats = 1431,
             sykepengegrunnlag = 565260.0,
+            grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
             maksdato = LocalDate.of(2021, 7, 15),
             linjer = linjer
         )
@@ -207,6 +208,10 @@ internal abstract class AbstractE2ETest {
     ],
     "skjæringstidspunkt": "$fom",
     "sykepengegrunnlag": 565260.0,
+    "grunnlagForSykepengegrunnlagPerArbeidsgiver": {
+      "123456789": 265260.0,
+      "987654321": 300000.21
+    },
     "inntekt": 47105.0,
     "aktørId": "123",
     "organisasjonsnummer": "123456789",
@@ -226,7 +231,7 @@ internal abstract class AbstractE2ETest {
     "@id": "$hendelseId",
     "fødselsnummer": "$fødselsnummer",
     "utbetalingId": "$utbetalingId",
-    "@event_name": ${if (sykdomstidslinje.none {it.type == Dagtype.UTBETALINGSDAG}) "\"utbetaling_uten_utbetaling\"" else "\"utbetaling_utbetalt\""},
+    "@event_name": ${if (sykdomstidslinje.none { it.type == Dagtype.UTBETALINGSDAG }) "\"utbetaling_uten_utbetaling\"" else "\"utbetaling_utbetalt\""},
     "fom": "${sykdomstidslinje.first().dato}",
     "tom": "${sykdomstidslinje.last().dato}",
     "maksdato": "2021-07-15",
@@ -326,7 +331,11 @@ internal abstract class AbstractE2ETest {
         )
     }
 
-    enum class Utbetalingstype(internal val journaltittel: String, internal val dokumenttittel: String, internal val lesbarTittel: String) {
+    enum class Utbetalingstype(
+        internal val journaltittel: String,
+        internal val dokumenttittel: String,
+        internal val lesbarTittel: String
+    ) {
         UTBETALING("Vedtak om sykepenger", "Sykepenger behandlet i ny løsning", "utbetalt"),
         REVURDERING("Vedtak om revurdering av sykepenger", "Sykepenger revurdert i ny løsning", "revurdering av")
     }
