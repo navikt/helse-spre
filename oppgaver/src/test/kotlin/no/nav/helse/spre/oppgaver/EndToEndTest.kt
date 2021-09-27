@@ -235,16 +235,7 @@ class EndToEndTest {
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode1
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode1
-        )
+        navSøknadUtenUtbetaling(inntektsmeldingHendelseId, periode1)
 
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId),
@@ -274,16 +265,7 @@ class EndToEndTest {
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode1
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode1
-        )
+        navSøknadUtenUtbetaling(inntektsmeldingHendelseId, periode1)
 
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId),
@@ -374,28 +356,10 @@ class EndToEndTest {
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode1
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode1
-        )
+        navSøknadUtenUtbetaling(inntektsmeldingHendelseId, periode1)
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode2
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode2
-        )
+        navSøknadUtenUtbetaling(inntektsmeldingHendelseId, periode2)
 
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId),
@@ -425,17 +389,9 @@ class EndToEndTest {
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode1
-        )
+        arbeidsgiverSøknad(inntektsmeldingHendelseId, periode1)
 
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode2
-        )
+        arbeidsgiverSøknad(inntektsmeldingHendelseId, periode2)
 
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId),
@@ -464,11 +420,7 @@ class EndToEndTest {
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode1
-        )
+        arbeidsgiverSøknad(inntektsmeldingHendelseId, periode1)
 
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId),
@@ -506,11 +458,7 @@ class EndToEndTest {
         val inntektsmeldingId = UUID.randomUUID()
 
         sendSøknad(søknadId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode
-        )
+        arbeidsgiverSøknad(søknadId, periode)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
 
         sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
@@ -534,11 +482,7 @@ class EndToEndTest {
         val inntektsmeldingId = UUID.randomUUID()
 
         sendSøknad(søknadId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode
-        )
+        arbeidsgiverSøknad(søknadId, periode)
 
         sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
         sendVedtaksperiodeEndret(
@@ -707,6 +651,27 @@ class EndToEndTest {
         vedtaksperiodeId: UUID = UUID.randomUUID()
     ) {
         rapid.sendTestMessage(vedtaksperiodeEndret(hendelseIder, tilstand, vedtaksperiodeId))
+    }
+
+    private fun navSøknadUtenUtbetaling(inntektsmeldingHendelseId: UUID, periode2: UUID) {
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(inntektsmeldingHendelseId),
+            tilstand = "AVVENTER_HISTORIKK",
+            vedtaksperiodeId = periode2
+        )
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(inntektsmeldingHendelseId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = periode2
+        )
+    }
+
+    private fun arbeidsgiverSøknad(inntektsmeldingHendelseId: UUID, periode1: UUID) {
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(inntektsmeldingHendelseId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = periode1
+        )
     }
 }
 
