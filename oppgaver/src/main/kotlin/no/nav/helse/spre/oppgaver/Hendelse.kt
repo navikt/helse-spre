@@ -21,7 +21,6 @@ sealed class Hendelse {
         }
     }
 
-
     object Lest : Hendelse() {
         override fun accept(oppgave: Oppgave) {
             oppgave.håndter(this)

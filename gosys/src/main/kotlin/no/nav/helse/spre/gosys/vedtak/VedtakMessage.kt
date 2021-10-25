@@ -192,13 +192,9 @@ data class VedtakMessage private constructor(
                     begrunnelser = mapBegrunnelser(it.begrunnelser),
                     grunn = when (it.type) {
                         "AvvistDag" -> "Avvist dag"
-                        "SykepengedagerOppbrukt" -> "Dager etter maksdato"
-                        "MinimumInntekt" -> "Krav til minste sykepengegrunnlag er ikke oppfylt"
-                        "EgenmeldingUtenforArbeidsgiverperiode" -> "Egenmelding etter arbeidsgiverperioden"
-                        "MinimumSykdomsgrad" -> "Sykdomsgrad under 20%"
                         "Fridag" -> "Ferie/Permisjon"
                         "Arbeidsdag" -> "Arbeidsdag"
-                        "EtterDødsdato" -> "Personen er død"
+                        "Annullering" -> "Annullering"
                         else -> {
                             log.error("Ukjent dagtype $it")
                             "Ukjent dagtype: \"${it.type}\""
