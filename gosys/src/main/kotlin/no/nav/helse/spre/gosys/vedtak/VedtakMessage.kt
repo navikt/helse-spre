@@ -223,7 +223,7 @@ data class VedtakMessage private constructor(
             "ManglerOpptjening" -> "Krav til 4 ukers opptjening er ikke oppfylt"
             "ManglerMedlemskap" -> "Krav til medlemskap er ikke oppfylt"
             "EtterDødsdato" -> "Personen er død"
-            "Over70" -> "Personen er over 70 år"
+            "Over70" -> "Personen er 70 år eller eldre"
             else -> {
                 log.error("Ukjent begrunnelse $it")
                 "Ukjent begrunnelse: \"${it}\""
