@@ -28,12 +28,12 @@ internal class VedtakMessageTest {
 
         assertEquals(
             listOf(
-                VedtakMessage.DagAcc(LocalDate.of(2020, 7, 20), LocalDate.of(2020, 7, 25), "Fridag", emptyList()),
-                VedtakMessage.DagAcc(LocalDate.of(2020, 7, 26), LocalDate.of(2020, 7, 26), "AvvistDag", listOf("ManglerOpptjening", "MinimumSykdomsgrad")),
-                VedtakMessage.DagAcc(LocalDate.of(2020, 7, 27), LocalDate.of(2020, 7, 28), "AvvistDag", listOf("ManglerOpptjening")),
-                VedtakMessage.DagAcc(LocalDate.of(2020, 7, 29), LocalDate.of(2020, 7, 31), "Fridag", emptyList()),
-                VedtakMessage.DagAcc(LocalDate.of(2020, 8, 4), LocalDate.of(2020, 8, 4), "AvvistDag", listOf("ManglerOpptjening")),
-                VedtakMessage.DagAcc(LocalDate.of(2020, 8, 5), LocalDate.of(2020, 8, 6), "AvvistDag", listOf("ManglerOpptjening", "SykepengedagerOppbrukt"))
+                VedtakMessage.AvvistPeriode(LocalDate.of(2020, 7, 20), LocalDate.of(2020, 7, 25), "Fridag", emptyList()),
+                VedtakMessage.AvvistPeriode(LocalDate.of(2020, 7, 26), LocalDate.of(2020, 7, 26), "AvvistDag", listOf("ManglerOpptjening", "MinimumSykdomsgrad")),
+                VedtakMessage.AvvistPeriode(LocalDate.of(2020, 7, 27), LocalDate.of(2020, 7, 28), "AvvistDag", listOf("ManglerOpptjening")),
+                VedtakMessage.AvvistPeriode(LocalDate.of(2020, 7, 29), LocalDate.of(2020, 7, 31), "Fridag", emptyList()),
+                VedtakMessage.AvvistPeriode(LocalDate.of(2020, 8, 4), LocalDate.of(2020, 8, 4), "AvvistDag", listOf("ManglerOpptjening")),
+                VedtakMessage.AvvistPeriode(LocalDate.of(2020, 8, 5), LocalDate.of(2020, 8, 6), "AvvistDag", listOf("ManglerOpptjening", "SykepengedagerOppbrukt"))
             ), json
         )
     }
