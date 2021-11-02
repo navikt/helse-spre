@@ -217,7 +217,9 @@ data class VedtakMessage private constructor(
     private fun mapBegrunnelser(begrunnelser: List<String>): List<String> = begrunnelser.map {
         when (it) {
             "SykepengedagerOppbrukt" -> "Dager etter maksdato"
+            "SykepengedagerOppbruktOver67" -> "Dager etter maksdato - Personen er mellom 67 og 70 år, jf § 8-51"
             "MinimumInntekt" -> "Krav til minste sykepengegrunnlag er ikke oppfylt"
+            "MinimumInntektOver67" -> "Krav til minste sykepengegrunnlag er ikke oppfylt - Personen er mellom 67 og 70 år, jf § 8-51"
             "EgenmeldingUtenforArbeidsgiverperiode" -> "Egenmelding etter arbeidsgiverperioden"
             "MinimumSykdomsgrad" -> "Sykdomsgrad under 20%"
             "ManglerOpptjening" -> "Krav til 4 ukers opptjening er ikke oppfylt"
