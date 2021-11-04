@@ -1,62 +1,37 @@
 package no.nav.helse.spre.oppgaver
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import io.mockk.every
 import io.mockk.mockk
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit.MINUTES
+import java.util.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Søknad
-import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
+import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.Ferdigbehandlet
+import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.Opprett
+import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.Utsett
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit.MINUTES
-import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EndToEndTest {
-    private lateinit var embeddedPostgres: EmbeddedPostgres
-    private lateinit var hikariConfig: HikariConfig
-    private lateinit var dataSource: HikariDataSource
-    private lateinit var oppgaveDAO: OppgaveDAO
+    private val dataSource = setupDataSourceMedFlyway()
+
     private val rapid = TestRapid()
+    private val oppgaveDAO = OppgaveDAO(dataSource)
     private var captureslot = mutableListOf<ProducerRecord<String, OppgaveDTO>>()
     private val mockProducer = mockk<KafkaProducer<String, OppgaveDTO>> {
         every { send(capture(captureslot)) } returns mockk()
     }
 
-    @BeforeAll
-    fun setup() {
-        embeddedPostgres = EmbeddedPostgres.builder().start()
-
-        hikariConfig = HikariConfig().apply {
-            this.jdbcUrl = embeddedPostgres.getJdbcUrl("postgres", "postgres")
-            maximumPoolSize = 3
-            minimumIdle = 1
-            idleTimeout = 10001
-            connectionTimeout = 1000
-            maxLifetime = 30001
-        }
-
-        dataSource = HikariDataSource(hikariConfig)
-
-        Flyway.configure()
-            .dataSource(dataSource)
-            .load()
-            .migrate()
-
-        oppgaveDAO = OppgaveDAO(dataSource)
-
+    init {
         rapid.registerRivers(oppgaveDAO, listOf(OppgaveProducer("et_topic", mockProducer)))
     }
 

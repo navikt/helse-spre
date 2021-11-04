@@ -18,8 +18,7 @@ dependencies {
     implementation("com.github.seratch:kotliquery:1.3.1")
 
     testImplementation("org.skyscreamer:jsonassert:1.5.0")
-
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
+    testImplementation("org.testcontainers:postgresql:1.16.2")
 }

@@ -1,4 +1,4 @@
-package no.nav.helse.spre.gosys
+package no.nav.helse.spre.oppgaver
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import javax.sql.DataSource

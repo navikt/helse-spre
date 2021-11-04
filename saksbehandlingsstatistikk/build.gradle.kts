@@ -13,6 +13,6 @@ dependencies {
 
     testImplementation("no.nav:kafka-embedded-env:2.4.0")
     testImplementation("org.awaitility:awaitility:4.0.3")
-    testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
+    testImplementation("org.testcontainers:postgresql:1.16.2")
 }
 
