@@ -175,6 +175,16 @@ data class VedtakMessage private constructor(
                 mottaker = it.mottaker
             )
         },
+        brukerOppdrag = VedtakPdfPayload.Oppdrag(),
+        arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.utbetalingslinjer.map {
+            VedtakPdfPayload.Linje(
+                fom = it.fom,
+                tom = it.tom,
+                grad = it.grad,
+                beløp = it.beløp,
+                mottaker = it.mottaker
+            )
+        }),
         dagsats = utbetaling.utbetalingslinjer.takeIf { it.isNotEmpty() }?.first()?.dagsats,
         fødselsnummer = fødselsnummer,
         fom = fom,

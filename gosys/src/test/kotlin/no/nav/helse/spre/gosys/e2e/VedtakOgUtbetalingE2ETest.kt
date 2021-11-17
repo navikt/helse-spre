@@ -5,6 +5,7 @@ import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.REVURDERING
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.Linje
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
@@ -12,6 +13,7 @@ import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import no.nav.helse.spre.testhelpers.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -51,6 +53,23 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertVedtakPdf()
     }
 
+    @Disabled
+    @Test
+    fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_utbetalt for brukerutbetaling`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId
+        )
+        sendBrukerutbetaling(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeIder = listOf(vedtaksperiodeId)
+        )
+        assertJournalpost()
+        assertVedtakPdf()
+    }
+
     @Test
     fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_uten_utbetaling`() {
         val vedtaksperiodeId = UUID.randomUUID()
@@ -66,6 +85,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             expectedPdfPayload().copy(
                 totaltTilUtbetaling = 0,
                 linjer = emptyList(),
+                arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(),
                 ikkeUtbetalteDager = listOf(
                     IkkeUtbetalteDager(
                         fom = 1.januar,

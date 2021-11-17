@@ -9,6 +9,8 @@ data class VedtakPdfPayload(
     val fom: LocalDate,
     val tom: LocalDate,
     val linjer: List<Linje>,
+    val brukerOppdrag: Oppdrag = Oppdrag(),
+    val arbeidsgiverOppdrag: Oppdrag,
     val organisasjonsnummer: String,
     val behandlingsdato: LocalDate,
     val dagerIgjen: Int,
@@ -21,6 +23,8 @@ data class VedtakPdfPayload(
     val sykepengegrunnlag: Double,
     val grunnlagForSykepengegrunnlag: Map<String, Double>
 ) {
+    data class Oppdrag(val linjer: List<Linje> = emptyList())
+
     data class Linje(
         val fom: LocalDate,
         val tom: LocalDate,

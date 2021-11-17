@@ -119,6 +119,7 @@ internal abstract class AbstractE2ETest {
                 mottaker = "arbeidsgiver"
             )
         ),
+        arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(linjer = linjer),
         ikkeUtbetalteDager: List<IkkeUtbetalteDager> = emptyList()
     ) =
         VedtakPdfPayload(
@@ -138,7 +139,8 @@ internal abstract class AbstractE2ETest {
             sykepengegrunnlag = 565260.0,
             grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
             maksdato = LocalDate.of(2021, 7, 15),
-            linjer = linjer
+            linjer = linjer,
+            arbeidsgiverOppdrag = arbeidsgiverOppdrag
         )
 
     protected fun expectedJournalpost(
@@ -219,7 +221,7 @@ internal abstract class AbstractE2ETest {
 }"""
 
     @Language("json")
-    private fun personutbetaling(
+    private fun utbetalingBruker(
         fødselsnummer: String = "12345678910",
         hendelseId: UUID = UUID.randomUUID(),
         utbetalingId: UUID = UUID.randomUUID(),
@@ -337,6 +339,27 @@ internal abstract class AbstractE2ETest {
         require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
         testRapid.sendTestMessage(
             utbetalingArbeidsgiver(
+                hendelseId = hendelseId,
+                fødselsnummer = fødselsnummer,
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = vedtaksperiodeIder,
+                sykdomstidslinje = sykdomstidslinje,
+                type = type
+            )
+        )
+    }
+
+    protected fun sendBrukerutbetaling(
+        hendelseId: UUID = UUID.randomUUID(),
+        fødselsnummer: String = "12345678910",
+        utbetalingId: UUID = UUID.randomUUID(),
+        vedtaksperiodeIder: List<UUID> = emptyList(),
+        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
+        type: String = "UTBETALING",
+    ) {
+        require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
+        testRapid.sendTestMessage(
+            utbetalingBruker(
                 hendelseId = hendelseId,
                 fødselsnummer = fødselsnummer,
                 utbetalingId = utbetalingId,
