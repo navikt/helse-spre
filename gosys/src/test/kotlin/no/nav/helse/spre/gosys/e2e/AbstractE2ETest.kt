@@ -35,9 +35,9 @@ internal abstract class AbstractE2ETest {
     protected var capturedJoarkRequests = mutableListOf<HttpRequestData>()
     protected var capturedPdfRequests = mutableListOf<HttpRequestData>()
 
-    protected val mockClient = httpclient()
+    private val mockClient = httpclient()
     protected val pdfClient = PdfClient(mockClient)
-    protected val stsMock: StsRestClient = mockk {
+    private val stsMock: StsRestClient = mockk {
         coEvery { token() }.returns("6B70C162-8AAB-4B56-944D-7F092423FE4B")
     }
     protected val joarkClient = JoarkClient("https://url.no", stsMock, mockClient)
@@ -219,14 +219,14 @@ internal abstract class AbstractE2ETest {
 }"""
 
     @Language("json")
-    private fun utbetaling(
+    private fun personutbetaling(
         fødselsnummer: String = "12345678910",
         hendelseId: UUID = UUID.randomUUID(),
         utbetalingId: UUID = UUID.randomUUID(),
         vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID()),
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
-        opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay()
+        opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
     ) = """{
     "@id": "$hendelseId",
     "fødselsnummer": "$fødselsnummer",
@@ -245,7 +245,43 @@ internal abstract class AbstractE2ETest {
     "vedtaksperiodeIder": [
         ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
     ],
-    "arbeidsgiverOppdrag": ${Oppdrag(sykdomstidslinje).toJson()},
+    "arbeidsgiverOppdrag": ${Oppdrag(emptyList(), fagområde = "SPREF").toJson()},
+    "brukerOppdrag": ${Oppdrag(sykdomstidslinje, fagområde = "SP").toJson()},
+    "utbetalingsdager": ${sykdomstidslinje.toJson()},
+    "@opprettet": "$opprettet",
+    "aktørId": "123",
+    "organisasjonsnummer": "123456789"
+}"""
+
+    @Language("json")
+    private fun utbetalingArbeidsgiver(
+        fødselsnummer: String = "12345678910",
+        hendelseId: UUID = UUID.randomUUID(),
+        utbetalingId: UUID = UUID.randomUUID(),
+        vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID()),
+        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
+        type: String = "UTBETALING",
+        opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
+    ) = """{
+    "@id": "$hendelseId",
+    "fødselsnummer": "$fødselsnummer",
+    "utbetalingId": "$utbetalingId",
+    "@event_name": ${if (sykdomstidslinje.none { it.type == Dagtype.UTBETALINGSDAG }) "\"utbetaling_uten_utbetaling\"" else "\"utbetaling_utbetalt\""},
+    "fom": "${sykdomstidslinje.first().dato}",
+    "tom": "${sykdomstidslinje.last().dato}",
+    "maksdato": "2021-07-15",
+    "forbrukteSykedager": "217",
+    "gjenståendeSykedager": "31",
+    "ident": "Automatisk behandlet",
+    "epost": "tbd@nav.no",
+    "type": "$type",
+    "tidspunkt": "$opprettet",
+    "automatiskBehandling": "true",
+    "vedtaksperiodeIder": [
+        ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
+    ],
+    "arbeidsgiverOppdrag": ${Oppdrag(sykdomstidslinje, fagområde = "SPREF").toJson()},
+    "brukerOppdrag": ${Oppdrag(emptyList(), fagområde = "SP").toJson()},
     "utbetalingsdager": ${sykdomstidslinje.toJson()},
     "@opprettet": "$opprettet",
     "aktørId": "123",
@@ -259,7 +295,7 @@ internal abstract class AbstractE2ETest {
         vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID()),
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay()
-    ) = utbetaling(
+    ) = utbetalingArbeidsgiver(
         hendelseId = id,
         fødselsnummer = fødselsnummer,
         utbetalingId = utbetalingId,
@@ -296,11 +332,11 @@ internal abstract class AbstractE2ETest {
         utbetalingId: UUID = UUID.randomUUID(),
         vedtaksperiodeIder: List<UUID> = emptyList(),
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
-        type: String = "UTBETALING"
+        type: String = "UTBETALING",
     ) {
         require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
         testRapid.sendTestMessage(
-            utbetaling(
+            utbetalingArbeidsgiver(
                 hendelseId = hendelseId,
                 fødselsnummer = fødselsnummer,
                 utbetalingId = utbetalingId,

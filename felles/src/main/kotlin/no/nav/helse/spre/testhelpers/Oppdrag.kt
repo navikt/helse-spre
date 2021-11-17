@@ -17,7 +17,7 @@ class Oppdrag(
     private val mottaker: String = "123456789",
     private val fagområde: String = "SPREF",
     private val fagsystemId: String = "fagsystemId",
-    private val tidsstempel: LocalDateTime = tidslinje.last().dato.atStartOfDay()
+    private val tidsstempel: LocalDateTime = tidslinje.lastOrNull()?.dato?.atStartOfDay() ?: LocalDateTime.now()
 ) {
 
     fun toJson(): String {
