@@ -26,6 +26,7 @@ data class Utbetaling(
     val arbeidsgiverOppdrag: OppdragDto,
     val type: Utbetalingtype,
     val ident: String,
+    val epost: String,
     val vedtaksperiodeIder: List<UUID>,
     val ikkeUtbetalingsdager: List<UtbetalingdagDto>,
     val opprettet: LocalDateTime
@@ -98,6 +99,7 @@ data class Utbetaling(
                 arbeidsgiverOppdrag = arbeidsgiverOppdrag,
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
+                epost = packet["epost"].asText(),
                 vedtaksperiodeIder = packet["vedtaksperiodeIder"].toList()
                     .map { UUID.fromString(it.asText()) },
                 opprettet = packet["@opprettet"].asLocalDateTime(),
@@ -147,6 +149,7 @@ data class Utbetaling(
                 arbeidsgiverOppdrag = arbeidsgiverOppdrag,
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
+                epost = packet["epost"].asText(),
                 vedtaksperiodeIder = packet["vedtaksperiodeIder"].toList()
                     .map { UUID.fromString(it.asText()) },
                 opprettet = packet["@opprettet"].asLocalDateTime(),

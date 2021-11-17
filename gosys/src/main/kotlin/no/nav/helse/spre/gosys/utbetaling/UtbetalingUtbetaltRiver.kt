@@ -35,7 +35,8 @@ internal class UtbetalingUtbetaltRiver(
                     "arbeidsgiverOppdrag",
                     "utbetalingsdager",
                     "type",
-                    "ident"
+                    "ident",
+                    "epost"
                 )
                 it.requireKey("vedtaksperiodeIder")
                 it.require("fom", JsonNode::asLocalDate)

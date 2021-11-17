@@ -37,7 +37,8 @@ internal class UtbetalingUtenUtbetalingRiver(
                     "arbeidsgiverOppdrag",
                     "utbetalingsdager",
                     "type",
-                    "ident"
+                    "ident",
+                    "epost"
                 )
                 it.require("vedtaksperiodeIder") { node ->
                     (node as ArrayNode).forEach { id ->
