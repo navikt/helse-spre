@@ -23,7 +23,7 @@ data class VedtakMessage(
     private val maksdato: LocalDate?,
     private val sykepengegrunnlag: Double,
     private val grunnlagForSykepengegrunnlag: Map<String, Double>,
-    private val utbetaling: Utbetaling,
+    private val utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>
 ) {
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -53,23 +53,7 @@ data class VedtakMessage(
         maksdato = utbetaling.maksdato,
         sykepengegrunnlag = sykepengegrunnlag,
         grunnlagForSykepengegrunnlag = grunnlagForSykepengegrunnlag,
-        utbetaling = utbetaling.arbeidsgiverOppdrag.takeIf { it.fagområde == "SPREF" }!!.let { oppdrag ->
-            Utbetaling(
-                fagområde = Utbetaling.Fagområde.SPREF,
-                fagsystemId = oppdrag.fagsystemId,
-                totalbeløp = oppdrag.nettoBeløp,
-                utbetalingslinjer = oppdrag.utbetalingslinjer.map { utbetalingslinje ->
-                    Utbetaling.Utbetalingslinje(
-                        dagsats = utbetalingslinje.dagsats,
-                        fom = utbetalingslinje.fom,
-                        tom = utbetalingslinje.tom,
-                        grad = utbetalingslinje.grad.toInt(),
-                        beløp = utbetalingslinje.dagsats,
-                        mottaker = "arbeidsgiver"
-                    )
-                }
-            )
-        },
+        utbetaling = utbetaling,
         ikkeUtbetalteDager = utbetaling.ikkeUtbetalingsdager.filterNot { dag -> dag.dato.isBefore(skjæringstidspunkt) }
             .map { dag ->
                 IkkeUtbetaltDag(
@@ -81,29 +65,29 @@ data class VedtakMessage(
     )
 
     internal fun toVedtakPdfPayload() = VedtakPdfPayload(
-        fagsystemId = utbetaling.fagsystemId,
-        totaltTilUtbetaling = utbetaling.totalbeløp,
+        fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
+        totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp,
         type = lesbarTittel(),
-        linjer = utbetaling.utbetalingslinjer.map {
+        linjer = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.map {
             VedtakPdfPayload.Linje(
                 fom = it.fom,
                 tom = it.tom,
-                grad = it.grad,
-                beløp = it.beløp,
-                mottaker = it.mottaker
+                grad = it.grad.toInt(),
+                beløp = it.dagsats,
+                mottaker = utbetaling.organisasjonsnummer
             )
         },
         brukerOppdrag = VedtakPdfPayload.Oppdrag(),
-        arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.utbetalingslinjer.map {
+        arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.map {
             VedtakPdfPayload.Linje(
                 fom = it.fom,
                 tom = it.tom,
-                grad = it.grad,
-                beløp = it.beløp,
-                mottaker = it.mottaker
+                grad = it.grad.toInt(),
+                beløp = it.dagsats,
+                mottaker = utbetaling.organisasjonsnummer
             )
         }),
-        dagsats = utbetaling.utbetalingslinjer.takeIf { it.isNotEmpty() }?.first()?.dagsats,
+        dagsats = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.takeIf { it.isNotEmpty() }?.first()?.dagsats,
         fødselsnummer = fødselsnummer,
         fom = fom,
         tom = tom,
@@ -171,26 +155,6 @@ data class VedtakMessage(
         val type: String,
         val begrunnelser: List<String>
     )
-
-    data class Utbetaling(
-        val fagområde: Fagområde,
-        val fagsystemId: String,
-        val totalbeløp: Int,
-        val utbetalingslinjer: List<Utbetalingslinje>
-    ) {
-        enum class Fagområde {
-            SPREF;
-        }
-
-        data class Utbetalingslinje(
-            val dagsats: Int,
-            val fom: LocalDate,
-            val tom: LocalDate,
-            val grad: Int,
-            val beløp: Int,
-            val mottaker: String
-        )
-    }
 
     data class IkkeUtbetaltDag(
         val dato: LocalDate,

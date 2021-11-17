@@ -52,7 +52,7 @@ data class Utbetaling(
             check(vedtakFattetHendelser.all { it.fødselsnummer == fødselsnummer }) {
                 "Alvorlig feil: Vedtaket peker på utbetaling med et annet fødselnummer"
             }
-            vedtakMediator.opprettVedtak(
+            vedtakMediator.opprettSammenslåttVedtak(
                 fom,
                 tom,
                 vedtaksperiode.sykepengegrunnlag,
