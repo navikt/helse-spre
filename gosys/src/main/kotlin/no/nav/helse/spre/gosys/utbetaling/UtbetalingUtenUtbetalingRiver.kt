@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import no.nav.helse.rapids_rivers.*
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
-import no.nav.helse.spre.gosys.vedtak.VedtakMessage.Companion.fraVedtakOgUtbetaling
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

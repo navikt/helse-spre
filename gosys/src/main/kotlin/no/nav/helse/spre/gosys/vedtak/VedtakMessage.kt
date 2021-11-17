@@ -1,14 +1,11 @@
 package no.nav.helse.spre.gosys.vedtak
 
-import no.nav.helse.spre.gosys.io.IO
 import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.math.roundToInt
 
 data class VedtakMessage(
     val hendelseId: UUID,
@@ -29,19 +26,6 @@ data class VedtakMessage(
     private val utbetaling: Utbetaling,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>
 ) {
-
-    companion object {
-        fun fraVedtakOgUtbetaling(
-            vedtak: VedtakFattetData,
-            utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling
-        ): VedtakMessage {
-            check(utbetaling.fødselsnummer == vedtak.fødselsnummer) {
-                "Alvorlig feil: Vedtaket peker på utbetaling med et annet fødselnummer"
-            }
-            return VedtakMessage(vedtak, utbetaling)
-        }
-    }
-
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
@@ -95,72 +79,6 @@ data class VedtakMessage(
                 )
             }
     )
-
-
-    constructor(vedtak: VedtakFattetData, utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling) :
-            this(
-                hendelseId = vedtak.id,
-                opprettet = vedtak.opprettet,
-                fødselsnummer = vedtak.fødselsnummer,
-                aktørId = vedtak.aktørId,
-                type = utbetaling.type,
-                fom = vedtak.fom,
-                tom = vedtak.tom,
-                organisasjonsnummer = utbetaling.organisasjonsnummer,
-                gjenståendeSykedager = utbetaling.gjenståendeSykedager,
-                automatiskBehandling = utbetaling.automatiskBehandling,
-                godkjentAv = utbetaling.ident,
-                godkjentAvEpost = utbetaling.epost,
-                maksdato = utbetaling.maksdato,
-                sykepengegrunnlag = vedtak.sykepengegrunnlag,
-                grunnlagForSykepengegrunnlag = vedtak.grunnlagForSykepengegrunnlag,
-                utbetaling = utbetaling.arbeidsgiverOppdrag.takeIf { it.fagområde == "SPREF" }!!.let { oppdrag ->
-                    Utbetaling(
-                        fagområde = Utbetaling.Fagområde.SPREF,
-                        fagsystemId = oppdrag.fagsystemId,
-                        totalbeløp = oppdrag.nettoBeløp,
-                        utbetalingslinjer = oppdrag.utbetalingslinjer.map { utbetalingslinje ->
-                            Utbetaling.Utbetalingslinje(
-                                dagsats = utbetalingslinje.dagsats,
-                                fom = utbetalingslinje.fom,
-                                tom = utbetalingslinje.tom,
-                                grad = utbetalingslinje.grad.toInt(),
-                                beløp = utbetalingslinje.dagsats,
-                                mottaker = "arbeidsgiver"
-                            )
-                        }
-                    )
-                },
-                ikkeUtbetalteDager = utbetaling.ikkeUtbetalingsdager.filterNot { dag -> dag.dato.isBefore(vedtak.skjæringstidspunkt) }
-                    .map { dag ->
-                        IkkeUtbetaltDag(
-                            dato = dag.dato,
-                            type = dag.type,
-                            begrunnelser = dag.begrunnelser
-                        )
-                    }
-            )
-
-    constructor(vedtak: IO.Vedtak) :
-            this(
-                hendelseId = vedtak.`@id`,
-                opprettet = vedtak.`@opprettet`,
-                fødselsnummer = vedtak.fødselsnummer,
-                aktørId = vedtak.aktørId,
-                type = vedtak.utbetalingtype,
-                fom = vedtak.fom,
-                tom = vedtak.tom,
-                organisasjonsnummer = vedtak.organisasjonsnummer,
-                gjenståendeSykedager = vedtak.gjenståendeSykedager,
-                automatiskBehandling = vedtak.automatiskBehandling,
-                godkjentAv = vedtak.godkjentAv,
-                godkjentAvEpost = "", // det gamle "utbetalt"-eventet har ikke epost
-                maksdato = vedtak.maksdato,
-                sykepengegrunnlag = vedtak.sykepengegrunnlag,
-                grunnlagForSykepengegrunnlag = vedtak.grunnlagForSykepengegrunnlag,
-                utbetaling = Utbetaling(vedtak.utbetalt.find { it.fagområde == IO.Fagområde.SPREF }!!),
-                ikkeUtbetalteDager = vedtak.ikkeUtbetalteDager.map { IkkeUtbetaltDag(it) }
-            )
 
     internal fun toVedtakPdfPayload() = VedtakPdfPayload(
         fagsystemId = utbetaling.fagsystemId,
@@ -260,23 +178,8 @@ data class VedtakMessage(
         val totalbeløp: Int,
         val utbetalingslinjer: List<Utbetalingslinje>
     ) {
-        constructor(rådata: IO.Utbetaling) :
-                this(
-                    fagområde = Fagområde.valueOf(rådata.fagområde),
-                    fagsystemId = rådata.fagsystemId,
-                    totalbeløp = rådata.totalbeløp,
-                    utbetalingslinjer = rådata.utbetalingslinjer.map { Utbetalingslinje(it) }
-                )
-
         enum class Fagområde {
             SPREF;
-
-            companion object {
-                fun valueOf(fagområde: IO.Fagområde): Fagområde {
-                    if (fagområde == IO.Fagområde.SPREF) return SPREF
-                    throw RuntimeException("Fagområde $fagområde finnes ikke.")
-                }
-            }
         }
 
         data class Utbetalingslinje(
@@ -286,31 +189,14 @@ data class VedtakMessage(
             val grad: Int,
             val beløp: Int,
             val mottaker: String
-        ) {
-            constructor(rådata: IO.Utbetalingslinje) :
-                    this(
-                        dagsats = rådata.dagsats,
-                        fom = rådata.fom,
-                        tom = rådata.tom,
-                        grad = rådata.grad.roundToInt(),
-                        beløp = rådata.beløp,
-                        mottaker = "arbeidsgiver"
-                    )
-        }
+        )
     }
 
     data class IkkeUtbetaltDag(
         val dato: LocalDate,
         val type: String,
         val begrunnelser: List<String>
-    ) {
-        constructor(rådata: IO.IkkeUtbetaltDag) :
-                this(
-                    dato = rådata.dato,
-                    type = rådata.type,
-                    begrunnelser = rådata.begrunnelser ?: emptyList()
-                )
-    }
+    )
 }
 
 internal fun Iterable<VedtakMessage.IkkeUtbetaltDag>.settSammenIkkeUtbetalteDager(): List<VedtakMessage.DagAcc> =
