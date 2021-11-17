@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.math.roundToInt
 
-data class VedtakMessage private constructor(
+data class VedtakMessage(
     val hendelseId: UUID,
     val fødselsnummer: String,
     val aktørId: String,
