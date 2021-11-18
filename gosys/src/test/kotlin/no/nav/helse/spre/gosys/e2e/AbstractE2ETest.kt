@@ -5,6 +5,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -27,6 +28,7 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.assertNotNull
 
+@KtorExperimentalAPI
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal abstract class AbstractE2ETest {
 
@@ -229,6 +231,8 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
+        brukeroppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SP"),
+        arbeidsgiverOppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SPREF")
     ) = """{
     "@id": "$hendelseId",
     "fødselsnummer": "$fødselsnummer",
@@ -247,8 +251,8 @@ internal abstract class AbstractE2ETest {
     "vedtaksperiodeIder": [
         ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
     ],
-    "arbeidsgiverOppdrag": ${Oppdrag(emptyList(), fagområde = "SPREF").toJson()},
-    "brukerOppdrag": ${Oppdrag(sykdomstidslinje, fagområde = "SP").toJson()},
+    "arbeidsgiverOppdrag": ${arbeidsgiverOppdrag.toJson()},
+    "brukerOppdrag": ${brukeroppdrag.toJson()},
     "utbetalingsdager": ${sykdomstidslinje.toJson()},
     "@opprettet": "$opprettet",
     "aktørId": "123",
@@ -264,6 +268,8 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
+        arbeidsgiverOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SPREF"),
+        brukeroppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SP")
     ) = """{
     "@id": "$hendelseId",
     "fødselsnummer": "$fødselsnummer",
@@ -282,8 +288,8 @@ internal abstract class AbstractE2ETest {
     "vedtaksperiodeIder": [
         ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
     ],
-    "arbeidsgiverOppdrag": ${Oppdrag(sykdomstidslinje, fagområde = "SPREF").toJson()},
-    "brukerOppdrag": ${Oppdrag(emptyList(), fagområde = "SP").toJson()},
+    "arbeidsgiverOppdrag": ${arbeidsgiverOppdrag.toJson()},
+    "brukerOppdrag": ${brukeroppdrag.toJson()},
     "utbetalingsdager": ${sykdomstidslinje.toJson()},
     "@opprettet": "$opprettet",
     "aktørId": "123",
