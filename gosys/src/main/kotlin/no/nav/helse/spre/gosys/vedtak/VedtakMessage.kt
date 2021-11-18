@@ -68,25 +68,9 @@ data class VedtakMessage(
         fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
         totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp,
         type = lesbarTittel(),
-        linjer = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.map {
-            VedtakPdfPayload.Linje(
-                fom = it.fom,
-                tom = it.tom,
-                grad = it.grad.toInt(),
-                beløp = it.dagsats,
-                mottaker = utbetaling.organisasjonsnummer
-            )
-        },
+        linjer = utbetaling.arbeidsgiverOppdrag.linjer(),
         brukerOppdrag = VedtakPdfPayload.Oppdrag(),
-        arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.map {
-            VedtakPdfPayload.Linje(
-                fom = it.fom,
-                tom = it.tom,
-                grad = it.grad.toInt(),
-                beløp = it.dagsats,
-                mottaker = utbetaling.organisasjonsnummer
-            )
-        }),
+        arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.arbeidsgiverOppdrag.linjer()),
         dagsats = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.takeIf { it.isNotEmpty() }?.first()?.dagsats,
         fødselsnummer = fødselsnummer,
         fom = fom,

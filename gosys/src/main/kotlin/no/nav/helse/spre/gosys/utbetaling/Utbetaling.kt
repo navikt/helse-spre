@@ -6,6 +6,7 @@ import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
 import java.time.LocalDate
@@ -185,6 +186,16 @@ data class Utbetaling(
             val grad: Double,
             val stønadsdager: Int
         )
+
+        internal fun linjer(): List<VedtakPdfPayload.Linje> {
+            return utbetalingslinjer.map { VedtakPdfPayload.Linje(
+                fom = it.fom,
+                tom = it.tom,
+                grad = it.grad.toInt(),
+                beløp = it.dagsats,
+                mottaker = mottaker
+            )}
+        }
     }
 
     data class UtbetalingdagDto(
