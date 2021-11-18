@@ -412,8 +412,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 totaltTilUtbetaling = 60102,
                 behandlingsdato = utbetalingstidspunkt.toLocalDate(),
                 linjer = listOf(
-                    Linje(fom = 1.januar, tom = 28.januar, grad = 100, beløp = 1431, mottaker = "123456789"),
-                    Linje(fom = 30.januar, tom = 28.februar, grad = 100, beløp = 1431, mottaker = "123456789")
+                    Linje(fom = 1.januar, tom = 28.januar, grad = 100, beløp = 1431, mottaker = "123 456 789"),
+                    Linje(fom = 30.januar, tom = 28.februar, grad = 100, beløp = 1431, mottaker = "123 456 789")
                 ),
                 ikkeUtbetalteDager = listOf(
                     IkkeUtbetalteDager(

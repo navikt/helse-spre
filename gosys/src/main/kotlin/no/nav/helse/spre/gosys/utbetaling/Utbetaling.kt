@@ -178,6 +178,16 @@ data class Utbetaling(
         val nettoBeløp: Int,
         val utbetalingslinjer: List<UtbetalingslinjeDto>
     ) {
+        companion object {
+            val organisasjonsnummerFormatterer = { mottaker: String ->
+                mottaker.chunked(3).joinToString(separator = " ")
+            }
+
+            val fødselsnummerFormatterer = { mottaker: String ->
+                mottaker.chunked(6).joinToString(separator = " ")
+            }
+        }
+
         data class UtbetalingslinjeDto(
             val fom: LocalDate,
             val tom: LocalDate,
@@ -187,13 +197,13 @@ data class Utbetaling(
             val stønadsdager: Int
         )
 
-        internal fun linjer(): List<VedtakPdfPayload.Linje> {
+        internal fun linjer(mottakerFormater: (String) -> String ): List<VedtakPdfPayload.Linje> {
             return utbetalingslinjer.map { VedtakPdfPayload.Linje(
                 fom = it.fom,
                 tom = it.tom,
                 grad = it.grad.toInt(),
                 beløp = it.dagsats,
-                mottaker = mottaker
+                mottaker = mottakerFormater(mottaker)
             )}
         }
     }

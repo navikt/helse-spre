@@ -116,7 +116,7 @@ internal abstract class AbstractE2ETest {
                 tom = tom,
                 grad = 100,
                 beløp = 1431,
-                mottaker = "123456789"
+                mottaker = "123 456 789"
             )
         ),
         arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(linjer = linjer),

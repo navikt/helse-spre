@@ -1,6 +1,7 @@
 package no.nav.helse.spre.gosys.vedtak
 
 import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.Companion.organisasjonsnummerFormatterer
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -68,9 +69,9 @@ data class VedtakMessage(
         fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
         totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp,
         type = lesbarTittel(),
-        linjer = utbetaling.arbeidsgiverOppdrag.linjer(),
+        linjer = utbetaling.arbeidsgiverOppdrag.linjer(organisasjonsnummerFormatterer),
         brukerOppdrag = VedtakPdfPayload.Oppdrag(),
-        arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.arbeidsgiverOppdrag.linjer()),
+        arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.arbeidsgiverOppdrag.linjer(organisasjonsnummerFormatterer)),
         dagsats = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.takeIf { it.isNotEmpty() }?.first()?.dagsats,
         fødselsnummer = fødselsnummer,
         fom = fom,
