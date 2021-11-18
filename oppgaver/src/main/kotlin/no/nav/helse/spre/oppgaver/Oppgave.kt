@@ -21,6 +21,7 @@ class Oppgave(
     }
 
     fun håndter(hendelse: Hendelse.TilInfotrygd) = tilstand.håndter(this, hendelse)
+    fun håndter(hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.Avsluttet) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.Lest) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.AvsluttetUtenUtbetaling) = tilstand.håndter(this, hendelse)
@@ -40,6 +41,7 @@ class Oppgave(
         }
 
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {}
+        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Lest) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {}
@@ -54,9 +56,15 @@ class Oppgave(
 
         object LagOppgave : Tilstand()
 
+        object LagOppgaveForSpeilsaksbehandlere : Tilstand()
+
         object SpleisLest : Tilstand() {
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
                 oppgave.tilstand(LagOppgave)
+            }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {
+                oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
@@ -76,6 +84,10 @@ class Oppgave(
             override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {}
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
                 oppgave.tilstand(LagOppgave)
+            }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {
+                oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
@@ -99,6 +111,11 @@ class Oppgave(
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
                 oppgave.tilstand(LagOppgave)
             }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {
+                oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
+            }
+
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
                 oppgave.tilstand(SpleisFerdigbehandlet)
             }

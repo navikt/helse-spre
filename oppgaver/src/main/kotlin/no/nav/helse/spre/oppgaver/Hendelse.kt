@@ -9,6 +9,16 @@ sealed class Hendelse {
         }
     }
 
+    /**
+     * Behandling ikke mulig i ny løsning.
+     * Det er gjort utbetaling i spleis som må tas hensyn til ved behandling av oppgaven
+     */
+    object AvbruttOgHarRelatertUtbetaling : Hendelse() {
+        override fun accept(oppgave: Oppgave) {
+            oppgave.håndter(this)
+        }
+    }
+
     object Avsluttet : Hendelse() {
         override fun accept(oppgave: Oppgave) {
             oppgave.håndter(this)

@@ -51,6 +51,7 @@ class OppgaveObserver(
         Oppgave.Tilstand.KortSøknadFerdigbehandlet,
         Oppgave.Tilstand.SpleisFerdigbehandlet -> OppdateringstypeDTO.Ferdigbehandlet
         Oppgave.Tilstand.LagOppgave -> OppdateringstypeDTO.Opprett
+        Oppgave.Tilstand.LagOppgaveForSpeilsaksbehandlere -> OppdateringstypeDTO.OpprettSpeilRelatert
         Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet,
         Oppgave.Tilstand.SpleisLest -> OppdateringstypeDTO.Utsett
         Oppgave.Tilstand.DokumentOppdaget -> error("skal ikke legge melding på topic om at dokument er oppdaget")
@@ -65,6 +66,7 @@ class OppgaveObserver(
     private fun Oppgave.Tilstand.toEventName(): String = when (this) {
         Oppgave.Tilstand.SpleisFerdigbehandlet -> "oppgavestyring_ferdigbehandlet"
         Oppgave.Tilstand.LagOppgave -> "oppgavestyring_opprett"
+        Oppgave.Tilstand.LagOppgaveForSpeilsaksbehandlere -> "oppgavestyring_opprett_speilrelatert"
         Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet,
         Oppgave.Tilstand.SpleisLest -> "oppgavestyring_utsatt"
         Oppgave.Tilstand.KortSøknadFerdigbehandlet -> "oppgavestyring_kort_periode"

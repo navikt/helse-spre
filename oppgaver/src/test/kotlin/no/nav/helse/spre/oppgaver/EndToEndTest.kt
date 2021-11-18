@@ -9,9 +9,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Søknad
-import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.Ferdigbehandlet
-import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.Opprett
-import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.Utsett
+import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -123,6 +121,21 @@ class EndToEndTest {
 
         assertEquals(1, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", søknad1HendelseId).size)
+    }
+
+    @Test
+    fun `spleis gir opp behandling og det finnes relatert utbetaling`() {
+        val søknad1HendelseId = UUID.randomUUID()
+        val søknad1DokumentId = UUID.randomUUID()
+
+        sendSøknad(søknad1HendelseId, søknad1DokumentId)
+        sendVedtaksperiodeEndretMedRelatertUtbetaling(hendelseIder = listOf(søknad1HendelseId))
+
+        captureslot[0].value().assertInnhold(OpprettSpeilRelatert, søknad1DokumentId, Søknad)
+        assertEquals(1, captureslot.size)
+
+        assertEquals(1, rapid.inspektør.size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett_speilrelatert", søknad1HendelseId).size)
     }
 
     @Test
@@ -496,6 +509,20 @@ class EndToEndTest {
     }
 
     @Test
+    fun `spleis håndterer ikke søknad og det finnes relatert utbetaling`() {
+        val søknadId = UUID.randomUUID()
+        val hendelseId = UUID.randomUUID()
+        sendSøknad(hendelseId, søknadId)
+        sendHendelseIkkeHåndtertMedRelatertUtbetaling(hendelseId)
+
+        assertEquals(1, captureslot.size)
+        assertEquals(søknadId, captureslot[0].value().dokumentId)
+        assertEquals(OpprettSpeilRelatert, captureslot[0].value().oppdateringstype)
+
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett_speilrelatert", hendelseId).size)
+    }
+
+    @Test
     fun `spleis håndterer ikke søknad og vi mottar vedtaksperiode_endret uten søknadId`() {
         val søknadId = UUID.randomUUID()
         val hendelseId = UUID.randomUUID()
@@ -620,12 +647,23 @@ class EndToEndTest {
         rapid.sendTestMessage(hendelseIkkeHåndtert(hendelseId))
     }
 
+    private fun sendHendelseIkkeHåndtertMedRelatertUtbetaling(hendelseId: UUID) {
+        rapid.sendTestMessage(hendelseIkkeHåndtertMedRelatertUtbetaling(hendelseId))
+    }
+
     private fun sendVedtaksperiodeEndret(
         hendelseIder: List<UUID>,
         tilstand: String,
         vedtaksperiodeId: UUID = UUID.randomUUID()
     ) {
         rapid.sendTestMessage(vedtaksperiodeEndret(hendelseIder, tilstand, vedtaksperiodeId))
+    }
+
+    private fun sendVedtaksperiodeEndretMedRelatertUtbetaling(
+        hendelseIder: List<UUID>,
+        vedtaksperiodeId: UUID = UUID.randomUUID()
+    ) {
+        rapid.sendTestMessage(vedtaksperiodeEndretMedRelatertUtbetaling(hendelseIder, vedtaksperiodeId))
     }
 
     private fun navSøknadUtenUtbetaling(inntektsmeldingHendelseId: UUID, periode2: UUID) {
@@ -668,10 +706,29 @@ fun vedtaksperiodeEndret(
             "vedtaksperiodeId": "$vedtaksperiodeId"
         }"""
 
+fun vedtaksperiodeEndretMedRelatertUtbetaling(
+    hendelser: List<UUID>,
+    vedtaksperiodeId: UUID
+) =
+    """{
+            "@event_name": "vedtaksperiode_endret",
+            "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
+            "gjeldendeTilstand": "TIL_INFOTRYGD",
+            "vedtaksperiodeId": "$vedtaksperiodeId",
+            "harRelatertUtbetaling": "true"
+        }"""
 
 fun hendelseIkkeHåndtert(
     hendelseId: UUID,
 ) = """{
             "@event_name": "hendelse_ikke_håndtert",
             "hendelseId": "$hendelseId"
+        }"""
+
+fun hendelseIkkeHåndtertMedRelatertUtbetaling(
+    hendelseId: UUID,
+) = """{
+            "@event_name": "hendelse_ikke_håndtert",
+            "hendelseId": "$hendelseId",
+            "harRelatertUtbetaling": "true"
         }"""

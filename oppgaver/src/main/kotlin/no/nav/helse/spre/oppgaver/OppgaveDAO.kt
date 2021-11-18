@@ -9,6 +9,7 @@ import javax.sql.DataSource
 enum class DatabaseTilstand {
     SpleisFerdigbehandlet,
     LagOppgave,
+    LagOppgaveForSpeilsaksbehandlere,
     SpleisLest,
     DokumentOppdaget,
     KortInntektsmeldingFerdigbehandlet,
@@ -30,6 +31,7 @@ class OppgaveDAO(
                     tilstand = when (enumValueOf<DatabaseTilstand>(rs.string("tilstand"))) {
                         DatabaseTilstand.SpleisFerdigbehandlet -> Oppgave.Tilstand.SpleisFerdigbehandlet
                         DatabaseTilstand.LagOppgave -> Oppgave.Tilstand.LagOppgave
+                        DatabaseTilstand.LagOppgaveForSpeilsaksbehandlere -> Oppgave.Tilstand.LagOppgaveForSpeilsaksbehandlere
                         DatabaseTilstand.SpleisLest -> Oppgave.Tilstand.SpleisLest
                         DatabaseTilstand.DokumentOppdaget -> Oppgave.Tilstand.DokumentOppdaget
                         DatabaseTilstand.KortInntektsmeldingFerdigbehandlet -> Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet
@@ -69,6 +71,7 @@ class OppgaveDAO(
 private fun Oppgave.Tilstand.toDBTilstand(): DatabaseTilstand = when (this) {
     Oppgave.Tilstand.SpleisFerdigbehandlet -> DatabaseTilstand.SpleisFerdigbehandlet
     Oppgave.Tilstand.LagOppgave -> DatabaseTilstand.LagOppgave
+    Oppgave.Tilstand.LagOppgaveForSpeilsaksbehandlere -> DatabaseTilstand.LagOppgaveForSpeilsaksbehandlere
     Oppgave.Tilstand.SpleisLest -> DatabaseTilstand.SpleisLest
     Oppgave.Tilstand.DokumentOppdaget -> DatabaseTilstand.DokumentOppdaget
     Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet -> DatabaseTilstand.KortInntektsmeldingFerdigbehandlet
