@@ -26,9 +26,9 @@ class HåndterHendelseIkkeHåndtert(
             oppgaveDAO.finnOppgave(hendelseId)?.setObserver(observer)?.let { oppgave ->
                 Hendelse.TilInfotrygd.accept(oppgave)
                 log.info("Oppgave på hendelseId: {} av type: {} med dokumentId: {}, fører til oppgaveopprettelse",
-                hendelseId,
-                oppgave.dokumentType,
-                oppgave.dokumentId
+                    hendelseId,
+                    oppgave.dokumentType,
+                    oppgave.dokumentId
                 )
             } ?: log.info("Mottok hendelse_ikke_håndtert-event: {}, men vi har ikke en tilhørende søknad",
                  hendelseId
