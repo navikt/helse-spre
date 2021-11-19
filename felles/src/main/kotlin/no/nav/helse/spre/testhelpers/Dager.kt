@@ -2,6 +2,7 @@ package no.nav.helse.spre.testhelpers
 
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.util.*
 import kotlin.streams.toList
 
 fun utbetalingsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.UTBETALINGSDAG)
@@ -48,7 +49,7 @@ enum class Dagtype(val vanligNavn: String, val helgenavn: String = vanligNavn) {
     companion object {
         fun from(serialisertNavn: String): Dagtype {
             if (serialisertNavn in listOf("NavDag", "NavHelgeDag")) return UTBETALINGSDAG
-            return enumValueOf<Dagtype>(serialisertNavn.toUpperCase())
+            return enumValueOf(serialisertNavn.uppercase(Locale.getDefault()))
         }
     }
 }

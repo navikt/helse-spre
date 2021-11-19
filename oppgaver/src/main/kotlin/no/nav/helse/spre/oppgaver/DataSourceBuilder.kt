@@ -1,9 +1,10 @@
 package no.nav.helse.spre.oppgaver
 
 import com.zaxxer.hikari.HikariConfig
-import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration as createDataSource
 import org.flywaydb.core.Flyway
+import java.util.*
 import javax.sql.DataSource
+import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration as createDataSource
 
 internal class DataSourceBuilder(env: Map<String, String>) {
     private val databaseName =
@@ -42,8 +43,8 @@ internal class DataSourceBuilder(env: Map<String, String>) {
             .migrate()
 
     enum class Role {
-        Admin, User, ReadOnly;
+        Admin, User;
 
-        fun asRole(databaseName: String) = "$databaseName-${name.toLowerCase()}"
+        fun asRole(databaseName: String) = "$databaseName-${name.lowercase(Locale.getDefault())}"
     }
 }
