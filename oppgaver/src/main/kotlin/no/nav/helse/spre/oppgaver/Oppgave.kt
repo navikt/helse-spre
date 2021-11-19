@@ -20,12 +20,6 @@ class Oppgave(
         fun publiser(oppgave: Oppgave) {}
     }
 
-    fun håndter(hendelse: Hendelse.TilInfotrygd) = tilstand.håndter(this, hendelse)
-    fun håndter(hendelse: Hendelse.Avsluttet) = tilstand.håndter(this, hendelse)
-    fun håndter(hendelse: Hendelse.Lest) = tilstand.håndter(this, hendelse)
-    fun håndter(hendelse: Hendelse.AvsluttetUtenUtbetaling) = tilstand.håndter(this, hendelse)
-    fun håndter(hendelse: Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling) = tilstand.håndter(this, hendelse)
-
     private fun tilstand(tilstand: Tilstand) {
         val forrigeTilstand = this.tilstand
         this.tilstand = tilstand
@@ -33,17 +27,12 @@ class Oppgave(
         tilstand.entering(this, forrigeTilstand)
     }
 
-
     sealed class Tilstand {
         open fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
             oppgave.observer?.publiser(oppgave)
         }
 
-        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {}
-        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {}
-        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Lest) {}
-        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {}
-        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling) {}
+        open fun håndter(oppgave: Oppgave, hendelse: Hendelse) {}
 
         object SpleisFerdigbehandlet : Tilstand() {
             override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
@@ -55,58 +44,46 @@ class Oppgave(
         object LagOppgave : Tilstand()
 
         object SpleisLest : Tilstand() {
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
-                oppgave.tilstand(LagOppgave)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
-                oppgave.tilstand(SpleisFerdigbehandlet)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {
-                oppgave.tilstand(KortSøknadFerdigbehandlet)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling) {
-                oppgave.tilstand(KortInntektsmeldingFerdigbehandlet)
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse) {
+                when (hendelse) {
+                    Hendelse.TilInfotrygd -> LagOppgave
+                    Hendelse.Avsluttet -> SpleisFerdigbehandlet
+                    Hendelse.AvsluttetUtenUtbetaling -> KortSøknadFerdigbehandlet
+                    Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling -> KortInntektsmeldingFerdigbehandlet
+                    else -> null
+                }?.let(oppgave::tilstand)
             }
         }
 
         object DokumentOppdaget : Tilstand() {
             override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {}
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
-                oppgave.tilstand(LagOppgave)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
-                oppgave.tilstand(SpleisFerdigbehandlet)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Lest) {
-                oppgave.tilstand(SpleisLest)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {
-                oppgave.tilstand(KortSøknadFerdigbehandlet)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling){
-                oppgave.tilstand(KortInntektsmeldingFerdigbehandlet)
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse) {
+                when (hendelse) {
+                    Hendelse.TilInfotrygd -> LagOppgave
+                    Hendelse.Avsluttet -> SpleisFerdigbehandlet
+                    Hendelse.Lest -> SpleisLest
+                    Hendelse.AvsluttetUtenUtbetaling -> KortSøknadFerdigbehandlet
+                    Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling -> KortInntektsmeldingFerdigbehandlet
+                }.let(oppgave::tilstand)
             }
         }
 
         object KortInntektsmeldingFerdigbehandlet: Tilstand() {
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
-                oppgave.tilstand(LagOppgave)
-            }
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
-                oppgave.tilstand(SpleisFerdigbehandlet)
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse) {
+                when (hendelse) {
+                    Hendelse.TilInfotrygd -> LagOppgave
+                    Hendelse.Avsluttet -> SpleisFerdigbehandlet
+                    else -> null
+                }?.let { oppgave.tilstand(it) }
             }
         }
 
         object KortSøknadFerdigbehandlet: Tilstand() {
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
-                oppgave.tilstand(SpleisFerdigbehandlet)
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse) {
+                when (hendelse) {
+                    Hendelse.Avsluttet -> SpleisFerdigbehandlet
+                    else -> null
+                }?.let { oppgave.tilstand(it) }
             }
         }
 

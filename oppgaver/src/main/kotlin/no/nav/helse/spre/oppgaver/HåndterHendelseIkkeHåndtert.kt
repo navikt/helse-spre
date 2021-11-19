@@ -4,6 +4,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.helse.spre.oppgaver.Hendelse.TilInfotrygd
 import java.util.*
 
 class HåndterHendelseIkkeHåndtert(
@@ -24,7 +25,7 @@ class HåndterHendelseIkkeHåndtert(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         UUID.fromString(packet["hendelseId"].asText()).let { hendelseId ->
             oppgaveDAO.finnOppgave(hendelseId)?.setObserver(observer)?.let { oppgave ->
-                Hendelse.TilInfotrygd.accept(oppgave)
+                oppgave.tilstand.håndter(oppgave, TilInfotrygd)
                 log.info("Oppgave på hendelseId: {} av type: {} med dokumentId: {}, fører til oppgaveopprettelse",
                 hendelseId,
                 oppgave.dokumentType,
