@@ -40,3 +40,8 @@ data class VedtakPdfPayload(
         val begrunnelser: List<String>
     )
 }
+
+
+fun  List<VedtakPdfPayload.Linje>.slåSammen(other: List<VedtakPdfPayload.Linje>): List<VedtakPdfPayload.Linje> {
+    return this + other
+}
