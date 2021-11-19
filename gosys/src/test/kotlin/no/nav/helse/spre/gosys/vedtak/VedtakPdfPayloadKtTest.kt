@@ -1,5 +1,6 @@
 package no.nav.helse.spre.gosys.vedtak
 
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.MottakerType
 import no.nav.helse.spre.testhelpers.januar
 import org.junit.jupiter.api.Test
 
@@ -63,13 +64,30 @@ internal class VedtakPdfPayloadKtTest {
         )
     }
 
+    @Test
+    fun `arbeidsgiver først, når arbeidsgiver og personlinje med lik fom`() {
+        val arbeidsgiverLinjer = listOf(
+            arbeidsgiverlinje(15.januar, 20.januar),
+        )
+        val personLinjer = listOf(
+            personlinje(15.januar, 16.januar),
+        )
+
+        assertEquals(
+            listOf(
+                arbeidsgiverlinje(15.januar, 20.januar),
+                personlinje(15.januar, 16.januar)
+            ), personLinjer.slåSammen(arbeidsgiverLinjer)
+        )
+    }
+
     fun arbeidsgiverlinje(
         fom: LocalDate = 17.januar,
         tom: LocalDate = 31.januar,
         grad: Int = 100,
         beløp: Int = 1400,
         mottaker: String = "123 456 789"
-    ) = linje(fom, tom, grad, beløp, mottaker)
+    ) = linje(fom, tom, grad, beløp, mottaker, MottakerType.Arbeidsgiver)
 
     fun personlinje(
         fom: LocalDate = 17.januar,
@@ -77,18 +95,19 @@ internal class VedtakPdfPayloadKtTest {
         grad: Int = 100,
         beløp: Int = 1400,
         mottaker: String = "123456 78999"
-    ) = linje(fom, tom, grad, beløp, mottaker)
+    ) = linje(fom, tom, grad, beløp, mottaker, MottakerType.Person)
 
     fun linje(
         fom: LocalDate,
         tom: LocalDate,
         grad: Int,
         beløp: Int,
-        mottaker: String
+        mottaker: String,
+        mottakerType: MottakerType
     ) =
         VedtakPdfPayload.Linje(
             fom = fom,
             tom = tom,
-            grad, beløp, mottaker
+            grad, beløp, mottaker, mottakerType
         )
 }

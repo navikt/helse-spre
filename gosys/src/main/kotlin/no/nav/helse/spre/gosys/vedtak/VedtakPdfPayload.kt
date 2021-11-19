@@ -25,12 +25,17 @@ data class VedtakPdfPayload(
 ) {
     data class Oppdrag(val linjer: List<Linje> = emptyList())
 
+    enum class MottakerType {
+        Arbeidsgiver, Person
+    }
+
     data class Linje(
         val fom: LocalDate,
         val tom: LocalDate,
         val grad: Int,
         val beløp: Int,
-        val mottaker: String
+        val mottaker: String,
+        val mottakerType: MottakerType = MottakerType.Arbeidsgiver
     )
 
     data class IkkeUtbetalteDager(
@@ -43,5 +48,7 @@ data class VedtakPdfPayload(
 
 
 fun  List<VedtakPdfPayload.Linje>.slåSammen(other: List<VedtakPdfPayload.Linje>): List<VedtakPdfPayload.Linje> {
-    return (this + other).sortedBy { it.fom }
+    return (this + other)
+        .sortedBy { it.mottakerType }
+        .sortedBy { it.fom }
 }
