@@ -260,7 +260,6 @@ internal class EndToEndTest {
             automatiskbehandling = false,
             resultat = Resultat.INNVILGET,
             behandlingType = BehandlingType.SØKNAD,
-
         )
 
         assertEquals(expected1, sendtTilDVH1)
@@ -292,7 +291,6 @@ internal class EndToEndTest {
         val vedtaksperiodeForkastet = vedtaksperiodeForkastet(
             vedtaksperiodeId = vedtaksperiodeEndret.vedtaksperiodeId
         )
-
 
         testRapid.sendTestMessage(søknadData.json())
         testRapid.sendTestMessage(vedtaksperiodeEndret.json())

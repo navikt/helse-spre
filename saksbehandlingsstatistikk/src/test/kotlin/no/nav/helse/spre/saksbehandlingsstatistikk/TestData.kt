@@ -3,6 +3,7 @@ package no.nav.helse.spre.saksbehandlingsstatistikk
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.random.Random
 
 object TestData {
 
@@ -20,15 +21,13 @@ object TestData {
 
     fun vedtaksperiodeGodkjent(vedtaksperiodeId: UUID) = VedtaksperiodeGodkjentData(
         vedtaksperiodeId,
-        randomIndent(),
+        randomIdent(),
         LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
         true
     )
 
-    private fun randomIndent() = "${randomString(('A'..'Z'), 1)}${randomString(('0'..'9'), 6)}"
-
     fun vedtakFattet(hendelser: List<UUID>, vedtaksperiodeId: UUID) = VedtakFattetData(
-        randomIndent(),
+        randomIdent(),
         hendelser,
         vedtaksperiodeId,
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
@@ -38,26 +37,28 @@ object TestData {
     fun vedtaksperiodeForkastet(vedtaksperiodeId: UUID) = VedtaksperiodeForkastetData(
         vedtaksperiodeId,
         LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS),
-        randomIndent(),
+        randomIdent(),
     )
 
     fun vedtaksperiodeAvvist(vedtaksperiodeId: UUID) = VedtaksperiodeAvvistData(
         vedtaksperiodeId,
-        randomIndent(),
+        randomIdent(),
         LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
         true
     )
 
     fun ikkeGodkjentGodkjenningBehovsLøsning(vedtaksperiodeId: UUID) = GodkjenningsBehovLøsningData(
         vedtaksperiodeId,
-        randomIndent(),
+        randomIdent(),
         LocalDateTime.now().minusDays(1).truncatedTo(ChronoUnit.MILLIS),
         true,
     )
 
-    fun randomString(charPool: CharRange, length: Int) = (1..length)
-        .map { _ -> kotlin.random.Random.nextInt(0, charPool.toList().size) }
+    private fun randomIdent() = "${randomString(('A'..'Z'), 1)}${randomString(('0'..'9'), 6)}"
+
+    private fun randomString(charPool: CharRange, length: Int) = (1..length)
+        .map { Random.nextInt(0, charPool.count()) }
         .map(charPool.toList()::get)
-        .joinToString("")
+        .joinToString()
 
 }
