@@ -16,7 +16,7 @@ fun DokumentType.toDTO(): DokumentTypeDTO = when (this) {
 }
 
 enum class OppdateringstypeDTO {
-    Utsett, Opprett, Ferdigbehandlet
+    Utsett, Opprett, OpprettSpeilRelatert, Ferdigbehandlet
 }
 
 enum class DokumentTypeDTO {

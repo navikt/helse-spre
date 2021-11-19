@@ -17,14 +17,17 @@ class HåndterHendelseIkkeHåndtert(
     init {
         River(rapidsConnection).apply {
             validate { it.requireKey("hendelseId") }
+            validate { it.interestedIn("harRelatertUtbetaling") }
             validate { it.requireValue("@event_name", "hendelse_ikke_håndtert") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val harRelatertUtbetaling = packet["harRelatertUtbetaling"].asBoolean()
         UUID.fromString(packet["hendelseId"].asText()).let { hendelseId ->
             oppgaveDAO.finnOppgave(hendelseId)?.setObserver(observer)?.let { oppgave ->
-                Hendelse.TilInfotrygd.accept(oppgave)
+                if (harRelatertUtbetaling) Hendelse.AvbruttOgHarRelatertUtbetaling.accept(oppgave)
+                else Hendelse.TilInfotrygd.accept(oppgave)
                 log.info("Oppgave på hendelseId: {} av type: {} med dokumentId: {}, fører til oppgaveopprettelse",
                     hendelseId,
                     oppgave.dokumentType,

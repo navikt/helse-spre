@@ -17,6 +17,7 @@ class HåndterVedtaksperiodeendringer(
     init {
         River(rapidsConnection).apply {
             validate { it.requireKey("gjeldendeTilstand", "hendelser") }
+            validate { it.interestedIn("harRelatertUtbetaling") }
             validate { it.requireValue("@event_name", "vedtaksperiode_endret") }
         }.register(this)
     }
@@ -24,6 +25,7 @@ class HåndterVedtaksperiodeendringer(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val gjeldendeTilstand = packet["gjeldendeTilstand"].asText()
+        val harRelatertUtbetaling = packet["harRelatertUtbetaling"].asBoolean()
 
         packet["hendelser"]
             .map { UUID.fromString(it.asText()) }
@@ -33,7 +35,8 @@ class HåndterVedtaksperiodeendringer(
                 val erSøknad = oppgave.dokumentType == DokumentType.Søknad
 
                 when (gjeldendeTilstand) {
-                    "TIL_INFOTRYGD" -> Hendelse.TilInfotrygd
+                    "TIL_INFOTRYGD" -> if (harRelatertUtbetaling) Hendelse.AvbruttOgHarRelatertUtbetaling
+                        else  Hendelse.TilInfotrygd
                     "AVSLUTTET" -> Hendelse.Avsluttet
                     "AVSLUTTET_UTEN_UTBETALING" -> {
                         if (erSøknad) Hendelse.AvsluttetUtenUtbetaling
