@@ -20,71 +20,44 @@ class Oppgave(
         fun publiser(oppgave: Oppgave) {}
     }
 
+    fun håndter(hendelse: Hendelse) =
+        if (hendelse in tilstand.støttedeOverganger()) tilstand(hendelse.nesteTilstand)
+        else Unit
+
     private fun tilstand(tilstand: Tilstand) {
-        val forrigeTilstand = this.tilstand
         this.tilstand = tilstand
         observer?.lagre(this)
-        tilstand.entering(this, forrigeTilstand)
+        observer?.publiser(this)
     }
 
-    sealed class Tilstand {
-        open fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
-            oppgave.observer?.publiser(oppgave)
-        }
+    enum class Tilstand {
+        SpleisFerdigbehandlet,
+        LagOppgave,
+        SpleisLest,
+        DokumentOppdaget,
+        KortInntektsmeldingFerdigbehandlet,
+        KortSøknadFerdigbehandlet;
 
-        open fun håndter(oppgave: Oppgave, hendelse: Hendelse) {}
-
-        object SpleisFerdigbehandlet : Tilstand() {
-            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
-                if (forrigeTilstand == KortSøknadFerdigbehandlet) return
-                super.entering(oppgave, forrigeTilstand)
-            }
-        }
-
-        object LagOppgave : Tilstand()
-
-        object SpleisLest : Tilstand() {
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse) {
-                when (hendelse) {
-                    Hendelse.TilInfotrygd -> LagOppgave
-                    Hendelse.Avsluttet -> SpleisFerdigbehandlet
-                    Hendelse.AvsluttetUtenUtbetaling -> KortSøknadFerdigbehandlet
-                    Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling -> KortInntektsmeldingFerdigbehandlet
-                    else -> null
-                }?.let(oppgave::tilstand)
-            }
-        }
-
-        object DokumentOppdaget : Tilstand() {
-            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {}
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse) {
-                when (hendelse) {
-                    Hendelse.TilInfotrygd -> LagOppgave
-                    Hendelse.Avsluttet -> SpleisFerdigbehandlet
-                    Hendelse.Lest -> SpleisLest
-                    Hendelse.AvsluttetUtenUtbetaling -> KortSøknadFerdigbehandlet
-                    Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling -> KortInntektsmeldingFerdigbehandlet
-                }.let(oppgave::tilstand)
-            }
-        }
-
-        object KortInntektsmeldingFerdigbehandlet: Tilstand() {
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse) {
-                when (hendelse) {
-                    Hendelse.TilInfotrygd -> LagOppgave
-                    Hendelse.Avsluttet -> SpleisFerdigbehandlet
-                    else -> null
-                }?.let { oppgave.tilstand(it) }
-            }
-        }
-
-        object KortSøknadFerdigbehandlet: Tilstand() {
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse) {
-                when (hendelse) {
-                    Hendelse.Avsluttet -> SpleisFerdigbehandlet
-                    else -> null
-                }?.let { oppgave.tilstand(it) }
-            }
+        /**
+         * Hver tilstand oppgir hvilke hendelser som kan trigge tilstandsendring.
+         */
+        fun støttedeOverganger() = when (this) {
+            DokumentOppdaget -> listOf(
+                Hendelse.TilInfotrygd,
+                Hendelse.Avsluttet,
+                Hendelse.Lest,
+                Hendelse.AvsluttetUtenUtbetaling,
+                Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling
+            )
+            SpleisLest -> listOf(
+                Hendelse.TilInfotrygd,
+                Hendelse.Avsluttet,
+                Hendelse.AvsluttetUtenUtbetaling,
+                Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling
+            )
+            KortSøknadFerdigbehandlet -> listOf(Hendelse.Avsluttet)
+            KortInntektsmeldingFerdigbehandlet -> listOf(Hendelse.TilInfotrygd, Hendelse.Avsluttet)
+            SpleisFerdigbehandlet, LagOppgave -> emptyList()
         }
 
         override fun toString(): String {

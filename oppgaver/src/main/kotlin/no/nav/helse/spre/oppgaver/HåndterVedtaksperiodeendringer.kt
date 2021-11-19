@@ -41,8 +41,7 @@ class HåndterVedtaksperiodeendringer(
                         else Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling
                     }
                     else -> Hendelse.Lest
-                }.let {
-                    oppgave.tilstand.håndter(oppgave, it) }
+                }.let(oppgave::håndter)
             }
     }
 }

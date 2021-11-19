@@ -63,7 +63,6 @@ class OppgaveDAO(
             ).asUpdate
         )
     }
-
 }
 
 private fun Oppgave.Tilstand.toDBTilstand(): DatabaseTilstand = when (this) {
