@@ -18,16 +18,15 @@ class OppgaveObserver(
     }
 
     override fun publiser(oppgave: Oppgave) {
-        oppgaveProducers.forEach { it.kafkaproducer().send(
-            ProducerRecord(
-                it.topic(), OppgaveDTO(
-                    dokumentType = oppgave.dokumentType.toDTO(),
-                    oppdateringstype = oppgave.tilstand.toDTO(),
-                    dokumentId = oppgave.dokumentId,
-                    timeout = oppgave.tilstand.timeout(),
-                )
-            )
-        ) }
+        val oppgaveDTO = OppgaveDTO(
+            dokumentType = oppgave.dokumentType.toDTO(),
+            oppdateringstype = oppgave.tilstand.toDTO(),
+            dokumentId = oppgave.dokumentId,
+            timeout = oppgave.tilstand.timeout(),
+        )
+        oppgaveProducers.forEach { producer ->
+            producer.kafkaProducer.send(ProducerRecord(producer.topic, oppgaveDTO))
+        }
 
         rapidsConnection.publish(
             JsonMessage.newMessage(
@@ -41,9 +40,10 @@ class OppgaveObserver(
         )
 
         log.info(
-            "Publisert oppgave på ${oppgave.dokumentType.name} i tilstand: ${oppgave.tilstand} med ider: {}, {}",
+            "Publisert oppgave på ${oppgave.dokumentType.name} i tilstand: ${oppgave.tilstand} med ider: {}, {} og type:{}",
             StructuredArguments.keyValue("hendelseId", oppgave.hendelseId),
-            StructuredArguments.keyValue("dokumentId", oppgave.dokumentId)
+            StructuredArguments.keyValue("dokumentId", oppgave.dokumentId),
+            StructuredArguments.keyValue("oppdateringstype", oppgave.tilstand.toDTO()),
         )
     }
 

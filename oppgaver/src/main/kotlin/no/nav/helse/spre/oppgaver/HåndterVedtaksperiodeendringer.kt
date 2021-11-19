@@ -30,6 +30,7 @@ class HåndterVedtaksperiodeendringer(
             .mapNotNull { oppgaveDAO.finnOppgave(it) }
             .onEach { it.setObserver(observer) }
             .forEach { oppgave ->
+                log.info("fant oppgave: ${objectMapper.writeValueAsString(oppgave)}")
                 val erSøknad = oppgave.dokumentType == DokumentType.Søknad
 
                 when (gjeldendeTilstand) {

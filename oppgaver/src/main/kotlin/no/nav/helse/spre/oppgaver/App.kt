@@ -21,12 +21,13 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
 
 internal val log = LoggerFactory.getLogger("helse-spre-oppgaver")
 internal val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
-internal val onPremOppgaveTopicName = "aapen-helse-spre-oppgaver"
-internal val aivenOppgaveTopicName = "tbd.spre-oppgaver"
+internal const val onPremOppgaveTopicName = "aapen-helse-spre-oppgaver"
+internal const val aivenOppgaveTopicName = "tbd.spre-oppgaver"
 
-internal typealias OppgaveProducer = Pair<String, KafkaProducer<String, OppgaveDTO>>
-internal fun OppgaveProducer.topic() = this.first
-internal fun OppgaveProducer.kafkaproducer() = this.second
+data class OppgaveProducer(
+    val topic: String,
+    val kafkaProducer: KafkaProducer<String, OppgaveDTO>
+)
 
 fun main() {
     val rapidsConnection = launchApplication(System.getenv())
