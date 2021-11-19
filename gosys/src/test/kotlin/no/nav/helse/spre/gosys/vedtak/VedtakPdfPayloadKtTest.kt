@@ -27,16 +27,16 @@ internal class VedtakPdfPayloadKtTest {
     @Test
     fun `kronologisk stigende rekkefølge innenfor en arbeidsgiver`() {
         val arbeidsgiverLinjer = listOf(
-            arbeidsgiverlinje(15.januar, 20.januar),
+            arbeidsgiverlinje(5.januar, 9.januar),
             arbeidsgiverlinje(10.januar, 14.januar),
-            arbeidsgiverlinje(5.januar, 9.januar)
+            arbeidsgiverlinje(15.januar, 20.januar)
         )
 
         assertEquals(
             listOf(
-                arbeidsgiverlinje(5.januar, 9.januar),
+                arbeidsgiverlinje(15.januar, 20.januar),
                 arbeidsgiverlinje(10.januar, 14.januar),
-                arbeidsgiverlinje(15.januar, 20.januar)
+                arbeidsgiverlinje(5.januar, 9.januar)
             ), arbeidsgiverLinjer.slåSammen(tomListe)
         )
     }
@@ -45,8 +45,8 @@ internal class VedtakPdfPayloadKtTest {
     fun `kronologisk stigende rekkefølge på arbeidsgiver og personlinjer`() {
         val arbeidsgiverLinjer = listOf(
             arbeidsgiverlinje(15.januar, 20.januar),
-            arbeidsgiverlinje(10.januar, 14.januar),
-            arbeidsgiverlinje(5.januar, 9.januar)
+            arbeidsgiverlinje(5.januar, 9.januar),
+            arbeidsgiverlinje(10.januar, 14.januar)
         )
         val personLinjer = listOf(
             personlinje(11.januar, 16.januar),
@@ -55,11 +55,11 @@ internal class VedtakPdfPayloadKtTest {
 
         assertEquals(
             listOf(
-                personlinje(1.januar, 6.januar),
-                arbeidsgiverlinje(5.januar, 9.januar),
-                arbeidsgiverlinje(10.januar, 14.januar),
+                arbeidsgiverlinje(15.januar, 20.januar),
                 personlinje(11.januar, 16.januar),
-                arbeidsgiverlinje(15.januar, 20.januar)
+                arbeidsgiverlinje(10.januar, 14.januar),
+                arbeidsgiverlinje(5.januar, 9.januar),
+                personlinje(1.januar, 6.januar)
             ), arbeidsgiverLinjer.slåSammen(personLinjer)
         )
     }
