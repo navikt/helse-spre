@@ -43,5 +43,5 @@ data class VedtakPdfPayload(
 
 
 fun  List<VedtakPdfPayload.Linje>.slåSammen(other: List<VedtakPdfPayload.Linje>): List<VedtakPdfPayload.Linje> {
-    return this + other
+    return (this + other).sortedBy { it.fom }
 }
