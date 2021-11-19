@@ -5,7 +5,6 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -28,7 +27,6 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.assertNotNull
 
-@KtorExperimentalAPI
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal abstract class AbstractE2ETest {
 
