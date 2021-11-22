@@ -9,7 +9,7 @@ data class VedtakPdfPayload(
     val fom: LocalDate,
     val tom: LocalDate,
     val linjer: List<Linje>,
-    val brukerOppdrag: Oppdrag = Oppdrag(),
+    val personOppdrag: Oppdrag = Oppdrag(),
     val arbeidsgiverOppdrag: Oppdrag,
     val organisasjonsnummer: String,
     val behandlingsdato: LocalDate,
@@ -26,7 +26,13 @@ data class VedtakPdfPayload(
     data class Oppdrag(val linjer: List<Linje> = emptyList())
 
     enum class MottakerType {
-        Arbeidsgiver, Person
+        Arbeidsgiver {
+            override fun formatter(mottaker: String): String = mottaker.chunked(3).joinToString(separator = " ")
+        }, Person {
+            override fun formatter(mottaker: String): String = mottaker.chunked(6).joinToString(separator = " ")
+        };
+
+        abstract fun formatter(mottaker: String): String
     }
 
     data class Linje(

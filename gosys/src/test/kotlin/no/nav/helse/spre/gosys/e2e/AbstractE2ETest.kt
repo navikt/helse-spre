@@ -124,7 +124,9 @@ internal abstract class AbstractE2ETest {
             )
         ),
         arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(linjer = linjer),
-        ikkeUtbetalteDager: List<IkkeUtbetalteDager> = emptyList()
+        personOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(),
+        ikkeUtbetalteDager: List<IkkeUtbetalteDager> = emptyList(),
+        dagsats: Int? = 1431,
     ) =
         VedtakPdfPayload(
             fødselsnummer = "12345678910",
@@ -139,12 +141,13 @@ internal abstract class AbstractE2ETest {
             godkjentAv = "Automatisk behandlet",
             totaltTilUtbetaling = totaltTilUtbetaling,
             ikkeUtbetalteDager = ikkeUtbetalteDager,
-            dagsats = 1431,
+            dagsats = dagsats,
             sykepengegrunnlag = 565260.0,
             grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
             maksdato = LocalDate.of(2021, 7, 15),
             linjer = linjer,
-            arbeidsgiverOppdrag = arbeidsgiverOppdrag
+            arbeidsgiverOppdrag = arbeidsgiverOppdrag,
+            personOppdrag = personOppdrag
         )
 
     protected fun expectedJournalpost(
@@ -233,7 +236,7 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
-        personOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SP"),
+        personOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SP", mottaker = fødselsnummer),
         arbeidsgiverOppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SPREF")
     ) = """{
     "@id": "$hendelseId",

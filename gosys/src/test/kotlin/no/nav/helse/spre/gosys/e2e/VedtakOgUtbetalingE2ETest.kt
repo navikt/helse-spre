@@ -1,17 +1,13 @@
 package no.nav.helse.spre.gosys.e2e
 
-import io.ktor.util.KtorExperimentalAPI
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
+import io.ktor.util.*
+import no.nav.helse.spre.Toggle
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.REVURDERING
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.IkkeUtbetalteDager
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.Linje
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.*
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import no.nav.helse.spre.testhelpers.arbeidsdager
@@ -27,6 +23,10 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @KtorExperimentalAPI
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
@@ -60,22 +60,61 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertVedtakPdf()
     }
 
-    @Disabled
+
     @Test
-    fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_utbetalt for brukerutbetaling`() {
-        val vedtaksperiodeId = UUID.randomUUID()
-        val utbetalingId = UUID.randomUUID()
-        sendVedtakFattet(
-            vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId
-        )
-        sendBrukerutbetaling(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(vedtaksperiodeId)
-        )
-        assertJournalpost()
-        assertVedtakPdf()
-    }
+    fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_utbetalt for brukerutbetaling`() =
+        Toggle.PDFTemplateV2.enable {
+            val vedtaksperiodeId = UUID.randomUUID()
+            val utbetalingId = UUID.randomUUID()
+            sendVedtakFattet(
+                vedtaksperiodeId = vedtaksperiodeId,
+                utbetalingId = utbetalingId
+            )
+            sendBrukerutbetaling(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = listOf(vedtaksperiodeId)
+            )
+            assertJournalpost()
+
+            val linjer = listOf(
+                Linje(
+                    fom = 1.januar,
+                    tom = 31.januar,
+                    grad = 100,
+                    beløp = 1431,
+                    mottaker = "123456 78910",
+                    mottakerType = MottakerType.Person
+                )
+            )
+            assertVedtakPdf(
+                expectedPdfPayload(
+                    linjer = linjer,
+                    dagsats = null,
+                    arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(),
+                    personOppdrag = VedtakPdfPayload.Oppdrag(
+                        linjer
+                    )
+                )
+            )
+        }
+
+    @Test
+    fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_uten_utbetaling for brukerutbetaling`() =
+        Toggle.PDFTemplateV2.enable {
+            val vedtaksperiodeId = UUID.randomUUID()
+            val utbetalingId = UUID.randomUUID()
+            sendVedtakFattet(
+                vedtaksperiodeId = vedtaksperiodeId,
+                utbetalingId = utbetalingId
+            )
+            sendBrukerutbetaling(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = listOf(vedtaksperiodeId),
+                sykdomstidslinje = fridager(1.januar, 31.januar)
+            )
+            assertJournalpost()
+            assertVedtakPdf()
+        }
 
     @Test
     fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_uten_utbetaling`() {
