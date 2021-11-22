@@ -1,6 +1,7 @@
 package no.nav.helse.spre.gosys.vedtak
 
 import kotlinx.coroutines.runBlocking
+import no.nav.helse.spre.Toggle
 import no.nav.helse.spre.gosys.*
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import java.time.LocalDate
@@ -14,14 +15,19 @@ class VedtakMediator(private val pdfClient: PdfClient, private val joarkClient: 
         skjæringstidspunkt: LocalDate,
         utbetaling: Utbetaling
     ) {
-        val vedtak = VedtakMessage(fom, tom, sykepengegrunnlag, grunnlagForSykepengegrunnlag, skjæringstidspunkt, utbetaling)
+        val vedtak =
+            VedtakMessage(fom, tom, sykepengegrunnlag, grunnlagForSykepengegrunnlag, skjæringstidspunkt, utbetaling)
         opprettSammenslåttVedtak(vedtak)
     }
 
     internal fun opprettSammenslåttVedtak(vedtakMessage: VedtakMessage) {
         if (vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
         runBlocking {
-            val pdf = pdfClient.hentVedtakPdf(vedtakMessage.toVedtakPdfPayload())
+            val pdf = if (Toggle.PDFTemplateV2.enabled) {
+                pdfClient.hentVedtakPdfV2(vedtakMessage.toVedtakPdfPayloadV2())
+            } else {
+                pdfClient.hentVedtakPdf(vedtakMessage.toVedtakPdfPayload())
+            }
             val journalpostPayload = JournalpostPayload(
                 tittel = journalpostTittel(vedtakMessage.type),
                 bruker = JournalpostPayload.Bruker(id = vedtakMessage.fødselsnummer),
@@ -40,7 +46,7 @@ class VedtakMediator(private val pdfClient: PdfClient, private val joarkClient: 
     }
 
     private fun dokumentTittel(vedtakMessage: VedtakMessage): String {
-        return when(vedtakMessage.type){
+        return when (vedtakMessage.type) {
             Utbetaling.Utbetalingtype.UTBETALING -> "Sykepenger behandlet i ny løsning, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
             Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Sykepenger etterutbetalt i ny løsning, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
             Utbetaling.Utbetalingtype.REVURDERING -> "Sykepenger revurdert i ny løsning, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"

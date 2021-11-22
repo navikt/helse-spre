@@ -65,6 +65,8 @@ data class VedtakMessage(
             }
     )
 
+    internal fun toVedtakPdfPayloadV2() = toVedtakPdfPayload()
+
     internal fun toVedtakPdfPayload() = VedtakPdfPayload(
         fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
         totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp,

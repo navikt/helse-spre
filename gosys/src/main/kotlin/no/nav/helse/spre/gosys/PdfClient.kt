@@ -14,6 +14,9 @@ class PdfClient(private val httpClient: HttpClient) {
     suspend fun hentVedtakPdf(vedtak: VedtakPdfPayload) =
         hentPdf("http://spre-gosys-pdf.tbd.svc.nais.local/api/v1/genpdf/spre-gosys/vedtak", vedtak)
 
+    suspend fun hentVedtakPdfV2(vedtak: VedtakPdfPayload) =
+        hentPdf("http://spre-gosys-pdf.tbd.svc.nais.local/api/v1/genpdf/spre-gosys/vedtak-v2", vedtak)
+
     suspend fun hentAnnulleringPdf(annullering: AnnulleringPdfPayload) =
         hentPdf("http://spre-gosys-pdf.tbd.svc.nais.local/api/v1/genpdf/spre-gosys/annullering", annullering)
     suspend fun hentFeriepengerPdf(feriepenger: FeriepengerPdfPayload) =
