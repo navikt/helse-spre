@@ -35,10 +35,13 @@ class Oppdrag(
              "nettoBeløp": ${stønadsdager * dagsats},
              "mottaker": "$mottaker",
              "fagsystemId": "$fagsystemId",
-             "tidsstempel": "$tidsstempel"
+             "tidsstempel": "$tidsstempel",
+             "endringskode":"NY",
+             "sisteArbeidsgiverdag":"2021-10-26",
+             "fom":"-999999999-01-01",
+             "tom":"-999999999-01-01"
             }    
         """.trimIndent()
-
     }
 
 

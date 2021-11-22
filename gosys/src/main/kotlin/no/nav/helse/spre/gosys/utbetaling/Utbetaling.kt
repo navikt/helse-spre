@@ -68,24 +68,6 @@ data class Utbetaling(
 
     companion object {
         fun fromJson(packet: JsonMessage): Utbetaling {
-            val arbeidsgiverOppdrag = packet["arbeidsgiverOppdrag"].let { oppdrag ->
-                OppdragDto(
-                    mottaker = oppdrag["mottaker"].asText(),
-                    fagområde = oppdrag["fagområde"].asText(),
-                    fagsystemId = oppdrag["fagsystemId"].asText(),
-                    nettoBeløp = oppdrag["nettoBeløp"].asInt(),
-                    utbetalingslinjer = oppdrag["linjer"].map { linje ->
-                        OppdragDto.UtbetalingslinjeDto(
-                            fom = linje["fom"].asLocalDate(),
-                            tom = linje["tom"].asLocalDate(),
-                            dagsats = linje["dagsats"].asInt(),
-                            totalbeløp = linje["totalbeløp"].asInt(),
-                            grad = linje["grad"].asDouble(),
-                            stønadsdager = linje["stønadsdager"].asInt()
-                        )
-                    }
-                )
-            }
             return Utbetaling(
                 utbetalingId = packet["utbetalingId"].let { UUID.fromString(it.asText()) },
                 fødselsnummer = packet["fødselsnummer"].asText(),
@@ -97,7 +79,7 @@ data class Utbetaling(
                 gjenståendeSykedager = packet["gjenståendeSykedager"].asInt(),
                 maksdato = packet["maksdato"].asLocalDate(),
                 automatiskBehandling = packet["automatiskBehandling"].asBoolean(),
-                arbeidsgiverOppdrag = arbeidsgiverOppdrag,
+                arbeidsgiverOppdrag = packet["arbeidsgiverOppdrag"].tilOppdragDto(),
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
                 epost = packet["epost"].asText(),
@@ -118,24 +100,6 @@ data class Utbetaling(
 
 
         fun fromJson(packet: JsonNode): Utbetaling {
-            val arbeidsgiverOppdrag = packet["arbeidsgiverOppdrag"].let { oppdrag ->
-                OppdragDto(
-                    mottaker = oppdrag["mottaker"].asText(),
-                    fagområde = oppdrag["fagområde"].asText(),
-                    fagsystemId = oppdrag["fagsystemId"].asText(),
-                    nettoBeløp = oppdrag["nettoBeløp"].asInt(),
-                    utbetalingslinjer = oppdrag["linjer"].map { linje ->
-                        OppdragDto.UtbetalingslinjeDto(
-                            fom = linje["fom"].asLocalDate(),
-                            tom = linje["tom"].asLocalDate(),
-                            dagsats = linje["dagsats"].asInt(),
-                            totalbeløp = linje["totalbeløp"].asInt(),
-                            grad = linje["grad"].asDouble(),
-                            stønadsdager = linje["stønadsdager"].asInt()
-                        )
-                    }
-                )
-            }
             return Utbetaling(
                 utbetalingId = packet["utbetalingId"].let { UUID.fromString(it.asText()) },
                 fødselsnummer = packet["fødselsnummer"].asText(),
@@ -147,7 +111,7 @@ data class Utbetaling(
                 gjenståendeSykedager = packet["gjenståendeSykedager"].asInt(),
                 maksdato = packet["maksdato"].asLocalDate(),
                 automatiskBehandling = packet["automatiskBehandling"].asBoolean(),
-                arbeidsgiverOppdrag = arbeidsgiverOppdrag,
+                arbeidsgiverOppdrag = packet["arbeidsgiverOppdrag"].tilOppdragDto(),
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
                 epost = packet["epost"].asText(),
@@ -164,6 +128,25 @@ data class Utbetaling(
                                 ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList()
                         )
                     }
+            )
+        }
+
+        private fun JsonNode.tilOppdragDto(): OppdragDto {
+            return OppdragDto(
+                mottaker = this["mottaker"].asText(),
+                fagområde = this["fagområde"].asText(),
+                fagsystemId = this["fagsystemId"].asText(),
+                nettoBeløp = this["nettoBeløp"].asInt(),
+                utbetalingslinjer = this["linjer"].map { linje ->
+                    OppdragDto.UtbetalingslinjeDto(
+                        fom = linje["fom"].asLocalDate(),
+                        tom = linje["tom"].asLocalDate(),
+                        dagsats = linje["dagsats"].asInt(),
+                        totalbeløp = linje["totalbeløp"].asInt(),
+                        grad = linje["grad"].asDouble(),
+                        stønadsdager = linje["stønadsdager"].asInt()
+                    )
+                }
             )
         }
 

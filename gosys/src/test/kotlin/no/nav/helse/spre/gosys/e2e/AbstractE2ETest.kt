@@ -68,6 +68,8 @@ internal abstract class AbstractE2ETest {
 
                         "/api/v1/genpdf/spre-gosys/annullering" -> handlerForPdfKall(request)
 
+                        "/api/v1/genpdf/spre-gosys/vedtak-v2" -> handlerForPdfKall(request)
+
                         else -> error("Unhandled ${request.url.fullPath}")
                     }
                 }
@@ -231,7 +233,7 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
-        brukeroppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SP"),
+        personOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SP"),
         arbeidsgiverOppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SPREF")
     ) = """{
     "@id": "$hendelseId",
@@ -252,7 +254,7 @@ internal abstract class AbstractE2ETest {
         ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
     ],
     "arbeidsgiverOppdrag": ${arbeidsgiverOppdrag.toJson()},
-    "brukerOppdrag": ${brukeroppdrag.toJson()},
+    "personOppdrag": ${personOppdrag.toJson()},
     "utbetalingsdager": ${sykdomstidslinje.toJson()},
     "@opprettet": "$opprettet",
     "aktørId": "123",
@@ -289,7 +291,7 @@ internal abstract class AbstractE2ETest {
         ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
     ],
     "arbeidsgiverOppdrag": ${arbeidsgiverOppdrag.toJson()},
-    "brukerOppdrag": ${brukeroppdrag.toJson()},
+    "personOppdrag": ${brukeroppdrag.toJson()},
     "utbetalingsdager": ${sykdomstidslinje.toJson()},
     "@opprettet": "$opprettet",
     "aktørId": "123",
