@@ -113,7 +113,16 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 sykdomstidslinje = fridager(1.januar, 31.januar)
             )
             assertJournalpost()
-            assertVedtakPdf()
+            assertVedtakPdf(
+                expectedPdfPayload(
+                    linjer = emptyList(),
+                    dagsats = null,
+                    arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(),
+                    personOppdrag = VedtakPdfPayload.Oppdrag(),
+                    totaltTilUtbetaling = 0,
+                    ikkeUtbetalteDager = listOf(IkkeUtbetalteDager(1.januar, 31.januar, "Ferie/Permisjon", emptyList()))
+                )
+            )
         }
 
     @Test
