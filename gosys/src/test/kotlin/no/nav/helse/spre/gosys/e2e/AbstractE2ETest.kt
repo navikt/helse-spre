@@ -381,6 +381,30 @@ internal abstract class AbstractE2ETest {
         )
     }
 
+    protected fun sendUtbetalingDelvisRefusjon(
+        hendelseId: UUID = UUID.randomUUID(),
+        fødselsnummer: String = "12345678910",
+        orgnummer: String = "123456789",
+        utbetalingId: UUID = UUID.randomUUID(),
+        vedtaksperiodeIder: List<UUID> = emptyList(),
+        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
+        type: String = "UTBETALING",
+    ) {
+        require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
+        testRapid.sendTestMessage(
+            utbetalingBruker(
+                hendelseId = hendelseId,
+                fødselsnummer = fødselsnummer,
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = vedtaksperiodeIder,
+                sykdomstidslinje = sykdomstidslinje,
+                personOppdrag = Oppdrag(sykdomstidslinje, dagsats = 700, mottaker = fødselsnummer, fagområde = "SP", fagsystemId = "fagsystemId2"),
+                arbeidsgiverOppdrag = Oppdrag(sykdomstidslinje, dagsats = 741, mottaker = orgnummer, fagområde = "SPREF", fagsystemId = "fagsystemId"),
+                type = type
+            )
+        )
+    }
+
     protected fun sendVedtakFattet(
         hendelseId: UUID = UUID.randomUUID(),
         vedtaksperiodeId: UUID = UUID.randomUUID(),

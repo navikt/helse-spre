@@ -20,7 +20,6 @@ import no.nav.helse.spre.testhelpers.permisjonsdager
 import no.nav.helse.spre.testhelpers.utbetalingsdager
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
@@ -97,6 +96,104 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 )
             )
         }
+
+    @Test
+    fun `delvis refusjon`() {
+        Toggle.PDFTemplateV2.enable {
+            val vedtaksperiodeId = UUID.randomUUID()
+            val utbetalingId = UUID.randomUUID()
+            sendVedtakFattet(
+                vedtaksperiodeId = vedtaksperiodeId,
+                utbetalingId = utbetalingId
+            )
+            sendUtbetalingDelvisRefusjon(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = listOf(vedtaksperiodeId),
+                sykdomstidslinje = utbetalingsdager(1.januar, 31.januar)
+            )
+
+            val expectedLinjer = listOf(
+                Linje(
+                    fom = 1.januar,
+                    tom = 31.januar,
+                    grad = 100,
+                    beløp = 741,
+                    mottaker = "123 456 789",
+                    mottakerType = MottakerType.Arbeidsgiver
+                ),
+                Linje(
+                    fom = 1.januar,
+                    tom = 31.januar,
+                    grad = 100,
+                    beløp = 700,
+                    mottaker = "123456 78910",
+                    mottakerType = MottakerType.Person
+                )
+            )
+
+            assertJournalpost()
+            assertVedtakPdf(
+                expectedPdfPayload(
+                    linjer = expectedLinjer,
+                    dagsats = null,
+                    arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(expectedLinjer.subList(0, 1)),
+                    personOppdrag = VedtakPdfPayload.Oppdrag(expectedLinjer.subList(1, 2)),
+                    totaltTilUtbetaling = 33143
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `sorterer linjer`() {
+        Toggle.PDFTemplateV2.enable {
+            val vedtaksperiodeId = UUID.randomUUID()
+            val utbetalingId = UUID.randomUUID()
+            sendVedtakFattet(
+                vedtaksperiodeId = vedtaksperiodeId,
+                utbetalingId = utbetalingId
+            )
+            sendBrukerutbetaling(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = listOf(vedtaksperiodeId),
+                sykdomstidslinje = utbetalingsdager(1.januar, 31.januar)
+                        + arbeidsdager(1.februar, 7.februar)
+                        + utbetalingsdager(8.februar, 18.februar)
+            )
+            assertJournalpost()
+
+            val expectedLinjer = listOf(
+                Linje(
+                    fom = 8.februar,
+                    tom = 18.februar,
+                    grad = 100,
+                    beløp = 1431,
+                    mottaker = "123456 78910",
+                    mottakerType = MottakerType.Person
+                ),
+                Linje(
+                    fom = 1.januar,
+                    tom = 31.januar,
+                    grad = 100,
+                    beløp = 1431,
+                    mottaker = "123456 78910",
+                    mottakerType = MottakerType.Person
+                )
+            )
+
+            assertVedtakPdf(
+                expectedPdfPayload(
+                    linjer = expectedLinjer,
+                    dagsats = null,
+                    arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(),
+                    personOppdrag = VedtakPdfPayload.Oppdrag(expectedLinjer.reversed()), //TODO: Er dette rart?
+                    totaltTilUtbetaling = 42930,
+                    behandlingsdato = 18.februar, //TODO: Bruk `vedtakFattetTidspunkt` på vedtaket
+                    ikkeUtbetalteDager = listOf(IkkeUtbetalteDager(1.februar, 7.februar, "Arbeidsdag", emptyList()))
+                )
+            )
+        }
+    }
 
     @Test
     fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_uten_utbetaling for brukerutbetaling`() =
