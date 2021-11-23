@@ -1,16 +1,16 @@
 package no.nav.helse.spre.gosys.utbetaling
 
+import java.util.*
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
+import no.nav.helse.spre.testhelpers.feriedager
 import no.nav.helse.spre.testhelpers.fridager
 import no.nav.helse.spre.testhelpers.januar
-import org.intellij.lang.annotations.Language
+import no.nav.helse.spre.testhelpers.permisjonsdager
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
-import java.util.*
 import kotlin.test.assertNotNull
 
-internal class UtbetalingUtenUtbetalingRiverTest: AbstractE2ETest() {
+internal class UtbetalingUtenUtbetalingRiverTest : AbstractE2ETest() {
 
     val utbetalingDao = UtbetalingDao(dataSource)
     val vedtakFattetDao = VedtakFattetDao(dataSource)
@@ -20,9 +20,14 @@ internal class UtbetalingUtenUtbetalingRiverTest: AbstractE2ETest() {
     }
 
     @Test
-    fun `Lagrer utbetaling utbetalt`() {
+    fun `Lagrer utbetaling uten utbetaling`() {
         val utbetalingId = UUID.randomUUID()
-        sendUtbetaling(utbetalingId = utbetalingId, sykdomstidslinje = fridager(1.januar, 31.januar))
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = fridager(1.januar, 10.januar)
+                    + feriedager(11.januar, 16.januar)
+                    + permisjonsdager(17.januar, 31.januar)
+        )
         assertNotNull(utbetalingDao.finnUtbetalingData(utbetalingId))
     }
 }

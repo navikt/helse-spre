@@ -1,6 +1,10 @@
 package no.nav.helse.spre.gosys.e2e
 
-import io.ktor.util.*
+import io.ktor.util.KtorExperimentalAPI
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.REVURDERING
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
@@ -10,16 +14,19 @@ import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.Linje
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
-import no.nav.helse.spre.testhelpers.*
+import no.nav.helse.spre.testhelpers.arbeidsdager
+import no.nav.helse.spre.testhelpers.avvistDager
+import no.nav.helse.spre.testhelpers.februar
+import no.nav.helse.spre.testhelpers.feriedager
+import no.nav.helse.spre.testhelpers.fridager
+import no.nav.helse.spre.testhelpers.januar
+import no.nav.helse.spre.testhelpers.permisjonsdager
+import no.nav.helse.spre.testhelpers.utbetalingsdager
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
 
 @KtorExperimentalAPI
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
@@ -173,7 +180,9 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             utbetalingsdager(1.januar, 17.januar) +
                     arbeidsdager(18.januar) +
                     fridager(19.januar) +
-                    arbeidsdager(20.januar)
+                    feriedager(20.januar) +
+                    permisjonsdager(21.januar) +
+                    arbeidsdager(22.januar)
         sendUtbetaling(
             utbetalingId = utbetalingId,
             vedtaksperiodeIder = listOf(vedtaksperiodeId),
@@ -184,13 +193,13 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             vedtaksperiodeId = vedtaksperiodeId,
             sykdomstidslinje = sykdomstidslinje
         )
-        assertJournalpost(expectedJournalpost(1.januar, 20.januar))
+        assertJournalpost(expectedJournalpost(1.januar, 22.januar))
         val payload = actualPdfPayload()
         assertEquals(
             listOf(
                 IkkeUtbetalteDager(
                     fom = 18.januar,
-                    tom = 20.januar,
+                    tom = 22.januar,
                     grunn = "Arbeidsdag",
                     begrunnelser = emptyList()
                 )

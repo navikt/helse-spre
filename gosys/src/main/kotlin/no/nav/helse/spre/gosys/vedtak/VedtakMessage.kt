@@ -1,12 +1,12 @@
 package no.nav.helse.spre.gosys.vedtak
 
-import no.nav.helse.spre.gosys.log
-import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.Companion.organisasjonsnummerFormatterer
-import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.Companion.organisasjonsnummerFormatterer
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 
 data class VedtakMessage(
     val hendelseId: UUID,
@@ -27,6 +27,7 @@ data class VedtakMessage(
     private val utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>
 ) {
+
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
@@ -96,6 +97,8 @@ data class VedtakMessage(
                     grunn = when (it.type) {
                         "AvvistDag" -> "Avvist dag"
                         "Fridag" -> "Ferie/Permisjon"
+                        "Feriedag" -> "Feriedag"
+                        "Permisjonsdag" -> "Permisjonsdag"
                         "Arbeidsdag" -> "Arbeidsdag"
                         "Annullering" -> "Annullering"
                         else -> {
@@ -170,7 +173,7 @@ private fun etterfølgerUtenGap(
 private fun nesteErFridagEtterArbeidsdag(
     sisteInnslag: VedtakMessage.AvvistPeriode,
     avvistDag: VedtakMessage.AvvistPeriode,
-) = sisteInnslag.type == "Arbeidsdag" && avvistDag.type == "Fridag"
+) = sisteInnslag.type == "Arbeidsdag" && avvistDag.type in listOf("Fridag", "Feriedag", "Permisjonsdag")
 
 private fun erLiktBegrunnet(
     sisteInnslag: VedtakMessage.AvvistPeriode,

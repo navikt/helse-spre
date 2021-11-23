@@ -7,6 +7,8 @@ import kotlin.streams.toList
 fun utbetalingsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.UTBETALINGSDAG)
 fun arbeidsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.ARBEIDSDAG)
 fun fridager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FRIDAG)
+fun feriedager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FERIEDAG)
+fun permisjonsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.PERMISJONSDAG)
 fun ukjentDager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.UKJENTDAG)
 fun foreldetDager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FORELDETDAG)
 fun avvistDager(fom: LocalDate, tom: LocalDate = fom, begrunnelser: List<String>) = dagerFraTil(fom, tom, Dagtype.AVVISTDAG, begrunnelser)
@@ -43,7 +45,9 @@ enum class Dagtype(val vanligNavn: String, val helgenavn: String = vanligNavn) {
     FRIDAG("Fridag"),
     FORELDETDAG("ForeldetDag"),
     UKJENTDAG("UkjentDag"),
-    AVVISTDAG("AvvistDag");
+    AVVISTDAG("AvvistDag"),
+    FERIEDAG("Feriedag"),
+    PERMISJONSDAG("Permisjonsdag");
 
     companion object {
         fun from(serialisertNavn: String): Dagtype {

@@ -67,6 +67,30 @@ class DagerTest {
     }
 
     @Test
+    fun feriedager() {
+        val dager = feriedager(1.januar, 2.januar)
+        val expected = objectMapper.readTree(dager.toJson())
+        assertTrue(expected.isArray)
+        assertEquals(2, expected.size())
+        assertEquals(1.januar, expected[0]["dato"].asLocalDate())
+        assertEquals(Dagtype.FERIEDAG, Dagtype.from(expected[0]["type"].asText()))
+        assertEquals(2.januar, expected[1]["dato"].asLocalDate())
+        assertEquals(Dagtype.FERIEDAG, Dagtype.from(expected[1]["type"].asText()))
+    }
+
+    @Test
+    fun permisjonsdager() {
+        val dager = permisjonsdager(1.januar, 2.januar)
+        val expected = objectMapper.readTree(dager.toJson())
+        assertTrue(expected.isArray)
+        assertEquals(2, expected.size())
+        assertEquals(1.januar, expected[0]["dato"].asLocalDate())
+        assertEquals(Dagtype.PERMISJONSDAG, Dagtype.from(expected[0]["type"].asText()))
+        assertEquals(2.januar, expected[1]["dato"].asLocalDate())
+        assertEquals(Dagtype.PERMISJONSDAG, Dagtype.from(expected[1]["type"].asText()))
+    }
+
+    @Test
     fun arbeidsdager() {
         val dager = arbeidsdager(1.januar, 2.januar)
         val expected = objectMapper.readTree(dager.toJson())
@@ -132,5 +156,26 @@ class DagerTest {
         assertEquals(Dagtype.FRIDAG, Dagtype.from(expected[2]["type"].asText()))
         assertEquals(4.januar, expected[3]["dato"].asLocalDate())
         assertEquals(Dagtype.FRIDAG, Dagtype.from(expected[3]["type"].asText()))
+    }
+
+    @Test
+    fun `utbetalingsdager + feriedager + permisjonsdager`() {
+        val dager = utbetalingsdager(
+            1.januar,
+            2.januar
+        ) + feriedager(3.januar, 4.januar) + permisjonsdager(5.januar)
+        val expected = objectMapper.readTree(dager.toJson())
+        assertTrue(expected.isArray)
+        assertEquals(5, expected.size())
+        assertEquals(1.januar, expected[0]["dato"].asLocalDate())
+        assertEquals(Dagtype.UTBETALINGSDAG, Dagtype.from(expected[0]["type"].asText()))
+        assertEquals(2.januar, expected[1]["dato"].asLocalDate())
+        assertEquals(Dagtype.UTBETALINGSDAG, Dagtype.from(expected[1]["type"].asText()))
+        assertEquals(3.januar, expected[2]["dato"].asLocalDate())
+        assertEquals(Dagtype.FERIEDAG, Dagtype.from(expected[2]["type"].asText()))
+        assertEquals(4.januar, expected[3]["dato"].asLocalDate())
+        assertEquals(Dagtype.FERIEDAG, Dagtype.from(expected[3]["type"].asText()))
+        assertEquals(5.januar, expected[4]["dato"].asLocalDate())
+        assertEquals(Dagtype.PERMISJONSDAG, Dagtype.from(expected[4]["type"].asText()))
     }
 }

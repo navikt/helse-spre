@@ -1,6 +1,9 @@
 package no.nav.helse.spre.gosys.utbetaling
 
 import com.fasterxml.jackson.databind.JsonNode
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
@@ -9,9 +12,6 @@ import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
 
 data class Utbetaling(
     val utbetalingId: UUID,
@@ -151,7 +151,7 @@ data class Utbetaling(
         }
 
         private fun erIkkeUtbetaltDag(dag: JsonNode) =
-            listOf("AvvistDag", "Fridag", "Arbeidsdag").contains(dag["type"].asText())
+            listOf("AvvistDag", "Fridag", "Feriedag", "Permisjonsdag", "Arbeidsdag").contains(dag["type"].asText())
     }
 
     data class OppdragDto(

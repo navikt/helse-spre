@@ -6,7 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class OppdragTest {
@@ -47,7 +47,11 @@ internal class OppdragTest {
     fun `oppdrag med to linjer`() {
         val oppdrag = objectMapper.readTree(
             Oppdrag(
-            tidslinje = utbetalingsdager(6.januar, 13.januar) + fridager(14.januar, 15.januar) + utbetalingsdager(16.januar, 24.januar)
+            tidslinje = utbetalingsdager(6.januar, 13.januar)
+                    + feriedager(14.januar, 15.januar)
+                    + fridager(16.januar, 17.januar)
+                    + permisjonsdager(18.januar, 19.januar)
+                    + utbetalingsdager(20.januar, 30.januar)
         ).toJson())
 
         //ASSERT OPPDRAG
@@ -57,7 +61,7 @@ internal class OppdragTest {
         assertEquals(17172, oppdrag["nettoBeløp"].asInt())
         assertEquals("fagsystemId", oppdrag["fagsystemId"].asText())
         assertEquals(12, oppdrag["stønadsdager"].asInt())
-        assertEquals(24.januar.atStartOfDay(), oppdrag["tidsstempel"].asLocalDateTime())
+        assertEquals(30.januar.atStartOfDay(), oppdrag["tidsstempel"].asLocalDateTime())
 
         //ASSERT LINJER
         val linje1 = oppdrag["linjer"][0]
@@ -70,8 +74,8 @@ internal class OppdragTest {
 
         //ASSERT LINJER
         val linje2 = oppdrag["linjer"][1]
-        assertEquals(16.januar, linje2["fom"].asLocalDate())
-        assertEquals(24.januar, linje2["tom"].asLocalDate())
+        assertEquals(20.januar, linje2["fom"].asLocalDate())
+        assertEquals(30.januar, linje2["tom"].asLocalDate())
         assertEquals(7, linje2["stønadsdager"].asInt())
         assertEquals(1431, linje2["dagsats"].asInt())
         assertEquals(2193, linje2["lønn"].asInt())
