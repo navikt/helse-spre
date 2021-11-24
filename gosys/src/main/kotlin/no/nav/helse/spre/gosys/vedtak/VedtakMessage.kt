@@ -66,14 +66,47 @@ data class VedtakMessage(
             }
     )
 
-    internal fun toVedtakPdfPayloadV2(): VedtakPdfPayload {
-        val pdf = toVedtakPdfPayload()
-        return pdf.copy(
-            linjer = pdf.arbeidsgiverOppdrag.linjer.slåSammen(pdf.personOppdrag.linjer),
-            dagsats = null, // Deprecated felt
-            totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp
-        )
-    }
+    internal fun toVedtakPdfPayloadV2() = VedtakPdfPayloadV2(
+        fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
+        totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
+        type = lesbarTittel(),
+        linjer = utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver)
+            .slåSammen(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person)),
+        personOppdrag = VedtakPdfPayloadV2.Oppdrag(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person)),
+        arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag(utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver)),
+        fødselsnummer = fødselsnummer,
+        fom = fom,
+        tom = tom,
+        behandlingsdato = opprettet.toLocalDate(),
+        organisasjonsnummer = organisasjonsnummer,
+        dagerIgjen = gjenståendeSykedager,
+        automatiskBehandling = automatiskBehandling,
+        godkjentAv = godkjentAv,
+        maksdato = maksdato,
+        sykepengegrunnlag = sykepengegrunnlag,
+        grunnlagForSykepengegrunnlag = grunnlagForSykepengegrunnlag,
+        ikkeUtbetalteDager = ikkeUtbetalteDager
+            .settSammenIkkeUtbetalteDager()
+            .map {
+                VedtakPdfPayloadV2.IkkeUtbetalteDager(
+                    fom = it.fom,
+                    tom = it.tom,
+                    begrunnelser = mapBegrunnelser(it.begrunnelser),
+                    grunn = when (it.type) {
+                        "AvvistDag" -> "Avvist dag"
+                        "Fridag" -> "Ferie/Permisjon"
+                        "Feriedag" -> "Feriedag"
+                        "Permisjonsdag" -> "Permisjonsdag"
+                        "Arbeidsdag" -> "Arbeidsdag"
+                        "Annullering" -> "Annullering"
+                        else -> {
+                            log.error("Ukjent dagtype $it")
+                            "Ukjent dagtype: \"${it.type}\""
+                        }
+                    }
+                )
+            }
+    )
 
 
     internal fun toVedtakPdfPayload() = VedtakPdfPayload(
@@ -162,7 +195,14 @@ data class VedtakMessage(
 }
 
 internal fun Iterable<VedtakMessage.IkkeUtbetaltDag>.settSammenIkkeUtbetalteDager(): List<VedtakMessage.AvvistPeriode> =
-    map { VedtakMessage.AvvistPeriode(it.dato, it.dato, it.type, it.begrunnelser) }.fold(listOf()) { akkumulator, avvistDag ->
+    map {
+        VedtakMessage.AvvistPeriode(
+            it.dato,
+            it.dato,
+            it.type,
+            it.begrunnelser
+        )
+    }.fold(listOf()) { akkumulator, avvistDag ->
         val sisteInnslag = akkumulator.lastOrNull()
         if (sisteInnslag != null
             && (etterfølgerUtenGap(sisteInnslag, avvistDag))
