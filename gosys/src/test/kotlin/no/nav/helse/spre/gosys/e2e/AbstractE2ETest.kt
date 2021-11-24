@@ -180,6 +180,9 @@ internal abstract class AbstractE2ETest {
             type = utbetalingstype.lesbarTittel,
             fom = fom,
             tom = tom,
+            linjer = linjer,
+            personOppdrag = personOppdrag,
+            arbeidsgiverOppdrag = arbeidsgiverOppdrag,
             organisasjonsnummer = "123456789",
             behandlingsdato = behandlingsdato,
             dagerIgjen = 31,
@@ -187,12 +190,10 @@ internal abstract class AbstractE2ETest {
             godkjentAv = "Automatisk behandlet",
             sumNettoBeløp = totaltTilUtbetaling,
             ikkeUtbetalteDager = ikkeUtbetalteDager,
+            maksdato = LocalDate.of(2021, 7, 15),
             sykepengegrunnlag = 565260.0,
             grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
-            maksdato = LocalDate.of(2021, 7, 15),
-            linjer = linjer,
-            arbeidsgiverOppdrag = arbeidsgiverOppdrag,
-            personOppdrag = personOppdrag
+            sumTotalBeløp = linjer.sumOf { it.totalbeløp }
         )
 
     protected fun expectedJournalpost(

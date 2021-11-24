@@ -16,6 +16,7 @@ data class VedtakPdfPayloadV2(
     val automatiskBehandling: Boolean,
     val godkjentAv: String,
     val sumNettoBeløp: Int,
+    val sumTotalBeløp: Int,
     val ikkeUtbetalteDager: List<IkkeUtbetalteDager>,
     val maksdato: LocalDate?,
     val sykepengegrunnlag: Double,
