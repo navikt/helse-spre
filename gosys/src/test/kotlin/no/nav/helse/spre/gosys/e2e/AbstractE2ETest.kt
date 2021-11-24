@@ -17,6 +17,7 @@ import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.Linje
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.testhelpers.*
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
 import org.intellij.lang.annotations.Language
@@ -106,6 +107,11 @@ internal abstract class AbstractE2ETest {
         Assertions.assertEquals(expected, pdfPayload)
     }
 
+    protected fun assertVedtakPdf(expected: VedtakPdfPayloadV2 = expectedPdfPayloadV2()) {
+        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayloadV2>()
+        Assertions.assertEquals(expected, pdfPayload)
+    }
+
     protected fun actualPdfPayload() = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
 
     protected fun expectedPdfPayload(
@@ -125,8 +131,7 @@ internal abstract class AbstractE2ETest {
         ),
         arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(linjer = linjer),
         personOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(),
-        ikkeUtbetalteDager: List<IkkeUtbetalteDager> = emptyList(),
-        dagsats: Int? = 1431,
+        ikkeUtbetalteDager: List<IkkeUtbetalteDager> = emptyList()
     ) =
         VedtakPdfPayload(
             fødselsnummer = "12345678910",
@@ -141,7 +146,47 @@ internal abstract class AbstractE2ETest {
             godkjentAv = "Automatisk behandlet",
             totaltTilUtbetaling = totaltTilUtbetaling,
             ikkeUtbetalteDager = ikkeUtbetalteDager,
-            dagsats = dagsats,
+            dagsats = 1431,
+            sykepengegrunnlag = 565260.0,
+            grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
+            maksdato = LocalDate.of(2021, 7, 15),
+            linjer = linjer,
+            arbeidsgiverOppdrag = arbeidsgiverOppdrag,
+            personOppdrag = personOppdrag
+        )
+
+    protected fun expectedPdfPayloadV2(
+        fom: LocalDate = 1.januar,
+        tom: LocalDate = 31.januar,
+        utbetalingstype: Utbetalingstype = UTBETALING,
+        totaltTilUtbetaling: Int = 32913,
+        behandlingsdato: LocalDate = tom,
+        linjer: List<VedtakPdfPayloadV2.Linje> = listOf(
+            VedtakPdfPayloadV2.Linje(
+                fom = fom,
+                tom = tom,
+                grad = 100,
+                beløp = 1431,
+                mottaker = "123 456 789"
+            )
+        ),
+        arbeidsgiverOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag(linjer = linjer),
+        personOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag(),
+        ikkeUtbetalteDager: List<VedtakPdfPayloadV2.IkkeUtbetalteDager> = emptyList()
+    ) =
+        VedtakPdfPayloadV2(
+            fødselsnummer = "12345678910",
+            fagsystemId = "fagsystemId",
+            type = utbetalingstype.lesbarTittel,
+            fom = fom,
+            tom = tom,
+            organisasjonsnummer = "123456789",
+            behandlingsdato = behandlingsdato,
+            dagerIgjen = 31,
+            automatiskBehandling = true,
+            godkjentAv = "Automatisk behandlet",
+            totaltTilUtbetaling = totaltTilUtbetaling,
+            ikkeUtbetalteDager = ikkeUtbetalteDager,
             sykepengegrunnlag = 565260.0,
             grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
             maksdato = LocalDate.of(2021, 7, 15),
