@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit.MINUTES
+import java.time.temporal.ChronoUnit.SECONDS
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -99,7 +99,10 @@ class EndToEndTest {
         )
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
 
-        captureslot[0].value().assertInnhold(Utsett, søknad1DokumentId, Søknad, LocalDateTime.now().plusDays(110))
+        captureslot[0].value().also { dto ->
+            dto.assertInnhold(Utsett, søknad1DokumentId, Søknad)
+            assertTrue((SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110))) < 2)
+        }
         captureslot[1].value().assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
         assertEquals(2, captureslot.size)
 
@@ -626,14 +629,10 @@ class EndToEndTest {
         oppdateringstypeDTO: OppdateringstypeDTO,
         dokumentId: UUID,
         dokumentType: DokumentTypeDTO,
-        timeout: LocalDateTime? = null,
     ) {
         assertEquals(dokumentId, this.dokumentId)
         assertEquals(dokumentType, this.dokumentType)
         assertEquals(oppdateringstypeDTO, oppdateringstype)
-        timeout?.let {
-            assertEquals(0, MINUTES.between(timeout, this.timeout))
-        }
     }
 
     private fun sendSøknad(hendelseId: UUID, dokumentId: UUID = UUID.randomUUID()) {
