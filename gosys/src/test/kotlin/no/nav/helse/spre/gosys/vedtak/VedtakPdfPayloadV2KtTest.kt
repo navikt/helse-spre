@@ -1,15 +1,14 @@
 package no.nav.helse.spre.gosys.vedtak
 
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.MottakerType
 import no.nav.helse.spre.testhelpers.januar
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 import java.time.LocalDate
 
-internal class VedtakPdfPayloadKtTest {
+internal class VedtakPdfPayloadV2KtTest {
 
-    private val tomListe: List<VedtakPdfPayload.Linje> = emptyList()
+    private val tomListe: List<VedtakPdfPayloadV2.Linje> = emptyList()
 
     @Test
     fun `slå sammen to tomme linjer`() {
@@ -87,7 +86,7 @@ internal class VedtakPdfPayloadKtTest {
         grad: Int = 100,
         beløp: Int = 1400,
         mottaker: String = "123 456 789"
-    ) = linje(fom, tom, grad, beløp, mottaker, MottakerType.Arbeidsgiver)
+    ) = linje(fom, tom, grad, beløp, mottaker, VedtakPdfPayloadV2.MottakerType.Arbeidsgiver)
 
     fun personlinje(
         fom: LocalDate = 17.januar,
@@ -95,7 +94,7 @@ internal class VedtakPdfPayloadKtTest {
         grad: Int = 100,
         beløp: Int = 1400,
         mottaker: String = "123456 78999"
-    ) = linje(fom, tom, grad, beløp, mottaker, MottakerType.Person)
+    ) = linje(fom, tom, grad, beløp, mottaker, VedtakPdfPayloadV2.MottakerType.Person)
 
     fun linje(
         fom: LocalDate,
@@ -103,9 +102,9 @@ internal class VedtakPdfPayloadKtTest {
         grad: Int,
         beløp: Int,
         mottaker: String,
-        mottakerType: MottakerType
+        mottakerType: VedtakPdfPayloadV2.MottakerType
     ) =
-        VedtakPdfPayload.Linje(
+        VedtakPdfPayloadV2.Linje(
             fom = fom,
             tom = tom,
             grad, beløp, mottaker, mottakerType
