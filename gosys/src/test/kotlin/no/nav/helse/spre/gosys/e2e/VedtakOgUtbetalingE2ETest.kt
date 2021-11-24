@@ -6,7 +6,6 @@ import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.REVURDERING
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.*
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
@@ -81,9 +80,10 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     fom = 1.januar,
                     tom = 31.januar,
                     grad = 100,
-                    beløp = 1431,
+                    dagsats = 1431,
                     mottaker = "123456 78910",
-                    mottakerType = VedtakPdfPayloadV2.MottakerType.Person
+                    mottakerType = VedtakPdfPayloadV2.MottakerType.Person,
+                    totalbeløp = 32913
                 )
             )
             assertVedtakPdf(
@@ -115,17 +115,19 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     fom = 1.januar,
                     tom = 31.januar,
                     grad = 100,
-                    beløp = 741,
+                    dagsats = 741,
                     mottaker = "123 456 789",
-                    mottakerType = VedtakPdfPayloadV2.MottakerType.Arbeidsgiver
+                    mottakerType = VedtakPdfPayloadV2.MottakerType.Arbeidsgiver,
+                    totalbeløp = 17043
                 ),
                 VedtakPdfPayloadV2.Linje(
                     fom = 1.januar,
                     tom = 31.januar,
                     grad = 100,
-                    beløp = 700,
+                    dagsats = 700,
                     mottaker = "123456 78910",
-                    mottakerType = VedtakPdfPayloadV2.MottakerType.Person
+                    mottakerType = VedtakPdfPayloadV2.MottakerType.Person,
+                    totalbeløp = 16100
                 )
             )
 
@@ -162,17 +164,19 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     fom = 8.februar,
                     tom = 18.februar,
                     grad = 100,
-                    beløp = 1431,
+                    dagsats = 1431,
                     mottaker = "123456 78910",
-                    mottakerType = VedtakPdfPayloadV2.MottakerType.Person
+                    mottakerType = VedtakPdfPayloadV2.MottakerType.Person,
+                    totalbeløp = 10017
                 ),
                 VedtakPdfPayloadV2.Linje(
                     fom = 1.januar,
                     tom = 31.januar,
                     grad = 100,
-                    beløp = 1431,
+                    dagsats = 1431,
                     mottaker = "123456 78910",
-                    mottakerType = VedtakPdfPayloadV2.MottakerType.Person
+                    mottakerType = VedtakPdfPayloadV2.MottakerType.Person,
+                    totalbeløp = 32913
                 )
             )
 

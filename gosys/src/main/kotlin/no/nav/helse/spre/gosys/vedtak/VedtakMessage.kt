@@ -68,7 +68,7 @@ data class VedtakMessage(
     )
 
     internal fun toVedtakPdfPayloadV2() = VedtakPdfPayloadV2(
-        totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
+        sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         type = lesbarTittel(),
         linjer = utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver)
             .slåSammen(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person)),

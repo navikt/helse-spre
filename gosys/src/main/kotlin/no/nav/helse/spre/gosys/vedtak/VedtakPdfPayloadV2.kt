@@ -15,7 +15,7 @@ data class VedtakPdfPayloadV2(
     val dagerIgjen: Int,
     val automatiskBehandling: Boolean,
     val godkjentAv: String,
-    val totaltTilUtbetaling: Int,
+    val sumNettoBeløp: Int,
     val ikkeUtbetalteDager: List<IkkeUtbetalteDager>,
     val maksdato: LocalDate?,
     val sykepengegrunnlag: Double,
@@ -40,9 +40,10 @@ data class VedtakPdfPayloadV2(
         val fom: LocalDate,
         val tom: LocalDate,
         val grad: Int,
-        val beløp: Int,
+        val dagsats: Int,
         val mottaker: String,
-        val mottakerType: MottakerType = MottakerType.Arbeidsgiver
+        val mottakerType: MottakerType = MottakerType.Arbeidsgiver,
+        val totalbeløp: Int
     )
 
     data class IkkeUtbetalteDager(

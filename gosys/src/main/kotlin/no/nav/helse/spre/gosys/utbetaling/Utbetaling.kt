@@ -190,9 +190,10 @@ data class Utbetaling(
                 fom = it.fom,
                 tom = it.tom,
                 grad = it.grad.toInt(),
-                beløp = it.dagsats,
+                dagsats = it.dagsats,
                 mottaker = mottakerType.formatter(mottaker),
-                mottakerType = mottakerType
+                mottakerType = mottakerType,
+                totalbeløp = it.totalbeløp
             )}
         }
     }

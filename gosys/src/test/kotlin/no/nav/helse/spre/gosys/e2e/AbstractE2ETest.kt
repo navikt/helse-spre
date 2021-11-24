@@ -166,8 +166,9 @@ internal abstract class AbstractE2ETest {
                 fom = fom,
                 tom = tom,
                 grad = 100,
-                beløp = 1431,
-                mottaker = "123 456 789"
+                dagsats = 1431,
+                mottaker = "123 456 789",
+                totalbeløp = totaltTilUtbetaling
             )
         ),
         arbeidsgiverOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver"),
@@ -184,7 +185,7 @@ internal abstract class AbstractE2ETest {
             dagerIgjen = 31,
             automatiskBehandling = true,
             godkjentAv = "Automatisk behandlet",
-            totaltTilUtbetaling = totaltTilUtbetaling,
+            sumNettoBeløp = totaltTilUtbetaling,
             ikkeUtbetalteDager = ikkeUtbetalteDager,
             sykepengegrunnlag = 565260.0,
             grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),

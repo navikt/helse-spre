@@ -84,29 +84,36 @@ internal class VedtakPdfPayloadV2KtTest {
         fom: LocalDate = 17.januar,
         tom: LocalDate = 31.januar,
         grad: Int = 100,
-        beløp: Int = 1400,
-        mottaker: String = "123 456 789"
-    ) = linje(fom, tom, grad, beløp, mottaker, VedtakPdfPayloadV2.MottakerType.Arbeidsgiver)
+        dagsats: Int = 1400,
+        mottaker: String = "123 456 789",
+        totalbeløp: Int = 20000
+    ) = linje(fom, tom, grad, dagsats, mottaker, VedtakPdfPayloadV2.MottakerType.Arbeidsgiver, totalbeløp)
 
     fun personlinje(
         fom: LocalDate = 17.januar,
         tom: LocalDate = 31.januar,
         grad: Int = 100,
-        beløp: Int = 1400,
-        mottaker: String = "123456 78999"
-    ) = linje(fom, tom, grad, beløp, mottaker, VedtakPdfPayloadV2.MottakerType.Person)
+        dagsats: Int = 1400,
+        mottaker: String = "123456 78999",
+        totalbeløp: Int = 20000
+    ) = linje(fom, tom, grad, dagsats, mottaker, VedtakPdfPayloadV2.MottakerType.Person, totalbeløp)
 
     fun linje(
         fom: LocalDate,
         tom: LocalDate,
         grad: Int,
-        beløp: Int,
+        dagsats: Int,
         mottaker: String,
-        mottakerType: VedtakPdfPayloadV2.MottakerType
+        mottakerType: VedtakPdfPayloadV2.MottakerType,
+        totalbeløp: Int
     ) =
         VedtakPdfPayloadV2.Linje(
             fom = fom,
             tom = tom,
-            grad, beløp, mottaker, mottakerType
+            grad = grad,
+            dagsats = dagsats,
+            mottaker = mottaker,
+            mottakerType = mottakerType,
+            totalbeløp = totalbeløp
         )
 }
