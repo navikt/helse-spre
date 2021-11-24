@@ -2,7 +2,7 @@ package no.nav.helse.spre.gosys.vedtak
 
 import java.time.LocalDate
 
-data class VedtakPdfPayload(
+data class VedtakPdfPayloadV2(
     val fødselsnummer: String,
     val fagsystemId: String,
     val type: String,
@@ -18,7 +18,6 @@ data class VedtakPdfPayload(
     val godkjentAv: String,
     val totaltTilUtbetaling: Int,
     val ikkeUtbetalteDager: List<IkkeUtbetalteDager>,
-    val dagsats: Int?,
     val maksdato: LocalDate?,
     val sykepengegrunnlag: Double,
     val grunnlagForSykepengegrunnlag: Map<String, Double>
@@ -53,7 +52,7 @@ data class VedtakPdfPayload(
 }
 
 
-fun  List<VedtakPdfPayload.Linje>.slåSammen(other: List<VedtakPdfPayload.Linje>): List<VedtakPdfPayload.Linje> {
+fun  List<VedtakPdfPayloadV2.Linje>.slåSammen(other: List<VedtakPdfPayloadV2.Linje>): List<VedtakPdfPayloadV2.Linje> {
     return (this + other)
         .sortedBy { it.mottakerType }
         .sortedByDescending { it.fom }

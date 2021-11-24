@@ -10,6 +10,7 @@ import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
 
@@ -25,6 +26,7 @@ data class Utbetaling(
     val maksdato: LocalDate,
     val automatiskBehandling: Boolean,
     val arbeidsgiverOppdrag: OppdragDto,
+    val personOppdrag: OppdragDto,
     val type: Utbetalingtype,
     val ident: String,
     val epost: String,
@@ -80,6 +82,7 @@ data class Utbetaling(
                 maksdato = packet["maksdato"].asLocalDate(),
                 automatiskBehandling = packet["automatiskBehandling"].asBoolean(),
                 arbeidsgiverOppdrag = packet["arbeidsgiverOppdrag"].tilOppdragDto(),
+                personOppdrag = packet["personOppdrag"].tilOppdragDto(),
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
                 epost = packet["epost"].asText(),
@@ -112,6 +115,7 @@ data class Utbetaling(
                 maksdato = packet["maksdato"].asLocalDate(),
                 automatiskBehandling = packet["automatiskBehandling"].asBoolean(),
                 arbeidsgiverOppdrag = packet["arbeidsgiverOppdrag"].tilOppdragDto(),
+                personOppdrag = packet["personOppdrag"].tilOppdragDto(),
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
                 epost = packet["epost"].asText(),
@@ -161,16 +165,6 @@ data class Utbetaling(
         val nettoBeløp: Int,
         val utbetalingslinjer: List<UtbetalingslinjeDto>
     ) {
-        companion object {
-            val organisasjonsnummerFormatterer = { mottaker: String ->
-                mottaker.chunked(3).joinToString(separator = " ")
-            }
-
-            val fødselsnummerFormatterer = { mottaker: String ->
-                mottaker.chunked(6).joinToString(separator = " ")
-            }
-        }
-
         data class UtbetalingslinjeDto(
             val fom: LocalDate,
             val tom: LocalDate,
@@ -180,13 +174,25 @@ data class Utbetaling(
             val stønadsdager: Int
         )
 
-        internal fun linjer(mottakerFormater: (String) -> String ): List<VedtakPdfPayload.Linje> {
+        internal fun linjer(mottakerType: VedtakPdfPayload.MottakerType): List<VedtakPdfPayload.Linje> {
             return utbetalingslinjer.map { VedtakPdfPayload.Linje(
                 fom = it.fom,
                 tom = it.tom,
                 grad = it.grad.toInt(),
                 beløp = it.dagsats,
-                mottaker = mottakerFormater(mottaker)
+                mottaker = mottakerType.formatter(mottaker),
+                mottakerType = mottakerType
+            )}
+        }
+
+        internal fun linjer(mottakerType: VedtakPdfPayloadV2.MottakerType): List<VedtakPdfPayloadV2.Linje> {
+            return utbetalingslinjer.map { VedtakPdfPayloadV2.Linje(
+                fom = it.fom,
+                tom = it.tom,
+                grad = it.grad.toInt(),
+                beløp = it.dagsats,
+                mottaker = mottakerType.formatter(mottaker),
+                mottakerType = mottakerType
             )}
         }
     }

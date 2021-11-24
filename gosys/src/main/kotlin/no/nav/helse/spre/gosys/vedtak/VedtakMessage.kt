@@ -1,12 +1,13 @@
 package no.nav.helse.spre.gosys.vedtak
 
+import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.MottakerType
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import no.nav.helse.spre.gosys.log
-import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.Companion.organisasjonsnummerFormatterer
-import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 
 data class VedtakMessage(
     val hendelseId: UUID,
@@ -24,10 +25,9 @@ data class VedtakMessage(
     private val maksdato: LocalDate?,
     private val sykepengegrunnlag: Double,
     private val grunnlagForSykepengegrunnlag: Map<String, Double>,
-    private val utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling,
+    private val utbetaling: Utbetaling,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>
 ) {
-
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
@@ -38,7 +38,7 @@ data class VedtakMessage(
         sykepengegrunnlag: Double,
         grunnlagForSykepengegrunnlag: Map<String, Double>,
         skjæringstidspunkt: LocalDate,
-        utbetaling: no.nav.helse.spre.gosys.utbetaling.Utbetaling
+        utbetaling: Utbetaling
     ) : this(
         hendelseId = utbetaling.utbetalingId,
         opprettet = utbetaling.opprettet,
@@ -66,15 +66,56 @@ data class VedtakMessage(
             }
     )
 
-    internal fun toVedtakPdfPayloadV2() = toVedtakPdfPayload()
+    internal fun toVedtakPdfPayloadV2() = VedtakPdfPayloadV2(
+        fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
+        totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
+        type = lesbarTittel(),
+        linjer = utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver)
+            .slåSammen(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person)),
+        personOppdrag = VedtakPdfPayloadV2.Oppdrag(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person)),
+        arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag(utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver)),
+        fødselsnummer = fødselsnummer,
+        fom = fom,
+        tom = tom,
+        behandlingsdato = opprettet.toLocalDate(),
+        organisasjonsnummer = organisasjonsnummer,
+        dagerIgjen = gjenståendeSykedager,
+        automatiskBehandling = automatiskBehandling,
+        godkjentAv = godkjentAv,
+        maksdato = maksdato,
+        sykepengegrunnlag = sykepengegrunnlag,
+        grunnlagForSykepengegrunnlag = grunnlagForSykepengegrunnlag,
+        ikkeUtbetalteDager = ikkeUtbetalteDager
+            .settSammenIkkeUtbetalteDager()
+            .map {
+                VedtakPdfPayloadV2.IkkeUtbetalteDager(
+                    fom = it.fom,
+                    tom = it.tom,
+                    begrunnelser = mapBegrunnelser(it.begrunnelser),
+                    grunn = when (it.type) {
+                        "AvvistDag" -> "Avvist dag"
+                        "Fridag" -> "Ferie/Permisjon"
+                        "Feriedag" -> "Feriedag"
+                        "Permisjonsdag" -> "Permisjonsdag"
+                        "Arbeidsdag" -> "Arbeidsdag"
+                        "Annullering" -> "Annullering"
+                        else -> {
+                            log.error("Ukjent dagtype $it")
+                            "Ukjent dagtype: \"${it.type}\""
+                        }
+                    }
+                )
+            }
+    )
+
 
     internal fun toVedtakPdfPayload() = VedtakPdfPayload(
         fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
         totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp,
         type = lesbarTittel(),
-        linjer = utbetaling.arbeidsgiverOppdrag.linjer(organisasjonsnummerFormatterer),
-        brukerOppdrag = VedtakPdfPayload.Oppdrag(),
-        arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.arbeidsgiverOppdrag.linjer(organisasjonsnummerFormatterer)),
+        linjer = utbetaling.arbeidsgiverOppdrag.linjer(MottakerType.Arbeidsgiver),
+        personOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.personOppdrag.linjer(MottakerType.Person)),
+        arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.arbeidsgiverOppdrag.linjer(MottakerType.Arbeidsgiver)),
         dagsats = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.takeIf { it.isNotEmpty() }?.first()?.dagsats,
         fødselsnummer = fødselsnummer,
         fom = fom,
@@ -154,7 +195,14 @@ data class VedtakMessage(
 }
 
 internal fun Iterable<VedtakMessage.IkkeUtbetaltDag>.settSammenIkkeUtbetalteDager(): List<VedtakMessage.AvvistPeriode> =
-    map { VedtakMessage.AvvistPeriode(it.dato, it.dato, it.type, it.begrunnelser) }.fold(listOf()) { akkumulator, avvistDag ->
+    map {
+        VedtakMessage.AvvistPeriode(
+            it.dato,
+            it.dato,
+            it.type,
+            it.begrunnelser
+        )
+    }.fold(listOf()) { akkumulator, avvistDag ->
         val sisteInnslag = akkumulator.lastOrNull()
         if (sisteInnslag != null
             && (etterfølgerUtenGap(sisteInnslag, avvistDag))

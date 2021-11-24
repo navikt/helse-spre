@@ -17,6 +17,7 @@ import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.Linje
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.testhelpers.*
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
 import org.intellij.lang.annotations.Language
@@ -106,6 +107,11 @@ internal abstract class AbstractE2ETest {
         Assertions.assertEquals(expected, pdfPayload)
     }
 
+    protected fun assertVedtakPdf(expected: VedtakPdfPayloadV2 = expectedPdfPayloadV2()) {
+        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayloadV2>()
+        Assertions.assertEquals(expected, pdfPayload)
+    }
+
     protected fun actualPdfPayload() = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
 
     protected fun expectedPdfPayload(
@@ -124,6 +130,7 @@ internal abstract class AbstractE2ETest {
             )
         ),
         arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(linjer = linjer),
+        personOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(),
         ikkeUtbetalteDager: List<IkkeUtbetalteDager> = emptyList()
     ) =
         VedtakPdfPayload(
@@ -144,7 +151,48 @@ internal abstract class AbstractE2ETest {
             grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
             maksdato = LocalDate.of(2021, 7, 15),
             linjer = linjer,
-            arbeidsgiverOppdrag = arbeidsgiverOppdrag
+            arbeidsgiverOppdrag = arbeidsgiverOppdrag,
+            personOppdrag = personOppdrag
+        )
+
+    protected fun expectedPdfPayloadV2(
+        fom: LocalDate = 1.januar,
+        tom: LocalDate = 31.januar,
+        utbetalingstype: Utbetalingstype = UTBETALING,
+        totaltTilUtbetaling: Int = 32913,
+        behandlingsdato: LocalDate = tom,
+        linjer: List<VedtakPdfPayloadV2.Linje> = listOf(
+            VedtakPdfPayloadV2.Linje(
+                fom = fom,
+                tom = tom,
+                grad = 100,
+                beløp = 1431,
+                mottaker = "123 456 789"
+            )
+        ),
+        arbeidsgiverOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag(linjer = linjer),
+        personOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag(),
+        ikkeUtbetalteDager: List<VedtakPdfPayloadV2.IkkeUtbetalteDager> = emptyList()
+    ) =
+        VedtakPdfPayloadV2(
+            fødselsnummer = "12345678910",
+            fagsystemId = "fagsystemId",
+            type = utbetalingstype.lesbarTittel,
+            fom = fom,
+            tom = tom,
+            organisasjonsnummer = "123456789",
+            behandlingsdato = behandlingsdato,
+            dagerIgjen = 31,
+            automatiskBehandling = true,
+            godkjentAv = "Automatisk behandlet",
+            totaltTilUtbetaling = totaltTilUtbetaling,
+            ikkeUtbetalteDager = ikkeUtbetalteDager,
+            sykepengegrunnlag = 565260.0,
+            grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
+            maksdato = LocalDate.of(2021, 7, 15),
+            linjer = linjer,
+            arbeidsgiverOppdrag = arbeidsgiverOppdrag,
+            personOppdrag = personOppdrag
         )
 
     protected fun expectedJournalpost(
@@ -233,7 +281,7 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
-        personOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SP"),
+        personOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SP", mottaker = fødselsnummer),
         arbeidsgiverOppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SPREF")
     ) = """{
     "@id": "$hendelseId",
@@ -373,6 +421,30 @@ internal abstract class AbstractE2ETest {
                 utbetalingId = utbetalingId,
                 vedtaksperiodeIder = vedtaksperiodeIder,
                 sykdomstidslinje = sykdomstidslinje,
+                type = type
+            )
+        )
+    }
+
+    protected fun sendUtbetalingDelvisRefusjon(
+        hendelseId: UUID = UUID.randomUUID(),
+        fødselsnummer: String = "12345678910",
+        orgnummer: String = "123456789",
+        utbetalingId: UUID = UUID.randomUUID(),
+        vedtaksperiodeIder: List<UUID> = emptyList(),
+        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
+        type: String = "UTBETALING",
+    ) {
+        require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
+        testRapid.sendTestMessage(
+            utbetalingBruker(
+                hendelseId = hendelseId,
+                fødselsnummer = fødselsnummer,
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = vedtaksperiodeIder,
+                sykdomstidslinje = sykdomstidslinje,
+                personOppdrag = Oppdrag(sykdomstidslinje, dagsats = 700, mottaker = fødselsnummer, fagområde = "SP", fagsystemId = "fagsystemId2"),
+                arbeidsgiverOppdrag = Oppdrag(sykdomstidslinje, dagsats = 741, mottaker = orgnummer, fagområde = "SPREF", fagsystemId = "fagsystemId"),
                 type = type
             )
         )

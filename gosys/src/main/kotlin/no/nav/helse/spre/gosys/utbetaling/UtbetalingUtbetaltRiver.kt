@@ -33,6 +33,7 @@ internal class UtbetalingUtbetaltRiver(
                     "gjenståendeSykedager",
                     "automatiskBehandling",
                     "arbeidsgiverOppdrag",
+                    "personOppdrag",
                     "utbetalingsdager",
                     "type",
                     "ident",
