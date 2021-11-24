@@ -26,4 +26,6 @@ env:
     value: spre-gosys
   - name: VAULT_MOUNTPATH
     value: postgresql/preprod-fss/
+  - name: PDF_TEMPLATE_V2
+    vale: "true"
 
