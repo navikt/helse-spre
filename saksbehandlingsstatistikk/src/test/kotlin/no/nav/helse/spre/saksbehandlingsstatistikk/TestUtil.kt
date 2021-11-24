@@ -14,7 +14,11 @@ import org.testcontainers.containers.PostgreSQLContainer
 object TestUtil {
     val dataSource: DataSource = dataSource()
     private fun dataSource(): DataSource {
-        val postgres = PostgreSQLContainer<Nothing>("postgres:13").also { it.start() }
+        val postgres = PostgreSQLContainer<Nothing>("postgres:13").apply {
+            withLabel("app-navn", "spre-saksbehandlingsstatistikk")
+            withReuse(true)
+            start()
+        }
         val dataSource: DataSource =
             HikariDataSource(HikariConfig().apply {
                 jdbcUrl = postgres.jdbcUrl

@@ -6,7 +6,11 @@ import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 
 internal fun setupDataSourceMedFlyway(): DataSource {
-    val postgres = PostgreSQLContainer<Nothing>("postgres:13").also { it.start() }
+    val postgres = PostgreSQLContainer<Nothing>("postgres:13").apply {
+        withLabel("app-navn", "spre-oppgaver")
+        withReuse(true)
+        start()
+    }
     val dataSource: DataSource =
         HikariDataSource(HikariConfig().apply {
             jdbcUrl = postgres.jdbcUrl
