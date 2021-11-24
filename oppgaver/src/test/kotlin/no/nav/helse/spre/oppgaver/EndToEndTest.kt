@@ -628,8 +628,8 @@ class EndToEndTest {
         dokumentType: DokumentTypeDTO,
         timeout: LocalDateTime? = null,
     ) {
-        assertEquals(dokumentId, dokumentId)
-        assertEquals(dokumentType, dokumentType)
+        assertEquals(dokumentId, this.dokumentId)
+        assertEquals(dokumentType, this.dokumentType)
         assertEquals(oppdateringstypeDTO, oppdateringstype)
         timeout?.let {
             assertEquals(0, MINUTES.between(timeout, this.timeout))
