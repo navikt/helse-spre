@@ -2,9 +2,6 @@ package no.nav.helse.spre.oppgaver
 
 import io.mockk.every
 import io.mockk.mockk
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit.MINUTES
-import java.util.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
@@ -17,6 +14,9 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit.MINUTES
+import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EndToEndTest {
@@ -127,15 +127,20 @@ class EndToEndTest {
     fun `spleis gir opp behandling og det finnes relatert utbetaling`() {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
+        val imDokumentId = UUID.randomUUID()
+        val imHendelseId = UUID.randomUUID()
 
+        sendInntektsmelding(imHendelseId, imDokumentId)
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
-        sendVedtaksperiodeEndretMedRelatertUtbetaling(hendelseIder = listOf(søknad1HendelseId))
+        sendVedtaksperiodeEndretMedRelatertUtbetaling(hendelseIder = listOf(søknad1HendelseId, imHendelseId))
 
+        assertEquals(2, captureslot.size)
         captureslot[0].value().assertInnhold(OpprettSpeilRelatert, søknad1DokumentId, Søknad)
-        assertEquals(1, captureslot.size)
+        captureslot[1].value().assertInnhold(OpprettSpeilRelatert, imDokumentId, Inntektsmelding)
 
-        assertEquals(1, rapid.inspektør.size)
+        assertEquals(2, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett_speilrelatert", søknad1HendelseId).size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett_speilrelatert", imHendelseId).size)
     }
 
     @Test
