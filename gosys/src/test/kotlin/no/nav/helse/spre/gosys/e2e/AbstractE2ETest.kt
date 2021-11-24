@@ -170,13 +170,12 @@ internal abstract class AbstractE2ETest {
                 mottaker = "123 456 789"
             )
         ),
-        arbeidsgiverOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag(linjer = linjer),
-        personOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag(),
+        arbeidsgiverOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver"),
+        personOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdPerson"),
         ikkeUtbetalteDager: List<VedtakPdfPayloadV2.IkkeUtbetalteDager> = emptyList()
     ) =
         VedtakPdfPayloadV2(
             fødselsnummer = "12345678910",
-            fagsystemId = "fagsystemId",
             type = utbetalingstype.lesbarTittel,
             fom = fom,
             tom = tom,
@@ -281,8 +280,8 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
-        personOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SP", mottaker = fødselsnummer),
-        arbeidsgiverOppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SPREF")
+        personOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SP", mottaker = fødselsnummer, fagsystemId = "fagsystemIdPerson"),
+        arbeidsgiverOppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SPREF", fagsystemId = "fagsystemIdArbeidsgiver")
     ) = """{
     "@id": "$hendelseId",
     "fødselsnummer": "$fødselsnummer",
@@ -443,8 +442,8 @@ internal abstract class AbstractE2ETest {
                 utbetalingId = utbetalingId,
                 vedtaksperiodeIder = vedtaksperiodeIder,
                 sykdomstidslinje = sykdomstidslinje,
-                personOppdrag = Oppdrag(sykdomstidslinje, dagsats = 700, mottaker = fødselsnummer, fagområde = "SP", fagsystemId = "fagsystemId2"),
-                arbeidsgiverOppdrag = Oppdrag(sykdomstidslinje, dagsats = 741, mottaker = orgnummer, fagområde = "SPREF", fagsystemId = "fagsystemId"),
+                personOppdrag = Oppdrag(sykdomstidslinje, dagsats = 700, mottaker = fødselsnummer, fagområde = "SP", fagsystemId = "fagsystemIdPerson"),
+                arbeidsgiverOppdrag = Oppdrag(sykdomstidslinje, dagsats = 741, mottaker = orgnummer, fagområde = "SPREF", fagsystemId = "fagsystemIdArbeidsgiver"),
                 type = type
             )
         )

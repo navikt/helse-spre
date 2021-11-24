@@ -4,12 +4,11 @@ import java.time.LocalDate
 
 data class VedtakPdfPayloadV2(
     val fødselsnummer: String,
-    val fagsystemId: String,
     val type: String,
     val fom: LocalDate,
     val tom: LocalDate,
     val linjer: List<Linje>,
-    val personOppdrag: Oppdrag = Oppdrag(),
+    val personOppdrag: Oppdrag,
     val arbeidsgiverOppdrag: Oppdrag,
     val organisasjonsnummer: String,
     val behandlingsdato: LocalDate,
@@ -22,12 +21,15 @@ data class VedtakPdfPayloadV2(
     val sykepengegrunnlag: Double,
     val grunnlagForSykepengegrunnlag: Map<String, Double>
 ) {
-    data class Oppdrag(val linjer: List<Linje> = emptyList())
+    data class Oppdrag(
+        val fagsystemId: String
+    )
 
     enum class MottakerType {
         Arbeidsgiver {
             override fun formatter(mottaker: String): String = mottaker.chunked(3).joinToString(separator = " ")
-        }, Person {
+        },
+        Person {
             override fun formatter(mottaker: String): String = mottaker.chunked(6).joinToString(separator = " ")
         };
 
@@ -52,7 +54,7 @@ data class VedtakPdfPayloadV2(
 }
 
 
-fun  List<VedtakPdfPayloadV2.Linje>.slåSammen(other: List<VedtakPdfPayloadV2.Linje>): List<VedtakPdfPayloadV2.Linje> {
+fun List<VedtakPdfPayloadV2.Linje>.slåSammen(other: List<VedtakPdfPayloadV2.Linje>): List<VedtakPdfPayloadV2.Linje> {
     return (this + other)
         .sortedBy { it.mottakerType }
         .sortedByDescending { it.fom }

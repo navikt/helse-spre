@@ -89,10 +89,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             assertVedtakPdf(
                 expectedPdfPayloadV2(
                     linjer = linjer,
-                    arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag(),
-                    personOppdrag = VedtakPdfPayloadV2.Oppdrag(
-                        linjer
-                    )
+                    arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver"),
+                    personOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdPerson")
                 )
             )
         }
@@ -135,8 +133,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             assertVedtakPdf(
                 expectedPdfPayloadV2(
                     linjer = expectedLinjer,
-                    arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag(expectedLinjer.subList(0, 1)),
-                    personOppdrag = VedtakPdfPayloadV2.Oppdrag(expectedLinjer.subList(1, 2)),
                     totaltTilUtbetaling = 33143
                 )
             )
@@ -183,8 +179,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             assertVedtakPdf(
                 expectedPdfPayloadV2(
                     linjer = expectedLinjer,
-                    arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag(),
-                    personOppdrag = VedtakPdfPayloadV2.Oppdrag(expectedLinjer.reversed()),
                     totaltTilUtbetaling = 42930,
                     behandlingsdato = 18.februar, //TODO: Bruk `vedtakFattetTidspunkt` på vedtaket
                     ikkeUtbetalteDager = listOf(VedtakPdfPayloadV2.IkkeUtbetalteDager(1.februar, 7.februar, "Arbeidsdag", emptyList()))
@@ -211,8 +205,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             assertVedtakPdf(
                 expectedPdfPayloadV2(
                     linjer = emptyList(),
-                    arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag(),
-                    personOppdrag = VedtakPdfPayloadV2.Oppdrag(),
                     totaltTilUtbetaling = 0,
                     ikkeUtbetalteDager = listOf(VedtakPdfPayloadV2.IkkeUtbetalteDager(1.januar, 31.januar, "Ferie/Permisjon", emptyList()))
                 )

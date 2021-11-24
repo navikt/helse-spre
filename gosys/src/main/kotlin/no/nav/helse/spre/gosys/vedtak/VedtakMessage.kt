@@ -4,6 +4,7 @@ import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.MottakerType
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -67,13 +68,12 @@ data class VedtakMessage(
     )
 
     internal fun toVedtakPdfPayloadV2() = VedtakPdfPayloadV2(
-        fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
         totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         type = lesbarTittel(),
         linjer = utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver)
             .slåSammen(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person)),
-        personOppdrag = VedtakPdfPayloadV2.Oppdrag(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person)),
-        arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag(utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver)),
+        personOppdrag = Oppdrag(fagsystemId = utbetaling.personOppdrag.fagsystemId),
+        arbeidsgiverOppdrag = Oppdrag(fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId),
         fødselsnummer = fødselsnummer,
         fom = fom,
         tom = tom,
@@ -88,7 +88,7 @@ data class VedtakMessage(
         ikkeUtbetalteDager = ikkeUtbetalteDager
             .settSammenIkkeUtbetalteDager()
             .map {
-                VedtakPdfPayloadV2.IkkeUtbetalteDager(
+                IkkeUtbetalteDager(
                     fom = it.fom,
                     tom = it.tom,
                     begrunnelser = mapBegrunnelser(it.begrunnelser),
