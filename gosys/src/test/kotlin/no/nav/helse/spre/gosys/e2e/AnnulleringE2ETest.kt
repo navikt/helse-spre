@@ -3,9 +3,11 @@ package no.nav.helse.spre.gosys.e2e
 import io.ktor.client.engine.mock.*
 import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
+import no.nav.helse.spre.Toggle
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
 import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayload
+import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayloadV2
 import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
 import no.nav.helse.spre.gosys.objectMapper
 import org.intellij.lang.annotations.Language
@@ -65,6 +67,41 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
                         beløp = 1345
                     )
                 )
+            )
+
+            assertEquals(expectedPdfPayload, pdfPayload)
+        }
+    }
+
+    @KtorExperimentalAPI
+    @Test
+    fun `journalfører en annullering v2`() = Toggle.AnnulleringTemplateV2.enable {
+        runBlocking {
+            val hendelseId = UUID.randomUUID()
+            testRapid.sendTestMessage(annullering(hendelseId))
+            val joarkRequest = capturedJoarkRequests.single()
+            val joarkPayload =
+                requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
+
+            assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
+            assertEquals(hendelseId.toString(), joarkRequest.headers["Nav-Consumer-Token"])
+            assertEquals("application/json", joarkRequest.body.contentType.toString())
+            assertEquals(expectedJournalpost(), joarkPayload)
+
+            val pdfRequest = capturedPdfRequests.single()
+            val pdfPayload =
+                requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), AnnulleringPdfPayloadV2::class.java))
+
+            val expectedPdfPayload = AnnulleringPdfPayloadV2(
+                fødselsnummer = "fnr",
+                fom = LocalDate.of(2020, 1, 1),
+                tom = LocalDate.of(2020, 1, 10),
+                organisasjonsnummer = "orgnummer",
+                dato = LocalDateTime.of(2020, 5, 4, 8, 8, 0),
+                epost = "sara.saksbehandler@nav.no",
+                ident = "A123456",
+                personFagsystemId = null,
+                arbeidsgiverFagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY"
             )
 
             assertEquals(expectedPdfPayload, pdfPayload)

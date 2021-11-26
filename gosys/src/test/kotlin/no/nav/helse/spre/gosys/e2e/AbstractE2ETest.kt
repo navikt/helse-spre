@@ -69,6 +69,8 @@ internal abstract class AbstractE2ETest {
 
                         "/api/v1/genpdf/spre-gosys/annullering" -> handlerForPdfKall(request)
 
+                        "/api/v1/genpdf/spre-gosys/annullering-v2" -> handlerForPdfKall(request)
+
                         "/api/v1/genpdf/spre-gosys/vedtak-v2" -> handlerForPdfKall(request)
 
                         else -> error("Unhandled ${request.url.fullPath}")
