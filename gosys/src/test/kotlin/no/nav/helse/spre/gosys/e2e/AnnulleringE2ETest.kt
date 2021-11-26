@@ -99,7 +99,13 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
                   "grad": 100,
                   "beløp": 1345
                 }
-            ]
+            ],
+            "fom": "2020-01-01",
+            "tom": "2020-01-10",
+            "epost": "sara.saksbehandler@nav.no",
+            "ident": "A123456",
+            "arbeidsgiverFagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
+            "personFagsystemId": null 
         }
     """
 

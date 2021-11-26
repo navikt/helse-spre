@@ -26,6 +26,13 @@ class AnnulleringRiver(
                     "fagsystemId",
                     "saksbehandlerEpost"
                 )
+                it.interestedIn(
+                    "ident",
+                    "epost"
+                )
+                it.interestedIn("fom", JsonNode::asLocalDate)
+                it.interestedIn("tom", JsonNode::asLocalDate)
+                it.interestedIn("personFagsystemId", "arbeidsgiverFagsystemId")
                 it.require("annullertAvSaksbehandler", JsonNode::asLocalDateTime)
                 it.requireArray("utbetalingslinjer") {
                     require("fom", JsonNode::asLocalDate)
@@ -41,7 +48,6 @@ class AnnulleringRiver(
         duplikatsjekkDao.sjekkDuplikat(id) {
             log.info("Oppdaget annullering-event {}", StructuredArguments.keyValue("id", packet["@id"].asText()))
             sikkerLogg.info("utbetaling_annullert lest inn: {}", packet.toJson())
-
             val annulleringMessage = AnnulleringMessage(id, packet)
             annulleringMediator.opprettAnnullering(annulleringMessage)
         }

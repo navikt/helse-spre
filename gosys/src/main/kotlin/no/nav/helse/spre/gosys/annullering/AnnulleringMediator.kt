@@ -1,6 +1,7 @@
 package no.nav.helse.spre.gosys.annullering
 
 import kotlinx.coroutines.runBlocking
+import no.nav.helse.spre.Toggle
 import no.nav.helse.spre.gosys.*
 
 class AnnulleringMediator(
@@ -9,7 +10,13 @@ class AnnulleringMediator(
 ) {
     fun opprettAnnullering(annulleringMessage: AnnulleringMessage) {
         runBlocking {
-            val pdf = pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayload())
+            val pdf =
+                if (Toggle.AnnulleringTemplateV2.enabled) {
+                    pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayloadV2())
+            } else {
+                    pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayload())
+            }
+
             val journalpostPayload = JournalpostPayload(
                 tittel = "Annullering av vedtak om sykepenger",
                 bruker = JournalpostPayload.Bruker(id = annulleringMessage.fødselsnummer),

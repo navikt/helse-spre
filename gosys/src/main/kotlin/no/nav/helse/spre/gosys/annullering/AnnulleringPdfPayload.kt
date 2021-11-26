@@ -20,3 +20,19 @@ data class AnnulleringPdfPayload(
         val beløp: Int
     )
 }
+
+data class AnnulleringPdfPayloadV2(
+    val fødselsnummer: String,
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val epost: String,
+    val ident: String,
+    val personFagsystemId: String?,
+    val arbeidsgiverFagsystemId: String?,
+    val organisasjonsnummer: String,
+    val dato: LocalDateTime,
+) {
+    init {
+        require(arbeidsgiverFagsystemId != null || personFagsystemId != null) {"En annullering må inneholde en fagsystemId"}
+    }
+}
