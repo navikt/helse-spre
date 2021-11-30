@@ -28,6 +28,8 @@ class HåndterOpprettOppgaveForSpeilsaksbehandlere(
             .onEach { it.setObserver(observer) }
             .forEach { oppgave ->
                 Hendelse.AvbruttOgHarRelatertUtbetaling.accept(oppgave)
+                log.info("Mottok opprett_oppgave_for_speilsaksbehandlere-event: {}",
+                    oppgave.hendelseId)
             }
     }
 }
