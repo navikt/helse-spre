@@ -15,7 +15,7 @@ class AnnulleringMessage private constructor(
     val aktørId: String,
     private val fom: LocalDate,
     private val tom: LocalDate,
-    private val organisasjonsnummer: String,
+    val organisasjonsnummer: String,
     private val fagsystemId: String,
     private val saksbehandlerId: String,
     private val dato: LocalDateTime,
@@ -23,7 +23,7 @@ class AnnulleringMessage private constructor(
     private val saksbehandlerIdent: String,
     private val saksbehandlerEpost: String,
     private val personFagsystemId: String?,
-    private val arbeidsgiverFagsystemId: String?
+    private val arbeidsgiverFagsystemId: String?,
 ) {
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
@@ -66,7 +66,7 @@ class AnnulleringMessage private constructor(
         }
     )
 
-    internal fun toPdfPayloadV2() = AnnulleringPdfPayloadV2(
+    internal fun toPdfPayloadV2(organisasjonsnavn: String?) = AnnulleringPdfPayloadV2(
         fødselsnummer = fødselsnummer,
         fom = fom,
         tom = tom,
@@ -75,7 +75,8 @@ class AnnulleringMessage private constructor(
         epost = saksbehandlerEpost,
         ident = saksbehandlerIdent,
         personFagsystemId = personFagsystemId,
-        arbeidsgiverFagsystemId = arbeidsgiverFagsystemId
+        arbeidsgiverFagsystemId = arbeidsgiverFagsystemId,
+        organisasjonsnavn = organisasjonsnavn
     )
 
     data class Linje(

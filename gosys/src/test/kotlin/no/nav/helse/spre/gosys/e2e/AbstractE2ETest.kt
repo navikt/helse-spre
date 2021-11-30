@@ -44,6 +44,7 @@ internal abstract class AbstractE2ETest {
         coEvery { token() }.returns("6B70C162-8AAB-4B56-944D-7F092423FE4B")
     }
     protected val joarkClient = JoarkClient("https://url.no", stsMock, mockClient)
+    protected val eregClient = EregClient("https://url.no", stsMock, mockClient)
     protected val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
     protected val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
 
@@ -73,6 +74,10 @@ internal abstract class AbstractE2ETest {
 
                         "/api/v1/genpdf/spre-gosys/vedtak-v2" -> handlerForPdfKall(request)
 
+                        "/v1/organisasjon/orgnummer?inkluderHierarki=true&inkluderHistorikk=true" -> handlerForEregKall(
+                            request
+                        )
+
                         else -> error("Unhandled ${request.url.fullPath}")
                     }
                 }
@@ -88,6 +93,10 @@ internal abstract class AbstractE2ETest {
     open fun MockRequestHandleScope.handlerForPdfKall(request: HttpRequestData): HttpResponseData {
         capturedPdfRequests.add(request)
         return respond("Test".toByteArray())
+    }
+
+    open fun MockRequestHandleScope.handlerForEregKall(request: HttpRequestData): HttpResponseData {
+        return respond(eregResponse().toByteArray())
     }
 
     private inline fun <reified T> HttpRequestData.parsePayload(): T = runBlocking {
@@ -284,8 +293,17 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
-        personOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SP", mottaker = fødselsnummer, fagsystemId = "fagsystemIdPerson"),
-        arbeidsgiverOppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SPREF", fagsystemId = "fagsystemIdArbeidsgiver")
+        personOppdrag: Oppdrag = Oppdrag(
+            sykdomstidslinje,
+            fagområde = "SP",
+            mottaker = fødselsnummer,
+            fagsystemId = "fagsystemIdPerson"
+        ),
+        arbeidsgiverOppdrag: Oppdrag = Oppdrag(
+            emptyList(),
+            fagområde = "SPREF",
+            fagsystemId = "fagsystemIdArbeidsgiver"
+        )
     ) = """{
     "@id": "$hendelseId",
     "fødselsnummer": "$fødselsnummer",
@@ -446,8 +464,20 @@ internal abstract class AbstractE2ETest {
                 utbetalingId = utbetalingId,
                 vedtaksperiodeIder = vedtaksperiodeIder,
                 sykdomstidslinje = sykdomstidslinje,
-                personOppdrag = Oppdrag(sykdomstidslinje, dagsats = 700, mottaker = fødselsnummer, fagområde = "SP", fagsystemId = "fagsystemIdPerson"),
-                arbeidsgiverOppdrag = Oppdrag(sykdomstidslinje, dagsats = 741, mottaker = orgnummer, fagområde = "SPREF", fagsystemId = "fagsystemIdArbeidsgiver"),
+                personOppdrag = Oppdrag(
+                    sykdomstidslinje,
+                    dagsats = 700,
+                    mottaker = fødselsnummer,
+                    fagområde = "SP",
+                    fagsystemId = "fagsystemIdPerson"
+                ),
+                arbeidsgiverOppdrag = Oppdrag(
+                    sykdomstidslinje,
+                    dagsats = 741,
+                    mottaker = orgnummer,
+                    fagområde = "SPREF",
+                    fagsystemId = "fagsystemIdArbeidsgiver"
+                ),
                 type = type
             )
         )

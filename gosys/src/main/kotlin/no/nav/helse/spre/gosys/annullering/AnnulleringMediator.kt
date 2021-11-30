@@ -6,13 +6,20 @@ import no.nav.helse.spre.gosys.*
 
 class AnnulleringMediator(
     private val pdfClient: PdfClient,
+    private val eregClient: EregClient,
     private val joarkClient: JoarkClient
 ) {
     fun opprettAnnullering(annulleringMessage: AnnulleringMessage) {
         runBlocking {
             val pdf =
                 if (Toggle.AnnulleringTemplateV2.enabled) {
-                    pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayloadV2())
+                    val organisasjonsnavn:String? = try {
+                        eregClient.hentOrganisasjonsnavn(annulleringMessage.organisasjonsnummer, annulleringMessage.hendelseId).navn
+                    } catch (e: Exception) {
+                        log.error("Feil ved henting av bedriftsnavn")
+                        null
+                    }
+                    pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayloadV2(organisasjonsnavn))
             } else {
                     pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayload())
             }

@@ -18,8 +18,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
+@KtorExperimentalAPI
 internal class AnnulleringE2ETest : AbstractE2ETest() {
-    private val annulleringMediator = AnnulleringMediator(pdfClient, joarkClient)
+    private val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient)
 
     init {
         AnnulleringRiver(testRapid, duplikatsjekkDao, annulleringMediator)
@@ -101,7 +102,8 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
                 epost = "sara.saksbehandler@nav.no",
                 ident = "A123456",
                 personFagsystemId = null,
-                arbeidsgiverFagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY"
+                arbeidsgiverFagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY",
+                organisasjonsnavn = "PENGELØS SPAREBANK"
             )
 
             assertEquals(expectedPdfPayload, pdfPayload)

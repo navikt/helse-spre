@@ -11,9 +11,8 @@ import java.util.*
 
 class EregClient(
     private val baseUrl: String,
-    private val appName: String,
-    private val httpClient: HttpClient,
     private val stsRestClient: StsRestClient,
+    private val httpClient: HttpClient,
 ) {
     suspend fun hentOrganisasjonsnavn(
         organisasjonsnummer: String,
@@ -25,10 +24,11 @@ class EregClient(
         callId: UUID,
     ): EregResponse {
         try {
+            //TODO finn ut om vi trenger ha med historikk eller ikke..
             return httpClient.get<HttpStatement>("$baseUrl/v1/organisasjon/$organisasjonsnummer?inkluderHierarki=true&inkluderHistorikk=true") {
                 header("Authorization", "Bearer ${stsRestClient.token()}")
                 header("Nav-Consumer-Token", "Bearer ${stsRestClient.token()}")
-                header("Nav-Consumer-Id", appName)
+                header("Nav-Consumer-Id", "spre-gosys")
                 header("Nav-Call-Id", callId)
                 accept(ContentType.Application.Json)
             }
@@ -39,10 +39,10 @@ class EregClient(
                         navn = trekkUtNavn(response),
                     )
                 }
-        } catch (e: RuntimeException) {
+        } catch (exception: RuntimeException) {
             log.error("Feil ved henting av organiasasjonsnavn. Sjekk sikker logg for detaljer")
-            sikkerLogg.error("Feil ved henting av organiasasjonsnavn orgnummer=$organisasjonsnummer", e)
-            throw RuntimeException("Feil ved henting av organiasasjonsnavn", e)
+            sikkerLogg.error("Feil ved henting av organiasasjonsnavn orgnummer=$organisasjonsnummer", exception)
+            throw exception
         }
     }
 
