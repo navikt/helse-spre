@@ -6,7 +6,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import java.util.*
 
-class HåndterVedtaksperiodeendringer(
+class HåndterOpprettOppgaveForSpeilsaksbehandlere(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
     oppgaveProducers: List<OppgaveProducer>
@@ -16,32 +16,18 @@ class HåndterVedtaksperiodeendringer(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireKey("gjeldendeTilstand", "hendelser") }
-            validate { it.requireValue("@event_name", "vedtaksperiode_endret") }
+            validate { it.requireKey("hendelser") }
+            validate { it.requireValue("@event_name", "opprett_oppgave_for_speilsaksbehandlere") }
         }.register(this)
     }
 
-
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val gjeldendeTilstand = packet["gjeldendeTilstand"].asText()
-
         packet["hendelser"]
             .map { UUID.fromString(it.asText()) }
             .mapNotNull { oppgaveDAO.finnOppgave(it) }
             .onEach { it.setObserver(observer) }
             .forEach { oppgave ->
-                val erSøknad = oppgave.dokumentType == DokumentType.Søknad
-
-                when (gjeldendeTilstand) {
-                    "TIL_INFOTRYGD" -> Hendelse.TilInfotrygd
-                    "AVSLUTTET" -> Hendelse.Avsluttet
-                    "AVSLUTTET_UTEN_UTBETALING" -> {
-                        if (erSøknad) Hendelse.AvsluttetUtenUtbetaling
-                        else Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling
-                    }
-                    else -> Hendelse.Lest
-                }.accept(oppgave)
+                Hendelse.AvbruttOgHarRelatertUtbetaling.accept(oppgave)
             }
     }
 }
-

@@ -127,7 +127,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `spleis gir opp behandling og det finnes relatert utbetaling`() {
+    fun `spleis sender medlingen opprettOppgaveForSpeilsaksbehandler`() {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
         val imDokumentId = UUID.randomUUID()
@@ -135,7 +135,7 @@ class EndToEndTest {
 
         sendInntektsmelding(imHendelseId, imDokumentId)
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
-        sendVedtaksperiodeEndretMedRelatertUtbetaling(hendelseIder = listOf(søknad1HendelseId, imHendelseId))
+        opprettOppgaveForSpeilsaksbehandler(hendelseIder = listOf(søknad1HendelseId, imHendelseId))
 
         assertEquals(2, captureslot.size)
         captureslot[0].value().assertInnhold(OpprettSpeilRelatert, søknad1DokumentId, Søknad)
@@ -517,20 +517,6 @@ class EndToEndTest {
     }
 
     @Test
-    fun `spleis håndterer ikke søknad og det finnes relatert utbetaling`() {
-        val søknadId = UUID.randomUUID()
-        val hendelseId = UUID.randomUUID()
-        sendSøknad(hendelseId, søknadId)
-        sendHendelseIkkeHåndtertMedRelatertUtbetaling(hendelseId)
-
-        assertEquals(1, captureslot.size)
-        assertEquals(søknadId, captureslot[0].value().dokumentId)
-        assertEquals(OpprettSpeilRelatert, captureslot[0].value().oppdateringstype)
-
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett_speilrelatert", hendelseId).size)
-    }
-
-    @Test
     fun `spleis håndterer ikke søknad og vi mottar vedtaksperiode_endret uten søknadId`() {
         val søknadId = UUID.randomUUID()
         val hendelseId = UUID.randomUUID()
@@ -651,10 +637,6 @@ class EndToEndTest {
         rapid.sendTestMessage(hendelseIkkeHåndtert(hendelseId))
     }
 
-    private fun sendHendelseIkkeHåndtertMedRelatertUtbetaling(hendelseId: UUID) {
-        rapid.sendTestMessage(hendelseIkkeHåndtertMedRelatertUtbetaling(hendelseId))
-    }
-
     private fun sendVedtaksperiodeEndret(
         hendelseIder: List<UUID>,
         tilstand: String,
@@ -663,11 +645,10 @@ class EndToEndTest {
         rapid.sendTestMessage(vedtaksperiodeEndret(hendelseIder, tilstand, vedtaksperiodeId))
     }
 
-    private fun sendVedtaksperiodeEndretMedRelatertUtbetaling(
+    private fun opprettOppgaveForSpeilsaksbehandler(
         hendelseIder: List<UUID>,
-        vedtaksperiodeId: UUID = UUID.randomUUID()
     ) {
-        rapid.sendTestMessage(vedtaksperiodeEndretMedRelatertUtbetaling(hendelseIder, vedtaksperiodeId))
+        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.opprettOppgaveForSpeilsaksbehandler(hendelseIder))
     }
 
     private fun navSøknadUtenUtbetaling(inntektsmeldingHendelseId: UUID, periode2: UUID) {
@@ -710,16 +691,12 @@ fun vedtaksperiodeEndret(
             "vedtaksperiodeId": "$vedtaksperiodeId"
         }"""
 
-fun vedtaksperiodeEndretMedRelatertUtbetaling(
-    hendelser: List<UUID>,
-    vedtaksperiodeId: UUID
+fun opprettOppgaveForSpeilsaksbehandler(
+    hendelser: List<UUID>
 ) =
     """{
-            "@event_name": "vedtaksperiode_endret",
-            "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
-            "gjeldendeTilstand": "TIL_INFOTRYGD",
-            "vedtaksperiodeId": "$vedtaksperiodeId",
-            "harRelatertUtbetaling": "true"
+            "@event_name": "opprett_oppgave_for_speilsaksbehandlere",
+            "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
         }"""
 
 fun hendelseIkkeHåndtert(
@@ -727,12 +704,4 @@ fun hendelseIkkeHåndtert(
 ) = """{
             "@event_name": "hendelse_ikke_håndtert",
             "hendelseId": "$hendelseId"
-        }"""
-
-fun hendelseIkkeHåndtertMedRelatertUtbetaling(
-    hendelseId: UUID,
-) = """{
-            "@event_name": "hendelse_ikke_håndtert",
-            "hendelseId": "$hendelseId",
-            "harRelatertUtbetaling": "true"
         }"""
