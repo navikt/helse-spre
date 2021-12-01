@@ -3,26 +3,36 @@ package no.nav.helse.spre.gosys.annullering
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.Toggle
 import no.nav.helse.spre.gosys.*
+import no.nav.helse.spre.gosys.pdl.PdlClient
 
 class AnnulleringMediator(
     private val pdfClient: PdfClient,
     private val eregClient: EregClient,
-    private val joarkClient: JoarkClient
+    private val joarkClient: JoarkClient,
+    private val pdlClient: PdlClient,
 ) {
     fun opprettAnnullering(annulleringMessage: AnnulleringMessage) {
         runBlocking {
             val pdf =
                 if (Toggle.AnnulleringTemplateV2.enabled) {
-                    val organisasjonsnavn:String? = try {
-                        eregClient.hentOrganisasjonsnavn(annulleringMessage.organisasjonsnummer, annulleringMessage.hendelseId).navn
+                    val organisasjonsnavn: String? = try {
+                        eregClient.hentOrganisasjonsnavn(
+                            annulleringMessage.organisasjonsnummer,
+                            annulleringMessage.hendelseId
+                        ).navn
                     } catch (e: Exception) {
                         log.error("Feil ved henting av bedriftsnavn")
                         null
                     }
-                    pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayloadV2(organisasjonsnavn))
-            } else {
+                    val navn = try { pdlClient.hentPersonNavn(annulleringMessage.fødselsnummer, annulleringMessage.hendelseId)
+                    } catch (e: Exception) {
+                        log.error("Feil ved henting av navn")
+                        null
+                    }
+                    pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayloadV2(organisasjonsnavn, navn))
+                } else {
                     pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayload())
-            }
+                }
 
             val journalpostPayload = JournalpostPayload(
                 tittel = "Annullering av vedtak om sykepenger",

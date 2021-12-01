@@ -66,7 +66,7 @@ class AnnulleringMessage private constructor(
         }
     )
 
-    internal fun toPdfPayloadV2(organisasjonsnavn: String?) = AnnulleringPdfPayloadV2(
+    internal fun toPdfPayloadV2(organisasjonsnavn: String?, navn: String?) = AnnulleringPdfPayloadV2(
         fødselsnummer = fødselsnummer,
         fom = fom,
         tom = tom,
@@ -76,7 +76,8 @@ class AnnulleringMessage private constructor(
         ident = saksbehandlerIdent,
         personFagsystemId = personFagsystemId,
         arbeidsgiverFagsystemId = arbeidsgiverFagsystemId,
-        organisasjonsnavn = organisasjonsnavn
+        organisasjonsnavn = organisasjonsnavn,
+        navn = navn
     )
 
     data class Linje(

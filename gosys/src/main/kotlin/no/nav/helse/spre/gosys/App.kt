@@ -14,6 +14,7 @@ import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
 import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
+import no.nav.helse.spre.gosys.pdl.PdlClient
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
@@ -40,6 +41,11 @@ fun launchApplication(
 ): RapidsConnection {
     val serviceUser = readServiceUserCredentials()
     val stsRestClient = StsRestClient(requireNotNull(environment["STS_URL"]), serviceUser)
+    val azureClient = AzureClient(
+        tokenEndpoint = requireNotNull(environment["AZURE_APP_WELL_KNOWN_URL"]),
+        clientId = requireNotNull(environment["AZURE_APP_CLIENT_ID"]),
+        clientSecret = requireNotNull(environment["AZURE_APP_CLIENT_SECRET"])
+    )
     val httpClient = HttpClient {
         install(JsonFeature) { serializer = JacksonSerializer(objectMapper) }
         install(HttpTimeout) { requestTimeoutMillis = 10000 }
@@ -48,6 +54,7 @@ fun launchApplication(
     val pdfClient = PdfClient(httpClient)
 
     val eregClient = EregClient(requireNotNull(environment["EREG_BASE_URL"]), stsRestClient, httpClient)
+    val pdlClient = PdlClient(azureClient, httpClient, requireNotNull(environment["PDL_CLIENT_SCOPE"]))
 
     val dataSourceBuilder = DataSourceBuilder(readDatabaseEnvironment())
     dataSourceBuilder.migrate()
@@ -56,7 +63,7 @@ fun launchApplication(
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
 
     val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
-    val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient)
+    val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, pdlClient)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     val vedtakFattetDao = VedtakFattetDao(dataSource)

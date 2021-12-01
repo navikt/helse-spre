@@ -20,7 +20,7 @@ import java.util.*
 
 @KtorExperimentalAPI
 internal class AnnulleringE2ETest : AbstractE2ETest() {
-    private val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient)
+    private val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, pdlClient)
 
     init {
         AnnulleringRiver(testRapid, duplikatsjekkDao, annulleringMediator)
@@ -103,7 +103,8 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
                 ident = "A123456",
                 personFagsystemId = null,
                 arbeidsgiverFagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY",
-                organisasjonsnavn = "PENGELØS SPAREBANK"
+                organisasjonsnavn = "PENGELØS SPAREBANK",
+                navn = "Molefonken Ert"
             )
 
             assertEquals(expectedPdfPayload, pdfPayload)
