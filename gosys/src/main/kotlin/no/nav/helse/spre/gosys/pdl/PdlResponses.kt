@@ -24,8 +24,9 @@ data class PdlNavn(
     val etternavn: String
 ) {
     fun tilVisning(): String {
-        return listOf(fornavn, mellomnavn, etternavn)
-            .filterNotNull()
+        return listOfNotNull(fornavn, mellomnavn, etternavn)
+            .map { it.lowercase() }
+            .flatMap { it.split(" ") }
             .joinToString(" ") { navnebit -> navnebit.replaceFirstChar { it.uppercase() } }
     }
 }
