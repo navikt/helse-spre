@@ -46,19 +46,24 @@ internal class EndToEndAnnulleringTest {
     }
 
     @Test
-    fun `håndterer utbetaling_annullert event`() {
+    fun `håndterer utbetaling_annullert event ved full refusjon`() {
         val fødselsnummer = "12345678910"
-        val fagsystemId = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        val arbeidsgiverFagsystemId = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         val annullertAvSaksbehandlerTidspunkt = LocalDateTime.of(2020, 1, 1, 1, 1)
 
-        testRapid.sendTestMessage(utbetalingAnnullert(fødselsnummer, fagsystemId, annullertAvSaksbehandlerTidspunkt))
+        testRapid.sendTestMessage(utbetalingAnnullert(
+            fødselsnummer = fødselsnummer,
+            arbeidsgiverFagsystemId = arbeidsgiverFagsystemId,
+            personFagsystemId = null,
+            annullertAvSaksbehandlerTidspunkt = annullertAvSaksbehandlerTidspunkt
+        ))
 
         val capture = CapturingSlot<ProducerRecord<String, String>>()
         verify { kafkaStønadProducer.send(capture(capture)) }
 
         val record = capture.captured
         val sendtTilStønad = objectMapper.readValue<Annullering>(record.value())
-        val event = Annullering(fødselsnummer, fagsystemId, sendtTilStønad.annulleringstidspunkt)
+        val event = Annullering(fødselsnummer, arbeidsgiverFagsystemId, sendtTilStønad.annulleringstidspunkt)
         val lagretAnnullering = annulleringDao.hentAnnulleringer().first()
 
         assertEquals("ANNULLERING", String(record.headers().headers("type").first().value()))
@@ -66,25 +71,84 @@ internal class EndToEndAnnulleringTest {
         assertEquals(event, lagretAnnullering)
     }
 
+    @Test
+    fun `håndterer utbetaling_annullert event ved ingen refusjon`() {
+        val fødselsnummer = "12345678910"
+        val personFagsystemId = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        val annullertAvSaksbehandlerTidspunkt = LocalDateTime.of(2020, 1, 1, 1, 1)
+
+        testRapid.sendTestMessage(utbetalingAnnullert(
+            fødselsnummer = fødselsnummer,
+            arbeidsgiverFagsystemId = null,
+            personFagsystemId = personFagsystemId,
+            annullertAvSaksbehandlerTidspunkt = annullertAvSaksbehandlerTidspunkt
+        ))
+
+        val capture = CapturingSlot<ProducerRecord<String, String>>()
+        verify { kafkaStønadProducer.send(capture(capture)) }
+
+        val record = capture.captured
+        val sendtTilStønad = objectMapper.readValue<Annullering>(record.value())
+        val event = Annullering(fødselsnummer, personFagsystemId, sendtTilStønad.annulleringstidspunkt)
+        val lagretAnnullering = annulleringDao.hentAnnulleringer().first()
+
+        assertEquals("ANNULLERING", String(record.headers().headers("type").first().value()))
+        assertEquals(event, sendtTilStønad)
+        assertEquals(event, lagretAnnullering)
+    }
+
+    @Test
+    fun `håndterer utbetaling_annullert event ved delvis refusjon`() {
+        val fødselsnummer = "12345678910"
+        val arbeidsgiverFagsystemId = "ABCDEFGHIJKLMNOPQRSTUVWXYF"
+        val personFagsystemId = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        val annullertAvSaksbehandlerTidspunkt = LocalDateTime.of(2020, 1, 1, 1, 1)
+
+        testRapid.sendTestMessage(utbetalingAnnullert(
+            fødselsnummer = fødselsnummer,
+            arbeidsgiverFagsystemId = arbeidsgiverFagsystemId,
+            personFagsystemId = personFagsystemId,
+            annullertAvSaksbehandlerTidspunkt = annullertAvSaksbehandlerTidspunkt
+        ))
+
+        val capture = mutableListOf<ProducerRecord<String, String>>()
+
+        verify { kafkaStønadProducer.send(capture(capture)) }
+
+        val arbeidsgiverRecord = capture.first { it.value().contains(arbeidsgiverFagsystemId) }
+        val arbeidsgiverSendtTilStønad = objectMapper.readValue<Annullering>(arbeidsgiverRecord.value())
+        val arbeidsgiverEvent = Annullering(fødselsnummer, arbeidsgiverFagsystemId, arbeidsgiverSendtTilStønad.annulleringstidspunkt)
+        val arbeidsgiverLagretAnnullering = annulleringDao.hentAnnulleringer().first { it.fagsystemId == arbeidsgiverFagsystemId }
+
+        val personRecord = capture.first { it.value().contains(personFagsystemId) }
+        val personSendtTilStønad = objectMapper.readValue<Annullering>(personRecord.value())
+        val personEvent = Annullering(fødselsnummer, personFagsystemId, personSendtTilStønad.annulleringstidspunkt)
+        val personLagretAnnullering = annulleringDao.hentAnnulleringer().first { it.fagsystemId == personFagsystemId }
+
+        assertEquals(2, capture.size)
+
+        assertEquals("ANNULLERING", String(arbeidsgiverRecord.headers().headers("type").first().value()))
+        assertEquals(arbeidsgiverEvent, arbeidsgiverSendtTilStønad)
+        assertEquals(arbeidsgiverEvent, arbeidsgiverLagretAnnullering)
+
+        assertEquals("ANNULLERING", String(personRecord.headers().headers("type").first().value()))
+        assertEquals(personEvent, personSendtTilStønad)
+        assertEquals(personEvent, personLagretAnnullering)
+    }
+
     @Language("JSON")
     private fun utbetalingAnnullert(
         fødselsnummer: String,
-        fagsystemId: String,
+        arbeidsgiverFagsystemId: String?,
+        personFagsystemId: String?,
         annullertAvSaksbehandlerTidspunkt: LocalDateTime
     ) = """
         {
           "utbetalingId": "${UUID.randomUUID()}",
-          "fagsystemId": "$fagsystemId",
-          "utbetalingslinjer": [
-            {
-              "fom": "2020-01-01",
-              "tom": "2020-01-31",
-              "beløp": 10000,
-              "grad": 100.0
-            }
-          ],
-          "annullertAvSaksbehandler": "$annullertAvSaksbehandlerTidspunkt",
-          "saksbehandlerEpost": "saksbehandler@nav.no",
+          "arbeidsgiverFagsystemId": ${if (arbeidsgiverFagsystemId != null) "\"$arbeidsgiverFagsystemId\"" else null},
+          "personFagsystemId": ${if (personFagsystemId != null) "\"$personFagsystemId\"" else null},
+          "tidspunkt": "$annullertAvSaksbehandlerTidspunkt",
+          "epost": "saksbehandler@nav.no",
           "@event_name": "utbetaling_annullert",
           "@id": "5132bee3-646d-4992-95a2-5c94cacd0807",
           "@opprettet": "2020-12-15T14:45:00.000000",
