@@ -42,7 +42,7 @@ fun launchApplication(
     val serviceUser = readServiceUserCredentials()
     val stsRestClient = StsRestClient(requireNotNull(environment["STS_URL"]), serviceUser)
     val azureClient = AzureClient(
-        tokenEndpoint = requireNotNull(environment["AZURE_APP_WELL_KNOWN_URL"]),
+        tokenEndpoint = requireNotNull(environment["AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"]),
         clientId = requireNotNull(environment["AZURE_APP_CLIENT_ID"]),
         clientSecret = requireNotNull(environment["AZURE_APP_CLIENT_SECRET"])
     )
