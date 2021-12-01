@@ -7,8 +7,7 @@
                 "url": "https://pdl-api.dev.intern.nav.no/graphql",
                 "headers": {
                     "user-agent": "srvspregosys",
-                    "Nav-Consumer-Token": "Bearer <access_token>",
-                    "Authorization": "Bearer <access_token>",
+                    "Authorization": "Bearer <hent ut token fra azuread>",
                     "TEMA": "SYK"
                 },
                 "introspect": false

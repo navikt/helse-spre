@@ -11,7 +11,11 @@ open class PdlResponse<T>(
 )
 
 data class PdlHentPerson(
-    val hentPerson: List<PdlNavn>
+    val hentPerson: Navn
+)
+
+data class Navn(
+    val navn: List<PdlNavn>
 )
 
 data class PdlNavn(

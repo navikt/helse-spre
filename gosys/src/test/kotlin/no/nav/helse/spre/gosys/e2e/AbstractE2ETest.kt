@@ -13,6 +13,8 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.gosys.*
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
 import no.nav.helse.spre.gosys.e2e.VedtakOgUtbetalingE2ETest.Companion.formatted
+import no.nav.helse.spre.gosys.pdl.PdlClient
+import no.nav.helse.spre.gosys.pdl.pdlResponse
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.IkkeUtbetalteDager
@@ -43,8 +45,13 @@ internal abstract class AbstractE2ETest {
     private val stsMock: StsRestClient = mockk {
         coEvery { token() }.returns("6B70C162-8AAB-4B56-944D-7F092423FE4B")
     }
+    private val azureMock: AzureClient = mockk {
+        coEvery { getToken(any()) }.returns(AzureClient.Token("type", 3600, "token"))
+    }
     protected val joarkClient = JoarkClient("https://url.no", stsMock, mockClient)
     protected val eregClient = EregClient("https://url.no", stsMock, mockClient)
+    protected val pdlClient = PdlClient(azureMock, mockClient, "scope")
+
     protected val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
     protected val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
 
@@ -78,6 +85,8 @@ internal abstract class AbstractE2ETest {
                             request
                         )
 
+                        "/graphql" -> handlerForPdlKall(request)
+
                         else -> error("Unhandled ${request.url.fullPath}")
                     }
                 }
@@ -97,6 +106,10 @@ internal abstract class AbstractE2ETest {
 
     open fun MockRequestHandleScope.handlerForEregKall(request: HttpRequestData): HttpResponseData {
         return respond(eregResponse().toByteArray())
+    }
+
+    open fun MockRequestHandleScope.handlerForPdlKall(request: HttpRequestData): HttpResponseData {
+        return respond(content = pdlResponse().toByteArray(), headers = headersOf("Content-Type" to listOf("application/json")))
     }
 
     private inline fun <reified T> HttpRequestData.parsePayload(): T = runBlocking {

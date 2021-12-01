@@ -4,41 +4,33 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import no.nav.helse.spre.gosys.StsRestClient
-import java.io.File
+import no.nav.helse.spre.gosys.AzureClient
 import java.util.*
 
 
 class PdlClient(
-    private val baseUrl: String,
-    private val stsClient: StsRestClient,
-    private val httpClient: io.ktor.client.HttpClient
+    private val azureClient: AzureClient,
+    private val httpClient: io.ktor.client.HttpClient,
+    private val scope: String,
 ) {
-    val personinfoQuery: String
-
-
-    init {
-        File("/pdl/hentPersoninfo.graphql").apply {
-            require(exists()) { "Finner ikke filen hentPersoninfo.graphql" }
-            personinfoQuery = readText().replace(Regex("[\n\r]"), "")
-        }
+    companion object {
+        private val personinfoQuery = PdlClient::class.java.getResource("/pdl/hentPersoninfo.graphql").readText().replace(Regex("[\n\r]"), "")
     }
 
     internal suspend fun hentPersonNavn(
         fødselsnummer: String,
         hendelseId: UUID,
     ): String? {
-        val stsToken = stsClient.token()
+        val token = azureClient.getToken(scope)
         val payload = PdlQueryObject(
             query = personinfoQuery,
             variables = Variables(ident = fødselsnummer)
         )
 
 
-        val response: HttpResponse = httpClient.post(Url(baseUrl)) {
+        val response: HttpResponse = httpClient.post(Url("http://pdl-api.pdl.svc.nais.local/graphql")) {
             header("TEMA", "SYK")
-            header("Authorization", "Bearer $stsToken")
-            header("Nav-Consumer-Token", "Bearer $stsToken")
+            header("Authorization", "Bearer ${token.accessToken}")
             header("Content-Type", "application/json")
             header("Accept", "application/json")
             header("Nav-Call-Id", hendelseId.toString())
@@ -51,7 +43,7 @@ class PdlClient(
 
         val parsetRespons: PdlResponse<PdlHentPerson> = response.receive()
         håndterErrors(parsetRespons)
-        return parsetRespons.data?.hentPerson?.firstOrNull()?.tilVisning()
+        return parsetRespons.data?.hentPerson?.navn?.firstOrNull()?.tilVisning()
     }
 
     private fun håndterErrors(response: PdlResponse<PdlHentPerson>) {
