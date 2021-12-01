@@ -9,7 +9,6 @@ fromEnv:
   - spre-gosys
 azure:
   enabled: true
-  tenant: trygdeetaten.no
 env:
   - name: KAFKA_BOOTSTRAP_SERVERS
     value: b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443
@@ -33,3 +32,5 @@ env:
     value: "true"
   - name: EREG_BASE_URL
     value: https://modapp-q1.adeo.no/ereg/api
+  - name: PDL_CLIENT_SCOPE
+    value: api://dev-fss.pdl.pdl-api/.default
