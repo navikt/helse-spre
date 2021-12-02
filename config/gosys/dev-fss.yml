@@ -34,3 +34,5 @@ env:
     value: https://modapp-q1.adeo.no/ereg/api
   - name: PDL_CLIENT_SCOPE
     value: api://dev-fss.pdl.pdl-api/.default
+  - name: ANNULLERING_TEMPLATE_V2
+    value: "true"
