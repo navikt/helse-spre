@@ -5,6 +5,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import no.nav.helse.spre.gosys.AzureClient
+import no.nav.helse.spre.gosys.sikkerLogg
 import java.util.*
 
 
@@ -27,7 +28,7 @@ class PdlClient(
             variables = Variables(ident = fødselsnummer)
         )
 
-
+        sikkerLogg.info("Henter navn på person: $fødselsnummer")
         val response: HttpResponse = httpClient.post(Url("http://pdl-api.pdl.svc.nais.local/graphql")) {
             header("TEMA", "SYK")
             header("Authorization", "Bearer ${token.accessToken}")
