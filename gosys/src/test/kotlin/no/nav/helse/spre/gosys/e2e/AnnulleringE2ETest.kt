@@ -112,6 +112,41 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
     }
 
     @Test
+    fun `behandler annullering av brukerutbetaling`() = Toggle.AnnulleringTemplateV2.enable {
+        runBlocking {
+            testRapid.sendTestMessage(brukerannullering())
+
+            val pdfRequest = capturedPdfRequests.single()
+            val pdfPayload =
+                requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), AnnulleringPdfPayloadV2::class.java))
+
+            val expectedPdfPayload = AnnulleringPdfPayloadV2(
+                fødselsnummer = "fnr",
+                fom = LocalDate.of(2020, 1, 1),
+                tom = LocalDate.of(2020, 1, 10),
+                organisasjonsnummer = "orgnummer",
+                dato = LocalDateTime.of(2020, 5, 4, 8, 8, 0),
+                epost = "sara.saksbehandler@nav.no",
+                ident = "A123456",
+                personFagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY",
+                arbeidsgiverFagsystemId = null,
+                organisasjonsnavn = "PENGELØS SPAREBANK",
+                navn = "Molefonken Ert"
+            )
+
+            assertEquals(expectedPdfPayload, pdfPayload)
+        }
+    }
+
+    @Test
+    fun `behandler ikke annullering uten fagsystemId`() = Toggle.AnnulleringTemplateV2.enable {
+        runBlocking {
+            testRapid.sendTestMessage(annulleringUtenFagsytemId())
+            assertEquals(0, capturedJoarkRequests.size)
+        }
+    }
+
+    @Test
     fun `oppretter kun en journalpost ved duplikat`() {
         val annullering = annullering()
         testRapid.sendTestMessage(annullering)
@@ -145,6 +180,62 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
             "epost": "sara.saksbehandler@nav.no",
             "ident": "A123456",
             "arbeidsgiverFagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
+            "personFagsystemId": null 
+        }
+    """
+
+    @Language("JSON")
+    private fun brukerannullering(id: UUID = UUID.randomUUID()) = """
+        {
+            "@event_name": "utbetaling_annullert",
+            "@opprettet": "2020-05-04T11:26:47.088455",
+            "@id": "$id",
+            "fødselsnummer": "fnr",
+            "aktørId": "aktørid",
+            "organisasjonsnummer": "orgnummer",
+            "saksbehandlerEpost": "sara.saksbehandler@nav.no",
+            "annullertAvSaksbehandler": "2020-05-04T08:08:00.00000",
+            "utbetalingslinjer": [
+                {
+                  "fom": "2020-01-01",
+                  "tom": "2020-01-10",
+                  "grad": 100,
+                  "beløp": 1345
+                }
+            ],
+            "fom": "2020-01-01",
+            "tom": "2020-01-10",
+            "epost": "sara.saksbehandler@nav.no",
+            "ident": "A123456",
+            "arbeidsgiverFagsystemId": null,
+            "personFagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY" 
+        }
+    """
+
+    @Language("JSON")
+    private fun annulleringUtenFagsytemId(id: UUID = UUID.randomUUID()) = """
+        {
+            "@event_name": "utbetaling_annullert",
+            "@opprettet": "2020-05-04T11:26:47.088455",
+            "@id": "$id",
+            "fødselsnummer": "fnr",
+            "aktørId": "aktørid",
+            "organisasjonsnummer": "orgnummer",
+            "saksbehandlerEpost": "sara.saksbehandler@nav.no",
+            "annullertAvSaksbehandler": "2020-05-04T08:08:00.00000",
+            "utbetalingslinjer": [
+                {
+                  "fom": "2020-01-01",
+                  "tom": "2020-01-10",
+                  "grad": 100,
+                  "beløp": 1345
+                }
+            ],
+            "fom": "2020-01-01",
+            "tom": "2020-01-10",
+            "epost": "sara.saksbehandler@nav.no",
+            "ident": "A123456",
+            "arbeidsgiverFagsystemId": null,
             "personFagsystemId": null 
         }
     """
