@@ -62,7 +62,7 @@ fun launchApplication(
     val dataSource = dataSourceBuilder.getDataSource()
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
 
-    val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
+    val vedtakMediator = VedtakMediator(pdfClient, joarkClient, eregClient, pdlClient)
     val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, pdlClient)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 

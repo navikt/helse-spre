@@ -53,7 +53,7 @@ internal abstract class AbstractE2ETest {
     protected val pdlClient = PdlClient(azureMock, mockClient, "scope")
 
     protected val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
-    protected val vedtakMediator = VedtakMediator(pdfClient, joarkClient)
+    protected val vedtakMediator = VedtakMediator(pdfClient, joarkClient, eregClient, pdlClient)
 
     @BeforeEach
     internal fun abstractSetup() {
@@ -81,7 +81,7 @@ internal abstract class AbstractE2ETest {
 
                         "/api/v1/genpdf/spre-gosys/vedtak-v2" -> handlerForPdfKall(request)
 
-                        "/v1/organisasjon/orgnummer?inkluderHierarki=true&inkluderHistorikk=true" -> handlerForEregKall(
+                        "/v1/organisasjon/123456789?inkluderHierarki=true&inkluderHistorikk=true" -> handlerForEregKall(
                             request
                         )
 
@@ -197,7 +197,7 @@ internal abstract class AbstractE2ETest {
         ),
         arbeidsgiverOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver"),
         personOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdPerson"),
-        ikkeUtbetalteDager: List<VedtakPdfPayloadV2.IkkeUtbetalteDager> = emptyList()
+        ikkeUtbetalteDager: List<VedtakPdfPayloadV2.IkkeUtbetalteDager> = emptyList(),
     ) =
         VedtakPdfPayloadV2(
             fødselsnummer = "12345678910",
@@ -217,7 +217,9 @@ internal abstract class AbstractE2ETest {
             maksdato = LocalDate.of(2021, 7, 15),
             sykepengegrunnlag = 565260.0,
             grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
-            sumTotalBeløp = linjer.sumOf { it.totalbeløp }
+            sumTotalBeløp = linjer.sumOf { it.totalbeløp },
+            organisasjonsnavn = "PENGELØS SPAREBANK",
+            navn = "Molefonken Ert"
         )
 
     protected fun expectedJournalpost(

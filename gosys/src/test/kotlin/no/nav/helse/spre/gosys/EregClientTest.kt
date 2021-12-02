@@ -13,14 +13,14 @@ internal class EregClientTest : AbstractE2ETest() {
 
     @Test
     fun `happy case`() = runBlocking {
-        assertEquals("PENGELØS SPAREBANK", eregClient.hentOrganisasjonsnavn("orgnummer", UUID.randomUUID()).navn)
+        assertEquals("PENGELØS SPAREBANK", eregClient.hentOrganisasjonsnavn("123456789", UUID.randomUUID()).navn)
     }
 }
 
 @Language("Json")
 internal fun eregResponse() = """
     {
-      "organisasjonsnummer": "972674818",
+      "organisasjonsnummer": "123456789",
       "type": "Virksomhet",
       "navn": {
         "redigertnavn": "PSBNK",

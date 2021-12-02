@@ -3,10 +3,11 @@ package no.nav.helse.spre.gosys.vedtak
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.Toggle
 import no.nav.helse.spre.gosys.*
+import no.nav.helse.spre.gosys.pdl.PdlClient
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import java.time.LocalDate
 
-class VedtakMediator(private val pdfClient: PdfClient, private val joarkClient: JoarkClient) {
+class VedtakMediator(private val pdfClient: PdfClient, private val joarkClient: JoarkClient, private val eregClient: EregClient, private val pdlClient: PdlClient) {
     internal fun opprettSammenslåttVedtak(
         fom: LocalDate,
         tom: LocalDate,
@@ -24,7 +25,21 @@ class VedtakMediator(private val pdfClient: PdfClient, private val joarkClient: 
         if (vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
         runBlocking {
             val pdf = if (Toggle.PDFTemplateV2.enabled) {
-                pdfClient.hentVedtakPdfV2(vedtakMessage.toVedtakPdfPayloadV2())
+                val organisasjonsnavn: String? = try {
+                    eregClient.hentOrganisasjonsnavn(
+                        vedtakMessage.organisasjonsnummer,
+                        vedtakMessage.hendelseId
+                    ).navn
+                } catch (e: Exception) {
+                    log.error("Feil ved henting av bedriftsnavn")
+                    null
+                }
+                val navn = try { pdlClient.hentPersonNavn(vedtakMessage.fødselsnummer, vedtakMessage.hendelseId)
+                } catch (e: Exception) {
+                    log.error("Feil ved henting av navn")
+                    null
+                }
+                pdfClient.hentVedtakPdfV2(vedtakMessage.toVedtakPdfPayloadV2(organisasjonsnavn, navn))
             } else {
                 pdfClient.hentVedtakPdf(vedtakMessage.toVedtakPdfPayload())
             }
