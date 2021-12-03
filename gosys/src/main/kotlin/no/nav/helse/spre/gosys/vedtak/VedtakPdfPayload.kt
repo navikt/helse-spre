@@ -41,7 +41,8 @@ data class VedtakPdfPayload(
         val grad: Int,
         val beløp: Int,
         val mottaker: String,
-        val mottakerType: MottakerType = MottakerType.Arbeidsgiver
+        val mottakerType: MottakerType = MottakerType.Arbeidsgiver,
+        val erOpphørt: Boolean
     )
 
     data class IkkeUtbetalteDager(

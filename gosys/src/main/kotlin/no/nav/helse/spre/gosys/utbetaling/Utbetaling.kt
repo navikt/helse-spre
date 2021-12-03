@@ -148,7 +148,8 @@ data class Utbetaling(
                         dagsats = linje["dagsats"].asInt(),
                         totalbeløp = linje["totalbeløp"].asInt(),
                         grad = linje["grad"].asDouble(),
-                        stønadsdager = linje["stønadsdager"].asInt()
+                        stønadsdager = linje["stønadsdager"].asInt(),
+                        statuskode = linje.findValue("statuskode")?.asText()
                     )
                 }
             )
@@ -171,7 +172,8 @@ data class Utbetaling(
             val dagsats: Int,
             val totalbeløp: Int,
             val grad: Double,
-            val stønadsdager: Int
+            val stønadsdager: Int,
+            val statuskode: String?
         )
 
         internal fun linjer(mottakerType: VedtakPdfPayload.MottakerType): List<VedtakPdfPayload.Linje> {
@@ -181,7 +183,8 @@ data class Utbetaling(
                 grad = it.grad.toInt(),
                 beløp = it.dagsats,
                 mottaker = mottakerType.formatter(mottaker),
-                mottakerType = mottakerType
+                mottakerType = mottakerType,
+                erOpphørt = it.statuskode == "OPPH"
             )}
         }
 

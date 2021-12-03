@@ -7,17 +7,12 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.*
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.Oppdrag
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
-import no.nav.helse.spre.testhelpers.arbeidsdager
-import no.nav.helse.spre.testhelpers.avvistDager
-import no.nav.helse.spre.testhelpers.februar
-import no.nav.helse.spre.testhelpers.feriedager
-import no.nav.helse.spre.testhelpers.fridager
-import no.nav.helse.spre.testhelpers.januar
-import no.nav.helse.spre.testhelpers.permisjonsdager
-import no.nav.helse.spre.testhelpers.utbetalingsdager
+import no.nav.helse.spre.testhelpers.*
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -185,7 +180,14 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     linjer = expectedLinjer,
                     totaltTilUtbetaling = 42930,
                     behandlingsdato = 18.februar, //TODO: Bruk `vedtakFattetTidspunkt` på vedtaket
-                    ikkeUtbetalteDager = listOf(VedtakPdfPayloadV2.IkkeUtbetalteDager(1.februar, 7.februar, "Arbeidsdag", emptyList()))
+                    ikkeUtbetalteDager = listOf(
+                        VedtakPdfPayloadV2.IkkeUtbetalteDager(
+                            1.februar,
+                            7.februar,
+                            "Arbeidsdag",
+                            emptyList()
+                        )
+                    )
                 )
             )
         }
@@ -210,7 +212,14 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 expectedPdfPayloadV2(
                     linjer = emptyList(),
                     totaltTilUtbetaling = 0,
-                    ikkeUtbetalteDager = listOf(VedtakPdfPayloadV2.IkkeUtbetalteDager(1.januar, 31.januar, "Ferie/Permisjon", emptyList()))
+                    ikkeUtbetalteDager = listOf(
+                        VedtakPdfPayloadV2.IkkeUtbetalteDager(
+                            1.januar,
+                            31.januar,
+                            "Ferie/Permisjon",
+                            emptyList()
+                        )
+                    )
                 )
             )
         }
@@ -559,8 +568,22 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 totaltTilUtbetaling = 60102,
                 behandlingsdato = utbetalingstidspunkt.toLocalDate(),
                 linjer = listOf(
-                    Linje(fom = 1.januar, tom = 28.januar, grad = 100, beløp = 1431, mottaker = "123 456 789"),
-                    Linje(fom = 30.januar, tom = 28.februar, grad = 100, beløp = 1431, mottaker = "123 456 789")
+                    Linje(
+                        fom = 1.januar,
+                        tom = 28.januar,
+                        grad = 100,
+                        beløp = 1431,
+                        mottaker = "123 456 789",
+                        erOpphørt = false
+                    ),
+                    Linje(
+                        fom = 30.januar,
+                        tom = 28.februar,
+                        grad = 100,
+                        beløp = 1431,
+                        mottaker = "123 456 789",
+                        erOpphørt = false
+                    )
                 ),
                 ikkeUtbetalteDager = listOf(
                     IkkeUtbetalteDager(
@@ -574,4 +597,422 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
         assertJournalpost(expectedJournalpost(fom = 1.januar, tom = 28.februar, utbetalingstype = REVURDERING))
     }
+
+    @Test
+    fun `håndeter opphør i utbetaling_utbetalt annerledes`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = utbetalingsdager(6.november(2021), 19.november(2021))
+        )
+        testRapid.sendTestMessage(utbetalingMedOpphør(vedtaksperiodeId.toString(), utbetalingId.toString()))
+
+        assertJournalpost(
+            expectedJournalpost(
+                journalpostTittel = "Vedtak om revurdering av sykepenger",
+                dokumentTittel = "Sykepenger revurdert i ny løsning, 06.11.2021 - 19.11.2021",
+                fom = 6.november(2021),
+                tom = 19.november(2021)
+            )
+        )
+        assertVedtakPdf(
+            expectedPdfPayload(
+                fom = 6.november(2021),
+                tom = 19.november(2021),
+                totaltTilUtbetaling= -2500,
+                dagsats = 1000,
+                maksdato = 19.oktober(2022),
+                utbetalingstype = REVURDERING,
+                behandlingsdato = 2.desember(2021),
+                dagerIgjen = 238,
+                godkjentAv = "K123456",
+                linjer = listOf(
+                    Linje(
+                        fom = 6.november(2021),
+                        tom = 19.november(2021),
+                        grad = 80,
+                        beløp = 1000,
+                        mottaker = "123 456 789",
+                        mottakerType = MottakerType.Arbeidsgiver,
+                        erOpphørt = true
+                    ),
+                    Linje(
+                        fom = 8.november(2021) ,
+                        tom = 12.november(2021),
+                        grad = 60,
+                        beløp = 700,
+                        mottaker = "123 456 789",
+                        mottakerType = MottakerType.Arbeidsgiver,
+                        erOpphørt = false
+                    ),
+                    Linje(
+                        fom = 15.november(2021),
+                        tom = 19.november(2021),
+                        grad = 60,
+                        beløp = 700,
+                        mottaker = "123 456 789",
+                        mottakerType = MottakerType.Arbeidsgiver,
+                        erOpphørt = false
+                    )
+                )
+            )
+        )
+    }
+
+    @Language("JSON")
+    fun utbetalingMedOpphør(vedtaksperiodeId: String, utbetalingId: String) = """
+        {
+          "utbetalingId": "$utbetalingId",
+          "korrelasjonsId": "4A6C8E3C-22DB-4B73-BB92-327BC4E50F6D",
+          "type": "REVURDERING",
+          "fom": "2021-11-06",
+          "tom": "2021-11-19",
+          "maksdato": "2022-10-19",
+          "forbrukteSykedager": 10,
+          "gjenståendeSykedager": 238,
+          "stønadsdager": 10,
+          "ident": "K123456",
+          "epost": "saksbehandler@nav.no",
+          "tidspunkt": "2021-12-02T08:00:44",
+          "automatiskBehandling": false,
+          "arbeidsgiverOppdrag": {
+            "mottaker": "123456789",
+            "fagområde": "SPREF",
+            "linjer": [
+              {
+                "fom": "2021-11-06",
+                "tom": "2021-11-19",
+                "satstype": "DAG",
+                "sats": 1000,
+                "dagsats": 1000,
+                "lønn": 1500,
+                "grad": 80.0,
+                "stønadsdager": 0,
+                "totalbeløp": 0,
+                "endringskode": "ENDR",
+                "delytelseId": 1,
+                "refDelytelseId": null,
+                "refFagsystemId": null,
+                "statuskode": "OPPH",
+                "datoStatusFom": "2021-11-06",
+                "klassekode": "SPREFAG-IOP"
+              },
+              {
+                "fom": "2021-11-08",
+                "tom": "2021-11-12",
+                "satstype": "DAG",
+                "sats": 700,
+                "dagsats": 700,
+                "lønn": 1500,
+                "grad": 60.0,
+                "stønadsdager": 5,
+                "totalbeløp": 3900,
+                "endringskode": "NY",
+                "delytelseId": 2,
+                "refDelytelseId": 1,
+                "refFagsystemId": "44DZ446C52EYP5NSBTKSDCJRLX",
+                "statuskode": null,
+                "datoStatusFom": null,
+                "klassekode": "SPREFAG-IOP"
+              },
+              {
+                "fom": "2021-11-15",
+                "tom": "2021-11-19",
+                "satstype": "DAG",
+                "sats": 700,
+                "dagsats": 700,
+                "lønn": 1500,
+                "grad": 60.0,
+                "stønadsdager": 5,
+                "totalbeløp": 3900,
+                "endringskode": "NY",
+                "delytelseId": 3,
+                "refDelytelseId": 2,
+                "refFagsystemId": "9WUTHBNERC2L5CEQKZCN568L6P",
+                "statuskode": null,
+                "datoStatusFom": null,
+                "klassekode": "SPREFAG-IOP"
+              }
+            ],
+            "fagsystemId": "fagsystemId",
+            "endringskode": "ENDR",
+            "sisteArbeidsgiverdag": "2021-11-05",
+            "tidsstempel": "2021-12-02T10:35:88",
+            "nettoBeløp": -2500,
+            "stønadsdager": 10,
+            "avstemmingsnøkkel": "1234567890123456234",
+            "status": "AKSEPTERT",
+            "overføringstidspunkt": "2021-12-02T11:00:37",
+            "fom": "2021-11-06",
+            "tom": "2021-11-19",
+            "simuleringsResultat": {
+              "totalbeløp": -2500,
+              "perioder": [
+                {
+                  "fom": "2021-11-06",
+                  "tom": "2021-11-19",
+                  "utbetalinger": [
+                    {
+                      "forfallsdato": "2021-12-02",
+                      "utbetalesTil": {
+                        "id": "123456789",
+                        "navn": "TEST ORG AS"
+                      },
+                      "feilkonto": false,
+                      "detaljer": [
+                        {
+                          "fom": "2021-11-06",
+                          "tom": "2021-11-19",
+                          "konto": "1111111",
+                          "beløp": -10000,
+                          "klassekode": {
+                            "kode": "SPREFAG-IOP",
+                            "beskrivelse": "Sykepenger, Refusjon arbeidsgiver"
+                          },
+                          "uføregrad": 80,
+                          "utbetalingstype": "YTEL",
+                          "tilbakeføring": true,
+                          "sats": {
+                            "sats": 0,
+                            "antall": 0,
+                            "type": ""
+                          },
+                          "refunderesOrgnummer": "123456789"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "fom": "2021-11-08",
+                  "tom": "2021-11-12",
+                  "utbetalinger": [
+                    {
+                      "forfallsdato": "2021-12-02",
+                      "utbetalesTil": {
+                        "id": "123456789",
+                        "navn": "TEST ORG AS"
+                      },
+                      "feilkonto": false,
+                      "detaljer": [
+                        {
+                          "fom": "2021-11-08",
+                          "tom": "2021-11-12",
+                          "konto": "1111111",
+                          "beløp": 3900,
+                          "klassekode": {
+                            "kode": "SPREFAG-IOP",
+                            "beskrivelse": "Sykepenger, Refusjon arbeidsgiver"
+                          },
+                          "uføregrad": 60,
+                          "utbetalingstype": "YTEL",
+                          "tilbakeføring": false,
+                          "sats": {
+                            "sats": 700,
+                            "antall": 5,
+                            "type": "DAG"
+                          },
+                          "refunderesOrgnummer": "123456789"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "fom": "2021-11-15",
+                  "tom": "2021-11-19",
+                  "utbetalinger": [
+                    {
+                      "forfallsdato": "2021-12-02",
+                      "utbetalesTil": {
+                        "id": "123456789",
+                        "navn": "TEST ORG AS"
+                      },
+                      "feilkonto": false,
+                      "detaljer": [
+                        {
+                          "fom": "2021-11-15",
+                          "tom": "2021-11-19",
+                          "konto": "1111111",
+                          "beløp": 3900,
+                          "klassekode": {
+                            "kode": "SPREFAG-IOP",
+                            "beskrivelse": "Sykepenger, Refusjon arbeidsgiver"
+                          },
+                          "uføregrad": 60,
+                          "utbetalingstype": "YTEL",
+                          "tilbakeføring": false,
+                          "sats": {
+                            "sats": 700,
+                            "antall": 5,
+                            "type": "DAG"
+                          },
+                          "refunderesOrgnummer": "123456789"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "personOppdrag": {
+            "mottaker": "12345678910",
+            "fagområde": "SP",
+            "linjer": [],
+            "fagsystemId": "9WUTHBNERC2L5CEQKZCN568L6P",
+            "endringskode": "NY",
+            "sisteArbeidsgiverdag": "2021-11-05",
+            "tidsstempel": "2021-12-02T07:35:00",
+            "nettoBeløp": 0,
+            "stønadsdager": 0,
+            "avstemmingsnøkkel": null,
+            "status": null,
+            "overføringstidspunkt": null,
+            "fom": "-999999999-01-01",
+            "tom": "-999999999-01-01",
+            "simuleringsResultat": null
+          },
+          "utbetalingsdager": [
+            {
+              "dato": "2021-10-26",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-10-27",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-10-28",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-10-29",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-10-30",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-10-31",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-01",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-02",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-03",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-04",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-05",
+              "type": "ArbeidsgiverperiodeDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-06",
+              "type": "NavHelgDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-07",
+              "type": "NavHelgDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-08",
+              "type": "NavDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-09",
+              "type": "NavDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-10",
+              "type": "NavDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-11",
+              "type": "NavDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-12",
+              "type": "NavDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-13",
+              "type": "NavHelgDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-14",
+              "type": "NavHelgDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-15",
+              "type": "NavDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-16",
+              "type": "NavDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-17",
+              "type": "NavDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-18",
+              "type": "NavDag",
+              "begrunnelser": null
+            },
+            {
+              "dato": "2021-11-19",
+              "type": "NavDag",
+              "begrunnelser": null
+            }
+          ],
+          "@event_name": "utbetaling_utbetalt",
+          "@id": "32110d00-b1d0-4820-9d06-23fa6bffe8b1",
+          "@opprettet": "2021-12-02T04:00:43",
+          "fødselsnummer": "12345678910",
+          "aktørId": "1234567890123",
+          "organisasjonsnummer": "123456789",
+          "vedtaksperiodeIder": [
+            "$vedtaksperiodeId"
+          ]
+        }
+    """.trimIndent()
+
+
 }

@@ -150,12 +150,17 @@ internal abstract class AbstractE2ETest {
                 tom = tom,
                 grad = 100,
                 beløp = 1431,
-                mottaker = "123 456 789"
+                mottaker = "123 456 789",
+                erOpphørt = false
             )
         ),
         arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(linjer = linjer),
         personOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(),
-        ikkeUtbetalteDager: List<IkkeUtbetalteDager> = emptyList()
+        ikkeUtbetalteDager: List<IkkeUtbetalteDager> = emptyList(),
+        dagsats: Int = 1431,
+        maksdato: LocalDate = LocalDate.of(2021, 7, 15),
+        godkjentAv: String = "Automatisk behandlet",
+        dagerIgjen: Int = 31
     ) =
         VedtakPdfPayload(
             fødselsnummer = "12345678910",
@@ -165,15 +170,15 @@ internal abstract class AbstractE2ETest {
             tom = tom,
             organisasjonsnummer = "123456789",
             behandlingsdato = behandlingsdato,
-            dagerIgjen = 31,
-            automatiskBehandling = true,
-            godkjentAv = "Automatisk behandlet",
+            dagerIgjen = dagerIgjen,
+            automatiskBehandling = godkjentAv == "Automatisk behandlet",
+            godkjentAv = godkjentAv,
             totaltTilUtbetaling = totaltTilUtbetaling,
             ikkeUtbetalteDager = ikkeUtbetalteDager,
-            dagsats = 1431,
+            dagsats = dagsats,
             sykepengegrunnlag = 565260.0,
             grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
-            maksdato = LocalDate.of(2021, 7, 15),
+            maksdato = maksdato,
             linjer = linjer,
             arbeidsgiverOppdrag = arbeidsgiverOppdrag,
             personOppdrag = personOppdrag
