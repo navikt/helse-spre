@@ -25,8 +25,8 @@ import java.util.*
 @KtorExperimentalAPI
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
-    val vedtakFattetDao = VedtakFattetDao(dataSource)
-    val utbetalingDao = UtbetalingDao(dataSource)
+    private val vedtakFattetDao = VedtakFattetDao(dataSource)
+    private val utbetalingDao = UtbetalingDao(dataSource)
 
     init {
         VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
@@ -78,7 +78,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     dagsats = 1431,
                     mottaker = "123456 78910",
                     mottakerType = VedtakPdfPayloadV2.MottakerType.Person,
-                    totalbeløp = 32913
+                    totalbeløp = 32913,
+                    erOpphørt = false
                 )
             )
             assertVedtakPdf(
@@ -113,7 +114,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     dagsats = 741,
                     mottaker = "123 456 789",
                     mottakerType = VedtakPdfPayloadV2.MottakerType.Arbeidsgiver,
-                    totalbeløp = 17043
+                    totalbeløp = 17043,
+                    erOpphørt = false
                 ),
                 VedtakPdfPayloadV2.Linje(
                     fom = 1.januar,
@@ -122,7 +124,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     dagsats = 700,
                     mottaker = "123456 78910",
                     mottakerType = VedtakPdfPayloadV2.MottakerType.Person,
-                    totalbeløp = 16100
+                    totalbeløp = 16100,
+                    erOpphørt = false
                 )
             )
 
@@ -162,7 +165,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     dagsats = 1431,
                     mottaker = "123456 78910",
                     mottakerType = VedtakPdfPayloadV2.MottakerType.Person,
-                    totalbeløp = 10017
+                    totalbeløp = 10017,
+                    erOpphørt = false
                 ),
                 VedtakPdfPayloadV2.Linje(
                     fom = 1.januar,
@@ -171,7 +175,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     dagsats = 1431,
                     mottaker = "123456 78910",
                     mottakerType = VedtakPdfPayloadV2.MottakerType.Person,
-                    totalbeløp = 32913
+                    totalbeløp = 32913,
+                    erOpphørt = false
                 )
             )
 
@@ -599,7 +604,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `håndeter opphør i utbetaling_utbetalt annerledes`() {
+    fun `markerer linjer utbetaling_utbetalt som er opphørt`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
         sendVedtakFattet(
@@ -655,6 +660,73 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         mottaker = "123 456 789",
                         mottakerType = MottakerType.Arbeidsgiver,
                         erOpphørt = false
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `markerer linjer utbetaling_utbetalt som er opphørt i PDFPayloadV2`() = Toggle.PDFTemplateV2.enable {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = utbetalingsdager(6.november(2021), 19.november(2021))
+        )
+        testRapid.sendTestMessage(utbetalingMedOpphør(vedtaksperiodeId.toString(), utbetalingId.toString()))
+
+        assertJournalpost(
+            expectedJournalpost(
+                journalpostTittel = "Vedtak om revurdering av sykepenger",
+                dokumentTittel = "Sykepenger revurdert i ny løsning, 06.11.2021 - 19.11.2021",
+                fom = 6.november(2021),
+                tom = 19.november(2021)
+            )
+        )
+        assertVedtakPdf(
+            expectedPdfPayloadV2(
+                fom = 6.november(2021),
+                tom = 19.november(2021),
+                totaltTilUtbetaling= -2500,
+                maksdato = 19.oktober(2022),
+                utbetalingstype = REVURDERING,
+                behandlingsdato = 2.desember(2021),
+                dagerIgjen = 238,
+                godkjentAv = "K123456",
+                arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemId"),
+                personOppdrag = VedtakPdfPayloadV2.Oppdrag("9WUTHBNERC2L5CEQKZCN568L6P"),
+                linjer = listOf(
+                    VedtakPdfPayloadV2.Linje(
+                        dagsats = 700,
+                        fom = 15.november(2021),
+                        tom = 19.november(2021),
+                        grad = 60,
+                        totalbeløp = 3900,
+                        mottaker = "123 456 789",
+                        mottakerType = VedtakPdfPayloadV2.MottakerType.Arbeidsgiver,
+                        erOpphørt = false
+                    ),
+                    VedtakPdfPayloadV2.Linje(
+                        dagsats = 700,
+                        fom = 8.november(2021) ,
+                        tom = 12.november(2021),
+                        grad = 60,
+                        totalbeløp = 3900,
+                        mottaker = "123 456 789",
+                        mottakerType = VedtakPdfPayloadV2.MottakerType.Arbeidsgiver,
+                        erOpphørt = false
+                    ),
+                    VedtakPdfPayloadV2.Linje(
+                        dagsats = 1000,
+                        fom = 6.november(2021),
+                        tom = 19.november(2021),
+                        grad = 80,
+                        totalbeløp = 0,
+                        mottaker = "123 456 789",
+                        mottakerType = VedtakPdfPayloadV2.MottakerType.Arbeidsgiver,
+                        erOpphørt = true
                     )
                 )
             )
@@ -1003,7 +1075,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             }
           ],
           "@event_name": "utbetaling_utbetalt",
-          "@id": "32110d00-b1d0-4820-9d06-23fa6bffe8b1",
+          "@id": "${UUID.randomUUID()}",
           "@opprettet": "2021-12-02T04:00:43",
           "fødselsnummer": "12345678910",
           "aktørId": "1234567890123",

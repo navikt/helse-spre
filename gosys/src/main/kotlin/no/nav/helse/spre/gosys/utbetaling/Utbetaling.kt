@@ -196,7 +196,8 @@ data class Utbetaling(
                 dagsats = it.dagsats,
                 mottaker = mottakerType.formatter(mottaker),
                 mottakerType = mottakerType,
-                totalbeløp = it.totalbeløp
+                totalbeløp = it.totalbeløp,
+                erOpphørt = it.statuskode == "OPPH"
             )}
         }
     }

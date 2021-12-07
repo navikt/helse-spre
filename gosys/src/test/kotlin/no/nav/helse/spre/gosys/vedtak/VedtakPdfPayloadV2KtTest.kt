@@ -105,7 +105,8 @@ internal class VedtakPdfPayloadV2KtTest {
         dagsats: Int,
         mottaker: String,
         mottakerType: VedtakPdfPayloadV2.MottakerType,
-        totalbeløp: Int
+        totalbeløp: Int,
+        erOpphørt: Boolean = false
     ) =
         VedtakPdfPayloadV2.Linje(
             fom = fom,
@@ -114,6 +115,7 @@ internal class VedtakPdfPayloadV2KtTest {
             dagsats = dagsats,
             mottaker = mottaker,
             mottakerType = mottakerType,
-            totalbeløp = totalbeløp
+            totalbeløp = totalbeløp,
+            erOpphørt
         )
 }
