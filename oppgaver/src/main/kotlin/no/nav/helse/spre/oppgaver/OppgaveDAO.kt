@@ -66,6 +66,15 @@ class OppgaveDAO(
         )
     }
 
+    fun lagreVedtaksperiodeEndretTilInfotrygd(hendelseId: UUID) = using(sessionOf(dataSource)){ session ->
+        session.run(
+            queryOf(
+                "INSERT INTO vedtaksperiode_endret_tilinfotrygd(hendelse_id, sist_endret) VALUES(?, NOW()) ON CONFLICT (hendelse_id) DO NOTHING;",
+                hendelseId
+            ).asUpdate
+        )
+    }
+
 }
 
 private fun Oppgave.Tilstand.toDBTilstand(): DatabaseTilstand = when (this) {

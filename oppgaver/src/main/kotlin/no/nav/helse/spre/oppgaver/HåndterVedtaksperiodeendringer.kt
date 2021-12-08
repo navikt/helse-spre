@@ -33,14 +33,14 @@ class HåndterVedtaksperiodeendringer(
                 val erSøknad = oppgave.dokumentType == DokumentType.Søknad
 
                 when (gjeldendeTilstand) {
-                    "TIL_INFOTRYGD" -> Hendelse.TilInfotrygd
-                    "AVSLUTTET" -> Hendelse.Avsluttet
+                    "TIL_INFOTRYGD" -> oppgaveDAO.lagreVedtaksperiodeEndretTilInfotrygd(oppgave.hendelseId)
+                    "AVSLUTTET" -> Hendelse.Avsluttet.accept(oppgave)
                     "AVSLUTTET_UTEN_UTBETALING" -> {
-                        if (erSøknad) Hendelse.AvsluttetUtenUtbetaling
-                        else Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling
+                        if (erSøknad) Hendelse.AvsluttetUtenUtbetaling.accept(oppgave)
+                        else Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling.accept(oppgave)
                     }
-                    else -> Hendelse.Lest
-                }.accept(oppgave)
+                    else -> Hendelse.Lest.accept(oppgave)
+                }
             }
     }
 }

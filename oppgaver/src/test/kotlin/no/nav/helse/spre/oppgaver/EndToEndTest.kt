@@ -118,6 +118,7 @@ class EndToEndTest {
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "TIL_INFOTRYGD")
+        opprettOppgave(hendelseIder = listOf(søknad1HendelseId))
 
         captureslot[0].value().assertInnhold(Opprett, søknad1DokumentId, Søknad)
         assertEquals(1, captureslot.size)
@@ -154,6 +155,7 @@ class EndToEndTest {
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
         sendVedtaksperiodeEndret(hendelseIder = listOf(inntektsmeldingHendelseId), tilstand = "AVVENTER_VILKÅRSPRØVING")
         sendVedtaksperiodeEndret(hendelseIder = listOf(inntektsmeldingHendelseId), tilstand = "TIL_INFOTRYGD")
+        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
         captureslot[0].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
         captureslot[1].value().assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
@@ -243,6 +245,7 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode2
         )
+        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
         assertEquals(3, captureslot.size)
 
@@ -273,6 +276,8 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode2
         )
+        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
+
 
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId),
@@ -284,6 +289,8 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode3
         )
+        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
+
 
         assertEquals(3, captureslot.size)
         assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
@@ -336,6 +343,7 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode3
         )
+        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
         assertEquals(2, captureslot.size)
         assertEquals(Utsett, captureslot[0].value().oppdateringstype)
@@ -367,6 +375,7 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode3
         )
+        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
         assertEquals(3, rapid.inspektør.size)
         assertEquals(3, captureslot.size)
@@ -399,6 +408,7 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode3
         )
+        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
         assertEquals(2, rapid.inspektør.size)
         assertEquals(2, captureslot.size)
@@ -440,6 +450,7 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode3
         )
+        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
         assertEquals(2, rapid.inspektør.size)
         assertEquals(2, captureslot.size)
@@ -486,6 +497,7 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode
         )
+        opprettOppgave(hendelseIder = listOf(inntektsmeldingId))
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingId).size)
@@ -591,6 +603,7 @@ class EndToEndTest {
             tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode
         )
+        opprettOppgave(hendelseIder = listOf(inntektsmeldingId))
 
         sendSøknad(søknadId2)
         sendVedtaksperiodeEndret(
@@ -598,6 +611,7 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode
         )
+        opprettOppgave(hendelseIder = listOf(søknadId2))
 
         assertEquals(4, captureslot.size)
         assertEquals(Ferdigbehandlet, captureslot[0].value().oppdateringstype)
@@ -643,6 +657,12 @@ class EndToEndTest {
         vedtaksperiodeId: UUID = UUID.randomUUID()
     ) {
         rapid.sendTestMessage(vedtaksperiodeEndret(hendelseIder, tilstand, vedtaksperiodeId))
+    }
+
+    private fun opprettOppgave(
+        hendelseIder: List<UUID>,
+    ) {
+        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.opprettOppgave(hendelseIder))
     }
 
     private fun opprettOppgaveForSpeilsaksbehandler(
@@ -696,6 +716,14 @@ fun opprettOppgaveForSpeilsaksbehandler(
 ) =
     """{
             "@event_name": "opprett_oppgave_for_speilsaksbehandlere",
+            "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
+        }"""
+
+fun opprettOppgave(
+    hendelser: List<UUID>
+) =
+    """{
+            "@event_name": "opprett_oppgave",
             "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
         }"""
 
