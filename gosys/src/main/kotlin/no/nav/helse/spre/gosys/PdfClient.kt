@@ -4,7 +4,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.contentType
-import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayload
 import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayloadV2
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
@@ -18,9 +17,6 @@ class PdfClient(private val httpClient: HttpClient) {
 
     suspend fun hentVedtakPdfV2(vedtak: VedtakPdfPayloadV2) =
         hentPdf("http://spre-gosys-pdf.tbd.svc.nais.local/api/v1/genpdf/spre-gosys/vedtak-v2", vedtak)
-
-    suspend fun hentAnnulleringPdf(annullering: AnnulleringPdfPayload) =
-        hentPdf("http://spre-gosys-pdf.tbd.svc.nais.local/api/v1/genpdf/spre-gosys/annullering", annullering)
 
     suspend fun hentAnnulleringPdf(annullering: AnnulleringPdfPayloadV2) =
         hentPdf("http://spre-gosys-pdf.tbd.svc.nais.local/api/v1/genpdf/spre-gosys/annullering-v2", annullering)

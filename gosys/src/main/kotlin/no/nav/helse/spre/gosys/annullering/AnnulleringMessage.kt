@@ -16,10 +16,7 @@ class AnnulleringMessage private constructor(
     private val fom: LocalDate,
     private val tom: LocalDate,
     val organisasjonsnummer: String,
-    private val fagsystemId: String,
-    private val saksbehandlerId: String,
     private val dato: LocalDateTime,
-    private val linjer: List<Linje>,
     private val saksbehandlerIdent: String,
     private val saksbehandlerEpost: String,
     private val personFagsystemId: String?,
@@ -34,37 +31,16 @@ class AnnulleringMessage private constructor(
                 hendelseId = hendelseId,
                 fødselsnummer = packet["fødselsnummer"].asText(),
                 aktørId = packet["aktørId"].asText(),
-                organisasjonsnummer = packet["organisasjonsnummer"].asText(),
                 fom = packet["fom"].asLocalDate(),
                 tom = packet["tom"].asLocalDate(),
-                fagsystemId = packet["fagsystemId"].asText(),
-                saksbehandlerId = packet["saksbehandlerEpost"].asText(),
+                organisasjonsnummer = packet["organisasjonsnummer"].asText(),
                 dato = packet["annullertAvSaksbehandler"].asLocalDateTime(),
-                linjer = packet.utbetalingslinjer(),
                 saksbehandlerIdent = packet["ident"].asText(),
                 saksbehandlerEpost = packet["epost"].asText(),
                 personFagsystemId = packet["personFagsystemId"].takeUnless { it.isMissingOrNull() }?.asText(),
                 arbeidsgiverFagsystemId = packet["arbeidsgiverFagsystemId"].takeUnless { it.isMissingOrNull() }
                     ?.asText()
             )
-
-    internal fun toPdfPayload() = AnnulleringPdfPayload(
-        fødselsnummer = fødselsnummer,
-        fagsystemId = fagsystemId,
-        fom = fom,
-        tom = tom,
-        organisasjonsnummer = organisasjonsnummer,
-        saksbehandlerId = saksbehandlerId,
-        dato = dato,
-        linjer = linjer.map {
-            AnnulleringPdfPayload.Linje(
-                fom = it.fom,
-                tom = it.tom,
-                grad = it.grad,
-                beløp = it.beløp
-            )
-        }
-    )
 
     internal fun toPdfPayloadV2(organisasjonsnavn: String?, navn: String?) = AnnulleringPdfPayloadV2(
         fødselsnummer = fødselsnummer,

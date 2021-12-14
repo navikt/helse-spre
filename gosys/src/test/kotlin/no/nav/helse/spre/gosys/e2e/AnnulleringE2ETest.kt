@@ -3,10 +3,8 @@ package no.nav.helse.spre.gosys.e2e
 import io.ktor.client.engine.mock.*
 import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.spre.Toggle
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
-import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayload
 import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayloadV2
 import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
 import no.nav.helse.spre.gosys.objectMapper
@@ -50,47 +48,6 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
 
             val pdfRequest = capturedPdfRequests.single()
             val pdfPayload =
-                requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), AnnulleringPdfPayload::class.java))
-
-            val expectedPdfPayload = AnnulleringPdfPayload(
-                fødselsnummer = "fnr",
-                fagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY",
-                fom = LocalDate.of(2020, 1, 1),
-                tom = LocalDate.of(2020, 1, 10),
-                organisasjonsnummer = "123456789",
-                dato = LocalDateTime.of(2020, 5, 4, 8, 8, 0),
-                saksbehandlerId = "sara.saksbehandler@nav.no",
-                linjer = listOf(
-                    AnnulleringPdfPayload.Linje(
-                        fom = LocalDate.of(2020, 1, 1),
-                        tom = LocalDate.of(2020, 1, 10),
-                        grad = 100,
-                        beløp = 1345
-                    )
-                )
-            )
-
-            assertEquals(expectedPdfPayload, pdfPayload)
-        }
-    }
-
-    @KtorExperimentalAPI
-    @Test
-    fun `journalfører en annullering v2`() = Toggle.AnnulleringTemplateV2.enable {
-        runBlocking {
-            val hendelseId = UUID.randomUUID()
-            testRapid.sendTestMessage(annullering(hendelseId))
-            val joarkRequest = capturedJoarkRequests.single()
-            val joarkPayload =
-                requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
-
-            assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
-            assertEquals(hendelseId.toString(), joarkRequest.headers["Nav-Consumer-Token"])
-            assertEquals("application/json", joarkRequest.body.contentType.toString())
-            assertEquals(expectedJournalpost(), joarkPayload)
-
-            val pdfRequest = capturedPdfRequests.single()
-            val pdfPayload =
                 requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), AnnulleringPdfPayloadV2::class.java))
 
             val expectedPdfPayload = AnnulleringPdfPayloadV2(
@@ -112,7 +69,7 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `behandler annullering av brukerutbetaling`() = Toggle.AnnulleringTemplateV2.enable {
+    fun `behandler annullering av brukerutbetaling`() {
         runBlocking {
             testRapid.sendTestMessage(brukerannullering())
 
@@ -139,7 +96,7 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `behandler ikke annullering uten fagsystemId`() = Toggle.AnnulleringTemplateV2.enable {
+    fun `behandler ikke annullering uten fagsystemId`() {
         runBlocking {
             testRapid.sendTestMessage(annulleringUtenFagsytemId())
             assertEquals(0, capturedJoarkRequests.size)
