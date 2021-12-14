@@ -121,5 +121,4 @@ abstract class Toggle internal constructor(enabled: Boolean = false, private val
         }
     }
 
-    object PDFTemplateV2 : Toggle("PDF_TEMPLATE_V2")
 }

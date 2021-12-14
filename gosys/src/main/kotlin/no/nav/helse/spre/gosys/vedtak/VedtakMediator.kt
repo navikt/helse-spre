@@ -1,13 +1,17 @@
 package no.nav.helse.spre.gosys.vedtak
 
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.spre.Toggle
 import no.nav.helse.spre.gosys.*
 import no.nav.helse.spre.gosys.pdl.PdlClient
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import java.time.LocalDate
 
-class VedtakMediator(private val pdfClient: PdfClient, private val joarkClient: JoarkClient, private val eregClient: EregClient, private val pdlClient: PdlClient) {
+class VedtakMediator(
+    private val pdfClient: PdfClient,
+    private val joarkClient: JoarkClient,
+    private val eregClient: EregClient,
+    private val pdlClient: PdlClient
+) {
     internal fun opprettSammenslåttVedtak(
         fom: LocalDate,
         tom: LocalDate,
@@ -24,25 +28,22 @@ class VedtakMediator(private val pdfClient: PdfClient, private val joarkClient: 
     internal fun opprettSammenslåttVedtak(vedtakMessage: VedtakMessage) {
         if (vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
         runBlocking {
-            val pdf = if (Toggle.PDFTemplateV2.enabled) {
-                val organisasjonsnavn: String? = try {
-                    eregClient.hentOrganisasjonsnavn(
-                        vedtakMessage.organisasjonsnummer,
-                        vedtakMessage.hendelseId
-                    ).navn
-                } catch (e: Exception) {
-                    log.error("Feil ved henting av bedriftsnavn")
-                    null
-                }
-                val navn = try { pdlClient.hentPersonNavn(vedtakMessage.fødselsnummer, vedtakMessage.hendelseId)
-                } catch (e: Exception) {
-                    log.error("Feil ved henting av navn")
-                    null
-                }
-                pdfClient.hentVedtakPdfV2(vedtakMessage.toVedtakPdfPayloadV2(organisasjonsnavn, navn))
-            } else {
-                pdfClient.hentVedtakPdf(vedtakMessage.toVedtakPdfPayload())
+            val organisasjonsnavn: String? = try {
+                eregClient.hentOrganisasjonsnavn(
+                    vedtakMessage.organisasjonsnummer,
+                    vedtakMessage.hendelseId
+                ).navn
+            } catch (e: Exception) {
+                log.error("Feil ved henting av bedriftsnavn")
+                null
             }
+            val navn = try {
+                pdlClient.hentPersonNavn(vedtakMessage.fødselsnummer, vedtakMessage.hendelseId)
+            } catch (e: Exception) {
+                log.error("Feil ved henting av navn")
+                null
+            }
+            val pdf = pdfClient.hentVedtakPdfV2(vedtakMessage.toVedtakPdfPayloadV2(organisasjonsnavn, navn))
             val journalpostPayload = JournalpostPayload(
                 tittel = journalpostTittel(vedtakMessage.type),
                 bruker = JournalpostPayload.Bruker(id = vedtakMessage.fødselsnummer),

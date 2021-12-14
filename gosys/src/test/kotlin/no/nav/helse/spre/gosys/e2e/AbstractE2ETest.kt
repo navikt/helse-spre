@@ -126,63 +126,10 @@ internal abstract class AbstractE2ETest {
         Assertions.assertEquals(expected, joarkPayload)
     }
 
-    protected fun assertVedtakPdf(expected: VedtakPdfPayload = expectedPdfPayload()) {
-        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
-        Assertions.assertEquals(expected, pdfPayload)
-    }
-
     protected fun assertVedtakPdf(expected: VedtakPdfPayloadV2 = expectedPdfPayloadV2()) {
         val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayloadV2>()
         Assertions.assertEquals(expected, pdfPayload)
     }
-
-    protected fun actualPdfPayload() = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
-
-    protected fun expectedPdfPayload(
-        fom: LocalDate = 1.januar,
-        tom: LocalDate = 31.januar,
-        utbetalingstype: Utbetalingstype = UTBETALING,
-        totaltTilUtbetaling: Int = 32913,
-        behandlingsdato: LocalDate = tom,
-        linjer: List<Linje> = listOf(
-            Linje(
-                fom = fom,
-                tom = tom,
-                grad = 100,
-                beløp = 1431,
-                mottaker = "123 456 789",
-                erOpphørt = false
-            )
-        ),
-        arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(linjer = linjer),
-        personOppdrag: VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(),
-        ikkeUtbetalteDager: List<IkkeUtbetalteDager> = emptyList(),
-        dagsats: Int = 1431,
-        maksdato: LocalDate = LocalDate.of(2021, 7, 15),
-        godkjentAv: String = "Automatisk behandlet",
-        dagerIgjen: Int = 31
-    ) =
-        VedtakPdfPayload(
-            fødselsnummer = "12345678910",
-            fagsystemId = "fagsystemId",
-            type = utbetalingstype.lesbarTittel,
-            fom = fom,
-            tom = tom,
-            organisasjonsnummer = "123456789",
-            behandlingsdato = behandlingsdato,
-            dagerIgjen = dagerIgjen,
-            automatiskBehandling = godkjentAv == "Automatisk behandlet",
-            godkjentAv = godkjentAv,
-            totaltTilUtbetaling = totaltTilUtbetaling,
-            ikkeUtbetalteDager = ikkeUtbetalteDager,
-            dagsats = dagsats,
-            sykepengegrunnlag = 565260.0,
-            grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
-            maksdato = maksdato,
-            linjer = linjer,
-            arbeidsgiverOppdrag = arbeidsgiverOppdrag,
-            personOppdrag = personOppdrag
-        )
 
     protected fun expectedPdfPayloadV2(
         fom: LocalDate = 1.januar,
@@ -363,8 +310,8 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
-        arbeidsgiverOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SPREF"),
-        brukeroppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SP")
+        arbeidsgiverOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SPREF", fagsystemId = "fagsystemIdArbeidsgiver"),
+        brukeroppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SP", fagsystemId = "fagsystemIdPerson")
     ) = """{
     "@id": "$hendelseId",
     "fødselsnummer": "$fødselsnummer",
