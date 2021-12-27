@@ -459,6 +459,22 @@ class EndToEndTest {
     }
 
     @Test
+    fun `oppretter oppgaver for perioder som var avsluttet, men som blir kastet ut senere`() {
+        val periode = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+
+        sendSøknad(søknadId)
+        arbeidsgiverSøknad(søknadId, periode)
+        opprettOppgave(listOf(søknadId))
+
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", søknadId).size)
+        assertEquals(2, captureslot.size)
+        assertEquals(Ferdigbehandlet, captureslot[0].value().oppdateringstype)
+        assertEquals(Opprett, captureslot[1].value().oppdateringstype)
+    }
+
+    @Test
     fun `utsetter oppgave for inntektsmelding som treffer perioden i AVSLUTTET_UTEN_UTBETALING`() {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()

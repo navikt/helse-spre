@@ -109,6 +109,10 @@ class Oppgave(
         }
 
         object KortSøknadFerdigbehandlet: Tilstand() {
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
+                oppgave.tilstand(LagOppgave)
+            }
+
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
                 oppgave.tilstand(SpleisFerdigbehandlet)
             }
