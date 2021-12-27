@@ -24,21 +24,15 @@ class HåndterVedtaksperiodeendringer(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val gjeldendeTilstand = packet["gjeldendeTilstand"].asText()
-
         packet["hendelser"]
             .map { UUID.fromString(it.asText()) }
             .mapNotNull { oppgaveDAO.finnOppgave(it) }
             .onEach { it.setObserver(observer) }
             .forEach { oppgave ->
-                val erSøknad = oppgave.dokumentType == DokumentType.Søknad
-
                 when (gjeldendeTilstand) {
                     "TIL_INFOTRYGD" -> oppgaveDAO.lagreVedtaksperiodeEndretTilInfotrygd(oppgave.hendelseId)
                     "AVSLUTTET" -> Hendelse.Avsluttet.accept(oppgave)
-                    "AVSLUTTET_UTEN_UTBETALING" -> {
-                        if (erSøknad) Hendelse.AvsluttetUtenUtbetaling.accept(oppgave)
-                        else Hendelse.MottattInntektsmeldingIAvsluttetUtenUtbetaling.accept(oppgave)
-                    }
+                    "AVSLUTTET_UTEN_UTBETALING" -> Hendelse.AvsluttetUtenUtbetaling.accept(oppgave)
                     else -> Hendelse.Lest.accept(oppgave)
                 }
             }

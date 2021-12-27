@@ -684,9 +684,9 @@ class EndToEndTest {
         )
     }
 
-    private fun arbeidsgiverSøknad(inntektsmeldingHendelseId: UUID, periode1: UUID) {
+    private fun arbeidsgiverSøknad(hendelseId: UUID, periode1: UUID) {
         sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
+            hendelseIder = listOf(hendelseId),
             tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode1
         )

@@ -36,10 +36,4 @@ sealed class Hendelse {
             oppgave.håndter(this)
         }
     }
-
-    object MottattInntektsmeldingIAvsluttetUtenUtbetaling : Hendelse() {
-        override fun accept(oppgave: Oppgave) {
-            oppgave.håndter(this)
-        }
-    }
 }
