@@ -8,7 +8,7 @@ plugins {
 }
 
 val gradlewVersion = "7.3"
-val junitJupiterVersion = "5.7.1"
+val junitJupiterVersion = "5.8.2"
 val rapidsAndRiversVersion = "20210617121814-3e67e4d"
 val ktorVersion = "1.5.3" // should be set to same value as rapids and rivers
 val mockkVersion = "1.11.0"
@@ -44,15 +44,14 @@ tasks.create("deployMatrix") {
     doLast {
         // map of cluster to list of apps
         val deployableProjects = getDeployableProjects().map { it.name }
-        val environments = deployableProjects
-            .map { project ->
-                project to (File("config", project)
-                    .listFiles()
-                    ?.filter { it.isFile && it.name.endsWith(".yml") }
-                    ?.filterNot { it.name.contains("aiven") }
-                    ?.map { it.name.removeSuffix(".yml") }
-                    ?: emptyList())
-            }.toMap()
+        val environments = deployableProjects.associateWith { project ->
+            (File("config", project)
+                .listFiles()
+                ?.filter { it.isFile && it.name.endsWith(".yml") }
+                ?.filterNot { it.name.contains("aiven") }
+                ?.map { it.name.removeSuffix(".yml") }
+                ?: emptyList())
+        }
 
         val clusters = environments.flatMap { it.value }.distinct()
         val exclusions = environments
@@ -94,7 +93,6 @@ allprojects {
         maven("https://oss.sonatype.org")
         maven("https://jitpack.io")
         mavenCentral()
-        jcenter()
     }
 
     tasks {
@@ -140,8 +138,8 @@ subprojects {
                 val mainClass = project.mainClass()
 
                 doLast {
-                    val mainClassFound = this.project.sourceSets.findByName("main")?.let {
-                        it.output.classesDirs.asFileTree.any { it.path.contains(mainClass.replace(".", File.separator)) }
+                    val mainClassFound = this.project.sourceSets.findByName("main")?.let { sourceSet ->
+                        sourceSet.output.classesDirs.asFileTree.any { it.path.contains(mainClass.replace(".", File.separator)) }
                     } ?: false
 
                     if (!mainClassFound) throw RuntimeException("Kunne ikke finne main class: $mainClass")

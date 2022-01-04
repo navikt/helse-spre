@@ -33,7 +33,7 @@ class FeriepengerMessage(hendelseId: UUID, packet: JsonMessage) {
         fom = oppdragPacket["fom"].asLocalDate(),
         tom = oppdragPacket["tom"].asLocalDate(),
         mottaker = oppdragPacket["mottaker"].asText(),
-        totalbeløp = oppdragPacket["linjer"].sumBy { it["totalbeløp"].asInt() },
+        totalbeløp = oppdragPacket["linjer"].sumOf { it["totalbeløp"].asInt() },
         fagsystemId = oppdragPacket["fagsystemId"].asText()
     )
 }

@@ -3,6 +3,7 @@ package no.nav.helse.spre.stonadsstatistikk
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
+import java.util.*
 import javax.sql.DataSource
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration as createDataSource
 
@@ -34,6 +35,6 @@ internal class DataSourceBuilder(private val env: Environment.DB) {
     enum class Role {
         Admin, User;
 
-        fun asRole(databaseName: String) = "$databaseName-${name.toLowerCase()}"
+        fun asRole(databaseName: String) = "$databaseName-${name.lowercase(Locale.getDefault())}"
     }
 }

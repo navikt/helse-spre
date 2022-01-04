@@ -2,6 +2,7 @@ package no.nav.helse.spre.arbeidsgiver
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 internal class InntektsmeldingDTO private constructor(
     val type: Meldingstype,
@@ -11,7 +12,7 @@ internal class InntektsmeldingDTO private constructor(
     val tom: LocalDate,
     val opprettet: LocalDateTime
 ){
-    val meldingstype get() = type.name.toLowerCase().toByteArray()
+    val meldingstype get() = type.name.lowercase(Locale.getDefault()).toByteArray()
 
     internal companion object {
         internal fun trengerInntektsmelding(
