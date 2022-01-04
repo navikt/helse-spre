@@ -8,7 +8,7 @@ data class VedtakPdfPayloadV2(
     val fom: LocalDate,
     val tom: LocalDate,
     val linjer: List<Linje>,
-    val personOppdrag: Oppdrag,
+    val personOppdrag: Oppdrag?,
     val arbeidsgiverOppdrag: Oppdrag,
     val organisasjonsnummer: String,
     val behandlingsdato: LocalDate,

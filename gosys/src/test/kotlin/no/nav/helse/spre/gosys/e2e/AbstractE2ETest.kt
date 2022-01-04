@@ -144,7 +144,7 @@ internal abstract class AbstractE2ETest {
             )
         ),
         arbeidsgiverOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver"),
-        personOppdrag: VedtakPdfPayloadV2.Oppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdPerson"),
+        personOppdrag: VedtakPdfPayloadV2.Oppdrag? = VedtakPdfPayloadV2.Oppdrag("fagsystemIdPerson"),
         ikkeUtbetalteDager: List<VedtakPdfPayloadV2.IkkeUtbetalteDager> = emptyList(),
         maksdato: LocalDate = LocalDate.of(2021, 7, 15),
         godkjentAv: String = "Automatisk behandlet",

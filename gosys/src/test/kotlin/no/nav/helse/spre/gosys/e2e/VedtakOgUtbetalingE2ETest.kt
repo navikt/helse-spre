@@ -48,7 +48,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             vedtaksperiodeIder = listOf(vedtaksperiodeId)
         )
         assertJournalpost()
-        assertVedtakPdf(expectedPdfPayloadV2())
+        assertVedtakPdf(expectedPdfPayloadV2(personOppdrag = null))
     }
 
 
@@ -217,7 +217,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         "Ferie/Permisjon",
                         emptyList()
                     )
-                )
+                ),
+                personOppdrag = null,
             )
         )
     }
@@ -237,7 +238,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             expectedPdfPayloadV2(
                 totaltTilUtbetaling = 0,
                 linjer = emptyList(),
-                arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag(fagsystemId = "fagsystemIdArbeidsgiver"),
+                personOppdrag = null,
                 ikkeUtbetalteDager = listOf(
                     IkkeUtbetalteDager(
                         fom = 1.januar,
@@ -259,7 +260,9 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
         assertEquals(1, capturedJoarkRequests.size)
         assertJournalpost()
-        assertVedtakPdf(expectedPdfPayloadV2())
+        assertVedtakPdf(expectedPdfPayloadV2(
+            personOppdrag = null,
+        ))
     }
 
     @Test
@@ -291,7 +294,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
         assertEquals(1, capturedJoarkRequests.size)
         assertJournalpost()
-        assertVedtakPdf(expectedPdfPayloadV2())
+        assertVedtakPdf(expectedPdfPayloadV2(personOppdrag = null))
     }
 
     @Test
@@ -343,6 +346,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             expectedPdfPayloadV2(
                 fom = 1.januar,
                 tom = 22.januar,
+                personOppdrag = null,
                 totaltTilUtbetaling = 18603,
                 ikkeUtbetalteDager = listOf(
                     IkkeUtbetalteDager(
@@ -397,6 +401,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 utbetalingstype = REVURDERING,
                 fom = 1.januar,
                 tom = 17.januar,
+                personOppdrag = null,
                 totaltTilUtbetaling = 17172,
                 ikkeUtbetalteDager = listOf(
                     IkkeUtbetalteDager(
@@ -439,11 +444,10 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
 
         assertJournalpost(expectedJournalpost(2.januar, 31.januar))
-
-
         assertVedtakPdf(expectedPdfPayloadV2(
             fom = 2.januar,
             tom = 31.januar,
+            personOppdrag = null,
             totaltTilUtbetaling = 31482,
             ikkeUtbetalteDager = emptyList()
         ))
@@ -494,6 +498,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 fom = 1.januar,
                 tom = 28.februar,
                 utbetalingstype = REVURDERING,
+                personOppdrag = null,
                 totaltTilUtbetaling = 61533,
                 behandlingsdato = utbetalingstidspunkt.toLocalDate()
             )
@@ -532,6 +537,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 totaltTilUtbetaling = 61533,
                 fom = 1.januar,
                 tom = 28.februar,
+                personOppdrag = null,
             )
         )
     }
@@ -565,6 +571,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 utbetalingstype = REVURDERING,
                 fom = 1.januar,
                 tom = 28.februar,
+                personOppdrag = null,
                 totaltTilUtbetaling = 61533,
             )
         )
@@ -634,7 +641,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         grunn = "Ferie/Permisjon",
                         begrunnelser = emptyList()
                     )
-                )
+                ),
+                personOppdrag = null,
             )
         )
         assertJournalpost(expectedJournalpost(fom = 1.januar, tom = 28.februar, utbetalingstype = REVURDERING))
@@ -700,7 +708,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         erOpphørt = true,
                         totalbeløp = 0
                     )
-                )
+                ),
+                personOppdrag = null,
             )
         )
     }
@@ -735,7 +744,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 dagerIgjen = 238,
                 godkjentAv = "K123456",
                 arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver"),
-                personOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdPerson"),
+                personOppdrag = null,
                 linjer = listOf(
                     Linje(
                         dagsats = 700,
