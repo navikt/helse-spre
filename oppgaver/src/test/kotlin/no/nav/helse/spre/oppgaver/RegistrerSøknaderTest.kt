@@ -12,9 +12,10 @@ class RegistrerSøknaderTest {
     private val dataSource = setupDataSourceMedFlyway()
     private val testRapid = TestRapid()
     private val oppgaveDAO = OppgaveDAO(dataSource)
+    private val søknadsperioderDAO = SøknadsperioderDAO(dataSource)
 
     init {
-        RegistrerSøknader(testRapid, oppgaveDAO)
+        RegistrerSøknader(testRapid, oppgaveDAO, søknadsperioderDAO)
     }
 
     @Test
@@ -28,14 +29,32 @@ class RegistrerSøknaderTest {
     }
 }
 
+fun nySøknad(
+    hendelseId: UUID,
+    dokumentId: UUID = UUID.randomUUID(),
+    fom: String,
+    tom: String,
+): String =
+    """{
+            "@event_name": "ny_søknad",
+            "@id": "$hendelseId",
+            "id": "$dokumentId",
+            "fom": "$fom",
+            "tom": "$tom"
+        }"""
+
 fun sendtSøknad(
     hendelseId: UUID,
-    dokumentId: UUID = UUID.randomUUID()
+    dokumentId: UUID = UUID.randomUUID(),
+    fom: String = "2021-01-01",
+    tom: String = "2021-01-31",
 ): String =
     """{
             "@event_name": "sendt_søknad_nav",
             "@id": "$hendelseId",
-            "id": "$dokumentId"
+            "id": "$dokumentId",
+            "fom": "$fom",
+            "tom": "$tom"
         }"""
 
 fun sendtArbeidsgiversøknad(

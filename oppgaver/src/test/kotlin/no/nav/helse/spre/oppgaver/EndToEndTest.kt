@@ -24,13 +24,14 @@ class EndToEndTest {
 
     private val rapid = TestRapid()
     private val oppgaveDAO = OppgaveDAO(dataSource)
+    private val søknadsperioderDAO = SøknadsperioderDAO(dataSource)
     private var captureslot = mutableListOf<ProducerRecord<String, OppgaveDTO>>()
     private val mockProducer = mockk<KafkaProducer<String, OppgaveDTO>> {
         every { send(capture(captureslot)) } returns mockk()
     }
 
     init {
-        rapid.registerRivers(oppgaveDAO, listOf(OppgaveProducer("et_topic", mockProducer)))
+        rapid.registerRivers(oppgaveDAO, søknadsperioderDAO, listOf(OppgaveProducer("et_topic", mockProducer)))
     }
 
     @BeforeEach
@@ -641,6 +642,25 @@ class EndToEndTest {
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingId).size)
     }
 
+    @Test
+    fun `Oppgave for IM ved sykmelding som overlapper med kort periode - sykmelding først`() {
+        val sykmeldingId = UUID.randomUUID()
+        val sykmeldingId2 = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        sendSykmelding(sykmeldingId, fom="2021-10-25", tom="2021-11-07")
+        sendSøknad(søknadId, fom="2021-10-25", tom="2021-11-07")
+        sendVedtaksperiodeEndret(listOf(sykmeldingId), "AVSLUTTET_UTEN_UTBETALING")
+
+        sendSykmelding(sykmeldingId2, fom="2021-11-05", tom="2021-11-12")
+        sendInntektsmelding(inntektsmeldingId, UUID.randomUUID(), Periode("2021-10-25", "2021-11-09"))
+
+        sendVedtaksperiodeEndret(listOf(sykmeldingId, inntektsmeldingId), "AVSLUTTET_UTEN_UTBETALING")
+
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingId).size)
+    }
+
     private fun OppgaveDTO.assertInnhold(
         oppdateringstypeDTO: OppdateringstypeDTO,
         dokumentId: UUID,
@@ -651,16 +671,24 @@ class EndToEndTest {
         assertEquals(oppdateringstypeDTO, oppdateringstype)
     }
 
+    private fun sendSykmelding(hendelseId: UUID, dokumentId: UUID = UUID.randomUUID(), fom: String, tom: String) {
+        rapid.sendTestMessage(nySøknad(hendelseId, dokumentId, fom, tom))
+    }
+
     private fun sendSøknad(hendelseId: UUID, dokumentId: UUID = UUID.randomUUID()) {
         rapid.sendTestMessage(sendtSøknad(hendelseId, dokumentId))
+    }
+
+    private fun sendSøknad(hendelseId: UUID, dokumentId: UUID = UUID.randomUUID(), fom: String, tom: String) {
+        rapid.sendTestMessage(sendtSøknad(hendelseId, dokumentId, fom, tom))
     }
 
     private fun sendArbeidsgiversøknad(hendelseId: UUID, dokumentId: UUID = UUID.randomUUID()) {
         rapid.sendTestMessage(sendtArbeidsgiversøknad(hendelseId, dokumentId))
     }
 
-    private fun sendInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
-        rapid.sendTestMessage(inntektsmelding(hendelseId, dokumentId))
+    private fun sendInntektsmelding(hendelseId: UUID, dokumentId: UUID, vararg perioder: Periode) {
+        rapid.sendTestMessage(inntektsmelding(hendelseId, dokumentId, *perioder))
     }
 
     private fun sendHendelseIkkeHåndtert(hendelseId: UUID) {

@@ -30,7 +30,7 @@ class HåndterHendelseIkkeHåndtert(
                     oppgave.dokumentType,
                     oppgave.dokumentId
                 )
-            } ?: log.info("Mottok hendelse_ikke_håndtert-event: {}, men vi har ikke en tilhørende søknad",
+            } ?: log.info("Mottok hendelse_ikke_håndtert-event: {}, men vi har ikke en tilhørende søknad", // sykmelding også?
                  hendelseId
             )
         }

@@ -42,6 +42,7 @@ fun launchApplication(
         .getDataSource()
 
     val oppgaveDAO = OppgaveDAO(datasource)
+    val søknadsperioderDAO = SøknadsperioderDAO(datasource)
     val onPremProducer = OppgaveProducer(
         onPremOppgaveTopicName, KafkaProducer<String, OppgaveDTO>(
         loadBaseConfig(
@@ -53,17 +54,19 @@ fun launchApplication(
         aivenOppgaveTopicName, createAivenProducer(environment))
 
     val oppgaveProducers = listOf(onPremProducer, aivenProducer)
+    // todo har begge gått over til aiven?
 
     return RapidApplication.create(environment).apply {
-        registerRivers(oppgaveDAO, oppgaveProducers)
+        registerRivers(oppgaveDAO, søknadsperioderDAO, oppgaveProducers)
     }
 }
 
 internal fun RapidsConnection.registerRivers(
     oppgaveDAO: OppgaveDAO,
+    søknadsperioderDAO: SøknadsperioderDAO,
     oppgaveProducers: List<OppgaveProducer>
 ) {
-    RegistrerSøknader(this, oppgaveDAO)
+    RegistrerSøknader(this, oppgaveDAO, søknadsperioderDAO)
     RegistrerInntektsmeldinger(this, oppgaveDAO)
     HåndterVedtaksperiodeendringer(this, oppgaveDAO, oppgaveProducers)
     HåndterHendelseIkkeHåndtert(this, oppgaveDAO, oppgaveProducers)

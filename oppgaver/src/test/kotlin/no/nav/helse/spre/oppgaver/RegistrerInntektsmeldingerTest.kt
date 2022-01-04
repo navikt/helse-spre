@@ -28,11 +28,23 @@ class RegistrerInntektsmeldingerTest {
     }
 }
 
+class Periode(
+    private val fom: String,
+    private val tom: String
+) {
+    fun serialiser() = """{
+        "fom": "$fom",
+        "tom": "$tom"
+    }"""
+}
+
 fun inntektsmelding(
     hendelseId: UUID,
-    dokumentId: UUID
+    dokumentId: UUID,
+    vararg perioder: Periode
 ) = """{
             "@event_name": "inntektsmelding",
             "@id": "$hendelseId",
-            "inntektsmeldingId": "$dokumentId"
+            "inntektsmeldingId": "$dokumentId",
+            "arbeidsgiverperioder": ${perioder.map { it.serialiser() }}
         }"""
