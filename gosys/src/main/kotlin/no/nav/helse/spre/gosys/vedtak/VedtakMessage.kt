@@ -4,7 +4,8 @@ import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.MottakerType
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.*
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Oppdrag
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -73,8 +74,8 @@ data class VedtakMessage(
         type = lesbarTittel(),
         linjer = utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver)
             .slåSammen(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person)),
-        personOppdrag = Oppdrag(fagsystemId = utbetaling.personOppdrag.fagsystemId),
-        arbeidsgiverOppdrag = Oppdrag(fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId),
+        personOppdrag = personOppdrag(),
+        arbeidsgiverOppdrag = arbeidsgiverOppdrag(),
         fødselsnummer = fødselsnummer,
         fom = fom,
         tom = tom,
@@ -111,6 +112,15 @@ data class VedtakMessage(
         organisasjonsnavn = organisasjonsnavn
     )
 
+    private fun personOppdrag() =
+        utbetaling.personOppdrag.run {
+            if (utbetalingslinjer.isNotEmpty()) Oppdrag(fagsystemId = fagsystemId) else null
+        }
+
+    private fun arbeidsgiverOppdrag() =
+        utbetaling.arbeidsgiverOppdrag.run {
+            if (utbetalingslinjer.isNotEmpty()) Oppdrag(fagsystemId = fagsystemId) else null
+        }
 
     internal fun toVedtakPdfPayload() = VedtakPdfPayload(
         fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
