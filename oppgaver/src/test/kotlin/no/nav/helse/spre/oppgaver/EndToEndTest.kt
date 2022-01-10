@@ -17,6 +17,9 @@ import org.junit.jupiter.api.TestInstance
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.*
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import kotlin.math.absoluteValue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -642,12 +645,13 @@ class EndToEndTest {
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingId).size)
     }
 
-    @Test
-    fun `setter lav timeout på oppgave for inntektsmelding med utbetaling til søker`() {
+    @ParameterizedTest
+    @MethodSource("permutations")
+    fun `setter timeout på oppgave for inntektsmelding avhengig av utbetaling til søker`(
+        inntekt: Int, refusjon: Int?, dager: Long
+    ) {
         val hendelseId = UUID.randomUUID()
         val dokumentId = UUID.randomUUID()
-        val inntekt = 40000
-        val refusjon = 50000
 
         sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
 
@@ -661,54 +665,17 @@ class EndToEndTest {
 
         captureslot[0].value().also { dto ->
             dto.assertInnhold(Utsett, dokumentId, Inntektsmelding)
-            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(1)).absoluteValue < 2)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(dager)).absoluteValue < 2)
         }
     }
 
-    @Test
-    fun `setter lav timeout på oppgave for inntektsmelding uten refusjon`() {
-        val hendelseId = UUID.randomUUID()
-        val dokumentId = UUID.randomUUID()
-        val inntekt = 40000
-        val refusjon = null
-
-        sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
-
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(hendelseId),
-            tilstand = "AVVENTER_SØKNAD_FERDIG_GAP",
-            vedtaksperiodeId = UUID.randomUUID()
+    companion object {
+        @JvmStatic
+        fun permutations() = listOf(
+            Arguments.of(40000, 50000, 1),
+            Arguments.of(40000, null, 1),
+            Arguments.of(40000, 40000, 110)
         )
-
-        assertEquals(1, captureslot.size)
-
-        captureslot[0].value().also { dto ->
-            dto.assertInnhold(Utsett, dokumentId, Inntektsmelding)
-            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(1)).absoluteValue < 2)
-        }
-    }
-
-    @Test
-    fun `setter standard timeout på oppgave for inntektsmelding uten utbetaling til søker`() {
-        val hendelseId = UUID.randomUUID()
-        val dokumentId = UUID.randomUUID()
-        val inntekt = 40000
-        val refusjon = 40000
-
-        sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
-
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(hendelseId),
-            tilstand = "AVVENTER_SØKNAD_FERDIG_GAP",
-            vedtaksperiodeId = UUID.randomUUID()
-        )
-
-        assertEquals(1, captureslot.size)
-
-        captureslot[0].value().also { dto ->
-            dto.assertInnhold(Utsett, dokumentId, Inntektsmelding)
-            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
-        }
     }
 
     private fun OppgaveDTO.assertInnhold(
