@@ -18,16 +18,13 @@ class OppgaveObserver(
     }
 
     override fun publiser(oppgave: Oppgave) {
-        oppgaveProducers.forEach { it.kafkaproducer().send(
-            ProducerRecord(
-                it.topic(), OppgaveDTO(
-                    dokumentType = oppgave.dokumentType.toDTO(),
-                    oppdateringstype = oppgave.tilstand.toDTO(),
-                    dokumentId = oppgave.dokumentId,
-                    timeout = oppgave.timeout(),
-                )
-            )
-        ) }
+        val dto = OppgaveDTO(
+            dokumentType = oppgave.dokumentType.toDTO(),
+            oppdateringstype = oppgave.tilstand.toDTO(),
+            dokumentId = oppgave.dokumentId,
+            timeout = oppgave.timeout(),
+        )
+        oppgaveProducers.forEach { it.kafkaproducer().send(ProducerRecord(it.topic(), dto)) }
 
         rapidsConnection.publish(
             JsonMessage.newMessage(
