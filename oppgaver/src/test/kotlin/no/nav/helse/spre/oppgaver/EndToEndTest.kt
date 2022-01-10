@@ -17,6 +17,7 @@ import org.junit.jupiter.api.TestInstance
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.*
+import kotlin.math.absoluteValue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EndToEndTest {
@@ -101,7 +102,7 @@ class EndToEndTest {
 
         captureslot[0].value().also { dto ->
             dto.assertInnhold(Utsett, søknad1DokumentId, Søknad)
-            assertTrue((SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110))) < 2)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
         }
         captureslot[1].value().assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
         assertEquals(2, captureslot.size)
@@ -641,6 +642,75 @@ class EndToEndTest {
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingId).size)
     }
 
+    @Test
+    fun `setter lav timeout på oppgave for inntektsmelding med utbetaling til søker`() {
+        val hendelseId = UUID.randomUUID()
+        val dokumentId = UUID.randomUUID()
+        val inntekt = 40000
+        val refusjon = 50000
+
+        sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(hendelseId),
+            tilstand = "AVVENTER_SØKNAD_FERDIG_GAP",
+            vedtaksperiodeId = UUID.randomUUID()
+        )
+
+        assertEquals(1, captureslot.size)
+
+        captureslot[0].value().also { dto ->
+            dto.assertInnhold(Utsett, dokumentId, Inntektsmelding)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(1)).absoluteValue < 2)
+        }
+    }
+
+    @Test
+    fun `setter lav timeout på oppgave for inntektsmelding uten refusjon`() {
+        val hendelseId = UUID.randomUUID()
+        val dokumentId = UUID.randomUUID()
+        val inntekt = 40000
+        val refusjon = null
+
+        sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(hendelseId),
+            tilstand = "AVVENTER_SØKNAD_FERDIG_GAP",
+            vedtaksperiodeId = UUID.randomUUID()
+        )
+
+        assertEquals(1, captureslot.size)
+
+        captureslot[0].value().also { dto ->
+            dto.assertInnhold(Utsett, dokumentId, Inntektsmelding)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(1)).absoluteValue < 2)
+        }
+    }
+
+    @Test
+    fun `setter standard timeout på oppgave for inntektsmelding uten utbetaling til søker`() {
+        val hendelseId = UUID.randomUUID()
+        val dokumentId = UUID.randomUUID()
+        val inntekt = 40000
+        val refusjon = 40000
+
+        sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(hendelseId),
+            tilstand = "AVVENTER_SØKNAD_FERDIG_GAP",
+            vedtaksperiodeId = UUID.randomUUID()
+        )
+
+        assertEquals(1, captureslot.size)
+
+        captureslot[0].value().also { dto ->
+            dto.assertInnhold(Utsett, dokumentId, Inntektsmelding)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
+        }
+    }
+
     private fun OppgaveDTO.assertInnhold(
         oppdateringstypeDTO: OppdateringstypeDTO,
         dokumentId: UUID,
@@ -659,8 +729,8 @@ class EndToEndTest {
         rapid.sendTestMessage(sendtArbeidsgiversøknad(hendelseId, dokumentId))
     }
 
-    private fun sendInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
-        rapid.sendTestMessage(inntektsmelding(hendelseId, dokumentId))
+    private fun sendInntektsmelding(hendelseId: UUID, dokumentId: UUID, inntekt: Int = 30000, refusjon: Int? = inntekt) {
+        rapid.sendTestMessage(inntektsmelding(hendelseId, dokumentId, inntekt, refusjon))
     }
 
     private fun sendHendelseIkkeHåndtert(hendelseId: UUID) {

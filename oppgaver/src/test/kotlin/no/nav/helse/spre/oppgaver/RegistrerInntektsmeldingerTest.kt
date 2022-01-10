@@ -30,9 +30,17 @@ class RegistrerInntektsmeldingerTest {
 
 fun inntektsmelding(
     hendelseId: UUID,
-    dokumentId: UUID
+    dokumentId: UUID,
+    inntekt: Int = 30000,
+    refusjon: Int? = inntekt,
 ) = """{
             "@event_name": "inntektsmelding",
             "@id": "$hendelseId",
-            "inntektsmeldingId": "$dokumentId"
+            "inntektsmeldingId": "$dokumentId",
+            "beregnetInntekt": "$inntekt"
+            ${if (refusjon != null) """,
+            "refusjon": {
+                "beloepPrMnd": "$refusjon"
+            }""" else ""}
         }"""
+
