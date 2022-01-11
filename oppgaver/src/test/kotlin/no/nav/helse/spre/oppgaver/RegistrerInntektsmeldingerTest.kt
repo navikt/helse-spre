@@ -1,10 +1,10 @@
 package no.nav.helse.spre.oppgaver
 
-import java.util.*
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RegistrerInntektsmeldingerTest {
@@ -31,8 +31,8 @@ class RegistrerInntektsmeldingerTest {
 fun inntektsmelding(
     hendelseId: UUID,
     dokumentId: UUID,
-    inntekt: Int = 30000,
-    refusjon: Int? = inntekt,
+    inntekt: Double = 30000.00,
+    refusjon: Double? = inntekt,
 ) = """{
             "@event_name": "inntektsmelding",
             "@id": "$hendelseId",

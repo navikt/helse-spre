@@ -14,12 +14,12 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit.SECONDS
-import java.util.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit.SECONDS
+import java.util.*
 import kotlin.math.absoluteValue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -648,7 +648,7 @@ class EndToEndTest {
     @ParameterizedTest
     @MethodSource("permutations")
     fun `setter timeout på oppgave for inntektsmelding avhengig av utbetaling til søker`(
-        inntekt: Int, refusjon: Int?, dager: Long
+        inntekt: Double, refusjon: Double?, dager: Long
     ) {
         val hendelseId = UUID.randomUUID()
         val dokumentId = UUID.randomUUID()
@@ -672,9 +672,11 @@ class EndToEndTest {
     companion object {
         @JvmStatic
         fun permutations() = listOf(
-            Arguments.of(40000, 50000, 1),
-            Arguments.of(40000, null, 1),
-            Arguments.of(40000, 40000, 110)
+            Arguments.of(40000.00, 50000.95, 1),
+            Arguments.of(40000.00, null, 1),
+            Arguments.of(40000.00, 40000.95, 110),
+            Arguments.of(40000.95, 40000.00, 110),
+            Arguments.of(40001.00, 40000.99, 1),
         )
     }
 
@@ -696,7 +698,7 @@ class EndToEndTest {
         rapid.sendTestMessage(sendtArbeidsgiversøknad(hendelseId, dokumentId))
     }
 
-    private fun sendInntektsmelding(hendelseId: UUID, dokumentId: UUID, inntekt: Int = 30000, refusjon: Int? = inntekt) {
+    private fun sendInntektsmelding(hendelseId: UUID, dokumentId: UUID, inntekt: Double = 30000.00, refusjon: Double? = inntekt) {
         rapid.sendTestMessage(inntektsmelding(hendelseId, dokumentId, inntekt, refusjon))
     }
 
