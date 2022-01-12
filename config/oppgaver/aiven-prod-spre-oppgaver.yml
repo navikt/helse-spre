@@ -24,6 +24,9 @@ spec:
         - team: tbd
           application: spre-oppgaver
           access: readwrite
+        - team: tbd
+          application: spangre-utsettelser
+          access: readwrite
         - team: flex
           application: syfogsak
           access: read
