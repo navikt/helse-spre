@@ -6,6 +6,8 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.time.LocalDateTime
 import java.util.*
+import no.nav.helse.spre.oppgaver.DokumentType.Inntektsmelding
+import no.nav.helse.spre.oppgaver.DokumentType.Søknad
 
 class OppgaveObserver(
     private val oppgaveDAO: OppgaveDAO,
@@ -56,16 +58,17 @@ class OppgaveObserver(
 
     private fun Oppgave.timeout(): LocalDateTime? = when (tilstand) {
         Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet,
-        Oppgave.Tilstand.SpleisLest -> {
-            val timeout = if (oppgaveDAO.harUtbetalingTilSøker(dokumentId)) {
-                1.also {
-                    log.info("Setter timeout til $it dag på dokumentId=$dokumentId")
-                }
-            } else 110
-            LocalDateTime.now().plusDays(timeout.toLong())
-        }
+        Oppgave.Tilstand.SpleisLest -> LocalDateTime.now().plusDays(finnTimeout())
         else -> null
     }
+
+    private fun Oppgave.finnTimeout() =
+        when {
+            dokumentType == Søknad -> 110
+            oppgaveDAO.harUtbetalingTilSøker(dokumentId) -> 1
+            else -> 40
+        }.toLong()
+
 
     private fun Oppgave.Tilstand.toEventName(): String = when (this) {
         Oppgave.Tilstand.SpleisFerdigbehandlet -> "oppgavestyring_ferdigbehandlet"

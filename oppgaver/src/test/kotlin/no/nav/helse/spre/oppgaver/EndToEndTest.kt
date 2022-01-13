@@ -674,8 +674,8 @@ class EndToEndTest {
         fun permutations() = listOf(
             Arguments.of(40000.00, 50000.95, 1),
             Arguments.of(40000.00, null, 1),
-            Arguments.of(40000.00, 40000.95, 110),
-            Arguments.of(40000.95, 40000.00, 110),
+            Arguments.of(40000.00, 40000.95, 40),
+            Arguments.of(40000.95, 40000.00, 40),
             Arguments.of(40001.00, 40000.99, 1),
         )
     }
