@@ -20,12 +20,12 @@ import no.nav.helse.spre.testhelpers.*
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.test.assertNotNull
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal abstract class AbstractE2ETest {

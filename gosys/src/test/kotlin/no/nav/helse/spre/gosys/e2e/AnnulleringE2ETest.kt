@@ -1,7 +1,6 @@
 package no.nav.helse.spre.gosys.e2e
 
 import io.ktor.client.engine.mock.*
-import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
@@ -16,7 +15,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-@KtorExperimentalAPI
 internal class AnnulleringE2ETest : AbstractE2ETest() {
     private val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, pdlClient)
 
@@ -31,7 +29,6 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
         capturedPdfRequests.clear()
     }
 
-    @KtorExperimentalAPI
     @Test
     fun `journalfører en annullering`() {
         runBlocking {

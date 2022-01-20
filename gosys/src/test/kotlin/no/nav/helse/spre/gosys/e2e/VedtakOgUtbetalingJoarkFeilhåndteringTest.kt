@@ -9,10 +9,10 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
-import kotlin.test.assertFalse
 
 internal class VedtakOgUtbetalingJoarkFeilhåndteringTest : AbstractE2ETest() {
 

@@ -1,6 +1,5 @@
 package no.nav.helse.spre.gosys.e2e
 
-import io.ktor.util.*
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.REVURDERING
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
@@ -19,7 +18,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-@KtorExperimentalAPI
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
     private val vedtakFattetDao = VedtakFattetDao(dataSource)

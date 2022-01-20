@@ -3,7 +3,6 @@ package no.nav.helse.spre.stonadsstatistikk
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.helse.rapids_rivers.RapidApplication
 import org.apache.kafka.clients.producer.KafkaProducer
 
@@ -12,13 +11,11 @@ val objectMapper = jacksonObjectMapper().apply {
     disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
 }
 
-@KtorExperimentalAPI
 fun main() {
     val env = Environment(System.getenv())
     launchApplication(env)
 }
 
-@KtorExperimentalAPI
 fun launchApplication(env: Environment) {
     val dataSource = DataSourceBuilder(env.db)
         .apply(DataSourceBuilder::migrate)

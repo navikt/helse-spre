@@ -3,10 +3,10 @@ package no.nav.helse.spre.gosys.vedtakFattet
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.util.*
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 internal class VedtakFattetRiverTest : AbstractE2ETest() {
 

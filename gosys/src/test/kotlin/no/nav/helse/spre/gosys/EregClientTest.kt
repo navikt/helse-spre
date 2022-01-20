@@ -1,14 +1,12 @@
 package no.nav.helse.spre.gosys
 
-import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
-import kotlin.test.assertEquals
 
-@KtorExperimentalAPI
 internal class EregClientTest : AbstractE2ETest() {
 
     @Test

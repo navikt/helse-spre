@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.util.*
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -20,13 +19,11 @@ val objectMapper = jacksonObjectMapper().apply {
 }
 
 
-@KtorExperimentalAPI
 fun main() {
     val env = Environment(System.getenv())
     launchApplication(env)
 }
 
-@KtorExperimentalAPI
 fun launchApplication(env: Environment) {
     global.setVersjon()
     log.info("Starter spre-saksbehandlingsstatistikk versjon ${global.versjon}")

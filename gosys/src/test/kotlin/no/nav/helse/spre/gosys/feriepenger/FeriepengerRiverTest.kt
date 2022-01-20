@@ -7,12 +7,12 @@ import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.PdfClient
 import no.nav.helse.spre.gosys.setupDataSourceMedFlyway
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.test.assertEquals
 
 internal class FeriepengerRiverTest {
     private val testRapid = TestRapid()

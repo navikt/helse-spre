@@ -1,14 +1,14 @@
 package no.nav.helse.spre.gosys.utbetaling
 
-import java.util.*
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.testhelpers.feriedager
 import no.nav.helse.spre.testhelpers.fridager
 import no.nav.helse.spre.testhelpers.januar
 import no.nav.helse.spre.testhelpers.permisjonsdager
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
+import java.util.*
 
 internal class UtbetalingUtenUtbetalingRiverTest : AbstractE2ETest() {
 
