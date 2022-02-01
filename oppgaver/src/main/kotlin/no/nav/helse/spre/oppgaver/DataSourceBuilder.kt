@@ -6,7 +6,7 @@ import java.util.*
 import javax.sql.DataSource
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration as createDataSource
 
-internal class DataSourceBuilder(env: Map<String, String>) {
+internal class DataSourceBuilder(env: Map<String, String> = System.getenv()) {
     private val databaseName =
         requireNotNull(env["DATABASE_NAME"]) { "database name must be set if jdbc url is not provided" }
     private val databaseHost =

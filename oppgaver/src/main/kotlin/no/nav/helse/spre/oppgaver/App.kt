@@ -25,14 +25,13 @@ internal const val oppgaveTopicName = "tbd.spre-oppgaver"
 internal typealias OppgaveProducer = Pair<String, KafkaProducer<String, OppgaveDTO>>
 
 fun main() {
-    val rapidsConnection = launchApplication(System.getenv())
-    rapidsConnection.start()
+    launchApplication().start()
 }
 
 fun launchApplication(
-    environment: Map<String, String>
+    environment: Map<String, String> = System.getenv()
 ): RapidsConnection {
-    val datasource = DataSourceBuilder(System.getenv())
+    val datasource = DataSourceBuilder()
         .apply(DataSourceBuilder::migrate)
         .getDataSource()
 
