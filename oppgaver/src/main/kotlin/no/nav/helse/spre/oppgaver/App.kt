@@ -9,6 +9,7 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
@@ -20,9 +21,10 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .registerModule(JavaTimeModule())
 
 internal val log = LoggerFactory.getLogger("helse-spre-oppgaver")
-internal const val oppgaveTopicName = "tbd.spre-oppgaver"
 
-internal typealias OppgaveProducer = Pair<String, KafkaProducer<String, OppgaveDTO>>
+fun interface Publisist {
+    fun publiser(oppgaveDTO: OppgaveDTO): Any
+}
 
 fun main() {
     launchApplication().start()
@@ -37,24 +39,25 @@ fun launchApplication(
 
     val oppgaveDAO = OppgaveDAO(datasource)
 
-    val producer = OppgaveProducer(
-        oppgaveTopicName, createProducer(environment))
+    val kafkaProducer = createProducer(environment)
+
+    val publisist = { oppgave: OppgaveDTO -> kafkaProducer.send(ProducerRecord("tbd.spre-oppgaver", oppgave)) }
 
     return RapidApplication.create(environment).apply {
-        registerRivers(oppgaveDAO, producer)
+        registerRivers(oppgaveDAO, publisist)
     }
 }
 
 internal fun RapidsConnection.registerRivers(
     oppgaveDAO: OppgaveDAO,
-    oppgaveProducer: OppgaveProducer
+    publisist: Publisist
 ) {
     RegistrerSøknader(this, oppgaveDAO)
     RegistrerInntektsmeldinger(this, oppgaveDAO)
-    HåndterVedtaksperiodeendringer(this, oppgaveDAO, oppgaveProducer)
-    HåndterHendelseIkkeHåndtert(this, oppgaveDAO, oppgaveProducer)
-    HåndterOpprettOppgaveForSpeilsaksbehandlere(this, oppgaveDAO, oppgaveProducer)
-    HåndterOpprettOppgave(this, oppgaveDAO, oppgaveProducer)
+    HåndterVedtaksperiodeendringer(this, oppgaveDAO, publisist)
+    HåndterHendelseIkkeHåndtert(this, oppgaveDAO, publisist)
+    HåndterOpprettOppgaveForSpeilsaksbehandlere(this, oppgaveDAO, publisist)
+    HåndterOpprettOppgave(this, oppgaveDAO, publisist)
 }
 
 private fun createProducer(env: Map<String, String>): KafkaProducer<String, OppgaveDTO> {

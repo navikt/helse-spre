@@ -1,14 +1,10 @@
 package no.nav.helse.spre.oppgaver
 
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Søknad
 import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -28,18 +24,16 @@ class EndToEndTest {
 
     private val rapid = TestRapid()
     private val oppgaveDAO = OppgaveDAO(dataSource)
-    private var captureslot = mutableListOf<ProducerRecord<String, OppgaveDTO>>()
-    private val mockProducer = mockk<KafkaProducer<String, OppgaveDTO>> {
-        every { send(capture(captureslot)) } returns mockk()
-    }
+    private var publiserteOppgaver = mutableListOf<OppgaveDTO>()
 
     init {
-        rapid.registerRivers(oppgaveDAO, OppgaveProducer("et_topic", mockProducer))
+        val fakePublisist = { dto: OppgaveDTO -> publiserteOppgaver.add(dto) }
+        rapid.registerRivers(oppgaveDAO, fakePublisist)
     }
 
     @BeforeEach
     fun reset() {
-        captureslot.clear()
+        publiserteOppgaver.clear()
         rapid.reset()
     }
 
@@ -71,11 +65,11 @@ class EndToEndTest {
             tilstand = "AVSLUTTET"
         )
 
-        captureslot[0].value().assertInnhold(Utsett, søknad1DokumentId, Søknad)
-        captureslot[1].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        captureslot[2].value().assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
-        captureslot[3].value().assertInnhold(Ferdigbehandlet, inntektsmeldingDokumentId, Inntektsmelding)
-        assertEquals(4, captureslot.size)
+        publiserteOppgaver[0].assertInnhold(Utsett, søknad1DokumentId, Søknad)
+        publiserteOppgaver[1].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[2].assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
+        publiserteOppgaver[3].assertInnhold(Ferdigbehandlet, inntektsmeldingDokumentId, Inntektsmelding)
+        assertEquals(4, publiserteOppgaver.size)
 
         assertEquals(4, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", søknad1HendelseId).size)
@@ -103,12 +97,12 @@ class EndToEndTest {
         )
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
 
-        captureslot[0].value().also { dto ->
+        publiserteOppgaver[0].also { dto ->
             dto.assertInnhold(Utsett, søknad1DokumentId, Søknad)
             assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
         }
-        captureslot[1].value().assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
-        assertEquals(2, captureslot.size)
+        publiserteOppgaver[1].assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
+        assertEquals(2, publiserteOppgaver.size)
 
         assertEquals(2, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", søknad1HendelseId).size)
@@ -124,8 +118,8 @@ class EndToEndTest {
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "TIL_INFOTRYGD")
         opprettOppgave(hendelseIder = listOf(søknad1HendelseId))
 
-        captureslot[0].value().assertInnhold(Opprett, søknad1DokumentId, Søknad)
-        assertEquals(1, captureslot.size)
+        publiserteOppgaver[0].assertInnhold(Opprett, søknad1DokumentId, Søknad)
+        assertEquals(1, publiserteOppgaver.size)
 
         assertEquals(1, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", søknad1HendelseId).size)
@@ -142,9 +136,9 @@ class EndToEndTest {
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         opprettOppgaveForSpeilsaksbehandler(hendelseIder = listOf(søknad1HendelseId, imHendelseId))
 
-        assertEquals(2, captureslot.size)
-        captureslot[0].value().assertInnhold(OpprettSpeilRelatert, søknad1DokumentId, Søknad)
-        captureslot[1].value().assertInnhold(OpprettSpeilRelatert, imDokumentId, Inntektsmelding)
+        assertEquals(2, publiserteOppgaver.size)
+        publiserteOppgaver[0].assertInnhold(OpprettSpeilRelatert, søknad1DokumentId, Søknad)
+        publiserteOppgaver[1].assertInnhold(OpprettSpeilRelatert, imDokumentId, Inntektsmelding)
 
         assertEquals(2, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett_speilrelatert", søknad1HendelseId).size)
@@ -161,8 +155,8 @@ class EndToEndTest {
         sendVedtaksperiodeEndret(hendelseIder = listOf(inntektsmeldingHendelseId), tilstand = "TIL_INFOTRYGD")
         opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
-        captureslot[0].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        captureslot[1].value().assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[1].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
 
         assertEquals(2, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
@@ -172,7 +166,7 @@ class EndToEndTest {
     @Test
     fun `tåler meldinger som mangler kritiske felter`() = runBlocking {
         rapid.sendTestMessage("{}")
-        assertTrue(captureslot.isEmpty())
+        assertTrue(publiserteOppgaver.isEmpty())
         assertEquals(0, rapid.inspektør.size)
     }
 
@@ -181,7 +175,7 @@ class EndToEndTest {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         sendVedtaksperiodeEndret(hendelseIder = listOf(inntektsmeldingHendelseId), tilstand = "AVVENTER_VILKÅRSPRØVING")
 
-        assertTrue(captureslot.isEmpty())
+        assertTrue(publiserteOppgaver.isEmpty())
         assertEquals(0, rapid.inspektør.size)
     }
 
@@ -196,7 +190,7 @@ class EndToEndTest {
             tilstand = "AVSLUTTET_UTEN_UTBETALING"
         )
 
-        assertTrue(captureslot.isEmpty())
+        assertTrue(publiserteOppgaver.isEmpty())
     }
 
     @Test
@@ -219,11 +213,11 @@ class EndToEndTest {
             tilstand = "AVSLUTTET_UTEN_UTBETALING"
         )
 
-        captureslot[0].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        captureslot[1].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        captureslot[2].value().assertInnhold(Ferdigbehandlet, søknadDokumentId, Søknad)
+        publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[1].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[2].assertInnhold(Ferdigbehandlet, søknadDokumentId, Søknad)
 
-        assertEquals(3, captureslot.size)
+        assertEquals(3, publiserteOppgaver.size)
         assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadHendelseId).size)
     }
@@ -251,11 +245,11 @@ class EndToEndTest {
         )
         opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
-        assertEquals(3, captureslot.size)
+        assertEquals(3, publiserteOppgaver.size)
 
-        captureslot[0].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        captureslot[1].value().assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        captureslot[2].value().assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[1].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[2].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
     }
 
     @Test
@@ -296,13 +290,13 @@ class EndToEndTest {
         opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
 
-        assertEquals(3, captureslot.size)
+        assertEquals(3, publiserteOppgaver.size)
         assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
-        assertEquals(Utsett, captureslot[0].value().oppdateringstype)
-        assertEquals(Utsett, captureslot[1].value().oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingHendelseId).size)
-        assertEquals(Opprett, captureslot[2].value().oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[2].oppdateringstype)
     }
 
     @Test
@@ -349,9 +343,9 @@ class EndToEndTest {
         )
         opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
-        assertEquals(2, captureslot.size)
-        assertEquals(Utsett, captureslot[0].value().oppdateringstype)
-        assertEquals(Ferdigbehandlet, captureslot[1].value().oppdateringstype)
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
     }
 
     @Test
@@ -382,10 +376,10 @@ class EndToEndTest {
         opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
         assertEquals(3, rapid.inspektør.size)
-        assertEquals(3, captureslot.size)
-        assertEquals(Utsett, captureslot[0].value().oppdateringstype)
-        assertEquals(Utsett, captureslot[1].value().oppdateringstype)
-        assertEquals(Opprett, captureslot[2].value().oppdateringstype)
+        assertEquals(3, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[2].oppdateringstype)
     }
 
     @Test
@@ -415,9 +409,9 @@ class EndToEndTest {
         opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
         assertEquals(2, rapid.inspektør.size)
-        assertEquals(2, captureslot.size)
-        assertEquals(Utsett, captureslot[0].value().oppdateringstype)
-        assertEquals(Opprett, captureslot[1].value().oppdateringstype)
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[1].oppdateringstype)
     }
 
     @Test
@@ -457,9 +451,9 @@ class EndToEndTest {
         opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
         assertEquals(2, rapid.inspektør.size)
-        assertEquals(2, captureslot.size)
-        assertEquals(Utsett, captureslot[0].value().oppdateringstype)
-        assertEquals(Ferdigbehandlet, captureslot[1].value().oppdateringstype)
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
     }
 
     @Test
@@ -473,9 +467,9 @@ class EndToEndTest {
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", søknadId).size)
-        assertEquals(2, captureslot.size)
-        assertEquals(Ferdigbehandlet, captureslot[0].value().oppdateringstype)
-        assertEquals(Opprett, captureslot[1].value().oppdateringstype)
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[1].oppdateringstype)
     }
 
     @Test
@@ -497,9 +491,9 @@ class EndToEndTest {
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingId).size)
-        assertEquals(2, captureslot.size)
-        assertEquals(Ferdigbehandlet, captureslot[0].value().oppdateringstype)
-        assertEquals(Utsett, captureslot[1].value().oppdateringstype)
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
     }
 
     @Test
@@ -521,16 +515,16 @@ class EndToEndTest {
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingId).size)
-        assertEquals(2, captureslot.size)
-        assertEquals(Ferdigbehandlet, captureslot[0].value().oppdateringstype)
-        assertEquals(Opprett, captureslot[1].value().oppdateringstype)
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[1].oppdateringstype)
     }
 
     @Test
     fun `mottar hendelse_ikke_håndtert uten at hendelsen er tidligere lest`() {
         val hendelseId = UUID.randomUUID()
         sendHendelseIkkeHåndtert(hendelseId)
-        assertTrue(captureslot.isEmpty())
+        assertTrue(publiserteOppgaver.isEmpty())
         assertEquals(0, rapid.inspektør.size)
     }
 
@@ -541,9 +535,9 @@ class EndToEndTest {
         sendSøknad(hendelseId, søknadId)
         sendHendelseIkkeHåndtert(hendelseId)
 
-        assertEquals(1, captureslot.size)
-        assertEquals(søknadId, captureslot[0].value().dokumentId)
-        assertEquals(Opprett, captureslot[0].value().oppdateringstype)
+        assertEquals(1, publiserteOppgaver.size)
+        assertEquals(søknadId, publiserteOppgaver[0].dokumentId)
+        assertEquals(Opprett, publiserteOppgaver[0].oppdateringstype)
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", hendelseId).size)
     }
@@ -559,9 +553,9 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD"
         )
         sendHendelseIkkeHåndtert(hendelseId)
-        assertEquals(1, captureslot.size)
-        assertEquals(søknadId, captureslot[0].value().dokumentId)
-        assertEquals(Opprett, captureslot[0].value().oppdateringstype)
+        assertEquals(1, publiserteOppgaver.size)
+        assertEquals(søknadId, publiserteOppgaver[0].dokumentId)
+        assertEquals(Opprett, publiserteOppgaver[0].oppdateringstype)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", hendelseId).size)
     }
 
@@ -580,11 +574,11 @@ class EndToEndTest {
             tilstand = "TIL_INFOTRYGD"
         )
         sendHendelseIkkeHåndtert(hendelseId)
-        assertEquals(2, captureslot.size)
-        assertEquals(søknadId, captureslot[0].value().dokumentId)
-        assertEquals(Utsett, captureslot[0].value().oppdateringstype)
-        assertEquals(søknadId, captureslot[1].value().dokumentId)
-        assertEquals(Opprett, captureslot[1].value().oppdateringstype)
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(søknadId, publiserteOppgaver[0].dokumentId)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(søknadId, publiserteOppgaver[1].dokumentId)
+        assertEquals(Opprett, publiserteOppgaver[1].oppdateringstype)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", hendelseId).size)
     }
 
@@ -597,9 +591,9 @@ class EndToEndTest {
         sendHendelseIkkeHåndtert(hendelseId)
         sendHendelseIkkeHåndtert(hendelseId)
 
-        assertEquals(1, captureslot.size)
-        assertEquals(søknadId, captureslot[0].value().dokumentId)
-        assertEquals(Opprett, captureslot[0].value().oppdateringstype)
+        assertEquals(1, publiserteOppgaver.size)
+        assertEquals(søknadId, publiserteOppgaver[0].dokumentId)
+        assertEquals(Opprett, publiserteOppgaver[0].oppdateringstype)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", hendelseId).size)
     }
 
@@ -633,11 +627,11 @@ class EndToEndTest {
         )
         opprettOppgave(hendelseIder = listOf(søknadId2))
 
-        assertEquals(4, captureslot.size)
-        assertEquals(Ferdigbehandlet, captureslot[0].value().oppdateringstype)
-        assertEquals(Utsett, captureslot[1].value().oppdateringstype)
-        assertEquals(Opprett, captureslot[2].value().oppdateringstype)
-        assertEquals(Opprett, captureslot[3].value().oppdateringstype)
+        assertEquals(4, publiserteOppgaver.size)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[2].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[3].oppdateringstype)
         assertEquals(4, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId1).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingId).size)
@@ -661,9 +655,9 @@ class EndToEndTest {
             vedtaksperiodeId = UUID.randomUUID()
         )
 
-        assertEquals(1, captureslot.size)
+        assertEquals(1, publiserteOppgaver.size)
 
-        captureslot[0].value().also { dto ->
+        publiserteOppgaver[0].also { dto ->
             dto.assertInnhold(Utsett, dokumentId, Inntektsmelding)
             assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(dager)).absoluteValue < 2)
         }

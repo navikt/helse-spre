@@ -9,10 +9,10 @@ import java.util.*
 class HåndterVedtaksperiodeendringer(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
-    oppgaveProducer: OppgaveProducer
+    publisist: Publisist,
 ) : River.PacketListener {
 
-    private val observer = OppgaveObserver(oppgaveDAO, oppgaveProducer, rapidsConnection)
+    private val observer = OppgaveObserver(oppgaveDAO, publisist, rapidsConnection)
 
     init {
         River(rapidsConnection).apply {
