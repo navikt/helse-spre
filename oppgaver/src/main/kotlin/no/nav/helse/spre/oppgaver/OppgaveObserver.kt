@@ -3,15 +3,14 @@ package no.nav.helse.spre.oppgaver
 import net.logstash.logback.argument.StructuredArguments
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.spre.oppgaver.DokumentType.Søknad
 import org.apache.kafka.clients.producer.ProducerRecord
 import java.time.LocalDateTime
 import java.util.*
-import no.nav.helse.spre.oppgaver.DokumentType.Inntektsmelding
-import no.nav.helse.spre.oppgaver.DokumentType.Søknad
 
 class OppgaveObserver(
     private val oppgaveDAO: OppgaveDAO,
-    private val oppgaveProducers: List<OppgaveProducer>,
+    private val oppgaveProducer: OppgaveProducer,
     private val rapidsConnection: RapidsConnection
 ) : Oppgave.Observer {
 
@@ -26,7 +25,8 @@ class OppgaveObserver(
             dokumentId = oppgave.dokumentId,
             timeout = oppgave.timeout(),
         )
-        oppgaveProducers.forEach { it.kafkaproducer().send(ProducerRecord(it.topic(), dto)) }
+        val (topic, producer) = oppgaveProducer
+        producer.send(ProducerRecord(topic, dto))
 
         rapidsConnection.publish(
             JsonMessage.newMessage(

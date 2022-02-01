@@ -9,10 +9,10 @@ import java.util.*
 class HåndterOpprettOppgave(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
-    oppgaveProducers: List<OppgaveProducer>
+    oppgaveProducer: OppgaveProducer
 ) : River.PacketListener {
 
-    private val observer = OppgaveObserver(oppgaveDAO, oppgaveProducers, rapidsConnection)
+    private val observer = OppgaveObserver(oppgaveDAO, oppgaveProducer, rapidsConnection)
 
     init {
         River(rapidsConnection).apply {

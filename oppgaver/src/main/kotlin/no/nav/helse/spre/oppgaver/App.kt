@@ -20,13 +20,9 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .registerModule(JavaTimeModule())
 
 internal val log = LoggerFactory.getLogger("helse-spre-oppgaver")
-internal val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
-internal val onPremOppgaveTopicName = "aapen-helse-spre-oppgaver"
-internal val aivenOppgaveTopicName = "tbd.spre-oppgaver"
+internal const val oppgaveTopicName = "tbd.spre-oppgaver"
 
 internal typealias OppgaveProducer = Pair<String, KafkaProducer<String, OppgaveDTO>>
-internal fun OppgaveProducer.topic() = this.first
-internal fun OppgaveProducer.kafkaproducer() = this.second
 
 fun main() {
     val rapidsConnection = launchApplication(System.getenv())
@@ -36,42 +32,33 @@ fun main() {
 fun launchApplication(
     environment: Map<String, String>
 ): RapidsConnection {
-    val serviceUser = readServiceUserCredentials()
     val datasource = DataSourceBuilder(System.getenv())
         .apply(DataSourceBuilder::migrate)
         .getDataSource()
 
     val oppgaveDAO = OppgaveDAO(datasource)
-    val onPremProducer = OppgaveProducer(
-        onPremOppgaveTopicName, KafkaProducer<String, OppgaveDTO>(
-        loadBaseConfig(
-            environment.getValue("KAFKA_BOOTSTRAP_SERVERS"),
-            serviceUser
-        ).toProducerConfig()))
 
-    val aivenProducer = OppgaveProducer(
-        aivenOppgaveTopicName, createAivenProducer(environment))
-
-    val oppgaveProducers = listOf(onPremProducer, aivenProducer)
+    val producer = OppgaveProducer(
+        oppgaveTopicName, createProducer(environment))
 
     return RapidApplication.create(environment).apply {
-        registerRivers(oppgaveDAO, oppgaveProducers)
+        registerRivers(oppgaveDAO, producer)
     }
 }
 
 internal fun RapidsConnection.registerRivers(
     oppgaveDAO: OppgaveDAO,
-    oppgaveProducers: List<OppgaveProducer>
+    oppgaveProducer: OppgaveProducer
 ) {
     RegistrerSøknader(this, oppgaveDAO)
     RegistrerInntektsmeldinger(this, oppgaveDAO)
-    HåndterVedtaksperiodeendringer(this, oppgaveDAO, oppgaveProducers)
-    HåndterHendelseIkkeHåndtert(this, oppgaveDAO, oppgaveProducers)
-    HåndterOpprettOppgaveForSpeilsaksbehandlere(this, oppgaveDAO, oppgaveProducers)
-    HåndterOpprettOppgave(this, oppgaveDAO, oppgaveProducers)
+    HåndterVedtaksperiodeendringer(this, oppgaveDAO, oppgaveProducer)
+    HåndterHendelseIkkeHåndtert(this, oppgaveDAO, oppgaveProducer)
+    HåndterOpprettOppgaveForSpeilsaksbehandlere(this, oppgaveDAO, oppgaveProducer)
+    HåndterOpprettOppgave(this, oppgaveDAO, oppgaveProducer)
 }
 
-private fun createAivenProducer(env: Map<String, String>): KafkaProducer<String, OppgaveDTO> {
+private fun createProducer(env: Map<String, String>): KafkaProducer<String, OppgaveDTO> {
     val properties = Properties().apply {
         put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, env.getValue("KAFKA_BROKERS"))
         put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, SecurityProtocol.SSL.name)
