@@ -1,0 +1,6 @@
+kafkaPool: nav-dev
+
+kafkaResetPolicy: earliest
+env:
+  - name: SUBSUMSJON_TOPIC
+    value: flex.omrade-helse-etterlevelse
