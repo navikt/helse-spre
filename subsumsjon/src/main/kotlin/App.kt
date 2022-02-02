@@ -60,7 +60,8 @@ internal class SubsumsjonRiver(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        throw IllegalArgumentException("Feil funnet i subsumsjon melding: $problems")
+        //throw IllegalArgumentException("Feil funnet i subsumsjon melding: $problems")
+        log.warn("Fant subsumsjon melding med feil format: $problems")
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
