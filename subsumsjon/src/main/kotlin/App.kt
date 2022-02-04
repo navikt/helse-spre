@@ -23,7 +23,7 @@ internal val log = LoggerFactory.getLogger("helse-spre-subsumsjoner")
 
 fun main() {
     val env = System.getenv()
-    val topic = env.get("SUBSUMSJON_TOPIC") ?: throw IllegalArgumentException("SUBSUMSJON_TOPIC is required")
+    val topic = env["SUBSUMSJON_TOPIC"] ?: throw IllegalArgumentException("SUBSUMSJON_TOPIC is required")
     val kafkaProducer = createProducer(env)
 
     RapidApplication.create(env).apply {
@@ -41,61 +41,59 @@ internal class SubsumsjonRiver(
             validate { it.demandValue("@event_name", "subsumsjon") }
             validate { it.requireKey("@id") }
             validate { it.requireKey("@opprettet") }
-            validate { it.requireKey("versjon") }
-            validate { it.requireKey("kilde") }
-            validate { it.requireKey("versjonAvKode") }
-            validate { it.requireKey("fodselsnummer") }
-            validate { it.requireKey("sporing") }
-            validate { it.requireKey("lovverk") }
-            validate { it.requireKey("lovverkVersjon") }
-            validate { it.requireKey("paragraf") }
-            validate { it.requireKey("input") }
-            validate { it.requireKey("output") }
-            validate { it.requireKey("utfall") }
-            validate { it.interestedIn("ledd") }
-            validate { it.interestedIn("punktum") }
-            validate { it.interestedIn("bokstav") }
-
+            validate { it.requireKey("subsumsjon") }
+            validate { it.requireKey("subsumsjon.versjon") }
+            validate { it.requireKey("subsumsjon.kilde") }
+            validate { it.requireKey("subsumsjon.versjonAvKode") }
+            validate { it.requireKey("subsumsjon.fodselsnummer") }
+            validate { it.requireKey("subsumsjon.sporing") }
+            validate { it.requireKey("subsumsjon.lovverk") }
+            validate { it.requireKey("subsumsjon.lovverksversjon") }
+            validate { it.requireKey("subsumsjon.paragraf") }
+            validate { it.requireKey("subsumsjon.input") }
+            validate { it.requireKey("subsumsjon.output") }
+            validate { it.requireKey("subsumsjon.utfall") }
+            validate { it.interestedIn("subsumsjon.ledd") }
+            validate { it.interestedIn("subsumsjon.punktum") }
+            validate { it.interestedIn("subsumsjon.bokstav") }
         }.register(this)
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        //throw IllegalArgumentException("Feil funnet i subsumsjon melding: $problems")
-        log.warn("Fant subsumsjon melding med feil format: $problems")
+        throw IllegalArgumentException("Feil funnet i subsumsjon melding: $problems")
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("mottatt subsumsjon med id: ${packet["@id"]}")
-        subsumsjonPublisher(
-            fødselsnummer(packet),
-            subsumsjonMelding(packet)
-        )
+        subsumsjonPublisher(fødselsnummer(packet), subsumsjonMelding(packet))
     }
 
     private fun fødselsnummer(packet: JsonMessage): String {
-        return packet["fodselsnummer"].asText()
+        return packet["subsumsjon.fodselsnummer"].asText()
     }
 
-    private fun subsumsjonMelding(packet: JsonMessage) = objectMapper.writeValueAsString(mutableMapOf(
-        "@id" to packet["@id"],
-        "@event_name" to "subsumsjon",
-        "@opprettet" to packet["@opprettet"],
-        "versjon" to packet["versjon"],
-        "kilde" to packet["kilde"],
-        "versjonAvKode" to packet["versjonAvKode"],
-        "fodselsnummer" to packet["fodselsnummer"],
-        "sporing" to packet["sporing"],
-        "lovverk" to packet["lovverk"],
-        "lovverkVersjon" to packet["lovverkVersjon"],
-        "paragraf" to packet["paragraf"],
-        "input" to packet["input"],
-        "output" to packet["output"],
-        "utfall" to packet["utfall"]
-    ).apply {
-        compute("ledd") { _, _ -> packet["ledd"].takeIf { !it.isNull }?.asText() }
-        compute("punktum") { _, _ -> packet["punktum"].takeIf { !it.isNull }?.asText() }
-        compute("bokstav") { _, _ -> packet["bokstav"].takeIf { !it.isNull }?.asText() }
-    })
+    private fun subsumsjonMelding(packet: JsonMessage) = objectMapper.writeValueAsString(
+        mutableMapOf<String, Any?>(
+            "id" to packet["@id"],
+            "eventName" to "subsumsjon",
+            "tidsstempel" to packet["@opprettet"],
+            "versjon" to packet["subsumsjon.versjon"],
+            "kilde" to packet["subsumsjon.kilde"],
+            "versjonAvKode" to packet["subsumsjon.versjonAvKode"],
+            "fodselsnummer" to packet["subsumsjon.fodselsnummer"],
+            "sporing" to packet["subsumsjon.sporing"],
+            "lovverk" to packet["subsumsjon.lovverk"],
+            "lovverksversjon" to packet["subsumsjon.lovverksversjon"],
+            "paragraf" to packet["subsumsjon.paragraf"],
+            "input" to packet["subsumsjon.input"],
+            "output" to packet["subsumsjon.output"],
+            "utfall" to packet["subsumsjon.utfall"]
+        ).apply {
+            put("ledd", packet["subsumsjon.ledd"].takeUnless { it.isMissingOrNull() }?.asInt())
+            put("punktum", packet["subsumsjon.punktum"].takeUnless { it.isMissingOrNull() }?.asInt())
+            put("bokstav", packet["subsumsjon.bokstav"].takeUnless { it.isMissingOrNull() }?.asText())
+        }
+    )
 }
 
 private fun createProducer(env: Map<String, String>): KafkaProducer<String, String> {
