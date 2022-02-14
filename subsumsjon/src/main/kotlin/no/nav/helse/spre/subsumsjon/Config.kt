@@ -5,7 +5,8 @@ class Config(
     private val databaseHost: String,
     private val databasePort: String,
     internal val username: String,
-    internal val password: String
+    internal val password: String,
+    internal val subsumsjonTopic: String
 ) {
 
 
@@ -16,16 +17,17 @@ class Config(
         fun fromEnv(): Config {
             val env = System.getenv()
             val databaseName =
-                requireNotNull(env["DB_NAME"]) { "database name must be set if jdbc url is not provided" }
+                requireNotNull(env["DB_DATABASE"]) { "DB_DATABASE is required config" }
             val databaseHost =
-                requireNotNull(env["DB_HOST"]) { "database host must be set if jdbc url is not provided" }
+                requireNotNull(env["DB_HOST"]) { "DB_HOST is required config" }
             val databasePort =
-                requireNotNull(env["DB_PORT"]) { "database port must be set if jdbc url is not provided" }
+                requireNotNull(env["DB_PORT"]) { "DB_PORT is required config" }
             val username =
-                requireNotNull(env["DB_USERNAME"]) { "database port must be set if jdbc url is not provided" }
+                requireNotNull(env["DB_USERNAME"]) { "DB_USERNAME is required config" }
             val password =
-                requireNotNull(env["DB_PASSWORD"]) { "database port must be set if jdbc url is not provided" }
-            return Config(databaseName, databaseHost, databasePort, username, password)
+                requireNotNull(env["DB_PASSWORD"]) { "DB_PASSWORD is required config" }
+            val topic = requireNotNull(env["SUBSUMSJON_TOPIC"]) { " SUBSUMSJON_TOPIC is required config " }
+            return Config(databaseName, databaseHost, databasePort, username, password, topic)
         }
     }
 }
