@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.spre.subsumsjon.Config
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -25,9 +26,12 @@ fun main() {
     val env = System.getenv()
     val topic = env["SUBSUMSJON_TOPIC"] ?: throw IllegalArgumentException("SUBSUMSJON_TOPIC is required")
     val kafkaProducer = createProducer(env)
+    val config = Config.fromEnv()
+    val mappingDao = MappingDao(DataSourceBuilder(config.jdbcUrl, config.username, config.password).getMigratedDataSource())
 
     RapidApplication.create(env).apply {
         SubsumsjonRiver(this) { key, value -> kafkaProducer.send(ProducerRecord(topic, key, value)) }
+        SykemeldingRiver(this, mappingDao)
     }.start()
 }
 
