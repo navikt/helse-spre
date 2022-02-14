@@ -1,5 +1,6 @@
 package no.nav.helse.spre.subsumsjon
 
+import com.fasterxml.jackson.databind.JsonNode
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
@@ -26,3 +27,5 @@ class MappingDao(
         )
     }
 }
+
+internal fun JsonNode.toUUID() = UUID.fromString(this.asText())

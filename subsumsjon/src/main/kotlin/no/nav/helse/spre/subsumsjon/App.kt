@@ -30,6 +30,7 @@ fun main() {
     RapidApplication.create(env).apply {
         SubsumsjonRiver(this) { key, value -> kafkaProducer.send(ProducerRecord(config.subsumsjonTopic, key, value)) }
         SykemeldingRiver(this, mappingDao)
+        SøknadRiver(this, mappingDao)
     }.start()
 }
 

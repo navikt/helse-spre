@@ -3,7 +3,8 @@ package no.nav.helse.spre.subsumsjon
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 
-class SykemeldingRiver(
+
+class SøknadRiver(
     rapidsConnection: RapidsConnection,
     private val mappingDao: MappingDao
 ) : River.PacketListener {
@@ -11,9 +12,9 @@ class SykemeldingRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "ny_søknad") }
+            validate { it.demandAny("@event_name", listOf("sendt_søknad_nav", "sendt_søknad_arbeidsgiver")) }
             validate { it.requireKey("@id") }
-            validate { it.requireKey("sykmeldingId") }
+            validate { it.requireKey("id") }
             validate { it.require("@opprettet", JsonNode::asLocalDateTime) }
         }.register(this)
     }
@@ -21,11 +22,9 @@ class SykemeldingRiver(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         mappingDao.lagre(
             packet["@id"].toUUID(),
-            packet["sykmeldingId"].toUUID(),
+            packet["id"].toUUID(),
             packet["@event_name"].asText(),
             packet["@opprettet"].asLocalDateTime()
         )
     }
 }
-
-
