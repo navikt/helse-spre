@@ -1,10 +1,7 @@
 package no.nav.helse.spre.subsumsjon
 
-import kotliquery.queryOf
-import kotliquery.sessionOf
 import no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon.DataSourceBuilder
 import no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon.MappingDao
-import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
@@ -12,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.testcontainers.containers.PostgreSQLContainer
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -29,22 +26,29 @@ class MappingDaoTest {
             start()
         }
 
-        mappingDao = MappingDao(DataSourceBuilder(postgres.jdbcUrl, postgres.username, postgres.password).getMigratedDataSource())
+        mappingDao = MappingDao(
+            DataSourceBuilder(
+                postgres.jdbcUrl,
+                postgres.username,
+                postgres.password
+            ).getMigratedDataSource()
+        )
 
     }
 
     @BeforeEach
     fun before() {
-        sessionOf(DataSourceBuilder(postgres.jdbcUrl, postgres.username, postgres.password).getMigratedDataSource()).use { session ->
-            @Language("PostgreSQL")
-            val query = "TRUNCATE TABLE hendelse_id_mapping"
-            session.run(queryOf(query).asExecute)
-        }
+        resetMappingDb(postgres)
     }
 
     @Test
     fun `lagre og hent`() {
-        mappingDao.lagre(UUID.fromString("e07f59f8-3cf0-454d-bf3b-02058ef7ceeb"), UUID.fromString("820a302d-27fd-4c8c-b5d1-49f9126fc89d"), "test_event", LocalDate.now())
+        mappingDao.lagre(
+            UUID.fromString("e07f59f8-3cf0-454d-bf3b-02058ef7ceeb"),
+            UUID.fromString("820a302d-27fd-4c8c-b5d1-49f9126fc89d"),
+            "test_event",
+            LocalDateTime.now()
+        )
         val result = mappingDao.hent(UUID.fromString("e07f59f8-3cf0-454d-bf3b-02058ef7ceeb"))
         assertEquals(UUID.fromString("820a302d-27fd-4c8c-b5d1-49f9126fc89d"), result)
     }
