@@ -1,10 +1,12 @@
+package no.nav.helse.spre.subsumsjon
+
 import com.fasterxml.jackson.databind.JsonNode
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
 import com.networknt.schema.ValidationMessage
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
-import no.nav.helse.spre.subsumsjon.SubsumsjonRiver
-import no.nav.helse.spre.subsumsjon.objectMapper
+import no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon.SubsumsjonRiver
+import no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon.objectMapper
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows

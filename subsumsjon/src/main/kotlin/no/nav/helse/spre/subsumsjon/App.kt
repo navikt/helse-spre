@@ -1,4 +1,4 @@
-package no.nav.helse.spre.subsumsjon
+package no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
