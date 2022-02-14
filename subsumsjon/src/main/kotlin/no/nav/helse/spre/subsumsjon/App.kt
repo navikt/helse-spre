@@ -31,6 +31,7 @@ fun main() {
         SubsumsjonRiver(this) { key, value -> kafkaProducer.send(ProducerRecord(config.subsumsjonTopic, key, value)) }
         SykemeldingRiver(this, mappingDao)
         SøknadRiver(this, mappingDao)
+        InntektsmeldingRiver(this, mappingDao)
     }.start()
 }
 
