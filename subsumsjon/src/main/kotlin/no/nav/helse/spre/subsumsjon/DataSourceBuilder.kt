@@ -1,4 +1,4 @@
-package no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon
+package no.nav.helse.spre.subsumsjon
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

@@ -2,6 +2,7 @@ package no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.spre.subsumsjon.MappingDao
 import java.util.*
 
 class SykemeldingRiver(

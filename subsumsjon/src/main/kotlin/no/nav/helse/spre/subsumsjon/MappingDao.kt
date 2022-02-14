@@ -1,4 +1,4 @@
-package no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon
+package no.nav.helse.spre.subsumsjon
 
 import kotliquery.queryOf
 import kotliquery.sessionOf

@@ -1,11 +1,11 @@
-package no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon
+package no.nav.helse.spre.subsumsjon
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.rapids_rivers.*
-import no.nav.helse.spre.subsumsjon.Config
+import no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon.SykemeldingRiver
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig

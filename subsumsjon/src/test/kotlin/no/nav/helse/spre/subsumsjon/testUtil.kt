@@ -2,7 +2,6 @@ package no.nav.helse.spre.subsumsjon
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon.DataSourceBuilder
 import org.intellij.lang.annotations.Language
 import org.testcontainers.containers.PostgreSQLContainer
 

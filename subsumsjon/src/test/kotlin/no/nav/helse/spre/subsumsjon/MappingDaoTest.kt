@@ -1,7 +1,5 @@
 package no.nav.helse.spre.subsumsjon
 
-import no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon.DataSourceBuilder
-import no.nav.helse.spre.subsumsjon.no.nav.helse.spre.subsumsjon.MappingDao
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
