@@ -23,10 +23,10 @@ class VedtakFattetRiver(
                     "skjæringstidspunkt",
                     "fom",
                     "tom",
-                    "utbetalingId",
                     "organisasjonsnummer",
                     "@opprettet"
                 )
+                message.interestedIn("utbetalingId")
             }
         }.register(this)
     }
@@ -51,9 +51,10 @@ class VedtakFattetRiver(
                 "skjeringstidspunkt" to packet["skjæringstidspunkt"],
                 "fom" to packet["fom"],
                 "tom" to packet["tom"],
-                "utbetalingId" to packet["utbetalingId"],
-                "organisasjonsnummer" to packet["organisasjonsnummer"],
-
-            )).also { sikkerLogg.info("sender vedtak_fattet: $it") }
+                "organisasjonsnummer" to packet["organisasjonsnummer"]
+            ).apply {
+                put("utbetalingId", packet["utbetalingId"].takeUnless { it.isMissingOrNull() }?.asText())
+            }
+        ).also { sikkerLogg.info("sender vedtak_fattet: $it") }
     }
 }
