@@ -34,6 +34,8 @@ fun main() {
         SykemeldingRiver(this, mappingDao)
         SøknadRiver(this, mappingDao)
         InntektsmeldingRiver(this, mappingDao)
+        VedtakFattetRiver(this)  { key, value -> kafkaProducer.send(ProducerRecord(config.subsumsjonTopic, key, value)) }
+        VedtakForkastetRiver(this)  { key, value -> kafkaProducer.send(ProducerRecord(config.subsumsjonTopic, key, value)) }
     }.start()
 }
 
