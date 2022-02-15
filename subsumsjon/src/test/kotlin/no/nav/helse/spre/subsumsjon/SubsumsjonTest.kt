@@ -110,9 +110,7 @@ internal class SubsumsjonTest {
                 )
             )
         }
-
-        // TODO: Endre tilbake når vi går i prod
-        // assertThrows(IllegalArgumentException::class.java) { testRapid.sendTestMessage(badTestMessage) }
+        assertThrows(IllegalArgumentException::class.java) { testRapid.sendTestMessage(badTestMessage) }
     }
 
     @Test
