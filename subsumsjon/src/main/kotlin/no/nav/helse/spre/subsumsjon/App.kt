@@ -72,7 +72,7 @@ internal class SubsumsjonRiver(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        sikkerLogg.error("Feil under validering av subsumsjon  problems: ${problems.toExtendedReport()} ")
+        sikkerLogg.error("Feil under validering av subsumsjon problems: ${problems.toExtendedReport()} ")
         //throw IllegalArgumentException("Feil under validering av subsumsjon: $problems")
     }
 
