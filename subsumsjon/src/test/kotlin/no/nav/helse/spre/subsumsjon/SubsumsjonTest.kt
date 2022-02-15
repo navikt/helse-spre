@@ -4,38 +4,74 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
 import com.networknt.schema.ValidationMessage
+import io.kotest.matchers.collections.shouldBeIn
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.slf4j.LoggerFactory
+import org.testcontainers.containers.PostgreSQLContainer
 import java.net.URI
+import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SubsumsjonTest {
 
     private val testRapid = TestRapid()
+    private lateinit var postgres: PostgreSQLContainer<Nothing>
+    private lateinit var mappingDao: MappingDao
+    private lateinit var sykemeldingRiver: SykemeldingRiver
+    private lateinit var søknadRiver: SøknadRiver
+    private lateinit var inntektsmeldingRiver: InntektsmeldingRiver
+
+    @BeforeAll
+    fun setup() {
+        postgres = PostgreSQLContainer<Nothing>("postgres:13").apply {
+            withLabel("app-navn", "spre-subsumsjon")
+            withReuse(true)
+            start()
+        }
+
+        mappingDao = MappingDao(
+            DataSourceBuilder(
+                postgres.jdbcUrl,
+                postgres.username,
+                postgres.password
+            ).getMigratedDataSource()
+        )
+
+        sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao)
+        søknadRiver = SøknadRiver(testRapid, mappingDao)
+        inntektsmeldingRiver = InntektsmeldingRiver(testRapid, mappingDao)
+    }
 
     @Test
     fun `En subsumsjon blir publisert`() {
         val result = mutableListOf<Pair<String, String>>()
 
-        SubsumsjonRiver(rapidsConnection = testRapid) { key, value -> result.add(Pair(key, value)) }
+        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value -> result.add(Pair(key, value)) }
 
-        testRapid.sendTestMessage(testMessage)
+        testRapid.sendTestMessage(testSykemelding)
+        testRapid.sendTestMessage(testSøknad)
+        testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b3b2a306-7baa-4916-899f-28c2ef2ca9e9")))
+        testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b211d477-254d-4dd1-bd16-cdbcc8554f01")))
 
-        assertEquals(result[0].first, "02126721911")
+        testRapid.sendTestMessage(testSubsumsjon)
+
+        assertEquals("02126721911", result[0].first)
+        val subsumsjonMelding = objectMapper.readTree(result[0].second)
+        UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707") shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
     }
 
-    @Disabled("Skru denne på igjen når subsumsjon er i produksjon")
+
     @Test
     fun `En dårlig subsumsjon resulterer i exception`() {
         val result = mutableListOf<Pair<String, String>>()
 
-        SubsumsjonRiver(rapidsConnection = testRapid) { key, value -> result.add(Pair(key, value)) }
+        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value -> result.add(Pair(key, value)) }
 
         assertThrows(IllegalArgumentException::class.java) { testRapid.sendTestMessage(badTestMessage) }
     }
@@ -43,13 +79,20 @@ internal class SubsumsjonTest {
     @Test
     fun `schema validation`() {
         val result = mutableListOf<Pair<String, String>>()
-        SubsumsjonRiver(rapidsConnection = testRapid) { key, value -> result.add(Pair(key, value)) }
-        testRapid.sendTestMessage(testMessage)
+        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value -> result.add(Pair(key, value)) }
+        testRapid.sendTestMessage(testSubsumsjon)
         assertSubsumsjonsmelding(objectMapper.readTree(result[0].second))
     }
 
+    private fun JsonNode.node(path: String): JsonNode {
+        if (!path.contains(".")) return this.path(path)
+        return path.split(".").fold(this) { result, key ->
+            result.path(key)
+        }
+    }
+
     @Language("JSON")
-    private val testMessage = """
+    private val testSubsumsjon = """
   {
     "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
     "@event_name": "subsumsjon",
@@ -61,8 +104,11 @@ internal class SubsumsjonTest {
       "versjonAvKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",
       "fodselsnummer": "02126721911",
       "sporing": {
-        "organisasjonsnummer": ["972674818"],
-        "vedtaksperiode": ["7b7ae5bd-a5f5-4c25-996a-1afd7c403b6a"]
+        "vedtaksperiode": ["8fe5da85-d00b-4570-afaa-3a3e9403240e"],
+        "sykmelding": [ "c844bc55-6be7-4987-9116-a0b7cb95ad56"],
+        "soknad":["59fbfbee-1e7d-4b60-9604-20f77ee62d0f"],
+        "inntektsmelding":["b3b2a306-7baa-4916-899f-28c2ef2ca9e9", "b211d477-254d-4dd1-bd16-cdbcc8554f01"],
+        "organisasjonsnummer":["947064649"]
       },
       "lovverk": "folketrygdloven",
       "lovverksversjon": "2018-01-01",
@@ -152,3 +198,179 @@ internal class SubsumsjonTest {
         }
     }
 }
+
+
+@Language("JSON")
+private val testSykemelding = """
+    {
+      "id": "5995d335-16f9-39b3-a50d-aa744a6af27c",
+      "type": "ARBEIDSTAKERE",
+      "status": "NY",
+      "fnr": "24068715888",
+      "sykmeldingId": "6f0a0911-fc3f-4a55-8fb7-8222388b1707",
+      "arbeidsgiver": {
+        "navn": "SJOKKERENDE ELEKTRIKER",
+        "orgnummer": "947064649"
+      },
+      "arbeidssituasjon": "ARBEIDSTAKER",
+      "korrigerer": null,
+      "korrigertAv": null,
+      "soktUtenlandsopphold": null,
+      "arbeidsgiverForskutterer": null,
+      "fom": "2022-01-01",
+      "tom": "2022-01-31",
+      "dodsdato": null,
+      "startSyketilfelle": "2022-01-01",
+      "arbeidGjenopptatt": null,
+      "sykmeldingSkrevet": "2022-01-01T00:00:00",
+      "opprettet": "2022-02-14T09:24:11.428837001",
+      "sendtNav": null,
+      "sendtArbeidsgiver": null,
+      "egenmeldinger": [],
+      "fravarForSykmeldingen": [],
+      "papirsykmeldinger": [],
+      "fravar": [],
+      "andreInntektskilder": [],
+      "soknadsperioder": [
+        {
+          "fom": "2022-01-01",
+          "tom": "2022-01-31",
+          "sykmeldingsgrad": 100,
+          "faktiskGrad": null,
+          "avtaltTimer": null,
+          "faktiskTimer": null,
+          "sykmeldingstype": "AKTIVITET_IKKE_MULIG",
+          "grad": 100
+        }
+      ],
+      "sporsmal": [],
+      "avsendertype": null,
+      "ettersending": false,
+      "mottaker": null,
+      "egenmeldtSykmelding": false,
+      "harRedusertVenteperiode": null,
+      "behandlingsdager": null,
+      "permitteringer": [],
+      "merknaderFraSykmelding": null,
+      "system_read_count": 1,
+      "system_participating_services": [
+        {
+          "service": "spedisjon",
+          "instance": "spedisjon-74f9d56766-997vn",
+          "time": "2022-02-14T09:24:12.117944652"
+        },
+        {
+          "service": "spleis",
+          "instance": "spleis-75f7c8c58c-ct9pk",
+          "time": "2022-02-14T09:24:12.335203226"
+        }
+      ],
+      "aktorId": "2012213570475",
+      "@event_name": "ny_søknad",
+      "@id": "c844bc55-6be7-4987-9116-a0b7cb95ad56",
+      "@opprettet": "2022-02-14T09:24:11.428837001"
+    }
+""".trimIndent()
+
+
+private fun testInntektsmelding(id: UUID) = """
+    {
+      "@event_name": "inntektsmelding",
+      "@id": "$id",
+      "@opprettet": "2022-02-15T08:36:35.048196790",
+      "inntektsmeldingId": "85a30422-b6ca-4adf-8776-78afb68cb903",
+      "arbeidstakerFnr": "24068715888",
+      "arbeidstakerAktorId": "2012213570475",
+      "virksomhetsnummer": "947064649",
+      "arbeidsgiverFnr": "Don't care",
+      "arbeidsgiverAktorId": "Don't care",
+      "arbeidsgivertype": "VIRKSOMHET",
+      "arbeidsforholdId": "",
+      "beregnetInntekt": "21000.0",
+      "rapportertDato": "2022-01-02",
+      "refusjon": {
+        "beloepPrMnd": "null",
+        "opphoersdato": null
+      },
+      "endringIRefusjoner": [],
+      "opphoerAvNaturalytelser": [],
+      "gjenopptakelseNaturalytelser": [],
+      "arbeidsgiverperioder": [
+        {
+          "fom": "2022-01-01",
+          "tom": "2022-01-16"
+        }
+      ],
+      "ferieperioder": [],
+      "status": "GYLDIG",
+      "arkivreferanse": "ENARKIVREFERANSE",
+      "hendelseId": "f1db0ff9-92fd-4eb0-b6d8-e68c44421910",
+      "foersteFravaersdag": "2022-01-01",
+      "mottattDato": "2022-01-01T00:00",
+      "system_read_count": 0,
+      "system_participating_services": [
+        {
+          "service": "spleis",
+          "instance": "spleis-674dc45bc7-v6t4v",
+          "time": "2022-02-15T08:36:35.278183584"
+        }
+      ]
+    }
+""".trimIndent()
+
+@Language("JSON")
+private val testSøknad = """
+    {
+      "@event_name": "sendt_søknad_nav",
+      "@id": "59fbfbee-1e7d-4b60-9604-20f77ee62d0f",
+      "@opprettet": "2022-02-15T08:36:34.842818327",
+      "id": "be4586ce-d45e-419b-8271-1bc2be839e16",
+      "fnr": "24068715888",
+      "type": "ARBEIDSTAKERE",
+      "status": "SENDT",
+      "aktorId": "2012213570475",
+      "sykmeldingId": "3a82b571-d73f-4fc8-a0a7-527053004999",
+      "arbeidsgiver": {
+        "navn": "Nærbutikken AS",
+        "orgnummer": "947064649"
+      },
+      "arbeidssituasjon": "ARBEIDSTAKER",
+      "korrigerer": null,
+      "korrigertAv": null,
+      "soktUtenlandsopphold": null,
+      "arbeidsgiverForskutterer": null,
+      "fom": "2022-01-01",
+      "tom": "2022-01-31",
+      "startSyketilfelle": "2022-01-01",
+      "arbeidGjenopptatt": null,
+      "sykmeldingSkrevet": "2022-01-01T00:00",
+      "opprettet": "2022-01-01T00:00",
+      "sendtNav": "2022-02-01T00:00",
+      "sendtArbeidsgiver": null,
+      "egenmeldinger": [],
+      "papirsykmeldinger": [],
+      "fravar": [],
+      "andreInntektskilder": [],
+      "soknadsperioder": [
+        {
+          "fom": "2022-01-01",
+          "tom": "2022-01-31",
+          "sykmeldingsgrad": 100,
+          "faktiskGrad": null,
+          "avtaltTimer": null,
+          "faktiskTimer": null,
+          "sykmeldingstype": null
+        }
+      ],
+      "sporsmal": null,
+      "hendelseId": "a7e5cb14-b961-475e-8be3-c648ded77427",
+      "system_read_count": 0,
+      "system_participating_services": [
+        {
+          "service": "spleis",
+          "instance": "spleis-674dc45bc7-v6t4v",
+          "time": "2022-02-15T08:36:35.070794015"
+        }
+      ]
+    }
+""".trimIndent()

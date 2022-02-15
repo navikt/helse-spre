@@ -29,3 +29,4 @@ class MappingDao(
 }
 
 internal fun JsonNode.toUUID() = UUID.fromString(this.asText())
+internal fun JsonNode.toUUIDs() = this.map { it.toUUID() }

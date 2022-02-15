@@ -56,7 +56,7 @@ internal class SykemeldingRiverTest {
 }
 
 @Language("JSON")
-val testSykemelding = """
+private val testSykemelding = """
     {
       "id": "5995d335-16f9-39b3-a50d-aa744a6af27c",
       "type": "ARBEIDSTAKERE",
