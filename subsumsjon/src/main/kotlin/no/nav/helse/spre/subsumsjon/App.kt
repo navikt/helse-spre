@@ -14,6 +14,7 @@ import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.ZonedDateTime
 import java.util.*
 
 
@@ -51,6 +52,7 @@ internal class SubsumsjonRiver(
             validate { it.requireKey("@id") }
             validate { it.requireKey("@opprettet") }
             validate { it.requireKey("subsumsjon") }
+            validate { it.requireKey("subsumsjon.tidsstempel") }
             validate { it.requireKey("subsumsjon.versjon") }
             validate { it.requireKey("subsumsjon.kilde") }
             validate { it.requireKey("subsumsjon.versjonAvKode") }
@@ -105,7 +107,7 @@ internal class SubsumsjonRiver(
             mutableMapOf<String, Any?>(
                 "id" to packet["@id"],
                 "eventName" to "subsumsjon",
-                "tidsstempel" to packet["@opprettet"],
+                "tidsstempel" to packet["subsumsjon.tidsstempel"],
                 "versjon" to packet["subsumsjon.versjon"],
                 "kilde" to packet["subsumsjon.kilde"],
                 "versjonAvKode" to packet["subsumsjon.versjonAvKode"],
