@@ -52,18 +52,49 @@ internal class SubsumsjonTest {
     fun `En subsumsjon blir publisert`() {
         val result = mutableListOf<Pair<String, String>>()
 
-        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value -> result.add(Pair(key, value)) }
+        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value ->
+            result.add(
+                Pair(
+                    key,
+                    value
+                )
+            )
+        }
 
-        testRapid.sendTestMessage(testSykemelding)
+
+        testRapid.sendTestMessage(
+            testSykemelding(
+                hendelseId = UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56"),
+                dokumentId = UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707")
+            )
+        )
+        testRapid.sendTestMessage(
+            testSykemelding(
+                hendelseId = UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56"), // sjekk ny @id ikke endrer ekisterene mapping
+                dokumentId = UUID.fromString("adc52721-f9a2-40ae-bf1b-6945cf19c790")
+            )
+        )
+        testRapid.sendTestMessage(
+            testSykemelding(
+                hendelseId = UUID.fromString("6dad49e1-099b-44aa-a6f3-7132cdacd6aa"),
+                dokumentId = UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707")
+            )
+        )
         testRapid.sendTestMessage(testSøknad)
         testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b3b2a306-7baa-4916-899f-28c2ef2ca9e9")))
-        testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b211d477-254d-4dd1-bd16-cdbcc8554f01")))
+        testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b211d477-254d-4dd1-bd16-cdbcc8554f01"))) // sjekk at vi kan håndtere flere av samme
+        testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b3b2a306-7baa-4916-899f-28c2ef2ca9e9"))) // sjekk at vi håndterer duplikater
 
         testRapid.sendTestMessage(testSubsumsjon)
 
         assertEquals("02126721911", result[0].first)
         val subsumsjonMelding = objectMapper.readTree(result[0].second)
-        UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707") shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
+        UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707") shouldBeIn subsumsjonMelding.node("sporing.sykmelding")
+            .toUUIDs()
+        UUID.fromString("be4586ce-d45e-419b-8271-1bc2be839e16") shouldBeIn subsumsjonMelding.node("sporing.soknad")
+            .toUUIDs()
+        UUID.fromString("85a30422-b6ca-4adf-8776-78afb68cb903") shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding")
+            .toUUIDs()
     }
 
 
@@ -71,7 +102,14 @@ internal class SubsumsjonTest {
     fun `En dårlig subsumsjon resulterer i exception`() {
         val result = mutableListOf<Pair<String, String>>()
 
-        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value -> result.add(Pair(key, value)) }
+        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value ->
+            result.add(
+                Pair(
+                    key,
+                    value
+                )
+            )
+        }
 
         assertThrows(IllegalArgumentException::class.java) { testRapid.sendTestMessage(badTestMessage) }
     }
@@ -79,7 +117,14 @@ internal class SubsumsjonTest {
     @Test
     fun `schema validation`() {
         val result = mutableListOf<Pair<String, String>>()
-        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value -> result.add(Pair(key, value)) }
+        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value ->
+            result.add(
+                Pair(
+                    key,
+                    value
+                )
+            )
+        }
         testRapid.sendTestMessage(testSubsumsjon)
         assertSubsumsjonsmelding(objectMapper.readTree(result[0].second))
     }
@@ -201,13 +246,13 @@ internal class SubsumsjonTest {
 
 
 @Language("JSON")
-private val testSykemelding = """
+private fun testSykemelding(hendelseId: UUID, dokumentId: UUID) = """
     {
       "id": "5995d335-16f9-39b3-a50d-aa744a6af27c",
       "type": "ARBEIDSTAKERE",
       "status": "NY",
       "fnr": "24068715888",
-      "sykmeldingId": "6f0a0911-fc3f-4a55-8fb7-8222388b1707",
+      "sykmeldingId": "$dokumentId",
       "arbeidsgiver": {
         "navn": "SJOKKERENDE ELEKTRIKER",
         "orgnummer": "947064649"
@@ -267,12 +312,13 @@ private val testSykemelding = """
       ],
       "aktorId": "2012213570475",
       "@event_name": "ny_søknad",
-      "@id": "c844bc55-6be7-4987-9116-a0b7cb95ad56",
+      "@id": "$hendelseId",
       "@opprettet": "2022-02-14T09:24:11.428837001"
     }
 """.trimIndent()
 
 
+@Language("JSON")
 private fun testInntektsmelding(id: UUID) = """
     {
       "@event_name": "inntektsmelding",

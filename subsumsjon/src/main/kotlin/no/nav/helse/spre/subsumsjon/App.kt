@@ -12,6 +12,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -20,6 +21,7 @@ import java.util.*
 
 
 internal val log = LoggerFactory.getLogger("helse-spre-subsumsjoner")
+private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
 fun main() {
     val env = System.getenv()
@@ -117,7 +119,7 @@ internal class SubsumsjonRiver(
                 put("punktum", packet["subsumsjon.punktum"].takeUnless { it.isMissingOrNull() }?.asInt())
                 put("bokstav", packet["subsumsjon.bokstav"].takeUnless { it.isMissingOrNull() }?.asText())
             }
-        )
+        ).also { sikkerLogg.info("sender subsumsjon: $it") }
     }
 }
 
