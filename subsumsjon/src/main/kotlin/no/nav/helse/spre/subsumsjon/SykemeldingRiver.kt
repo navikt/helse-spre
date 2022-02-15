@@ -26,6 +26,11 @@ class SykemeldingRiver(
             packet["@opprettet"].asLocalDateTime()
         )
     }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        sikkerLogg.error("Feil under validering av ny_søknad  problems: ${problems.toExtendedReport()} ")
+        throw IllegalArgumentException("Feil under validering av ny_søknad")
+    }
 }
 
 

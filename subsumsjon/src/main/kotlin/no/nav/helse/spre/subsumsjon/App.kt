@@ -21,7 +21,7 @@ import java.util.*
 
 
 internal val log = LoggerFactory.getLogger("helse-spre-subsumsjoner")
-private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
+internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
 fun main() {
     val env = System.getenv()
@@ -72,7 +72,8 @@ internal class SubsumsjonRiver(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        throw IllegalArgumentException("Feil funnet i subsumsjon melding: $problems")
+        sikkerLogg.error("Feil under validering av inntektsmelding  problems: ${problems.toExtendedReport()} ")
+        throw IllegalArgumentException("Feil under validering av subsumsjon: $problems")
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

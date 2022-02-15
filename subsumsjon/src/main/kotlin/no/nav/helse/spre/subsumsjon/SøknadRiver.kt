@@ -27,4 +27,10 @@ class SøknadRiver(
             packet["@opprettet"].asLocalDateTime()
         )
     }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        sikkerLogg.error("Feil under validering av søknad (sendt_søknad_nav, sendt_søknad_arbeidsgiver)  problems: ${problems.toExtendedReport()} ")
+        throw IllegalArgumentException("Feil under validering av søknad")
+    }
+
 }

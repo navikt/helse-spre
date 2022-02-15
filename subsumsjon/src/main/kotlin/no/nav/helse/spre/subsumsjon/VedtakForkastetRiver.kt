@@ -1,14 +1,7 @@
 package no.nav.helse.spre.subsumsjon
 
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.helse.rapids_rivers.*
 
-
-private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
 class VedtakForkastetRiver(
     rapidsConnection: RapidsConnection,
@@ -26,6 +19,11 @@ class VedtakForkastetRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         subsumsjonPublisher(fødselsnummer(packet), vedtak_forkastet(packet))
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        sikkerLogg.error("Feil under validering av vedtaksperiode_forkastet problems: ${problems.toExtendedReport()} ")
+        throw IllegalArgumentException("Feil under validering av vedtaksperiode_forkastet")
     }
 
     private fun fødselsnummer(packet: JsonMessage): String {
