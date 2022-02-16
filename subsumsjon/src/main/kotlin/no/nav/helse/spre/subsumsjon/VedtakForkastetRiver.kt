@@ -44,7 +44,6 @@ class VedtakForkastetRiver(
                 "fodselsnummer" to packet["fødselsnummer"],
                 "vedtaksperiodeId" to packet["vedtaksperiodeId"],
                 "organisasjonsnummer" to packet["organisasjonsnummer"],
-
                 )
         ).also { sikkerLogg.info("sender vedtaksperiode_forkastet: $it") }
     }

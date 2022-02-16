@@ -5,6 +5,7 @@ import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
 import com.networknt.schema.ValidationMessage
 import io.kotest.matchers.collections.shouldBeIn
+import io.kotest.matchers.collections.shouldNotBeIn
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -80,7 +81,7 @@ internal class SubsumsjonTest {
                 dokumentId = UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707")
             )
         )
-        testRapid.sendTestMessage(testSøknad)
+        testRapid.sendTestMessage(testSøknad("59fbfbee-1e7d-4b60-9604-20f77ee62d0f", "be4586ce-d45e-419b-8271-1bc2be839e16"))
         testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b3b2a306-7baa-4916-899f-28c2ef2ca9e9")))
         testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b211d477-254d-4dd1-bd16-cdbcc8554f01"))) // sjekk at vi kan håndtere flere av samme
         testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b3b2a306-7baa-4916-899f-28c2ef2ca9e9"))) // sjekk at vi håndterer duplikater
@@ -91,9 +92,17 @@ internal class SubsumsjonTest {
         val subsumsjonMelding = objectMapper.readTree(result[0].second)
         UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707") shouldBeIn subsumsjonMelding.node("sporing.sykmelding")
             .toUUIDs()
+        UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56") shouldNotBeIn  subsumsjonMelding.node("sporing.sykmelding")
+            .toUUIDs()
+
         UUID.fromString("be4586ce-d45e-419b-8271-1bc2be839e16") shouldBeIn subsumsjonMelding.node("sporing.soknad")
             .toUUIDs()
+        UUID.fromString("59fbfbee-1e7d-4b60-9604-20f77ee62d0f") shouldNotBeIn subsumsjonMelding.node("sporing.soknad")
+            .toUUIDs()
+
         UUID.fromString("85a30422-b6ca-4adf-8776-78afb68cb903") shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding")
+            .toUUIDs()
+        UUID.fromString("b3b2a306-7baa-4916-899f-28c2ef2ca9e9") shouldNotBeIn subsumsjonMelding.node("sporing.inntektsmelding")
             .toUUIDs()
     }
 
@@ -364,12 +373,12 @@ private fun testInntektsmelding(id: UUID) = """
 """.trimIndent()
 
 @Language("JSON")
-private val testSøknad = """
+private fun testSøknad(hendelseId: String, dokumentId: String)= """
     {
       "@event_name": "sendt_søknad_nav",
-      "@id": "59fbfbee-1e7d-4b60-9604-20f77ee62d0f",
+      "@id": "$hendelseId",
       "@opprettet": "2022-02-15T08:36:34.842818327",
-      "id": "be4586ce-d45e-419b-8271-1bc2be839e16",
+      "id": "$dokumentId",
       "fnr": "24068715888",
       "type": "ARBEIDSTAKERE",
       "status": "SENDT",
