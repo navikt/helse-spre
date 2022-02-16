@@ -3,6 +3,8 @@ gcp:
   databaseName: spre-subsumsjon
 kafkaPool: nav-prod
 kafkaResetPolicy: earliest
+minReplicas: 24
+maxReplicas: 24
 env:
   - name: SUBSUMSJON_TOPIC
     value: flex.omrade-helse-etterlevelse
