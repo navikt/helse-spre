@@ -1,6 +1,8 @@
 package no.nav.helse.spre.subsumsjon
 
 import no.nav.helse.rapids_rivers.*
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 class VedtakForkastetRiver(
@@ -18,6 +20,9 @@ class VedtakForkastetRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val datoForVedtak = LocalDateTime.parse(packet["@opprettet"].asText()).toLocalDate()
+        val startdatoSubsumsjoner = LocalDate.of(2022, 2, 15)
+        if (datoForVedtak < startdatoSubsumsjoner) return
         subsumsjonPublisher(fødselsnummer(packet), vedtak_forkastet(packet))
     }
 

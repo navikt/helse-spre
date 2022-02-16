@@ -8,6 +8,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.testcontainers.containers.PostgreSQLContainer
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class VedtakTest {
@@ -56,11 +59,21 @@ internal class VedtakTest {
         assertEquals(1, resultat.size)
     }
 
+    @Test
+    fun `vedtak fattet før 15 februar republiseres ikke`() {
+        testRapid.sendTestMessage(testVedtakFattet(UUID.randomUUID().toString(), LocalDate.of(2022, 2, 14).atStartOfDay()))
+        assertEquals(0, resultat.size)
+    }
 
+    @Test
+    fun `vedtak forkastet før 15 februar republiseres ikke`() {
+        testRapid.sendTestMessage(testVedtaksperiodeForkastet(UUID.randomUUID().toString(), LocalDate.of(2022, 2, 14).atStartOfDay()))
+        assertEquals(0, resultat.size)
+    }
 }
 
 @Language("JSON")
-private fun testVedtakFattet(id: String) = """
+private fun testVedtakFattet(id: String, opprettet: LocalDateTime = LocalDateTime.parse("2022-02-15T00:00:00.000000000")) = """
     {
       "fom": "2022-02-01",
       "tom": "2022-02-15",
@@ -75,7 +88,7 @@ private fun testVedtakFattet(id: String) = """
       "utbetalingId": "fb682440-524a-42f4-b4f6-9fb9fe7fe6bb",
       "@event_name": "vedtak_fattet",
       "@id": "$id",
-      "@opprettet": "2022-02-15T12:27:19.485638226",
+      "@opprettet": "$opprettet",
       "fødselsnummer": "31056203918",
       "aktørId": "2298954396024",
       "organisasjonsnummer": "947064649",
@@ -84,12 +97,12 @@ private fun testVedtakFattet(id: String) = """
 """.trimIndent()
 
 @Language("JSON")
-private fun testVedtaksperiodeForkastet(id: String) = """
+private fun testVedtaksperiodeForkastet(id: String, opprettet: LocalDateTime = LocalDateTime.parse("2022-02-15T00:00:00.000000000")) = """
     {
       "tilstand": "TIL_INFOTRYGD",
       "@event_name": "vedtaksperiode_forkastet",
       "@id": "$id",
-      "@opprettet": "2022-02-15T12:46:13.134397767",
+      "@opprettet": "$opprettet",
       "fødselsnummer": "16029121021",
       "organisasjonsnummer": "947064649",
       "vedtaksperiodeId": "049aa630-c361-45fb-9aae-f86db7978c88"
