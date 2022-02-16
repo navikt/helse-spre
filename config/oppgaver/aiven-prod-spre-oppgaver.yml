@@ -30,6 +30,9 @@ spec:
         - team: flex
           application: syfogsak
           access: read
+        - team: flex
+          application: sykepengesoknad-arkivering-oppgave
+          access: read
         - team: helsearbeidsgiver
           application: syfoinntektsmelding
           access: read
