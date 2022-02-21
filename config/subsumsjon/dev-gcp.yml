@@ -2,7 +2,7 @@ gcp:
   type: POSTGRES_12
   databaseName: spre-subsumsjon
 kafkaPool: nav-dev
-kafkaConsumerGroup: tbd-spre-subsumsjon-v2
+kafkaConsumerGroup: tbd-spre-subsumsjon-v3
 kafkaResetPolicy: earliest
 env:
   - name: SUBSUMSJON_TOPIC
