@@ -1,1 +1,1 @@
-CREATE INDEX hendelse_hendelse_id_idx ON hendelse_dokument_kobling (hendelse_id);
+CREATE INDEX hendelse_dokument_kobling_hendelse_id_idx ON hendelse_dokument_kobling (hendelse_id);
