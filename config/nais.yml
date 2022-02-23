@@ -57,6 +57,7 @@ spec:
         databases:
           - name: {{gcp.databaseName}}
             envVarPrefix: DB
+        diskAutoresize: {{#if diskAutoResize }}{{ diskAutoResize }}{{else}}false{{/if}}
   {{/if}}
   prometheus:
     enabled: true
