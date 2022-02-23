@@ -28,9 +28,6 @@ spec:
           application: spangre-utsettelser
           access: readwrite
         - team: flex
-          application: syfogsak
-          access: read
-        - team: flex
           application: sykepengesoknad-arkivering-oppgave
           access: read
         - team: helsearbeidsgiver
