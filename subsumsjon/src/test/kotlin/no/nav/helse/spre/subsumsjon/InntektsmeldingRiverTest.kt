@@ -28,7 +28,7 @@ class InntektsmeldingRiverTest {
                 postgres.jdbcUrl,
                 postgres.username,
                 postgres.password
-            ).getMigratedDataSource()
+            ).migratedDataSource()
         )
 
         river = InntektsmeldingRiver(testRapid, mappingDao)

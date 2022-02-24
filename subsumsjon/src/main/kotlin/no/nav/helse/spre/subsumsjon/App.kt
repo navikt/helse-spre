@@ -26,7 +26,7 @@ fun main() {
     val kafkaProducer = createProducer(env)
     val config = Config.fromEnv()
     val mappingDao =
-        MappingDao(DataSourceBuilder(config.jdbcUrl, config.username, config.password).getMigratedDataSource())
+        MappingDao(DataSourceBuilder(config.jdbcUrl, config.username, config.password).datasource())
     val rapid = RapidApplication.create(env)
     val publisher = { key: String, value: String ->
         kafkaProducer.send(ProducerRecord(config.subsumsjonTopic, key, value)) { _, err ->
@@ -39,7 +39,7 @@ fun main() {
     // Migrer databasen før vi starter å konsumere fra rapid
     rapid.register(object : RapidsConnection.StatusListener {
         override fun onStartup(rapidsConnection: RapidsConnection) {
-            DataSourceBuilder(config.jdbcUrl, config.username, config.password).getMigratedDataSource()
+            DataSourceBuilder(config.jdbcUrl, config.username, config.password).migratedDataSource()
         }
     })
 

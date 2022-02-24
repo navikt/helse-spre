@@ -28,7 +28,7 @@ class SøknadRiverTest {
                 postgres.jdbcUrl,
                 postgres.username,
                 postgres.password
-            ).getMigratedDataSource()
+            ).migratedDataSource()
         )
 
         river = SøknadRiver(testRapid, mappingDao)

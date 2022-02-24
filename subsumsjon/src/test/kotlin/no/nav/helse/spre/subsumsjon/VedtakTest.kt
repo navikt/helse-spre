@@ -36,7 +36,7 @@ internal class VedtakTest {
                 postgres.jdbcUrl,
                 postgres.username,
                 postgres.password
-            ).getMigratedDataSource()
+            ).migratedDataSource()
         )
         fattetRiver = VedtakFattetRiver(testRapid) { key, value -> resultat.add(Pair(key, value)) }
         forkastetRiver = VedtakForkastetRiver(testRapid) { key, value -> resultat.add(Pair(key, value)) }

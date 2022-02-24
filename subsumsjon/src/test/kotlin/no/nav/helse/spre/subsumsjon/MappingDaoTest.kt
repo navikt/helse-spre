@@ -29,7 +29,7 @@ class MappingDaoTest {
                 postgres.jdbcUrl,
                 postgres.username,
                 postgres.password
-            ).getMigratedDataSource()
+            ).migratedDataSource()
         )
 
     }

@@ -30,7 +30,7 @@ internal class SykemeldingRiverTest {
                 postgres.jdbcUrl,
                 postgres.username,
                 postgres.password
-            ).getMigratedDataSource()
+            ).migratedDataSource()
         )
 
         river = SykemeldingRiver(testRapid, mappingDao, idValidation)

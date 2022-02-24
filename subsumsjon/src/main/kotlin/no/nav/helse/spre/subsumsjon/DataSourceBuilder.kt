@@ -18,11 +18,13 @@ internal class DataSourceBuilder(private val jdbcDatabaseUrl: String, private va
         maxLifetime = 30001
     }
 
-    fun getMigratedDataSource(): HikariDataSource = HikariDataSource(hikariConfig).apply {
+    internal fun migratedDataSource(): HikariDataSource = HikariDataSource(hikariConfig).apply {
         Flyway.configure()
             .dataSource(this)
             .load()
             .migrate()
     }
+
+    internal fun datasource() = HikariDataSource(hikariConfig)
 
 }

@@ -41,7 +41,7 @@ internal class SubsumsjonTest {
                 postgres.jdbcUrl,
                 postgres.username,
                 postgres.password
-            ).getMigratedDataSource()
+            ).migratedDataSource()
         )
 
         sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao, IdValidation(emptyList()))
