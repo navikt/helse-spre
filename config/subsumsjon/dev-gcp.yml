@@ -4,6 +4,8 @@ gcp:
 kafkaPool: nav-dev
 kafkaConsumerGroup: tbd-spre-subsumsjon-v3
 kafkaResetPolicy: earliest
+livenessInitialDelay: 7200
+readinessInitialDelay: 7200
 env:
   - name: SUBSUMSJON_TOPIC
     value: flex.omrade-helse-etterlevelse

@@ -5,6 +5,8 @@ kafkaPool: nav-prod
 kafkaResetPolicy: earliest
 minReplicas: 1
 maxReplicas: 1
+livenessInitialDelay: 7200
+readinessInitialDelay: 7200
 diskAutoResize: true
 env:
   - name: SUBSUMSJON_TOPIC
