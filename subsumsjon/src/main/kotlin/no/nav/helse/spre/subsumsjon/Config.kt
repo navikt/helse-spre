@@ -6,7 +6,8 @@ class Config(
     private val databasePort: String,
     internal val username: String,
     internal val password: String,
-    internal val subsumsjonTopic: String
+    internal val subsumsjonTopic: String,
+    internal val poisonPills: List<String>
 ) {
 
 
@@ -27,7 +28,8 @@ class Config(
             val password =
                 requireNotNull(env["DB_PASSWORD"]) { "DB_PASSWORD is required config" }
             val topic = requireNotNull(env["SUBSUMSJON_TOPIC"]) { " SUBSUMSJON_TOPIC is required config " }
-            return Config(databaseName, databaseHost, databasePort, username, password, topic)
+            val poisonPills = env["POISON_PILLS"]?.split(',') ?: emptyList()
+            return Config(databaseName, databaseHost, databasePort, username, password, topic, poisonPills)
         }
     }
 }

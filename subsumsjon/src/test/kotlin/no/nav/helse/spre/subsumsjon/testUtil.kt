@@ -8,7 +8,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 internal fun resetMappingDb(postgres: PostgreSQLContainer<Nothing>) {
     sessionOf(DataSourceBuilder(postgres.jdbcUrl, postgres.username, postgres.password).getMigratedDataSource()).use { session ->
         @Language("PostgreSQL")
-        val query = "TRUNCATE TABLE hendelse_id_mapping"
+        val query = "TRUNCATE TABLE hendelse_dokument_kobling"
         session.run(queryOf(query).asExecute)
     }
 }

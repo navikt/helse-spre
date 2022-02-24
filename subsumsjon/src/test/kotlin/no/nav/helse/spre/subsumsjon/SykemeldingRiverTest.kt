@@ -14,6 +14,7 @@ internal class SykemeldingRiverTest {
     private lateinit var mappingDao: MappingDao
     private lateinit var river: SykemeldingRiver
     private val testRapid = TestRapid()
+    private val idValidation = IdValidation(listOf("someNotValidUUID"))
 
 
     @BeforeAll
@@ -32,7 +33,7 @@ internal class SykemeldingRiverTest {
             ).getMigratedDataSource()
         )
 
-        river = SykemeldingRiver(testRapid, mappingDao)
+        river = SykemeldingRiver(testRapid, mappingDao, idValidation)
 
     }
 
@@ -47,6 +48,15 @@ internal class SykemeldingRiverTest {
         testRapid.sendTestMessage(testSykmelding)
         assertEquals(
             UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707"),
+            mappingDao.hent(UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56"))
+        )
+    }
+
+    @Test
+    fun `ignorerer poison pills`() {
+        testRapid.sendTestMessage(sykmeldingMedPoisonousId)
+        assertEquals(
+            null,
             mappingDao.hent(UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56"))
         )
     }
@@ -72,6 +82,17 @@ private val testSykmelding = """
     {
       "id": "5995d335-16f9-39b3-a50d-aa744a6af27c",
       "sykmeldingId": "6f0a0911-fc3f-4a55-8fb7-8222388b1707",
+      "@event_name": "ny_søknad",
+      "@id": "c844bc55-6be7-4987-9116-a0b7cb95ad56",
+      "@opprettet": "2022-02-14T09:24:11.428837001"
+    }
+""".trimIndent()
+
+@Language("JSON")
+private val sykmeldingMedPoisonousId = """
+    {
+      "id": "5995d335-16f9-39b3-a50d-aa744a6af27c",
+      "sykmeldingId": "someNotValidUUID",
       "@event_name": "ny_søknad",
       "@id": "c844bc55-6be7-4987-9116-a0b7cb95ad56",
       "@opprettet": "2022-02-14T09:24:11.428837001"

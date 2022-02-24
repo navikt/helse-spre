@@ -44,7 +44,7 @@ internal class SubsumsjonTest {
             ).getMigratedDataSource()
         )
 
-        sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao)
+        sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao, IdValidation(emptyList()))
         søknadRiver = SøknadRiver(testRapid, mappingDao)
         inntektsmeldingRiver = InntektsmeldingRiver(testRapid, mappingDao)
     }

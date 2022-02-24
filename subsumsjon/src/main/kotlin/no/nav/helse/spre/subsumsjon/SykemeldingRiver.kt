@@ -3,9 +3,10 @@ package no.nav.helse.spre.subsumsjon
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 
-class SykemeldingRiver(
+internal class SykemeldingRiver(
     rapidsConnection: RapidsConnection,
-    private val mappingDao: MappingDao
+    private val mappingDao: MappingDao,
+    private val idValidation: IdValidation
 ) : River.PacketListener {
 
 
@@ -19,18 +20,22 @@ class SykemeldingRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val id = packet["@id"].toUUID()
+        val sykmeldingId = packet["sykmeldingId"]
+        if (idValidation.isPoisonous(sykmeldingId.asText())) {
+            sikkerLogg.warn("Fant poison pill, lagrer ikke sykmelding. HendelseId: $id, [poisonous] dokumentId: $sykmeldingId")
+            return
+        }
         mappingDao.lagre(
-            packet["@id"].toUUID(),
-            packet["sykmeldingId"].toUUID(),
+            id,
+            sykmeldingId.toUUID(),
             packet["@event_name"].asText(),
             packet["@opprettet"].asLocalDateTime()
         )
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        sikkerLogg.error("Feil under validering av ny_søknad  problems: ${problems.toExtendedReport()} ")
+        sikkerLogg.error("Feil under validering av ny_søknad problems: ${problems.toExtendedReport()} ")
         throw IllegalArgumentException("Feil under validering av ny_søknad")
     }
 }
-
-

@@ -38,7 +38,7 @@ fun main() {
 
     rapid.apply {
         SubsumsjonRiver(this, mappingDao) { key, value -> publisher(key, value) }
-        SykemeldingRiver(this, mappingDao)
+        SykemeldingRiver(this, mappingDao, IdValidation(config.poisonPills))
         SøknadRiver(this, mappingDao)
         InntektsmeldingRiver(this, mappingDao)
         VedtakFattetRiver(this) { key, value -> publisher(key, value) }
@@ -46,6 +46,9 @@ fun main() {
     }.start()
 }
 
+internal class IdValidation(private val poisonPills: List<String>) {
+    fun isPoisonous(targetId: String): Boolean = targetId in poisonPills
+}
 
 private fun createProducer(env: Map<String, String>): KafkaProducer<String, String> {
     val properties = Properties().apply {
