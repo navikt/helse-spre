@@ -36,14 +36,21 @@ fun main() {
         }
     }
 
-//    rapid.apply {
-//        SubsumsjonRiver(this, mappingDao) { key, value -> publisher(key, value) }
-//        SykemeldingRiver(this, mappingDao, IdValidation(config.poisonPills))
-//        SøknadRiver(this, mappingDao)
-//        InntektsmeldingRiver(this, mappingDao)
-//        VedtakFattetRiver(this) { key, value -> publisher(key, value) }
-//        VedtakForkastetRiver(this) { key, value -> publisher(key, value) }
-//    }.start()
+    // Migrer databasen før vi starter å konsumere fra rapid
+    rapid.register(object : RapidsConnection.StatusListener {
+        override fun onStartup(rapidsConnection: RapidsConnection) {
+            DataSourceBuilder(config.jdbcUrl, config.username, config.password).getMigratedDataSource()
+        }
+    })
+
+    rapid.apply {
+        SubsumsjonRiver(this, mappingDao) { key, value -> publisher(key, value) }
+        SykemeldingRiver(this, mappingDao, IdValidation(config.poisonPills))
+        SøknadRiver(this, mappingDao)
+        InntektsmeldingRiver(this, mappingDao)
+        VedtakFattetRiver(this) { key, value -> publisher(key, value) }
+        VedtakForkastetRiver(this) { key, value -> publisher(key, value) }
+    }.start()
 }
 
 internal class IdValidation(private val poisonPills: List<String>) {

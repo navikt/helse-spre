@@ -23,10 +23,10 @@ spec:
   {{/if}}
   liveness:
     path: isalive
-    initialDelay: {{#if livenessInitialDelay }}{{ initialDelay }}{{else}}5{{/if}}
+    initialDelay: {{#if livenessInitialDelay }}{{ livenessInitialDelay }}{{else}}5{{/if}}
   readiness:
     path: isready
-    initialDelay: {{#if readinessInitialDelay }}{{ initialDelay }}{{else}}5{{/if}}
+    initialDelay: {{#if readinessInitialDelay }}{{ readinessInitialDelay }}{{else}}5{{/if}}
   resources:
     limits:
       cpu: 2000m
