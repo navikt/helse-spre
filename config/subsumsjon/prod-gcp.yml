@@ -3,8 +3,8 @@ gcp:
   databaseName: spre-subsumsjon
 kafkaPool: nav-prod
 kafkaResetPolicy: earliest
-minReplicas: 0
-maxReplicas: 0
+minReplicas: 1
+maxReplicas: 1
 diskAutoResize: true
 env:
   - name: SUBSUMSJON_TOPIC

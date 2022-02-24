@@ -13,7 +13,7 @@ class MappingDao(
 ) {
     fun lagre(hendelseId: UUID, dokumentId: UUID, hendelseNavn: String, produsert: LocalDateTime) = sessionOf(dataSource).use { session ->
         @Language("PostgreSQL")
-        val query = "INSERT INTO hendelse_id_mapping (hendelse_id, dokument_id, hendelse_navn, publisert) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING"
+        val query = "INSERT INTO hendelse_dokument_kobling (hendelse_id, dokument_id, hendelse_type, publisert) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING"
         session.run(
             queryOf(query, hendelseId, dokumentId, hendelseNavn, produsert).asUpdate
         )
@@ -21,7 +21,7 @@ class MappingDao(
 
     fun hent(hendelseId: UUID): UUID? = sessionOf(dataSource).use { session ->
         @Language("PostgreSQL")
-        val query = "SELECT dokument_id FROM hendelse_id_mapping WHERE hendelse_id = ?"
+        val query = "SELECT dokument_id FROM hendelse_dokument_kobling WHERE hendelse_id = ?"
         session.run(
             queryOf(query, hendelseId).map { UUID.fromString(it.string("dokument_id")) }.asSingle
         )
