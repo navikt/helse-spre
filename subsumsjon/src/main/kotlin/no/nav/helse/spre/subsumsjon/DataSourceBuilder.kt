@@ -16,6 +16,7 @@ internal class DataSourceBuilder(private val jdbcDatabaseUrl: String, private va
         idleTimeout = 10001
         connectionTimeout = 1000
         maxLifetime = 30001
+        initializationFailTimeout = 30000
     }
 
     internal fun migratedDataSource(): HikariDataSource = HikariDataSource(hikariConfig).apply {

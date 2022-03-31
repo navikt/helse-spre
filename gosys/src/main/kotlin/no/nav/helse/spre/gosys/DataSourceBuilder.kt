@@ -14,6 +14,7 @@ internal class DataSourceBuilder(val env: DatabaseEnvironment) {
         idleTimeout = 10001
         connectionTimeout = 1000
         maxLifetime = 30001
+        initializationFailTimeout = 30000
     }
 
     fun getDataSource(role: Role = Role.User) =
