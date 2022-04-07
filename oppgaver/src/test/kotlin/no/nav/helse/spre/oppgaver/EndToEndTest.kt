@@ -663,6 +663,67 @@ class EndToEndTest {
         }
     }
 
+    @Test
+    fun `setter ny timeout på oppgaver når vedtaksperioden går til godkjenning`() {
+        val inntektsmeldingHendelseId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
+        val søknadHendelseId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
+
+        sendSøknad(søknadHendelseId, søknadDokumentId)
+        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
+            tilstand = "AVVENTER_SØKNAD_FERDIG_GAP",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
+            tilstand = "AVVENTER_GODKJENNING",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+
+        assertEquals(4, publiserteOppgaver.size)
+
+        publiserteOppgaver[2].also { dto ->
+            dto.assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
+        }
+        publiserteOppgaver[3].also { dto ->
+            dto.assertInnhold(Utsett, søknadDokumentId, Søknad)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
+        }
+    }
+
+    @Test
+    fun `setter ikke ny timeout hvis IM-oppgave allerede er avsluttet`() {
+        val søknad1HendelseId = UUID.randomUUID()
+        val søknad1DokumentId = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
+
+        sendSøknad(søknad1HendelseId, søknad1DokumentId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId),
+            tilstand = "AVVENTER_UFERDIG",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+        opprettOppgave(hendelseIder = listOf(søknad1HendelseId))
+
+        publiserteOppgaver[1].assertInnhold(Opprett, søknad1DokumentId, Søknad)
+        val antallOppgaverFørOgEtterGodkjenningEvent = 2
+        assertEquals(antallOppgaverFørOgEtterGodkjenningEvent, publiserteOppgaver.size)
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId),
+            tilstand = "AVVENTER_GODKJENNING",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+        assertEquals(antallOppgaverFørOgEtterGodkjenningEvent, publiserteOppgaver.size)
+    }
+
     companion object {
         @JvmStatic
         fun permutations() = listOf(

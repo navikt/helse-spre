@@ -33,7 +33,7 @@ class OppgaveObserver(
                     "@event_name" to oppgave.tilstand.toEventName(),
                     "@id" to UUID.randomUUID(),
                     "dokumentId" to oppgave.dokumentId,
-                    "hendelseId" to oppgave.hendelseId
+                    "hendelseId" to oppgave.hendelseId,
                 )
             ).toJson()
         )
@@ -42,6 +42,35 @@ class OppgaveObserver(
             "Publisert oppgave på ${oppgave.dokumentType.name} i tilstand: ${oppgave.tilstand} med ider: {}, {}",
             StructuredArguments.keyValue("hendelseId", oppgave.hendelseId),
             StructuredArguments.keyValue("dokumentId", oppgave.dokumentId)
+        )
+    }
+
+    override fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime) {
+        val dto = OppgaveDTO(
+            dokumentType = oppgave.dokumentType.toDTO(),
+            oppdateringstype = oppgave.tilstand.toDTO(),
+            dokumentId = oppgave.dokumentId,
+            timeout = timeout,
+        )
+
+        publisist.publiser(oppgave.dokumentId.toString(), dto)
+
+        rapidsConnection.publish(
+            JsonMessage.newMessage(
+                mapOf(
+                    "@event_name" to oppgave.tilstand.toEventName(),
+                    "@id" to UUID.randomUUID(),
+                    "dokumentId" to oppgave.dokumentId,
+                    "hendelseId" to oppgave.hendelseId,
+                    "timeout" to timeout,
+                )
+            ).toJson()
+        )
+
+        log.info(
+            "Publisert forlenging av timeout for oppgave på ${oppgave.dokumentType.name} i tilstand: ${oppgave.tilstand} med ider: {}, {}",
+            StructuredArguments.keyValue("hendelseId", oppgave.hendelseId),
+            StructuredArguments.keyValue("dokumentId", oppgave.dokumentId),
         )
     }
 

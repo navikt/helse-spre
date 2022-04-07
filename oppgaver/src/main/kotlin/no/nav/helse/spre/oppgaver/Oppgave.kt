@@ -20,7 +20,13 @@ class Oppgave(
     interface Observer {
         fun lagre(oppgave: Oppgave) {}
         fun publiser(oppgave: Oppgave) {}
+        fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime)
     }
+
+    // Skal ikke sende forleng-signal for oppgaver som allerede er avluttet
+    fun forlengTimeout() = if (kanUtsettes()) observer?.forlengTimeout(this, LocalDateTime.now().plusDays(110)) else Unit
+
+    private fun kanUtsettes() = tilstand == Tilstand.SpleisLest || tilstand == Tilstand.KortInntektsmeldingFerdigbehandlet
 
     fun håndter(hendelse: Hendelse.TilInfotrygd) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) = tilstand.håndter(this, hendelse)
