@@ -663,6 +663,60 @@ class EndToEndTest {
         }
     }
 
+    @Test
+    fun `setter ny timeout på IM-oppgave når vedtaksperioden går til godkjenning`() {
+        val hendelseId = UUID.randomUUID()
+        val dokumentId = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
+
+        sendInntektsmelding(hendelseId, dokumentId)
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(hendelseId),
+            tilstand = "AVVENTER_SØKNAD_FERDIG_GAP",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(hendelseId),
+            tilstand = "AVVENTER_GODKJENNING",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+
+        assertEquals(2, publiserteOppgaver.size)
+
+        publiserteOppgaver[1].also { dto ->
+            dto.assertInnhold(Utsett, dokumentId, Inntektsmelding)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
+        }
+    }
+
+    @Test
+    fun `setter ikke ny timeout hvis IM-oppgave allerede er avsluttet`() {
+        val søknad1HendelseId = UUID.randomUUID()
+        val søknad1DokumentId = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
+
+        sendSøknad(søknad1HendelseId, søknad1DokumentId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId),
+            tilstand = "AVVENTER_UFERDIG",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+        opprettOppgave(hendelseIder = listOf(søknad1HendelseId))
+
+        publiserteOppgaver[1].assertInnhold(Opprett, søknad1DokumentId, Søknad)
+        val antallOppgaverFørOgEtterGodkjenningEvent = 2
+        assertEquals(antallOppgaverFørOgEtterGodkjenningEvent, publiserteOppgaver.size)
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId),
+            tilstand = "AVVENTER_GODKJENNING",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+        assertEquals(antallOppgaverFørOgEtterGodkjenningEvent, publiserteOppgaver.size)
+    }
+
     companion object {
         @JvmStatic
         fun permutations() = listOf(
