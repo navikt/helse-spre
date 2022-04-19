@@ -29,6 +29,7 @@ internal class SykemeldingRiver(
         mappingDao.lagre(
             id,
             sykmeldingId.toUUID(),
+            DokumentIdType.Sykmelding,
             packet["@event_name"].asText(),
             packet["@opprettet"].asLocalDateTime()
         )

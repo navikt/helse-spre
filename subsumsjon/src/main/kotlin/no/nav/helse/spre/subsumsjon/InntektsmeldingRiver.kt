@@ -22,6 +22,7 @@ class InntektsmeldingRiver (
         mappingDao.lagre(
             packet["@id"].toUUID(),
             packet["inntektsmeldingId"].toUUID(),
+            DokumentIdType.Inntektsmelding,
             packet["@event_name"].asText(),
             packet["@opprettet"].asLocalDateTime()
         )

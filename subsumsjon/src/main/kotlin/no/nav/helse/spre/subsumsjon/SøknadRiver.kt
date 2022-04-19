@@ -15,6 +15,7 @@ class SøknadRiver(
             validate { it.demandAny("@event_name", listOf("sendt_søknad_nav", "sendt_søknad_arbeidsgiver")) }
             validate { it.requireKey("@id") }
             validate { it.requireKey("id") }
+            validate { it.requireKey("sykmeldingId") }
             validate { it.require("@opprettet", JsonNode::asLocalDateTime) }
         }.register(this)
     }
@@ -23,6 +24,14 @@ class SøknadRiver(
         mappingDao.lagre(
             packet["@id"].toUUID(),
             packet["id"].toUUID(),
+            DokumentIdType.Søknad,
+            packet["@event_name"].asText(),
+            packet["@opprettet"].asLocalDateTime()
+        )
+        mappingDao.lagre(
+            packet["@id"].toUUID(),
+            packet["sykmeldingId"].toUUID(),
+            DokumentIdType.Sykmelding,
             packet["@event_name"].asText(),
             packet["@opprettet"].asLocalDateTime()
         )
