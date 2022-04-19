@@ -48,7 +48,7 @@ internal class SykemeldingRiverTest {
         testRapid.sendTestMessage(testSykmelding)
         assertEquals(
             UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707"),
-            mappingDao.hent(UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56"))
+            mappingDao.hentSykmeldingId(UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56"))
         )
     }
 
@@ -57,7 +57,7 @@ internal class SykemeldingRiverTest {
         testRapid.sendTestMessage(sykmeldingMedPoisonousId)
         assertEquals(
             null,
-            mappingDao.hent(UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56"))
+            mappingDao.hentSykmeldingId(UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56"))
         )
     }
 

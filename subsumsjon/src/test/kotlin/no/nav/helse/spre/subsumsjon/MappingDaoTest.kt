@@ -48,13 +48,13 @@ class MappingDaoTest {
             "test_event",
             LocalDateTime.now()
         )
-        val result = mappingDao.hent(UUID.fromString("e07f59f8-3cf0-454d-bf3b-02058ef7ceeb"))
+        val result = mappingDao.hentSøknadId(UUID.fromString("e07f59f8-3cf0-454d-bf3b-02058ef7ceeb"))
         assertEquals(UUID.fromString("820a302d-27fd-4c8c-b5d1-49f9126fc89d"), result)
     }
 
     @Test
     fun `hent en hendelse som ikke er lagret`() {
-        val result = mappingDao.hent(UUID.fromString("e07f59f8-3cf0-454d-bf3b-02058ef7ceeb"))
+        val result = mappingDao.hentSøknadId(UUID.fromString("e07f59f8-3cf0-454d-bf3b-02058ef7ceeb"))
         assertNull(result)
     }
 }

@@ -22,18 +22,18 @@ class SøknadRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         mappingDao.lagre(
-            packet["@id"].toUUID(),
-            packet["id"].toUUID(),
-            DokumentIdType.Søknad,
-            packet["@event_name"].asText(),
-            packet["@opprettet"].asLocalDateTime()
+            hendelseId = packet["@id"].toUUID(),
+            dokumentId = packet["id"].toUUID(),
+            dokumentIdType = DokumentIdType.Søknad,
+            hendelseNavn = packet["@event_name"].asText(),
+            produsert = packet["@opprettet"].asLocalDateTime()
         )
         mappingDao.lagre(
-            packet["@id"].toUUID(),
-            packet["sykmeldingId"].toUUID(),
-            DokumentIdType.Sykmelding,
-            packet["@event_name"].asText(),
-            packet["@opprettet"].asLocalDateTime()
+            hendelseId = packet["@id"].toUUID(),
+            dokumentId = packet["sykmeldingId"].toUUID(),
+            dokumentIdType = DokumentIdType.Sykmelding,
+            hendelseNavn = packet["@event_name"].asText(),
+            produsert = packet["@opprettet"].asLocalDateTime()
         )
     }
 

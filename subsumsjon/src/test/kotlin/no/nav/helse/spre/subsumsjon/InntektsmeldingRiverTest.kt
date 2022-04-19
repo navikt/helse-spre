@@ -46,7 +46,7 @@ class InntektsmeldingRiverTest {
         testRapid.sendTestMessage(testInntektsmelding("ebe84db6-049d-49c4-b09e-480a03b1d470"))
         Assertions.assertEquals(
             UUID.fromString("29735b0d-921c-44b3-a4f2-56b3aa1d0e36"),
-            mappingDao.hent(UUID.fromString("ebe84db6-049d-49c4-b09e-480a03b1d470"))
+            mappingDao.hentInntektsmeldingId(UUID.fromString("ebe84db6-049d-49c4-b09e-480a03b1d470"))
         )
     }
 

@@ -46,7 +46,7 @@ class SøknadRiverTest {
         testRapid.sendTestMessage(testSendtSøknadNav("6f0a0911-fc3f-4a55-8fb7-8222388b1707"))
         Assertions.assertEquals(
             UUID.fromString("3721cc0d-33f6-4df5-8d2d-41e72dcf648b"),
-            mappingDao.hent(UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707"))
+            mappingDao.hentSøknadId(UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707"))
         )
     }
 
@@ -55,7 +55,7 @@ class SøknadRiverTest {
         testRapid.sendTestMessage(testSendtSøknadArbeidsgiver("6f0a0911-fc3f-4a55-8fb7-8222388b1707"))
         Assertions.assertEquals(
             UUID.fromString("3721cc0d-33f6-4df5-8d2d-41e72dcf648b"),
-            mappingDao.hent(UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707"))
+            mappingDao.hentSøknadId(UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707"))
         )
     }
 

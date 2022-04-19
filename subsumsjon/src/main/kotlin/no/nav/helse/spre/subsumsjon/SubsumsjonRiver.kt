@@ -53,14 +53,14 @@ internal class SubsumsjonRiver(
         val mapper = Mapper(mappingDao, packet["@id"].asText(), fødselsnummer, packet["subsumsjon.sporing"])
 
         val internSykmeldingIder = packet["subsumsjon.sporing.sykmelding"].toUUIDs()
-        val internSøkandIder = packet["subsumsjon.sporing.soknad"].toUUIDs()
+        val internSøknadIder = packet["subsumsjon.sporing.soknad"].toUUIDs()
         val internInntektsmeldingIder = packet["subsumsjon.sporing.inntektsmelding"].toUUIDs()
 
-        val sykmeldingIder = mapper.mapSykmeldingId(internSykmeldingIder)
-        val søkandIder = mapper.mapSøknadId(internSøkandIder)
-        val inntektsmeldingIder = mapper.mapInntektsmelding(internInntektsmeldingIder)
+        val sykmeldingIder = mapper.hentSykmeldingIder(internSykmeldingIder) + mapper.hentSykmeldingIder(internSøknadIder)
+        val søknadIder = mapper.hentSøknadIder(internSøknadIder)
+        val inntektsmeldingIder = mapper.hentInntektsmeldingIder(internInntektsmeldingIder)
 
-        log.info("Mapper subsumsjons sporing sykmelding: $internSykmeldingIder til $sykmeldingIder søknad: $internSøkandIder til $søkandIder " +
+        log.info("Mapper subsumsjons sporing sykmelding: $internSykmeldingIder til $sykmeldingIder søknad: $internSøknadIder til $søknadIder " +
                 "inntektsmelding: $internInntektsmeldingIder til $inntektsmeldingIder")
 
         mapper.updateSporing()

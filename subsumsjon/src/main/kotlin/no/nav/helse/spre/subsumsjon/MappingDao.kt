@@ -25,14 +25,6 @@ class MappingDao(
         )
     }
 
-    fun hent(hendelseId: UUID): UUID? = sessionOf(dataSource).use { session ->
-        @Language("PostgreSQL")
-        val query = "SELECT dokument_id FROM hendelse_dokument_mapping WHERE hendelse_id = ?"
-        session.run(
-            queryOf(query, hendelseId).map { UUID.fromString(it.string("dokument_id")) }.asSingle
-        )
-    }
-
     fun hentSykmeldingId(hendelseId: UUID) = hentHendelseDokumentId(hendelseId, DokumentIdType.Sykmelding)
     fun hentSøknadId(hendelseId: UUID) = hentHendelseDokumentId(hendelseId, DokumentIdType.Søknad)
     fun hentInntektsmeldingId(hendelseId: UUID) = hentHendelseDokumentId(hendelseId, DokumentIdType.Inntektsmelding)

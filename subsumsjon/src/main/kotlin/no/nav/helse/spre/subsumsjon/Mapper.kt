@@ -13,21 +13,27 @@ class Mapper(
     private val sporing: JsonNode
 ) {
     private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
-    private lateinit var sykmeldingIder: List<UUID>
-    private lateinit var søkandIder: List<UUID>
-    private lateinit var inntektsmeldingIder: List<UUID>
+    private val sykmeldingIder = mutableListOf<UUID>()
+    private val søkandIder = mutableListOf<UUID>()
+    private val inntektsmeldingIder = mutableListOf<UUID>()
 
 
-    fun mapSykmeldingId(hendlseIder: List<UUID>): List<UUID> {
-        return hendlseIder.map { mappingDao.hent(it) ?: håndterMissingId(it, "sykmelding") }.also { sykmeldingIder = it }
+    fun hentSykmeldingIder(hendelseIder: List<UUID>): List<UUID> {
+        val ider = hendelseIder.map { mappingDao.hentSykmeldingId(it) ?: håndterMissingId(it, "sykmelding") }
+        sykmeldingIder.addAll(ider)
+        return ider
     }
 
-    fun mapSøknadId(hendlseIder: List<UUID>): List<UUID> {
-        return hendlseIder.map { mappingDao.hent(it) ?: håndterMissingId(it, "søkand") }.also { søkandIder = it }
+    fun hentSøknadIder(hendelseIder: List<UUID>): List<UUID> {
+        val ider = hendelseIder.map { mappingDao.hentSøknadId(it) ?: håndterMissingId(it, "søkand") }
+        søkandIder.addAll(ider)
+        return ider
     }
 
-    fun mapInntektsmelding(hendlseIder: List<UUID>): List<UUID> {
-        return hendlseIder.map { mappingDao.hent(it) ?: håndterMissingId(it, "inntektsmelding") }.also { inntektsmeldingIder = it }
+    fun hentInntektsmeldingIder(hendelseIder: List<UUID>): List<UUID> {
+        val ider = hendelseIder.map { mappingDao.hentInntektsmeldingId(it) ?: håndterMissingId(it, "inntektsmelding") }
+        inntektsmeldingIder.addAll(ider)
+        return ider
     }
 
     fun håndterMissingId(hendlseId: UUID, eventName: String): Nothing {
