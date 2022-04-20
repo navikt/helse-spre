@@ -23,7 +23,7 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
 internal val log = LoggerFactory.getLogger("helse-spre-oppgaver")
 
 fun interface Publisist {
-    fun publiser(oppgaveDTO: OppgaveDTO): Any
+    fun publiser(dokumentId: String, oppgaveDTO: OppgaveDTO): Any
 }
 
 fun main() {
@@ -41,7 +41,15 @@ fun launchApplication(
 
     val kafkaProducer = createProducer(environment)
 
-    val publisist = { oppgave: OppgaveDTO -> kafkaProducer.send(ProducerRecord("tbd.spre-oppgaver", oppgave)) }
+    val publisist = { dokumentId: String, oppgave: OppgaveDTO ->
+        kafkaProducer.send(
+            ProducerRecord(
+                "tbd.spre-oppgaver",
+                dokumentId,
+                oppgave
+            )
+        )
+    }
 
     return RapidApplication.create(environment).apply {
         registerRivers(oppgaveDAO, publisist)

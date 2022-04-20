@@ -27,7 +27,7 @@ class EndToEndTest {
     private var publiserteOppgaver = mutableListOf<OppgaveDTO>()
 
     init {
-        val fakePublisist = { dto: OppgaveDTO -> publiserteOppgaver.add(dto) }
+        val fakePublisist = { dokumentId: String, dto: OppgaveDTO -> publiserteOppgaver.add(dto) }
         rapid.registerRivers(oppgaveDAO, fakePublisist)
     }
 

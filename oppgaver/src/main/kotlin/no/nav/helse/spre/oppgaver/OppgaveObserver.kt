@@ -25,7 +25,7 @@ class OppgaveObserver(
             timeout = oppgave.timeout(),
         )
 
-        publisist.publiser(dto)
+        publisist.publiser(oppgave.dokumentId.toString(), dto)
 
         rapidsConnection.publish(
             JsonMessage.newMessage(
