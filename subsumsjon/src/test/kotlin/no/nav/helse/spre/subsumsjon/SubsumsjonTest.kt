@@ -128,7 +128,6 @@ internal class SubsumsjonTest {
 
     @Test
     fun `Subsumsjon uten sykmeldingIder`() {
-
         val søknadId = UUID.randomUUID()
         val inntektsmeldingId = UUID.randomUUID()
 
@@ -180,7 +179,7 @@ internal class SubsumsjonTest {
             dokumentId = søknadDokumentId,
             dokumentIdType = DokumentIdType.Søknad,
             hendelseNavn = "sendt_søknad_nav",
-            produsert = LocalDateTime.now()
+            produsert = LocalDateTime.of(2020, 1, 1, 12, 0)
         )
         mappingDao.lagre(
             hendelseId = inntektsmeldingId,
@@ -201,6 +200,44 @@ internal class SubsumsjonTest {
         }
         val subsumsjonMelding = resultater.last().second
         sykmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
+        søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
+        inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
+    }
+
+    @Test
+    fun `gammel vedtaksperiode som ble opprettet av søknad`() {
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        val søknadDokumentId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
+
+        mappingDao.lagre(
+            hendelseId = søknadId,
+            dokumentId = søknadDokumentId,
+            dokumentIdType = DokumentIdType.Søknad,
+            hendelseNavn = "sendt_søknad_nav",
+            produsert = LocalDateTime.of(2022, 1, 1, 12, 0)
+        )
+        mappingDao.lagre(
+            hendelseId = inntektsmeldingId,
+            dokumentId = inntektsmeldingDokumentId,
+            dokumentIdType = DokumentIdType.Inntektsmelding,
+            hendelseNavn = "inntektsmelding",
+            produsert = LocalDateTime.now()
+        )
+
+        assertDoesNotThrow {
+            testRapid.sendTestMessage(
+                testSubsumsjon(
+                    sykmeldingIder = emptyList(),
+                    søknadIder = listOf(søknadId),
+                    inntektsmeldingIder = listOf(inntektsmeldingId)
+                )
+            )
+        }
+        val subsumsjonMelding = resultater.last().second
+        assertEquals(emptyList<UUID>(), subsumsjonMelding.node("sporing.sykmelding").toUUIDs())
         søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
         inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
     }
@@ -465,7 +502,7 @@ private fun testSøknad(hendelseId: UUID, dokumentId: UUID, sykmeldingDokumentId
     {
       "@event_name": "sendt_søknad_nav",
       "@id": "$hendelseId",
-      "@opprettet": "2022-02-15T08:36:34.842818327",
+      "@opprettet": "${LocalDateTime.now()}",
       "id": "$dokumentId",
       "fnr": "24068715888",
       "type": "ARBEIDSTAKERE",

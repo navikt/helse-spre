@@ -25,6 +25,14 @@ class MappingDao(
         )
     }
 
+    fun hentPublisertDato(hendelseId: UUID): LocalDateTime? = sessionOf(dataSource).use { session ->
+        @Language("PostgreSQL")
+        val query = "SELECT publisert FROM hendelse_dokument_mapping WHERE hendelse_id = ?"
+        session.run(
+            queryOf(query, hendelseId).map { it.localDateTime("publisert") }.asSingle
+        )
+    }
+
     fun hentSykmeldingId(hendelseId: UUID) = hentHendelseDokumentId(hendelseId, DokumentIdType.Sykmelding)
     fun hentSøknadId(hendelseId: UUID) = hentHendelseDokumentId(hendelseId, DokumentIdType.Søknad)
     fun hentInntektsmeldingId(hendelseId: UUID) = hentHendelseDokumentId(hendelseId, DokumentIdType.Inntektsmelding)

@@ -1,6 +1,7 @@
 package no.nav.helse.spre.subsumsjon
 
 import no.nav.helse.rapids_rivers.*
+import java.time.LocalDate
 
 internal class SubsumsjonRiver(
     rapidsConnection: RapidsConnection,
@@ -54,10 +55,15 @@ internal class SubsumsjonRiver(
 
         val internSykmeldingIder = packet["subsumsjon.sporing.sykmelding"].toUUIDs()
         val internSøknadIder = packet["subsumsjon.sporing.soknad"].toUUIDs()
+        val datoDerViBegynteÅLagreSykmeldingIdFraSøknad = LocalDate.of(2022, 4, 20)
+        val internSøknadIderEtterDato =  packet["subsumsjon.sporing.soknad"].toUUIDs().filter {
+            val publisertDato = mappingDao.hentPublisertDato(it)
+            publisertDato == null || publisertDato.toLocalDate() >= datoDerViBegynteÅLagreSykmeldingIdFraSøknad
+        }
         val internInntektsmeldingIder = packet["subsumsjon.sporing.inntektsmelding"].toUUIDs()
 
-        val sykmeldingIder = mapper.hentSykmeldingIder(internSykmeldingIder).takeIf { it.isNotEmpty() }
-            ?: mapper.hentSykmeldingIder(internSøknadIder)
+        val sykmeldingIder = mapper.hentSykmeldingIder(internSykmeldingIder) +
+                mapper.hentSykmeldingIder(internSøknadIderEtterDato)
         val søknadIder = mapper.hentSøknadIder(internSøknadIder)
         val inntektsmeldingIder = mapper.hentInntektsmeldingIder(internInntektsmeldingIder)
 
