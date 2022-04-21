@@ -56,7 +56,8 @@ internal class SubsumsjonRiver(
         val internSøknadIder = packet["subsumsjon.sporing.soknad"].toUUIDs()
         val internInntektsmeldingIder = packet["subsumsjon.sporing.inntektsmelding"].toUUIDs()
 
-        val sykmeldingIder = mapper.hentSykmeldingIder(internSykmeldingIder) + mapper.hentSykmeldingIder(internSøknadIder)
+        val sykmeldingIder = mapper.hentSykmeldingIder(internSykmeldingIder).takeIf { it.isNotEmpty() }
+            ?: mapper.hentSykmeldingIder(internSøknadIder)
         val søknadIder = mapper.hentSøknadIder(internSøknadIder)
         val inntektsmeldingIder = mapper.hentInntektsmeldingIder(internInntektsmeldingIder)
 

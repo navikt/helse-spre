@@ -13,9 +13,11 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.PostgreSQLContainer
 import java.net.URI
+import java.time.LocalDateTime
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -62,51 +64,74 @@ internal class SubsumsjonTest {
             )
         }
 
+        val sykmeldingId = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        val sykmeldingDokumentId = UUID.randomUUID()
+        val sykemeldingDuplikatDokumentId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        val søknadDuplikatDokumentId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
+        val inntektsmeldingDuplikatDokumentId = UUID.randomUUID()
+
         testRapid.sendTestMessage(
-            testSykemelding(
-                hendelseId = UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56"),
-                dokumentId = UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707")
+            testSykmelding(
+                hendelseId = sykmeldingId,
+                dokumentId = sykmeldingDokumentId
             )
         )
         testRapid.sendTestMessage(
-            testSykemelding(
-                hendelseId = UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56"), // sjekk ny @id ikke endrer ekisterene mapping
-                dokumentId = UUID.fromString("adc52721-f9a2-40ae-bf1b-6945cf19c790")
+            testSykmelding(
+                hendelseId = sykmeldingId, // sjekk dokumentId ikke blir overskrevet av ny hendelse
+                dokumentId = sykemeldingDuplikatDokumentId
             )
         )
         testRapid.sendTestMessage(
-            testSykemelding(
-                hendelseId = UUID.fromString("6dad49e1-099b-44aa-a6f3-7132cdacd6aa"),
-                dokumentId = UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707")
+            testSykmelding(
+                hendelseId = UUID.randomUUID(),
+                dokumentId = sykmeldingDokumentId
             )
         )
         testRapid.sendTestMessage(testSøknad(
-            hendelseId = "59fbfbee-1e7d-4b60-9604-20f77ee62d0f",
-            dokumentId = "be4586ce-d45e-419b-8271-1bc2be839e16",
-            sykmeldingId = "3a82b571-d73f-4fc8-a0a7-527053004999"
+            hendelseId = søknadId,
+            dokumentId = søknadDokumentId,
+            sykmeldingDokumentId = sykmeldingDokumentId
         ))
-        testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b3b2a306-7baa-4916-899f-28c2ef2ca9e9")))
-        testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b211d477-254d-4dd1-bd16-cdbcc8554f01"))) // sjekk at vi kan håndtere flere av samme
-        testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b3b2a306-7baa-4916-899f-28c2ef2ca9e9"))) // sjekk at vi håndterer duplikater
+        testRapid.sendTestMessage(testSøknad(
+            hendelseId = søknadId,
+            dokumentId = søknadDuplikatDokumentId,
+            sykmeldingDokumentId = sykmeldingDokumentId
+        ))
+        testRapid.sendTestMessage(testInntektsmelding(
+            hendelseId = inntektsmeldingId,
+            inntektsmeldingId = inntektsmeldingDokumentId
+        ))
+        testRapid.sendTestMessage(testInntektsmelding(
+            hendelseId = UUID.randomUUID(),
+            inntektsmeldingId = inntektsmeldingDuplikatDokumentId
+        )) // sjekk at vi kan håndtere flere av samme
+        testRapid.sendTestMessage(testInntektsmelding(
+            hendelseId = inntektsmeldingId,
+            inntektsmeldingId = inntektsmeldingDuplikatDokumentId
+        )) // sjekk at vi håndterer duplikater
 
-        testRapid.sendTestMessage(testSubsumsjon())
+        testRapid.sendTestMessage(testSubsumsjon(
+            sykmeldingIder = listOf(sykmeldingId),
+            søknadIder = listOf(søknadId),
+            inntektsmeldingIder = listOf(inntektsmeldingId)
+        ))
 
         assertEquals("02126721911", result[0].first)
         val subsumsjonMelding = objectMapper.readTree(result[0].second)
-        UUID.fromString("6f0a0911-fc3f-4a55-8fb7-8222388b1707") shouldBeIn subsumsjonMelding.node("sporing.sykmelding")
-            .toUUIDs()
-        UUID.fromString("c844bc55-6be7-4987-9116-a0b7cb95ad56") shouldNotBeIn  subsumsjonMelding.node("sporing.sykmelding")
-            .toUUIDs()
+        sykmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
+        sykemeldingDuplikatDokumentId shouldNotBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
 
-        UUID.fromString("be4586ce-d45e-419b-8271-1bc2be839e16") shouldBeIn subsumsjonMelding.node("sporing.soknad")
-            .toUUIDs()
-        UUID.fromString("59fbfbee-1e7d-4b60-9604-20f77ee62d0f") shouldNotBeIn subsumsjonMelding.node("sporing.soknad")
-            .toUUIDs()
+        søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
+        søknadDuplikatDokumentId shouldNotBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
 
-        UUID.fromString("85a30422-b6ca-4adf-8776-78afb68cb903") shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding")
-            .toUUIDs()
-        UUID.fromString("b3b2a306-7baa-4916-899f-28c2ef2ca9e9") shouldNotBeIn subsumsjonMelding.node("sporing.inntektsmelding")
-            .toUUIDs()
+        inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
+        inntektsmeldingDuplikatDokumentId shouldNotBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
     }
 
     @Test
@@ -121,30 +146,90 @@ internal class SubsumsjonTest {
                 )
             )
         }
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        val sykmeldingDokumentId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
 
         testRapid.sendTestMessage(testSøknad(
-            hendelseId = "59fbfbee-1e7d-4b60-9604-20f77ee62d0f",
-            dokumentId = "be4586ce-d45e-419b-8271-1bc2be839e16",
-            sykmeldingId = "3a82b571-d73f-4fc8-a0a7-527053004999"
+            hendelseId = søknadId,
+            dokumentId = søknadDokumentId,
+            sykmeldingDokumentId = sykmeldingDokumentId
         ))
-        testRapid.sendTestMessage(testInntektsmelding(UUID.fromString("b3b2a306-7baa-4916-899f-28c2ef2ca9e9")))
+        testRapid.sendTestMessage(testInntektsmelding(
+            hendelseId = inntektsmeldingId,
+            inntektsmeldingId = inntektsmeldingDokumentId
+        ))
         testRapid.sendTestMessage(testSubsumsjon(
             sykmeldingIder = emptyList(),
-            inntektsmeldingIder = listOf("b3b2a306-7baa-4916-899f-28c2ef2ca9e9")
+            søknadIder = listOf(søknadId),
+            inntektsmeldingIder = listOf(inntektsmeldingId)
         ))
 
         val subsumsjonMelding = objectMapper.readTree(result[0].second)
 
-        UUID.fromString("3a82b571-d73f-4fc8-a0a7-527053004999") shouldBeIn subsumsjonMelding.node("sporing.sykmelding")
-            .toUUIDs()
-
-        UUID.fromString("be4586ce-d45e-419b-8271-1bc2be839e16") shouldBeIn subsumsjonMelding.node("sporing.soknad")
-            .toUUIDs()
-
-        UUID.fromString("85a30422-b6ca-4adf-8776-78afb68cb903") shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding")
-            .toUUIDs()
+        sykmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
+        søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
+        inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
     }
 
+    @Test
+    fun `godta at vi ikke har sykmeldingId for gamle søknader`() {
+        val result = mutableListOf<Pair<String, String>>()
+        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value ->
+            result.add(
+                Pair(
+                    key,
+                    value
+                )
+            )
+        }
+        val sykmeldingId = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        val sykmeldingDokumentId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
+
+        mappingDao.lagre(
+            hendelseId = sykmeldingId,
+            dokumentId = sykmeldingDokumentId,
+            dokumentIdType = DokumentIdType.Sykmelding,
+            hendelseNavn = "ny_søknad",
+            produsert = LocalDateTime.now()
+        )
+        mappingDao.lagre(
+            hendelseId = søknadId,
+            dokumentId = søknadDokumentId,
+            dokumentIdType = DokumentIdType.Søknad,
+            hendelseNavn = "sendt_søknad_nav",
+            produsert = LocalDateTime.now()
+        )
+        mappingDao.lagre(
+            hendelseId = inntektsmeldingId,
+            dokumentId = inntektsmeldingDokumentId,
+            dokumentIdType = DokumentIdType.Inntektsmelding,
+            hendelseNavn = "inntektsmelding",
+            produsert = LocalDateTime.now()
+        )
+
+        assertDoesNotThrow {
+            testRapid.sendTestMessage(
+                testSubsumsjon(
+                    sykmeldingIder = listOf(sykmeldingId),
+                    søknadIder = listOf(søknadId),
+                    inntektsmeldingIder = listOf(inntektsmeldingId)
+                )
+            )
+        }
+        val subsumsjonMelding = objectMapper.readTree(result[0].second)
+        sykmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
+        søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
+        inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
+    }
 
     @Test
     fun `En dårlig subsumsjon resulterer i exception`() {
@@ -172,7 +257,11 @@ internal class SubsumsjonTest {
                 )
             )
         }
-        testRapid.sendTestMessage(testSubsumsjon())
+        testRapid.sendTestMessage(testSubsumsjon(
+            sykmeldingIder = emptyList(),
+            søknadIder = emptyList(),
+            inntektsmeldingIder = emptyList()
+        ))
         assertSubsumsjonsmelding(objectMapper.readTree(result[0].second))
     }
 
@@ -185,11 +274,9 @@ internal class SubsumsjonTest {
 
     @Language("JSON")
     private fun testSubsumsjon(
-        sykmeldingIder: List<String> = listOf("c844bc55-6be7-4987-9116-a0b7cb95ad56"),
-        inntektsmeldingIder: List<String> = listOf(
-            "b3b2a306-7baa-4916-899f-28c2ef2ca9e9",
-            "b211d477-254d-4dd1-bd16-cdbcc8554f01"
-        )
+        sykmeldingIder: List<UUID>,
+        søknadIder: List<UUID>,
+        inntektsmeldingIder: List<UUID>
     ) = """
   {
     "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
@@ -204,7 +291,7 @@ internal class SubsumsjonTest {
       "sporing": {
         "vedtaksperiode": ["8fe5da85-d00b-4570-afaa-3a3e9403240e"],
         "sykmelding": ${objectMapper.writeValueAsString(sykmeldingIder)},
-        "soknad":["59fbfbee-1e7d-4b60-9604-20f77ee62d0f"],
+        "soknad":${objectMapper.writeValueAsString(søknadIder)},
         "inntektsmelding": ${objectMapper.writeValueAsString(inntektsmeldingIder)},
         "organisasjonsnummer":["947064649"]
       },
@@ -299,7 +386,7 @@ internal class SubsumsjonTest {
 
 
 @Language("JSON")
-private fun testSykemelding(hendelseId: UUID, dokumentId: UUID) = """
+private fun testSykmelding(hendelseId: UUID, dokumentId: UUID) = """
     {
       "id": "5995d335-16f9-39b3-a50d-aa744a6af27c",
       "type": "ARBEIDSTAKERE",
@@ -372,12 +459,12 @@ private fun testSykemelding(hendelseId: UUID, dokumentId: UUID) = """
 
 
 @Language("JSON")
-private fun testInntektsmelding(id: UUID) = """
+private fun testInntektsmelding(hendelseId: UUID, inntektsmeldingId: UUID) = """
     {
       "@event_name": "inntektsmelding",
-      "@id": "$id",
+      "@id": "$hendelseId",
       "@opprettet": "2022-02-15T08:36:35.048196790",
-      "inntektsmeldingId": "85a30422-b6ca-4adf-8776-78afb68cb903",
+      "inntektsmeldingId": "$inntektsmeldingId",
       "arbeidstakerFnr": "24068715888",
       "arbeidstakerAktorId": "2012213570475",
       "virksomhetsnummer": "947064649",
@@ -418,7 +505,7 @@ private fun testInntektsmelding(id: UUID) = """
 """.trimIndent()
 
 @Language("JSON")
-private fun testSøknad(hendelseId: String, dokumentId: String, sykmeldingId: String)= """
+private fun testSøknad(hendelseId: UUID, dokumentId: UUID, sykmeldingDokumentId: UUID)= """
     {
       "@event_name": "sendt_søknad_nav",
       "@id": "$hendelseId",
@@ -428,7 +515,7 @@ private fun testSøknad(hendelseId: String, dokumentId: String, sykmeldingId: St
       "type": "ARBEIDSTAKERE",
       "status": "SENDT",
       "aktorId": "2012213570475",
-      "sykmeldingId": "$sykmeldingId",
+      "sykmeldingId": "$sykmeldingDokumentId",
       "arbeidsgiver": {
         "navn": "Nærbutikken AS",
         "orgnummer": "947064649"
