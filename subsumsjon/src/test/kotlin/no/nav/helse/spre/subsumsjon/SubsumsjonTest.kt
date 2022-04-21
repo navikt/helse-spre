@@ -22,8 +22,8 @@ import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SubsumsjonTest {
-
     private val testRapid = TestRapid()
+    private val resultater = mutableListOf<Pair<String, JsonNode>>()
     private lateinit var postgres: PostgreSQLContainer<Nothing>
     private lateinit var mappingDao: MappingDao
     private lateinit var sykemeldingRiver: SykemeldingRiver
@@ -49,21 +49,13 @@ internal class SubsumsjonTest {
         sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao, IdValidation(emptyList()))
         søknadRiver = SøknadRiver(testRapid, mappingDao)
         inntektsmeldingRiver = InntektsmeldingRiver(testRapid, mappingDao)
+        SubsumsjonRiver(testRapid, mappingDao) { fnr, melding ->
+            resultater.add(fnr to objectMapper.readTree(melding))
+        }
     }
 
     @Test
     fun `En subsumsjon blir publisert`() {
-        val result = mutableListOf<Pair<String, String>>()
-
-        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value ->
-            result.add(
-                Pair(
-                    key,
-                    value
-                )
-            )
-        }
-
         val sykmeldingId = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val inntektsmeldingId = UUID.randomUUID()
@@ -122,8 +114,8 @@ internal class SubsumsjonTest {
             inntektsmeldingIder = listOf(inntektsmeldingId)
         ))
 
-        assertEquals("02126721911", result[0].first)
-        val subsumsjonMelding = objectMapper.readTree(result[0].second)
+        assertEquals("02126721911", resultater.last().first)
+        val subsumsjonMelding = resultater.last().second
         sykmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
         sykemeldingDuplikatDokumentId shouldNotBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
 
@@ -136,16 +128,7 @@ internal class SubsumsjonTest {
 
     @Test
     fun `Subsumsjon uten sykmeldingIder`() {
-        val result = mutableListOf<Pair<String, String>>()
 
-        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value ->
-            result.add(
-                Pair(
-                    key,
-                    value
-                )
-            )
-        }
         val søknadId = UUID.randomUUID()
         val inntektsmeldingId = UUID.randomUUID()
 
@@ -168,7 +151,7 @@ internal class SubsumsjonTest {
             inntektsmeldingIder = listOf(inntektsmeldingId)
         ))
 
-        val subsumsjonMelding = objectMapper.readTree(result[0].second)
+        val subsumsjonMelding = resultater.last().second
 
         sykmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
         søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
@@ -177,15 +160,6 @@ internal class SubsumsjonTest {
 
     @Test
     fun `godta at vi ikke har sykmeldingId for gamle søknader`() {
-        val result = mutableListOf<Pair<String, String>>()
-        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value ->
-            result.add(
-                Pair(
-                    key,
-                    value
-                )
-            )
-        }
         val sykmeldingId = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val inntektsmeldingId = UUID.randomUUID()
@@ -225,7 +199,7 @@ internal class SubsumsjonTest {
                 )
             )
         }
-        val subsumsjonMelding = objectMapper.readTree(result[0].second)
+        val subsumsjonMelding = resultater.last().second
         sykmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
         søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
         inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
@@ -233,36 +207,18 @@ internal class SubsumsjonTest {
 
     @Test
     fun `En dårlig subsumsjon resulterer i exception`() {
-        val result = mutableListOf<Pair<String, String>>()
 
-        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value ->
-            result.add(
-                Pair(
-                    key,
-                    value
-                )
-            )
-        }
         assertThrows(IllegalArgumentException::class.java) { testRapid.sendTestMessage(badTestMessage) }
     }
 
     @Test
     fun `schema validation`() {
-        val result = mutableListOf<Pair<String, String>>()
-        SubsumsjonRiver(rapidsConnection = testRapid, mappingDao = mappingDao) { key, value ->
-            result.add(
-                Pair(
-                    key,
-                    value
-                )
-            )
-        }
         testRapid.sendTestMessage(testSubsumsjon(
             sykmeldingIder = emptyList(),
             søknadIder = emptyList(),
             inntektsmeldingIder = emptyList()
         ))
-        assertSubsumsjonsmelding(objectMapper.readTree(result[0].second))
+        assertSubsumsjonsmelding(resultater.last().second)
     }
 
     private fun JsonNode.node(path: String): JsonNode {
