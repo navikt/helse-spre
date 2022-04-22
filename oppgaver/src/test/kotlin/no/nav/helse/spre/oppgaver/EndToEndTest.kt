@@ -724,6 +724,15 @@ class EndToEndTest {
         assertEquals(antallOppgaverFørOgEtterGodkjenningEvent, publiserteOppgaver.size)
     }
 
+    @Test
+    fun `mottar en utsett_oppgave for en inntektsmelding`() {
+        val hendelseId = UUID.randomUUID()
+        val dokumentId = UUID.randomUUID()
+        sendInntektsmelding(hendelseId = hendelseId, dokumentId = dokumentId)
+        utsettOppgave(hendelseId)
+        publiserteOppgaver[0].assertInnhold(Utsett, dokumentId, Inntektsmelding)
+    }
+
     companion object {
         @JvmStatic
         fun permutations() = listOf(
@@ -773,6 +782,12 @@ class EndToEndTest {
         hendelseIder: List<UUID>,
     ) {
         rapid.sendTestMessage(no.nav.helse.spre.oppgaver.opprettOppgave(hendelseIder))
+    }
+
+    private fun utsettOppgave(
+        hendelseId: UUID,
+    ) {
+        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.utsettOppgave(hendelseId))
     }
 
     private fun opprettOppgaveForSpeilsaksbehandler(
@@ -835,6 +850,15 @@ fun opprettOppgave(
     """{
             "@event_name": "opprett_oppgave",
             "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
+        }"""
+
+
+fun utsettOppgave(
+    hendelse: UUID
+) =
+    """{
+            "@event_name": "utsett_oppgave",
+            "hendelse": "$hendelse"
         }"""
 
 fun hendelseIkkeHåndtert(
