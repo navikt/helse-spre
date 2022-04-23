@@ -733,6 +733,24 @@ class EndToEndTest {
         publiserteOppgaver[0].assertInnhold(Utsett, dokumentId, Inntektsmelding)
     }
 
+    @Test
+    fun `inntektsmelding kommer før søknad, søknad kastes ut ved håndtering - inntektsmelding får opprettet oppgave`() {
+        val inntektsmeldingHendelseId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
+        sendInntektsmelding(hendelseId = inntektsmeldingHendelseId, dokumentId = inntektsmeldingDokumentId)
+        utsettOppgave(inntektsmeldingHendelseId)
+
+        val søknadHendelseId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        sendSøknad(hendelseId = søknadHendelseId, dokumentId = søknadDokumentId)
+        vedtaksperiodeEndret(listOf(søknadHendelseId), "TIL_INFOTRYGD", UUID.randomUUID())
+        opprettOppgave(listOf(søknadHendelseId))
+        opprettOppgave(listOf(inntektsmeldingHendelseId))
+        publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[1].assertInnhold(Opprett, søknadDokumentId, Søknad)
+        publiserteOppgaver[2].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
+    }
+
     companion object {
         @JvmStatic
         fun permutations() = listOf(
