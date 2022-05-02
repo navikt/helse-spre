@@ -25,7 +25,7 @@ class HåndterUtsettOppgave(
         val hendelseId = UUID.fromString(packet["hendelse"].asText())
         val oppgave = oppgaveDAO.finnOppgave(hendelseId)
         if (oppgave == null) {
-            log.warn("Fant ikke oppgave for utsett_oppgave-event: {}", hendelseId)
+            log.error("Fant ikke oppgave for utsett_oppgave-event: {}", hendelseId)
             return
         }
         oppgave.setObserver(observer)
