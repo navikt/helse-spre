@@ -47,34 +47,54 @@ class EndToEndTest {
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknad1HendelseId),
-            tilstand = "AVVENTER_INNTEKTSMELDING_FERDIG_GAP"
+            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"
         )
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_SIMULERING"
+            tilstand = "AVVENTER_BLOKKERENDE_PERIODE"
         )
-
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_VILKÅRSPRØVING_ARBEIDSGIVERSØKNAD"
+            tilstand = "AVVENTER_HISTORIKK"
         )
-
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
+            tilstand = "AVVENTER_VILKÅRSPRØVING"
+        )
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
+            tilstand = "AVVENTER_HISTORIKK"
+        )
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
+            tilstand = "AVVENTER_SIMULERING"
+        )
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
+            tilstand = "AVVENTER_GODKJENNING"
+        )
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
+            tilstand = "TIL_UTBETALING"
+        )
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
             tilstand = "AVSLUTTET"
         )
 
+        assertEquals(6, publiserteOppgaver.size)
         publiserteOppgaver[0].assertInnhold(Utsett, søknad1DokumentId, Søknad)
         publiserteOppgaver[1].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        publiserteOppgaver[2].assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
-        publiserteOppgaver[3].assertInnhold(Ferdigbehandlet, inntektsmeldingDokumentId, Inntektsmelding)
-        assertEquals(4, publiserteOppgaver.size)
+        publiserteOppgaver[2].assertInnhold(Utsett, søknad1DokumentId, Søknad)
+        publiserteOppgaver[3].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[4].assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
+        publiserteOppgaver[5].assertInnhold(Ferdigbehandlet, inntektsmeldingDokumentId, Inntektsmelding)
 
-        assertEquals(4, rapid.inspektør.size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", søknad1HendelseId).size)
+        assertEquals(6, rapid.inspektør.size)
+        assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", søknad1HendelseId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_ferdigbehandlet", søknad1HendelseId).size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
+        assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_ferdigbehandlet", inntektsmeldingHendelseId).size)
     }
 
@@ -86,14 +106,14 @@ class EndToEndTest {
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknad1HendelseId),
-            tilstand = "AVVENTER_INNTEKTSMELDING_FERDIG_GAP"
+            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"
         )
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknad1HendelseId),
-            tilstand = "AVVENTER_INNTEKTSMELDING_FERDIG_GAP"
+            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"
         )
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
 
@@ -201,12 +221,8 @@ class EndToEndTest {
         val søknadHendelseId = UUID.randomUUID()
         val søknadDokumentId = UUID.randomUUID()
 
-        sendVedtaksperiodeEndret(hendelseIder = emptyList(), tilstand = "MOTTATT_SYKMELDING_FERDIG_GAP")
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_SØKNAD_FERDIG_GAP"
-        )
+        utsettOppgave(inntektsmeldingHendelseId)
         sendSøknad(søknadHendelseId, søknadDokumentId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
@@ -648,12 +664,7 @@ class EndToEndTest {
         val dokumentId = UUID.randomUUID()
 
         sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
-
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(hendelseId),
-            tilstand = "AVVENTER_SØKNAD_FERDIG_GAP",
-            vedtaksperiodeId = UUID.randomUUID()
-        )
+        utsettOppgave(hendelseId)
 
         assertEquals(1, publiserteOppgaver.size)
 
@@ -672,11 +683,15 @@ class EndToEndTest {
         val vedtaksperiodeId = UUID.randomUUID()
 
         sendSøknad(søknadHendelseId, søknadDokumentId)
-        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
-            tilstand = "AVVENTER_SØKNAD_FERDIG_GAP",
+            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
+            tilstand = "AVVENTER_HISTORIKK",
             vedtaksperiodeId = vedtaksperiodeId,
         )
 
@@ -707,7 +722,7 @@ class EndToEndTest {
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknad1HendelseId),
-            tilstand = "AVVENTER_UFERDIG",
+            tilstand = "AVVENTER_BLOKKERENDE_PERIODE",
             vedtaksperiodeId = vedtaksperiodeId,
         )
         opprettOppgave(hendelseIder = listOf(søknad1HendelseId))

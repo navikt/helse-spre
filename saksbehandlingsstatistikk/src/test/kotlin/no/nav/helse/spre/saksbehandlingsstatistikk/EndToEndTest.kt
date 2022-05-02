@@ -95,7 +95,7 @@ internal class EndToEndTest {
         )
 
         testRapid.sendTestMessage(søknadData.json(eventType = "sendt_søknad_arbeidsgiver"))
-        testRapid.sendTestMessage(vedtaksperiodeEndret.json("MOTTATT_SYKMELDING_FERDIG_GAP"))
+        testRapid.sendTestMessage(vedtaksperiodeEndret.json("AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"))
         testRapid.sendTestMessage(vedtakFattet.json)
 
         assertEquals(0, utgiver.meldinger.size)
