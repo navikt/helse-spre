@@ -749,6 +749,15 @@ class EndToEndTest {
     }
 
     @Test
+    fun `mottar en utsett_oppgave for en søknad`() {
+        val hendelseId = UUID.randomUUID()
+        val dokumentId = UUID.randomUUID()
+        sendSøknad(hendelseId = hendelseId, dokumentId = dokumentId)
+        utsettOppgave(hendelseId)
+        publiserteOppgaver[0].assertInnhold(Utsett, dokumentId, Søknad)
+    }
+
+    @Test
     fun `inntektsmelding kommer før søknad, søknad kastes ut ved håndtering - inntektsmelding får opprettet oppgave`() {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
