@@ -23,11 +23,7 @@ class HåndterUtsettOppgave(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val hendelseId = UUID.fromString(packet["hendelse"].asText())
-        val oppgave = oppgaveDAO.finnOppgave(hendelseId)
-        if (oppgave == null) {
-            log.error("Fant ikke oppgave for utsett_oppgave-event: {}", hendelseId)
-            return
-        }
+        val oppgave = oppgaveDAO.finnOppgave(hendelseId) ?: return
         oppgave.setObserver(observer)
         Hendelse.Lest.accept(oppgave)
         log.info("Mottok utsett_oppgave-event: {}", oppgave.hendelseId)
