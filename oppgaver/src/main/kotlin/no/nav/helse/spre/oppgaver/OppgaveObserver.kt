@@ -93,7 +93,7 @@ class OppgaveObserver(
     private fun Oppgave.finnTimeout() =
         when {
             dokumentType == Søknad -> 110
-            oppgaveDAO.harUtbetalingTilSøker(dokumentId) -> 1
+            oppgaveDAO.harUtbetalingTilSøker(dokumentId) -> 2
             else -> 40
         }.toLong()
 
