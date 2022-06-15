@@ -4,7 +4,7 @@ on:
     branches:
       - main
 env:
-  DOCKER_REGISTRY: docker.pkg.github.com
+  DOCKER_REGISTRY: ghcr.io
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/spreapp-
   SNYK_ORG: tbd-ty7
   RESOURCE: config/nais.yml
@@ -98,7 +98,7 @@ jobs:
       - name: push docker image
         if: steps.app_jar.outputs.files_exists == 'true'
         run: |
-          echo $GITHUB_TOKEN | docker login --username $GITHUB_REPOSITORY --password-stdin https://docker.pkg.github.com
+          echo $GITHUB_TOKEN | docker login --username $GITHUB_REPOSITORY --password-stdin https://ghcr.io
           docker push $IMAGE
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -115,7 +115,7 @@ jobs:
       - name: check if docker image exists
         id: docker-exists
         run: |
-          layers=$(curl -X GET https://docker.pkg.github.com/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.tag }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
+          layers=$(curl -X GET https://ghcr.io/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.tag }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
           if [ "$layers" == 'null' ]; then
             echo "::set-output name=exists::false"
           else

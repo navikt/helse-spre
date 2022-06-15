@@ -5,7 +5,7 @@
 # docker run --rm -it -v $(PWD)/config:/config \
 #   -e CLUSTER=dev-gcp \
 #   -e VAR="team=tbd,app=<my-app>" \
-#   docker.pkg.github.com/nais/deploy/deploy:latest /app/deploy \
+#   ghcr.io/nais/deploy/deploy:latest /app/deploy \
 #     --dry-run --print-payload --resource /config/nais.yml --vars /config/<my-app>/dev-gcp.yml
 apiVersion: nais.io/v1alpha1
 kind: Application
