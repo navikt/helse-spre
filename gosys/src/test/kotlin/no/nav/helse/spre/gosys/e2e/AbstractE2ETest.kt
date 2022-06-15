@@ -2,9 +2,10 @@ package no.nav.helse.spre.gosys.e2e
 
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
-import io.ktor.client.features.json.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.jackson.JacksonConverter
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -59,8 +60,8 @@ internal abstract class AbstractE2ETest {
 
     private fun httpclient(): HttpClient {
         return HttpClient(MockEngine) {
-            install(JsonFeature) {
-                serializer = JacksonSerializer(objectMapper)
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, JacksonConverter(objectMapper))
             }
             engine {
                 addHandler { request ->

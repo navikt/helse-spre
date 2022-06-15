@@ -1,9 +1,9 @@
 package no.nav.helse.spre.gosys
 
-import io.ktor.application.Application
-import io.ktor.auth.UserIdPrincipal
-import io.ktor.auth.authentication
-import io.ktor.auth.basic
+import io.ktor.server.application.Application
+import io.ktor.server.auth.UserIdPrincipal
+import io.ktor.server.auth.authentication
+import io.ktor.server.auth.basic
 
 internal fun Application.basicAuthentication(
     adminSecret: String

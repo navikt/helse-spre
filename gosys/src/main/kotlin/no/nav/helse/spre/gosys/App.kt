@@ -5,9 +5,10 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.*
-import io.ktor.client.features.*
-import io.ktor.client.features.json.*
-import io.ktor.http.*
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.http.ContentType
+import io.ktor.serialization.jackson.JacksonConverter
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
@@ -47,7 +48,11 @@ fun launchApplication(
         clientSecret = requireNotNull(environment["AZURE_APP_CLIENT_SECRET"])
     )
     val httpClient = HttpClient {
-        install(JsonFeature) { serializer = JacksonSerializer(objectMapper) }
+
+        install(ContentNegotiation) {
+            register(ContentType.Application.Json, JacksonConverter(objectMapper))
+        }
+
         install(HttpTimeout) { requestTimeoutMillis = 10000 }
     }
     val joarkClient = JoarkClient(requireNotNull(environment["JOARK_BASE_URL"]), stsRestClient, httpClient)

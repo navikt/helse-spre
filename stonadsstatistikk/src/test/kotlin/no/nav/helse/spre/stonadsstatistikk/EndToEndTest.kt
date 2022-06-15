@@ -118,7 +118,6 @@ internal class EndToEndTest {
 
     @Test
     fun `genererer rapport fra alle vedtak i basen`() {
-        fun Row.uuid(columnLabel: String): UUID = UUID.fromString(string(columnLabel))
 
         data class Rapport(
             val fødselsnummer: String,

@@ -26,14 +26,14 @@ class EregClient(
         try {
             //TODO finn ut om vi trenger ha med historikk eller ikke..
             sikkerLogg.info("Henter navn på organisasjon: $organisasjonsnummer")
-            return httpClient.get<HttpStatement>("$baseUrl/v1/organisasjon/$organisasjonsnummer?inkluderHierarki=true&inkluderHistorikk=true") {
+            return httpClient.prepareGet("$baseUrl/v1/organisasjon/$organisasjonsnummer?inkluderHierarki=true&inkluderHistorikk=true") {
                 header("Authorization", "Bearer ${stsRestClient.token()}")
                 header("Nav-Consumer-Token", "Bearer ${stsRestClient.token()}")
                 header("Nav-Consumer-Id", "spre-gosys")
                 header("Nav-Call-Id", callId)
                 accept(ContentType.Application.Json)
             }
-                .execute { it.readText() }
+                .execute { it.bodyAsText() }
                 .let<String, JsonNode>(objectMapper::readValue)
                 .let { response ->
                     EregResponse(

@@ -1,9 +1,12 @@
 package no.nav.helse.spre.gosys
 
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.call.receive
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.preparePost
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpStatement
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
@@ -16,15 +19,15 @@ class JoarkClient(
     private val httpClient: HttpClient
 ) {
     suspend fun opprettJournalpost(hendelseId: UUID, journalpostPayload: JournalpostPayload): Boolean {
-        return httpClient.post<HttpStatement>("$baseUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
+        return httpClient.preparePost("$baseUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
             header("Nav-Consumer-Token", hendelseId.toString())
             header("Authorization", "Bearer ${stsRestClient.token()}")
             contentType(ContentType.Application.Json)
-            body = journalpostPayload
+            setBody(journalpostPayload)
         }
             .execute {
                 if (it.status.value !in 200..300) {
-                    val error = it.receive<String>()
+                    val error = it.body<String>()
                     log.error("Feil fra Joark: {}", keyValue("response", error))
                     throw RuntimeException("Feil fra Joark: $error")
                 } else true

@@ -35,14 +35,14 @@ class PdlClient(
             header("Content-Type", "application/json")
             header("Accept", "application/json")
             header("Nav-Call-Id", hendelseId.toString())
-            body = payload
+            setBody(payload)
         }
 
         response.status.let {
             if (!it.isSuccess()) throw RuntimeException("error (responseCode=$it) from PDL")
         }
 
-        val parsetRespons: PdlResponse<PdlHentPerson> = response.receive()
+        val parsetRespons: PdlResponse<PdlHentPerson> = response.body()
         håndterErrors(parsetRespons)
         return parsetRespons.data?.hentPerson?.navn?.firstOrNull()?.tilVisning()
     }

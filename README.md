@@ -23,6 +23,14 @@ legge til noe etter .yml i filendelsen på det aktuelle miljøet i `config/[app]
 vi disabler deploy av spre-gosys i
 prod: https://github.com/navikt/helse-spre/commit/19424c6edb195dbcb06d1f6f1d4bcd6267ed685e.
 
+## Oppgradering av gradle wrapper
+Finn nyeste versjon av gradle her: https://gradle.org/releases/
+
+```./gradlew wrapper --gradle-version $gradleVersjon```
+
+Husk å oppdater gradle versjon i build.gradle.kts filen
+```val gradlewVersion = "$gradleVersjon"```
+
 ## Henvendelser
 
 Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på GitHub.
