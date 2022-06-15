@@ -115,8 +115,10 @@ jobs:
       - name: check if docker image exists
         id: docker-exists
         run: |
-          layers=$(curl -X GET https://${DOCKER_REGISTRY}/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.tag }} -u $GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }} | jq '.layers')
-          if [ "$layers" == 'null' ]; then
+          TOKEN=$(curl https://${DOCKER_REGISTRY}\?scope\="repository:navikt/helse-spre/spreapp-subsumsjon:pull" | jq -r '.token')
+          curl -H "Authorization: Bearer ${TOKEN}" https://${DOCKER_REGISTRY}/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/tags/list | grep "${{ needs.generate_vars.outputs.tag }}"
+          IMAGE_EXISTS=$?
+          if [ ${IMAGE_EXISTS} -ne 0 ]; then
             echo "::set-output name=exists::false"
           else
             echo "::set-output name=exists::true"
