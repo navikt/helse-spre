@@ -116,7 +116,7 @@ jobs:
         id: docker-exists
         run: |
           TOKEN=$(curl https://${DOCKER_REGISTRY}\?scope\="repository:${DOCKER_IMAGE_PREFIX}${{ matrix.project }}:pull" | jq -r '.token')
-          curl --head --fail -H "Authorization: Bearer ${TOKEN}" https://${DOCKER_REGISTRY}/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/{{ needs.generate_vars.outputs.tag }}          
+          curl --head --fail -H "Authorization: Bearer ${TOKEN}" https://${DOCKER_REGISTRY}/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.tag }}          
           IMAGE_EXISTS=$?
           if [ ${IMAGE_EXISTS} -ne 0 ]; then
             echo "::set-output name=exists::false"
