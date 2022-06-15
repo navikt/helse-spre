@@ -151,11 +151,11 @@ jobs:
     if: needs.generate_vars.outputs.emptyMatrix == 'false'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Gradle vulnerability check
         uses: snyk/actions/gradle@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --all-sub-projects --org=${{ env.SNYK_ORG }} --fail-on=all --configuration-matching='^runtimeClasspath'
+          args: --all-sub-projects --org=tbd-ty7 --fail-on=all --configuration-matching='^runtimeClasspath'
           command: monitor
