@@ -1,7 +1,4 @@
 kafkaPool: nav-dev
-ingresses:
-- https://spre-gosys.preprod.nais.local
-- https://spre-gosys.dev-fss.nais.io
 mountPaths:
 - mountPath: /var/run/secrets/nais.io/service_user
   kvPath: /serviceuser/data/dev/srvspregosys
