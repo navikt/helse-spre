@@ -2,10 +2,11 @@ package no.nav.helse.spre.arbeidsgiver
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.spre.arbeidsgiver.InntektsmeldingDTO.Companion.tilInntektsmeldingDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.header.internals.RecordHeader
-import java.util.UUID
+import java.util.*
 
 internal class BeOmInntektsmeldinger(
     private val rapidsConnection: RapidsConnection,
@@ -27,7 +28,7 @@ internal class BeOmInntektsmeldinger(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Ber om inntektsmelding på vedtaksperiode: {}", packet["vedtaksperiodeId"].asText())
 
-        val payload = packet.tilInntektsmeldingDTO()
+        val payload = packet.tilInntektsmeldingDTO(meldingstype = Meldingstype.TRENGER_INNTEKTSMELDING)
         arbeidsgiverProducer.send(ProducerRecord(
             "aapen-helse-spre-arbeidsgiver",
             null,
@@ -46,11 +47,4 @@ internal class BeOmInntektsmeldinger(
         ).toJson())
     }
 
-    private fun JsonMessage.tilInntektsmeldingDTO() = InntektsmeldingDTO.trengerInntektsmelding(
-        organisasjonsnummer = this["organisasjonsnummer"].asText(),
-        fødselsnummer = this["fødselsnummer"].asText(),
-        fom = this["fom"].asLocalDate(),
-        tom = this["tom"].asLocalDate(),
-        opprettet = this["@opprettet"].asLocalDateTime()
-    )
 }

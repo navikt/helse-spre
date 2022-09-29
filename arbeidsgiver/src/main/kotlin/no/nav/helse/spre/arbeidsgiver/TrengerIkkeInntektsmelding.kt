@@ -2,6 +2,7 @@ package no.nav.helse.spre.arbeidsgiver
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.spre.arbeidsgiver.InntektsmeldingDTO.Companion.tilInntektsmeldingDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.header.internals.RecordHeader
@@ -27,7 +28,7 @@ internal class TrengerIkkeInntektsmelding(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Trenger ikke inntektsmelding for vedtaksperiode: {}", packet["vedtaksperiodeId"].asText())
 
-        val payload = packet.tilInntektsmeldingDTO()
+        val payload = packet.tilInntektsmeldingDTO(Meldingstype.TRENGER_IKKE_INNTEKTSMELDING)
         arbeidsgiverProducer.send(ProducerRecord(
             "aapen-helse-spre-arbeidsgiver",
             null,
@@ -35,13 +36,7 @@ internal class TrengerIkkeInntektsmelding(
             payload,
             listOf(RecordHeader("type", payload.meldingstype))
         )).get()
-    }
 
-    private fun JsonMessage.tilInntektsmeldingDTO() = InntektsmeldingDTO.trengerIkkeInntektsmelding(
-        organisasjonsnummer = this["organisasjonsnummer"].asText(),
-        fødselsnummer = this["fødselsnummer"].asText(),
-        fom = this["fom"].asLocalDate(),
-        tom = this["tom"].asLocalDate(),
-        opprettet = this["@opprettet"].asLocalDateTime()
-    )
+        log.info("Publiserte trenger ikke inntektsmelding for vedtak: ${packet["vedtaksperiodeId"].textValue()}")
+    }
 }

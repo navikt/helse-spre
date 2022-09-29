@@ -1,10 +1,13 @@
 package no.nav.helse.spre.arbeidsgiver
 
+import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.asLocalDate
+import no.nav.helse.rapids_rivers.asLocalDateTime
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-internal class InntektsmeldingDTO private constructor(
+internal class InntektsmeldingDTO(
     val type: Meldingstype,
     val organisasjonsnummer: String,
     val fødselsnummer: String,
@@ -14,35 +17,14 @@ internal class InntektsmeldingDTO private constructor(
 ){
     val meldingstype get() = type.name.lowercase(Locale.getDefault()).toByteArray()
 
-    internal companion object {
-        internal fun trengerInntektsmelding(
-            organisasjonsnummer: String,
-            fødselsnummer: String,
-            fom: LocalDate,
-            tom: LocalDate,
-            opprettet: LocalDateTime
-        ) = InntektsmeldingDTO(
-            Meldingstype.TRENGER_INNTEKTSMELDING,
-            organisasjonsnummer,
-            fødselsnummer,
-            fom,
-            tom,
-            opprettet
-        )
-
-        internal fun trengerIkkeInntektsmelding(
-            organisasjonsnummer: String,
-            fødselsnummer: String,
-            fom: LocalDate,
-            tom: LocalDate,
-            opprettet: LocalDateTime
-        ) = InntektsmeldingDTO(
-            Meldingstype.TRENGER_IKKE_INNTEKTSMELDING,
-            organisasjonsnummer,
-            fødselsnummer,
-            fom,
-            tom,
-            opprettet
+   internal companion object {
+        internal fun JsonMessage.tilInntektsmeldingDTO(meldingstype: Meldingstype) = InntektsmeldingDTO(
+            type = meldingstype,
+            organisasjonsnummer = this["organisasjonsnummer"].asText(),
+            fødselsnummer = this["fødselsnummer"].asText(),
+            fom = this["fom"].asLocalDate(),
+            tom = this["tom"].asLocalDate(),
+            opprettet = this["@opprettet"].asLocalDateTime()
         )
     }
 

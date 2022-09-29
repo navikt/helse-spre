@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 class InntektsmeldingTest {
 
@@ -39,7 +39,8 @@ class InntektsmeldingTest {
         testRapid.sendTestMessage(eventSomJson())
         testRapid.sendTestMessage(eventSomJson())
 
-        val payload = InntektsmeldingDTO.trengerInntektsmelding(
+        val payload = InntektsmeldingDTO(
+            type = Meldingstype.TRENGER_INNTEKTSMELDING,
             organisasjonsnummer = orgnr,
             fødselsnummer = fnr,
             fom = LocalDate.now(),
@@ -58,7 +59,8 @@ class InntektsmeldingTest {
         testRapid.sendTestMessage(eventSomJson(type))
         testRapid.sendTestMessage(eventSomJson(type))
 
-        val payload = InntektsmeldingDTO.trengerIkkeInntektsmelding(
+        val payload = InntektsmeldingDTO(
+            type = Meldingstype.TRENGER_IKKE_INNTEKTSMELDING,
             organisasjonsnummer = orgnr,
             fødselsnummer = fnr,
             fom = LocalDate.now(),

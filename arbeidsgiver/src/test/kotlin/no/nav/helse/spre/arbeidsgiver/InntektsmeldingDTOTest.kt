@@ -21,14 +21,14 @@ internal class InntektsmeldingDTOTest {
 
     @Test
     fun `oppretter inntektsmelding-melding når vi trenger inntektsmelding`() {
-        val melding = InntektsmeldingDTO.trengerInntektsmelding(ORGNR, FNR, FOM, TOM, OPPRETTET)
+        val melding = InntektsmeldingDTO(TRENGER_INNTEKTSMELDING, ORGNR, FNR, FOM, TOM, OPPRETTET)
         assertEquals(TRENGER_INNTEKTSMELDING, melding.type)
         assertTrue(melding.meldingstype.contentEquals(TRENGER_INNTEKTSMELDING.name.lowercase(Locale.getDefault()).toByteArray()))
     }
 
     @Test
     fun `oppretter inntektsmelding-melding når vi ikke trenger inntektsmelding lenger`() {
-        val melding = InntektsmeldingDTO.trengerIkkeInntektsmelding(ORGNR, FNR, FOM, TOM, OPPRETTET)
+        val melding = InntektsmeldingDTO(TRENGER_IKKE_INNTEKTSMELDING, ORGNR, FNR, FOM, TOM, OPPRETTET)
         assertEquals(TRENGER_IKKE_INNTEKTSMELDING, melding.type)
         assertTrue(melding.meldingstype.contentEquals(TRENGER_IKKE_INNTEKTSMELDING.name.lowercase(Locale.getDefault()).toByteArray()))
     }
