@@ -4,7 +4,7 @@ val testcontainersPostgresqlVersion = "1.17.2"
 val jsonassertVersion = "1.5.0"
 val kotliqueryVersion = "1.6.0"
 val flywayCoreVersion = "8.4.1"
-val vaultJdbcVersion = "1.3.7"
+val vaultJdbcVersion = "1.3.10"
 val hikariCPVersion = "5.0.1"
 val kotlinxSerializationJsonVersion = "1.3.2"
 

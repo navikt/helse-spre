@@ -1,5 +1,5 @@
 val hikariCPVersion = "5.0.1"
-val vaultJdbcVersion = "1.3.9"
+val vaultJdbcVersion = "1.3.10"
 val flywayCoreVersion = "8.5.12"
 val kotliqueryVersion = "1.6.0"
 val postgresqlVersion = "1.17.2"

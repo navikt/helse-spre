@@ -1,7 +1,7 @@
 val ktorVersion: String by project
 
 val flywayCoreVersion = "8.5.12"
-val vaultJdbcVersion = "1.3.9"
+val vaultJdbcVersion = "1.3.10"
 val hikariCPVersion = "5.0.1"
 val kotliqueryVersion = "1.8.0"
 val kafkaEmbeddedEnvVersion = "3.1.6"
