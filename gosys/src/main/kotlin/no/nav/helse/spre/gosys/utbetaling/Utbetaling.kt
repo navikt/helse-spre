@@ -188,13 +188,13 @@ data class Utbetaling(
             )}
         }
 
-        internal fun linjer(mottakerType: VedtakPdfPayloadV2.MottakerType): List<VedtakPdfPayloadV2.Linje> {
+        internal fun linjer(mottakerType: VedtakPdfPayloadV2.MottakerType, navn: String): List<VedtakPdfPayloadV2.Linje> {
             return utbetalingslinjer.map { VedtakPdfPayloadV2.Linje(
                 fom = it.fom,
                 tom = it.tom,
                 grad = it.grad.toInt(),
                 dagsats = it.dagsats,
-                mottaker = mottakerType.formatter(mottaker),
+                mottaker = mottakerType.formater(navn),
                 mottakerType = mottakerType,
                 totalbeløp = it.totalbeløp,
                 erOpphørt = it.statuskode == "OPPH"

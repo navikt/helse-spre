@@ -34,14 +34,14 @@ class VedtakMediator(
                     vedtakMessage.hendelseId
                 ).navn
             } catch (e: Exception) {
-                log.error("Feil ved henting av bedriftsnavn")
+                log.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}, aktørId=${vedtakMessage.aktørId}")
                 null
             }
             val navn = try {
-                pdlClient.hentPersonNavn(vedtakMessage.fødselsnummer, vedtakMessage.hendelseId)
+                pdlClient.hentPersonNavn(vedtakMessage.fødselsnummer, vedtakMessage.hendelseId) ?: ""
             } catch (e: Exception) {
-                log.error("Feil ved henting av navn")
-                null
+                log.error("Feil ved henting av navn for ${vedtakMessage.aktørId}")
+                ""
             }
             val pdf = pdfClient.hentVedtakPdfV2(vedtakMessage.toVedtakPdfPayloadV2(organisasjonsnavn, navn))
             val journalpostPayload = JournalpostPayload(

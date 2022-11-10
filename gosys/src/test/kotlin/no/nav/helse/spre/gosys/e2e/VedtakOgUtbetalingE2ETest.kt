@@ -70,7 +70,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 tom = 31.januar,
                 grad = 100,
                 dagsats = 1431,
-                mottaker = "123456 78910",
+                mottaker = "Molefonken",
                 mottakerType = MottakerType.Person,
                 totalbeløp = 32913,
                 erOpphørt = false
@@ -104,7 +104,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 tom = 31.januar,
                 grad = 100,
                 dagsats = 741,
-                mottaker = "123 456 789",
+                mottaker = "Arbeidsgiver",
                 mottakerType = MottakerType.Arbeidsgiver,
                 totalbeløp = 17043,
                 erOpphørt = false
@@ -114,7 +114,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 tom = 31.januar,
                 grad = 100,
                 dagsats = 700,
-                mottaker = "123456 78910",
+                mottaker = "Molefonken",
                 mottakerType = MottakerType.Person,
                 totalbeløp = 16100,
                 erOpphørt = false
@@ -155,7 +155,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 tom = 18.februar,
                 grad = 100,
                 dagsats = 1431,
-                mottaker = "123456 78910",
+                mottaker = "Molefonken",
                 mottakerType = MottakerType.Person,
                 totalbeløp = 10017,
                 erOpphørt = false
@@ -165,7 +165,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 tom = 31.januar,
                 grad = 100,
                 dagsats = 1431,
-                mottaker = "123456 78910",
+                mottaker = "Molefonken",
                 mottakerType = MottakerType.Person,
                 totalbeløp = 32913,
                 erOpphørt = false
@@ -357,7 +357,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         tom = 17.januar,
                         grad = 100,
                         dagsats = 1431,
-                        mottaker = "123 456 789",
+                        mottaker = "Arbeidsgiver",
                         mottakerType = MottakerType.Arbeidsgiver,
                         totalbeløp = 18603,
                         erOpphørt = false
@@ -412,7 +412,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         tom = 16.januar,
                         grad = 100,
                         dagsats = 1431,
-                        mottaker = "123 456 789",
+                        mottaker = "Arbeidsgiver",
                         mottakerType = MottakerType.Arbeidsgiver,
                         totalbeløp = 17172,
                         erOpphørt = false
@@ -618,7 +618,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         tom = 28.februar,
                         grad = 100,
                         dagsats = 1431,
-                        mottaker = "123 456 789",
+                        mottaker = "Arbeidsgiver",
                         erOpphørt = false,
                         totalbeløp = 31482
                     ),
@@ -627,7 +627,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         tom = 28.januar,
                         grad = 100,
                         dagsats = 1431,
-                        mottaker = "123 456 789",
+                        mottaker = "Arbeidsgiver",
                         erOpphørt = false,
                         totalbeløp = 28620
                     )
@@ -681,7 +681,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         tom = 19.november(2021),
                         grad = 60,
                         dagsats = 700,
-                        mottaker = "123 456 789",
+                        mottaker = "Arbeidsgiver",
                         mottakerType = MottakerType.Arbeidsgiver,
                         erOpphørt = false,
                         totalbeløp = 3900
@@ -691,7 +691,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         tom = 12.november(2021),
                         grad = 60,
                         dagsats = 700,
-                        mottaker = "123 456 789",
+                        mottaker = "Arbeidsgiver",
                         mottakerType = MottakerType.Arbeidsgiver,
                         erOpphørt = false,
                         totalbeløp = 3900
@@ -701,7 +701,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         tom = 19.november(2021),
                         grad = 80,
                         dagsats = 1000,
-                        mottaker = "123 456 789",
+                        mottaker = "Arbeidsgiver",
                         mottakerType = MottakerType.Arbeidsgiver,
                         erOpphørt = true,
                         totalbeløp = 0
@@ -748,7 +748,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         tom = 19.november(2021),
                         grad = 60,
                         totalbeløp = 3900,
-                        mottaker = "123 456 789",
+                        mottaker = "Arbeidsgiver",
                         mottakerType = MottakerType.Arbeidsgiver,
                         erOpphørt = false
                     ),
@@ -758,7 +758,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         tom = 12.november(2021),
                         grad = 60,
                         totalbeløp = 3900,
-                        mottaker = "123 456 789",
+                        mottaker = "Arbeidsgiver",
                         mottakerType = MottakerType.Arbeidsgiver,
                         erOpphørt = false
                     ),
@@ -768,7 +768,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         tom = 19.november(2021),
                         grad = 80,
                         totalbeløp = 0,
-                        mottaker = "123 456 789",
+                        mottaker = "Arbeidsgiver",
                         mottakerType = MottakerType.Arbeidsgiver,
                         erOpphørt = true
                     )

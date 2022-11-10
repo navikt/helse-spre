@@ -139,7 +139,7 @@ internal abstract class AbstractE2ETest {
                 tom = tom,
                 grad = 100,
                 dagsats = 1431,
-                mottaker = "123 456 789",
+                mottaker = "Arbeidsgiver",
                 totalbeløp = totaltTilUtbetaling,
                 erOpphørt = false,
             )

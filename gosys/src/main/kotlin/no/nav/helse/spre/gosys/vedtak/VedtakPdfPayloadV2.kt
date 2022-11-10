@@ -21,7 +21,7 @@ data class VedtakPdfPayloadV2(
     val maksdato: LocalDate?,
     val sykepengegrunnlag: Double,
     val grunnlagForSykepengegrunnlag: Map<String, Double>,
-    val navn: String?,
+    val navn: String,
     val organisasjonsnavn: String?
 ) {
     data class Oppdrag(
@@ -30,13 +30,14 @@ data class VedtakPdfPayloadV2(
 
     enum class MottakerType {
         Arbeidsgiver {
-            override fun formatter(mottaker: String): String = mottaker.chunked(3).joinToString(separator = " ")
+            override fun formater(fulltNavn: String): String = "Arbeidsgiver"
         },
         Person {
-            override fun formatter(mottaker: String): String = mottaker.chunked(6).joinToString(separator = " ")
-        };
+            override fun formater(fulltNavn: String): String = fulltNavn.split(Regex("\\s"), 0).firstOrNull() ?: ""
+        }
+        ;
 
-        abstract fun formatter(mottaker: String): String
+        abstract fun formater(fulltNavn: String): String
     }
 
     data class Linje(
