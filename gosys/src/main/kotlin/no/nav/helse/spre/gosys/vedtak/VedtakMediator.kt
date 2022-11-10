@@ -28,14 +28,14 @@ class VedtakMediator(
     internal fun opprettSammenslåttVedtak(vedtakMessage: VedtakMessage) {
         if (vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
         runBlocking {
-            val organisasjonsnavn: String? = try {
+            val organisasjonsnavn = try {
                 eregClient.hentOrganisasjonsnavn(
                     vedtakMessage.organisasjonsnummer,
                     vedtakMessage.hendelseId
                 ).navn
             } catch (e: Exception) {
                 log.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}, aktørId=${vedtakMessage.aktørId}")
-                null
+                ""
             }
             val navn = try {
                 pdlClient.hentPersonNavn(vedtakMessage.fødselsnummer, vedtakMessage.hendelseId) ?: ""

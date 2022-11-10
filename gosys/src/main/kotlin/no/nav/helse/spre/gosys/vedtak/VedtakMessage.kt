@@ -68,7 +68,7 @@ data class VedtakMessage(
             }
     )
 
-    internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String?, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
+    internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
         type = lesbarTittel(),

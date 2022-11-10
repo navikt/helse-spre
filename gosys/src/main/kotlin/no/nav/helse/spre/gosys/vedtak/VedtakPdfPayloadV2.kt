@@ -22,7 +22,7 @@ data class VedtakPdfPayloadV2(
     val sykepengegrunnlag: Double,
     val grunnlagForSykepengegrunnlag: Map<String, Double>,
     val navn: String,
-    val organisasjonsnavn: String?
+    val organisasjonsnavn: String
 ) {
     data class Oppdrag(
         val fagsystemId: String
