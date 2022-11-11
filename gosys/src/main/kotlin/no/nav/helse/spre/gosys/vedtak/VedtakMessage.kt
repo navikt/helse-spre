@@ -181,7 +181,7 @@ data class VedtakMessage(
             "MinimumInntekt" -> "Krav til minste sykepengegrunnlag er ikke oppfylt"
             "MinimumInntektOver67" -> "Krav til minste sykepengegrunnlag er ikke oppfylt - Personen er mellom 67 og 70 år, jf § 8-51"
             "EgenmeldingUtenforArbeidsgiverperiode" -> "Egenmelding etter arbeidsgiverperioden"
-            "MinimumSykdomsgrad" -> "Sykdomsgrad under 20%"
+            "MinimumSykdomsgrad" -> "Sykdomsgrad under 20 %"
             "ManglerOpptjening" -> "Krav til 4 ukers opptjening er ikke oppfylt"
             "ManglerMedlemskap" -> "Krav til medlemskap er ikke oppfylt"
             "EtterDødsdato" -> "Personen er død"
