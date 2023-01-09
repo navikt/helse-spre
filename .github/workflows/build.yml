@@ -23,15 +23,15 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: cache gradle wrapper
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
       - id: set-vars
         run: |
           TAG=$(echo ${{ github.sha }} | cut -c1-7)
-          echo "::set-output name=team::$TEAM"
-          echo "::set-output name=tag::$TAG"
+          echo "team=${TEAM}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
       - id: set-changed-files
         run: |
           # create a comma-separated list of changed files
@@ -46,21 +46,21 @@ jobs:
 
           if [ "$MATRIX_SIZE" == '0' ]; then
             echo "Empty matrix"
-            echo "::set-output name=matrix::[]"
-            echo "::set-output name=emptyMatrix::true"
+            echo "matrix=[]" >> $GITHUB_OUTPUT
+            echo "emptyMatrix=true" >> $GITHUB_OUTPUT
           else
             echo Setting matrix to $MATRIX
-            echo "::set-output name=matrix::$MATRIX"
-            echo "::set-output name=emptyMatrix::false"
+            echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
+            echo "emptyMatrix=false" >> $GITHUB_OUTPUT
           fi
           if [ "$DEPLOY_MATRIX_SIZE" == '0' ]; then
             echo "Empty deploy matrix"
-            echo "::set-output name=deployMatrix::[]"
-            echo "::set-output name=emptyDeployMatrix::true"
+            echo "deployMatrix=[]" >> $GITHUB_OUTPUT
+            echo "emptyDeployMatrix=true" >> $GITHUB_OUTPUT
           else
             echo Setting deploy matrix to $DEPLOY_MATRIX
-            echo "::set-output name=deployMatrix::$DEPLOY_MATRIX"
-            echo "::set-output name=emptyDeployMatrix::false"
+            echo "deployMatrix=${DEPLOY_MATRIX}" >> $GITHUB_OUTPUT
+            echo "emptyDeployMatrix=false" >> $GITHUB_OUTPUT
           fi
 
   build:
@@ -77,7 +77,7 @@ jobs:
         with:
           java-version: '17.x'
       - name: cache gradle wrapper
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
@@ -85,7 +85,7 @@ jobs:
         run: ./gradlew --info ${{ matrix.project }}::test ${{ matrix.project }}::build
       - name: Check app.jar existence
         id: app_jar
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
           files: "${{ matrix.project }}/build/libs/app.jar"
       - name: create docker tag
@@ -119,9 +119,9 @@ jobs:
           curl --head --fail -H "Authorization: Bearer ${TOKEN}" https://${DOCKER_REGISTRY}/v2/${DOCKER_IMAGE_PREFIX}${{ matrix.project }}/manifests/${{ needs.generate_vars.outputs.tag }}          
           IMAGE_EXISTS=$?
           if [ ${IMAGE_EXISTS} -ne 0 ]; then
-            echo "::set-output name=exists::false"
+            echo "exists=false" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=exists::true"
+            echo "exists=true" >> $GITHUB_OUTPUT
           fi
       - name: create env vars
         if: steps.docker-exists.outputs.exists == 'true'
@@ -135,7 +135,7 @@ jobs:
       - name: Check for vars yml
         if: steps.docker-exists.outputs.exists == 'true'
         id: vars_file
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
           files: "${{ env.VARS }}"
       - name: deploy
