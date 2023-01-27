@@ -30,7 +30,7 @@ class HåndterVedtaksperiodeendringer(
             .onEach { it.setObserver(observer) }
             .forEach { oppgave ->
                 when (gjeldendeTilstand) {
-                    "AVVENTER_GODKJENNING" -> oppgave.forlengTimeout()
+                    "AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING" -> oppgave.forlengTimeout()
                     "TIL_INFOTRYGD" -> oppgaveDAO.lagreVedtaksperiodeEndretTilInfotrygd(oppgave.hendelseId)
                     "AVSLUTTET" -> Hendelse.Avsluttet.accept(oppgave)
                     "AVSLUTTET_UTEN_UTBETALING" -> Hendelse.AvsluttetUtenUtbetaling.accept(oppgave)

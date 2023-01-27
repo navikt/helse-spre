@@ -684,7 +684,7 @@ class EndToEndTest {
 
         sendSøknad(søknadHendelseId, søknadDokumentId)
         sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
+            hendelseIder = listOf(søknadHendelseId),
             tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
             vedtaksperiodeId = vedtaksperiodeId,
         )
@@ -709,6 +709,50 @@ class EndToEndTest {
         }
         publiserteOppgaver[3].also { dto ->
             dto.assertInnhold(Utsett, søknadDokumentId, Søknad)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
+        }
+    }
+
+    @Test
+    fun `setter ny timeout hvis en IM kvikner en AUU-periode til live`() {
+        val inntektsmeldingHendelseId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
+        val søknadHendelseId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
+
+        sendSøknad(søknadHendelseId, søknadDokumentId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadHendelseId),
+            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadHendelseId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
+            tilstand = "AVVENTER_HISTORIKK_REVURDERING",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
+            tilstand = "AVVENTER_GODKJENNING_REVURDERING",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+
+        assertEquals(4, publiserteOppgaver.size)
+
+        publiserteOppgaver[2].also { dto ->
+            dto.assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(40)).absoluteValue < 2)
+        }
+        publiserteOppgaver[3].also { dto ->
+            dto.assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
             assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
         }
     }
