@@ -787,7 +787,7 @@ class EndToEndTest {
 
         publiserteOppgaver[2].also { dto ->
             dto.assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(40)).absoluteValue < 2)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(60)).absoluteValue < 2)
         }
         publiserteOppgaver[3].also { dto ->
             dto.assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
@@ -862,8 +862,8 @@ class EndToEndTest {
         fun permutations() = listOf(
             Arguments.of(40000.00, 50000.95, 2),
             Arguments.of(40000.00, null, 2),
-            Arguments.of(40000.00, 40000.95, 40),
-            Arguments.of(40000.95, 40000.00, 40),
+            Arguments.of(60000.00, 60000.95, 60),
+            Arguments.of(60000.95, 60000.00, 60),
             Arguments.of(40001.00, 40000.99, 2),
         )
     }

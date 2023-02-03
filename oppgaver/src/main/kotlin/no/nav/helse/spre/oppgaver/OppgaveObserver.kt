@@ -94,7 +94,7 @@ class OppgaveObserver(
         when {
             dokumentType == Søknad -> 110
             oppgaveDAO.harUtbetalingTilSøker(dokumentId) -> 2
-            else -> 40
+            else -> 60
         }.toLong()
 
 
