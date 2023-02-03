@@ -24,7 +24,7 @@ class Oppgave(
     }
 
     // Skal ikke sende forleng-signal for oppgaver som allerede er avluttet
-    fun forlengTimeout() = if (kanUtsettes()) observer?.forlengTimeout(this, LocalDateTime.now().plusDays(110)) else Unit
+    fun forlengTimeout() = if (kanUtsettes()) observer?.forlengTimeout(this, LocalDateTime.now().plusDays(180)) else Unit
 
     private fun kanUtsettes() = tilstand == Tilstand.SpleisLest || tilstand == Tilstand.KortInntektsmeldingFerdigbehandlet
 

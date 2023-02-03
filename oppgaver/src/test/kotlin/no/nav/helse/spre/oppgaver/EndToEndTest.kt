@@ -705,11 +705,11 @@ class EndToEndTest {
 
         publiserteOppgaver[2].also { dto ->
             dto.assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(180)).absoluteValue < 2)
         }
         publiserteOppgaver[3].also { dto ->
             dto.assertInnhold(Utsett, søknadDokumentId, Søknad)
-            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(180)).absoluteValue < 2)
         }
     }
 
@@ -753,7 +753,7 @@ class EndToEndTest {
         }
         publiserteOppgaver[3].also { dto ->
             dto.assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(110)).absoluteValue < 2)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(180)).absoluteValue < 2)
         }
     }
 
