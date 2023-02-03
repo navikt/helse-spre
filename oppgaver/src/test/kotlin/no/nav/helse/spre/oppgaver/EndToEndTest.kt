@@ -5,8 +5,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Søknad
 import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -710,6 +709,45 @@ class EndToEndTest {
         publiserteOppgaver[3].also { dto ->
             dto.assertInnhold(Utsett, søknadDokumentId, Søknad)
             assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(180)).absoluteValue < 2)
+        }
+    }
+
+    @Test
+    fun `utsetter inntektsmelding som treffer AUU selvom den ikke inngikk i vedtaksperiode_endret`() {
+        val inntektsmeldingHendelseId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
+        val søknadHendelseId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
+
+        sendSøknad(søknadHendelseId, søknadDokumentId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadHendelseId),
+            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadHendelseId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadHendelseId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = vedtaksperiodeId,
+        )
+
+        assertEquals(2, publiserteOppgaver.size)
+        assertFalse(publiserteOppgaver.any { oppgave -> oppgave.dokumentType == Inntektsmelding })
+
+        utsettOppgave(inntektsmeldingHendelseId)
+
+        assertEquals(3, publiserteOppgaver.size)
+        assertTrue(publiserteOppgaver.any { oppgave -> oppgave.dokumentType == Inntektsmelding })
+
+        publiserteOppgaver.last().also { dto ->
+            dto.assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
         }
     }
 
