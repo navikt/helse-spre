@@ -54,6 +54,7 @@ spec:
   gcp:
     sqlInstances:
       - type: {{gcp.type}}
+        tier: db-custom-4-16384
         databases:
           - name: {{gcp.databaseName}}
             envVarPrefix: DB
