@@ -15,18 +15,20 @@ class HåndterVedtaksperiodeendringer(
         River(rapidsConnection).apply {
             validate { it.requireKey("gjeldendeTilstand", "hendelser") }
             validate { it.requireValue("@event_name", "vedtaksperiode_endret") }
+            validate { it.interestedIn("forrigeTilstand") }
         }.register(this)
     }
 
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val forrigeTilstand = packet["forrigeTilstand"].asText()
         val gjeldendeTilstand = packet["gjeldendeTilstand"].asText()
         packet["hendelser"]
             .map { UUID.fromString(it.asText()) }
             .mapNotNull { oppgaveDAO.finnOppgave(it) }
             .onEach { it.setObserver(observer) }
             .forEach { oppgave ->
-                withMDC(mapOf("event" to "vedtaksperiode_endret", "tilstand" to gjeldendeTilstand)) {
+                withMDC(mapOf("event" to "vedtaksperiode_endret", "tilstand" to gjeldendeTilstand, "forrigeTilstand" to forrigeTilstand)) {
                     when (gjeldendeTilstand) {
                         "AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING" -> oppgave.forlengTimeout()
                         "TIL_INFOTRYGD" -> oppgaveDAO.lagreVedtaksperiodeEndretTilInfotrygd(oppgave.hendelseId)
