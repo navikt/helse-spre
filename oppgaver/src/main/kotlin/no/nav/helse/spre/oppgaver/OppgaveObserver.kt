@@ -1,9 +1,10 @@
 package no.nav.helse.spre.oppgaver
 
-import net.logstash.logback.argument.StructuredArguments
+import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.oppgaver.DokumentType.Søknad
+import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
@@ -39,9 +40,9 @@ class OppgaveObserver(
         )
 
         log.info(
-            "Publisert oppgave på ${oppgave.dokumentType.name} i tilstand: ${oppgave.tilstand} med ider: {}, {}",
-            StructuredArguments.keyValue("hendelseId", oppgave.hendelseId),
-            StructuredArguments.keyValue("dokumentId", oppgave.dokumentId)
+            "Publisert oppgave på ${oppgave.dokumentType.name} i tilstand: ${oppgave.tilstand} med ider: {}, {}. ${oppgave.timeout().timeoutToString}. Sendes på tbd.spre-oppgaver:\n\t${objectMapper.writeValueAsString(dto)}",
+            keyValue("hendelseId", oppgave.hendelseId),
+            keyValue("dokumentId", oppgave.dokumentId)
         )
     }
 
@@ -68,9 +69,9 @@ class OppgaveObserver(
         )
 
         log.info(
-            "Publisert forlenging av timeout for oppgave på ${oppgave.dokumentType.name} i tilstand: ${oppgave.tilstand} med ider: {}, {}",
-            StructuredArguments.keyValue("hendelseId", oppgave.hendelseId),
-            StructuredArguments.keyValue("dokumentId", oppgave.dokumentId),
+            "Publisert forlenging av timeout for oppgave på ${oppgave.dokumentType.name} i tilstand: ${oppgave.tilstand} med ider: {}, {}. ${timeout.timeoutToString}. Sendes på tbd.spre-oppgaver:\n\t${objectMapper.writeValueAsString(dto)}",
+            keyValue("hendelseId", oppgave.hendelseId),
+            keyValue("dokumentId", oppgave.dokumentId),
         )
     }
 
@@ -106,5 +107,9 @@ class OppgaveObserver(
         Oppgave.Tilstand.SpleisLest -> "oppgavestyring_utsatt"
         Oppgave.Tilstand.KortSøknadFerdigbehandlet -> "oppgavestyring_kort_periode"
         Oppgave.Tilstand.DokumentOppdaget -> error("skal ikke legge melding på topic om at dokument er oppdaget")
+    }
+
+    private companion object {
+        private val LocalDateTime?.timeoutToString get() = if (this == null) "" else "Forlenger timeout med ${Duration.between(LocalDateTime.now().minusSeconds(1), this).toDays()} dager"
     }
 }
