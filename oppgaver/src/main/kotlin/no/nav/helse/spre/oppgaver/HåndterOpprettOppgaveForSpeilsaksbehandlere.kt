@@ -1,9 +1,6 @@
 package no.nav.helse.spre.oppgaver
 
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.*
 import java.util.*
 
 class HåndterOpprettOppgaveForSpeilsaksbehandlere(
@@ -27,9 +24,11 @@ class HåndterOpprettOppgaveForSpeilsaksbehandlere(
             .mapNotNull { oppgaveDAO.finnOppgave(it) }
             .onEach { it.setObserver(observer) }
             .forEach { oppgave ->
-                Hendelse.AvbruttOgHarRelatertUtbetaling.accept(oppgave)
-                log.info("Mottok opprett_oppgave_for_speilsaksbehandlere-event : {}",
-                    oppgave.hendelseId)
+                withMDC(mapOf("event" to "opprett_oppgave_for_speilsaksbehandlere")) {
+                    Hendelse.AvbruttOgHarRelatertUtbetaling.accept(oppgave)
+                    log.info("Mottok opprett_oppgave_for_speilsaksbehandlere-event : {}",
+                        oppgave.hendelseId)
+                }
             }
     }
 }

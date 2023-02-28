@@ -1,9 +1,6 @@
 package no.nav.helse.spre.oppgaver
 
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.*
 import java.util.*
 
 class HåndterVedtaksperiodeendringer(
@@ -29,12 +26,14 @@ class HåndterVedtaksperiodeendringer(
             .mapNotNull { oppgaveDAO.finnOppgave(it) }
             .onEach { it.setObserver(observer) }
             .forEach { oppgave ->
-                when (gjeldendeTilstand) {
-                    "AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING" -> oppgave.forlengTimeout()
-                    "TIL_INFOTRYGD" -> oppgaveDAO.lagreVedtaksperiodeEndretTilInfotrygd(oppgave.hendelseId)
-                    "AVSLUTTET" -> Hendelse.Avsluttet.accept(oppgave)
-                    "AVSLUTTET_UTEN_UTBETALING" -> Hendelse.AvsluttetUtenUtbetaling.accept(oppgave)
-                    else -> Hendelse.Lest.accept(oppgave)
+                withMDC(mapOf("event" to "vedtaksperiode_endret", "tilstand" to gjeldendeTilstand)) {
+                    when (gjeldendeTilstand) {
+                        "AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING" -> oppgave.forlengTimeout()
+                        "TIL_INFOTRYGD" -> oppgaveDAO.lagreVedtaksperiodeEndretTilInfotrygd(oppgave.hendelseId)
+                        "AVSLUTTET" -> Hendelse.Avsluttet.accept(oppgave)
+                        "AVSLUTTET_UTEN_UTBETALING" -> Hendelse.AvsluttetUtenUtbetaling.accept(oppgave)
+                        else -> Hendelse.Lest.accept(oppgave)
+                    }
                 }
             }
     }
