@@ -2,6 +2,7 @@ package no.nav.helse.spre.arbeidsgiver
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
+import no.nav.helse.spre.Toggle
 import no.nav.helse.spre.arbeidsgiver.InntektsmeldingDTO.Companion.tilInntektsmeldingDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -29,13 +30,18 @@ internal class TrengerIkkeInntektsmelding(
         log.info("Trenger ikke inntektsmelding for vedtaksperiode: {}", packet["vedtaksperiodeId"].asText())
 
         val payload = packet.tilInntektsmeldingDTO(Meldingstype.TRENGER_IKKE_INNTEKTSMELDING)
-        arbeidsgiverProducer.send(ProducerRecord(
-            "aapen-helse-spre-arbeidsgiver",
-            null,
-            payload.fødselsnummer,
-            payload,
-            listOf(RecordHeader("type", payload.meldingstype))
-        )).get()
+        val topicName =
+            if (Toggle.ArbeidsgiverAiventopic.enabled) "tbd.aapen-helse-spre-arbeidsgiver"
+            else "aapen-helse-spre-arbeidsgiver"
+        arbeidsgiverProducer.send(
+            ProducerRecord(
+                topicName,
+                null,
+                payload.fødselsnummer,
+                payload,
+                listOf(RecordHeader("type", payload.meldingstype))
+            )
+        ).get()
 
         log.info("Publiserte trenger ikke inntektsmelding for vedtak: ${packet["vedtaksperiodeId"].textValue()}")
     }
