@@ -1,0 +1,23 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  name: aapen-helse-spre-arbeidsgiver
+  namespace: tbd
+  labels:
+    team: tbd
+spec:
+  pool: nav-dev
+  config:
+    cleanupPolicy: delete
+    minimumInSyncReplicas: 1
+    partitions: 1
+    replication: 2
+    retentionBytes: -1
+    retentionHours: 2201
+  acl:
+    - team: tbd
+      application: spre-arbeidsgiver
+      access: readwrite
+    - team: helsearbeidsgiver
+      application: im-varsel
+      access: readwrite
