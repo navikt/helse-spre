@@ -30,9 +30,7 @@ internal class BeOmInntektsmeldinger(
         log.info("Ber om inntektsmelding på vedtaksperiode: {}", packet["vedtaksperiodeId"].asText())
 
         val payload = packet.tilInntektsmeldingDTO(meldingstype = Meldingstype.TRENGER_INNTEKTSMELDING)
-        val topicName =
-            if (Toggle.ArbeidsgiverAiventopic.enabled) "tbd.aapen-helse-spre-arbeidsgiver"
-            else "aapen-helse-spre-arbeidsgiver"
+        val topicName = "tbd.aapen-helse-spre-arbeidsgiver"
         arbeidsgiverProducer.send(ProducerRecord(
             topicName,
             null,

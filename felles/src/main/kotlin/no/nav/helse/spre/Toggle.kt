@@ -121,6 +121,4 @@ abstract class Toggle internal constructor(enabled: Boolean = false, private val
         }
     }
 
-    object ArbeidsgiverAiventopic : Toggle("ArbeidsgiverAiventopic", true)
-
 }

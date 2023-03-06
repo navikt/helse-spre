@@ -30,9 +30,7 @@ internal class TrengerIkkeInntektsmelding(
         log.info("Trenger ikke inntektsmelding for vedtaksperiode: {}", packet["vedtaksperiodeId"].asText())
 
         val payload = packet.tilInntektsmeldingDTO(Meldingstype.TRENGER_IKKE_INNTEKTSMELDING)
-        val topicName =
-            if (Toggle.ArbeidsgiverAiventopic.enabled) "tbd.aapen-helse-spre-arbeidsgiver"
-            else "aapen-helse-spre-arbeidsgiver"
+        val topicName = "tbd.aapen-helse-spre-arbeidsgiver"
         arbeidsgiverProducer.send(
             ProducerRecord(
                 topicName,

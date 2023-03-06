@@ -31,18 +31,7 @@ fun main() {
 fun launchApplication(
     environment: Map<String, String>
 ): RapidsConnection {
-    val serviceUser = readServiceUserCredentials()
-    val arbeidsgiverProducer =
-        if (Toggle.ArbeidsgiverAiventopic.enabled) {
-            createAivenProducer(environment)
-        } else {
-            KafkaProducer<String, InntektsmeldingDTO>(
-                loadBaseConfig(
-                    environment.getValue("KAFKA_BOOTSTRAP_SERVERS"),
-                    serviceUser
-                ).toProducerConfig()
-            )
-        }
+    val arbeidsgiverProducer = createAivenProducer(environment)
 
     return RapidApplication.create(environment).apply {
         BeOmInntektsmeldinger(this, arbeidsgiverProducer)
