@@ -48,7 +48,7 @@ class InntektsmeldingTest {
             opprettet = opprettet
         )
         verify(exactly = 2) { mockproducer.send(
-            ProducerRecord("aapen-helse-spre-arbeidsgiver", null, fnr, payload, headere(payload)))
+            ProducerRecord("tbd.aapen-helse-spre-arbeidsgiver", null, fnr, payload, headere(payload)))
         }
         assertEquals(2, testRapid.inspektør.size)
     }
@@ -68,7 +68,7 @@ class InntektsmeldingTest {
             opprettet = opprettet
         )
         verify(exactly = 2) { mockproducer.send(
-            ProducerRecord("aapen-helse-spre-arbeidsgiver", null, fnr, payload, headere(payload)))
+            ProducerRecord("tbd.aapen-helse-spre-arbeidsgiver", null, fnr, payload, headere(payload)))
         }
     }
 
