@@ -16,10 +16,8 @@ enum class DatabaseTilstand {
     KortSøknadFerdigbehandlet
 }
 
-class OppgaveDAO(
-    private val dataSource: DataSource
-) {
-    fun finnOppgave(hendelseId: UUID): Oppgave? = using(sessionOf(dataSource)) { session ->
+class OppgaveDAO(private val dataSource: DataSource) {
+    fun finnOppgave(hendelseId: UUID): Oppgave? = sessionOf(dataSource).use { session ->
         session.run(queryOf(
             "SELECT * FROM oppgave_tilstand WHERE hendelse_id=?;",
             hendelseId
@@ -46,7 +44,7 @@ class OppgaveDAO(
     }
 
     fun opprettOppgaveHvisNy(hendelseId: UUID, dokumentId: UUID, dokumentType: DokumentType) =
-        using(sessionOf(dataSource)) { session ->
+        sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
                     "INSERT INTO oppgave_tilstand(hendelse_id, dokument_id, dokument_type, sist_endret) VALUES(?, ?, CAST(? AS dokument_type), NOW()) ON CONFLICT (hendelse_id) DO NOTHING;",
@@ -57,7 +55,7 @@ class OppgaveDAO(
             )
         }
 
-    fun oppdaterTilstand(oppgave: Oppgave) = using(sessionOf(dataSource)) { session ->
+    fun oppdaterTilstand(oppgave: Oppgave) = sessionOf(dataSource).use { session ->
         session.run(
             queryOf(
                 "UPDATE oppgave_tilstand SET tilstand=CAST(? AS tilstand_type), sist_endret = NOW() WHERE hendelse_id=?;",
@@ -66,7 +64,7 @@ class OppgaveDAO(
         )
     }
 
-    fun lagreVedtaksperiodeEndretTilInfotrygd(hendelseId: UUID) = using(sessionOf(dataSource)){ session ->
+    fun lagreVedtaksperiodeEndretTilInfotrygd(hendelseId: UUID) = sessionOf(dataSource).use{ session ->
         session.run(
             queryOf(
                 "INSERT INTO vedtaksperiode_endret_tilinfotrygd(hendelse_id, sist_endret) VALUES(?, NOW()) ON CONFLICT (hendelse_id) DO NOTHING;",
@@ -76,7 +74,7 @@ class OppgaveDAO(
     }
 
     fun markerSomUtbetalingTilSøker(dokumentId: UUID) =
-        using(sessionOf(dataSource)) { session ->
+        sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
                     "INSERT INTO utbetaling_til_søker(dokument_id) VALUES(?) ON CONFLICT (dokument_id) DO NOTHING;",
@@ -85,7 +83,7 @@ class OppgaveDAO(
             )
         }
 
-    fun harUtbetalingTilSøker(dokumentId: UUID): Boolean = using(sessionOf(dataSource)) { session ->
+    fun harUtbetalingTilSøker(dokumentId: UUID): Boolean = sessionOf(dataSource).use { session ->
         session.run(queryOf(
             "SELECT COUNT(1) FROM utbetaling_til_søker WHERE dokument_id=?;",
             dokumentId

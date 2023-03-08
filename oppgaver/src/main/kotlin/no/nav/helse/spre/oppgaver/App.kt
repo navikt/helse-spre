@@ -33,11 +33,7 @@ fun main() {
 fun launchApplication(
     environment: Map<String, String> = System.getenv()
 ): RapidsConnection {
-    val datasource = DataSourceBuilder()
-        .apply(DataSourceBuilder::migrate)
-        .getDataSource()
 
-    val oppgaveDAO = OppgaveDAO(datasource)
 
     val kafkaProducer = createProducer(environment)
 
@@ -52,6 +48,18 @@ fun launchApplication(
     }
 
     return RapidApplication.create(environment).apply {
+        val dsbuilder = when (environment["NAIS_CLUSTER_NAME"]) {
+            "dev-gcp", "prod-gcp" -> DataSourceBuilderGCP()
+            else -> DataSourceBuilder()
+        }
+
+        val oppgaveDAO = OppgaveDAO(dsbuilder.datasource())
+
+        register(object : RapidsConnection.StatusListener {
+            override fun onStartup(rapidsConnection: RapidsConnection) {
+                dsbuilder.migrate()
+            }
+        })
         registerRivers(oppgaveDAO, publisist)
     }
 }

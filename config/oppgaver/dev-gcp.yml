@@ -1,0 +1,2 @@
+strategy: Recreate
+kafkaPool: nav-dev

@@ -6,7 +6,7 @@ import java.util.*
 import javax.sql.DataSource
 import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration as createDataSource
 
-internal class DataSourceBuilder(env: Map<String, String> = System.getenv()) {
+internal class DataSourceBuilder(env: Map<String, String> = System.getenv()) : DataSourceProvider {
     private val databaseName =
         requireNotNull(env["DATABASE_NAME"]) { "database name must be set if jdbc url is not provided" }
     private val databaseHost =
@@ -29,11 +29,13 @@ internal class DataSourceBuilder(env: Map<String, String> = System.getenv()) {
         initializationFailTimeout = 30000
     }
 
-    fun getDataSource(role: Role = Role.User) =
+    override fun datasource() = datasource(Role.User)
+
+    private fun datasource(role: Role) =
         createDataSource(hikariConfig, vaultMountPath, role.asRole(databaseName))
 
-    fun migrate() {
-        runMigration(getDataSource(Role.Admin), "SET ROLE \"${Role.Admin.asRole(databaseName)}\"")
+    override fun migrate() {
+        runMigration(datasource(Role.Admin), "SET ROLE \"${Role.Admin.asRole(databaseName)}\"")
     }
 
     private fun runMigration(dataSource: DataSource, initSql: String? = null) =
