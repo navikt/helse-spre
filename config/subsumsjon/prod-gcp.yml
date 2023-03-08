@@ -5,7 +5,6 @@ kafkaPool: nav-prod
 kafkaResetPolicy: earliest
 minReplicas: 1
 maxReplicas: 1
-diskAutoResize: true
 env:
   - name: SUBSUMSJON_TOPIC
     value: flex.omrade-helse-etterlevelse

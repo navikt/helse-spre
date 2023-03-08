@@ -2,7 +2,6 @@ strategy: Recreate
 kafkaPool: nav-dev
 gcp:
   type: POSTGRES_14
-  diskAutoresize: true
   pointInTimeRecovery: true
   databaseName: spre-oppgaver
   envVarPrefix: DATABASE

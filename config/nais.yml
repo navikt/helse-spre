@@ -58,9 +58,9 @@ spec:
         name: {{gcp.databaseName}}
         databases:
           - name: {{gcp.databaseName}}
-            envVarPrefix: {{#if envVarPrefix}}{{ envVarPrefix }}{{else}}DB{{/if}}
-        diskAutoresize: {{#if diskAutoResize }}{{ diskAutoResize }}{{else}}false{{/if}}
-        pointInTimeRecovery: {{#if pointInTimeRecovery }}{{ pointInTimeRecovery }}{{else}}false{{/if}}
+            envVarPrefix: {{#if gcp.envVarPrefix}}{{ gcp.envVarPrefix }}{{else}}DB{{/if}}
+        diskAutoresize: "true"
+        pointInTimeRecovery: "true"
   {{/if}}
   prometheus:
     enabled: true
