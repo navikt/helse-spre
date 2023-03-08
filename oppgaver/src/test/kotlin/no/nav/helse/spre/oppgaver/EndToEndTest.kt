@@ -12,6 +12,7 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.*
@@ -95,6 +96,78 @@ class EndToEndTest {
         assertEquals(1, rapid.inspektør.events("oppgavestyring_ferdigbehandlet", søknad1HendelseId).size)
         assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_ferdigbehandlet", inntektsmeldingHendelseId).size)
+    }
+
+    @Test
+    fun `utsetter ikke oppgave på forlengelse når perioden før avventer godkjenning`() {
+        val søknad1HendelseId = UUID.randomUUID()
+        val søknad1DokumentId = UUID.fromString("00000000-0000-0000-0000-500000000001")
+
+        val søknad2HendelseId = UUID.randomUUID()
+        val søknad2DokumentId = UUID.fromString("00000000-0000-0000-0000-500000000002")
+
+        val inntektsmeldingHendelseId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.fromString("00000000-0000-0000-0000-100000000001")
+
+        sendSøknad(søknad1HendelseId, søknad1DokumentId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId),
+            tilstand = "AVVENTER_INNTEKTSMELDING"
+        )
+
+        assertEquals(1, publiserteOppgaver.size)
+        publiserteOppgaver[0].let { søknadOppgave ->
+            assertEquals(110, søknadOppgave.timeoutIDager)
+            assertEquals(søknad1DokumentId, søknadOppgave.dokumentId)
+        }
+
+        sendSøknad(søknad2HendelseId, søknad2DokumentId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad2HendelseId),
+            tilstand = "AVVENTER_INNTEKTSMELDING"
+        )
+
+        assertEquals(2, publiserteOppgaver.size)
+        publiserteOppgaver[1].let { søknadOppgave ->
+            assertEquals(110, søknadOppgave.timeoutIDager)
+            assertEquals(søknad2DokumentId, søknadOppgave.dokumentId)
+        }
+
+        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
+            tilstand = "AVVENTER_HISTORIKK"
+        )
+
+        assertEquals(3, publiserteOppgaver.size)
+        publiserteOppgaver[2].let { inntektsmeldingOppgave ->
+            assertEquals(60, inntektsmeldingOppgave.timeoutIDager)
+            assertEquals(inntektsmeldingDokumentId, inntektsmeldingOppgave.dokumentId)
+        }
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
+            tilstand = "AVVENTER_GODKJENNING"
+        )
+        assertEquals(5, publiserteOppgaver.size)
+        publiserteOppgaver[3].let { søknadOppgave ->
+            assertEquals(180, søknadOppgave.timeoutIDager)
+            assertEquals(søknad1DokumentId, søknadOppgave.dokumentId)
+
+        }
+        publiserteOppgaver[4].let { inntektsmeldingOppgave ->
+            assertEquals(180, inntektsmeldingOppgave.timeoutIDager)
+            assertEquals(inntektsmeldingDokumentId, inntektsmeldingOppgave.dokumentId)
+
+        }
+
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknad2HendelseId, inntektsmeldingHendelseId),
+            tilstand = "AVVENTER_BLOKKERENDE_PERIODE"
+        )
+
+        assertEquals(5, publiserteOppgaver.size) // Her burde det sendes ut utsettelse også for søknad2
     }
 
     @Test
@@ -858,6 +931,8 @@ class EndToEndTest {
     }
 
     companion object {
+
+        private val OppgaveDTO.timeoutIDager get() = Duration.between(LocalDateTime.now().minusSeconds(1), this.timeout).toDays()
         @JvmStatic
         fun permutations() = listOf(
             Arguments.of(40000.00, 50000.95, 2),
