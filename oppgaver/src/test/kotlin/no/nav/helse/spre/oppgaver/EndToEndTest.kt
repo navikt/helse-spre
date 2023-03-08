@@ -99,7 +99,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter ikke oppgave på forlengelse når perioden før avventer godkjenning`() {
+    fun `utsetter oppgave på forlengelse når perioden før avventer godkjenning`() {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.fromString("00000000-0000-0000-0000-500000000001")
 
@@ -159,7 +159,6 @@ class EndToEndTest {
         publiserteOppgaver[4].let { inntektsmeldingOppgave ->
             assertEquals(180, inntektsmeldingOppgave.timeoutIDager)
             assertEquals(inntektsmeldingDokumentId, inntektsmeldingOppgave.dokumentId)
-
         }
 
         sendVedtaksperiodeEndret(
@@ -167,7 +166,23 @@ class EndToEndTest {
             tilstand = "AVVENTER_BLOKKERENDE_PERIODE"
         )
 
-        assertEquals(5, publiserteOppgaver.size) // Her burde det sendes ut utsettelse også for søknad2
+        assertEquals(5, publiserteOppgaver.size)
+
+        sendVedtaksperiodeVenter(
+            hendelseIder = listOf(søknad2HendelseId, inntektsmeldingHendelseId),
+            venterPå = "GODKJENNING"
+        )
+
+        assertEquals(7, publiserteOppgaver.size)
+        publiserteOppgaver[5].let { søknadOppgave ->
+            assertEquals(10, søknadOppgave.timeoutIDager)
+            assertEquals(søknad2DokumentId, søknadOppgave.dokumentId)
+
+        }
+        publiserteOppgaver[6].let { inntektsmeldingOppgave ->
+            assertEquals(10, inntektsmeldingOppgave.timeoutIDager)
+            assertEquals(inntektsmeldingDokumentId, inntektsmeldingOppgave.dokumentId)
+        }
     }
 
     @Test
@@ -969,6 +984,11 @@ class EndToEndTest {
         rapid.sendTestMessage(hendelseIkkeHåndtert(hendelseId))
     }
 
+    private fun sendVedtaksperiodeVenter(hendelseIder: List<UUID>, venterPå: String ) {
+        rapid.sendTestMessage(vedtaksperiodeVenter(hendelseIder, venterPå))
+    }
+
+
     private fun sendVedtaksperiodeEndret(
         hendelseIder: List<UUID>,
         tilstand: String,
@@ -1022,6 +1042,22 @@ private fun TestRapid.RapidInspector.events(eventnavn: String, hendelseId: UUID)
         .filter { it["@event_name"].textValue() == eventnavn }
         .filter { it["hendelseId"].textValue() == hendelseId.toString() }
 
+
+
+fun vedtaksperiodeVenter(
+    hendelseIder: List<UUID>,
+    venterPå: String
+) =
+    """{
+            "@event_name": "vedtaksperiode_venter",
+            "@id": "${UUID.randomUUID()}",
+            "hendelser": ${hendelseIder.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
+            "venterPå": {
+                "venteårsak": {
+                  "hva": "$venterPå"
+                }
+             }
+        }"""
 
 fun vedtaksperiodeEndret(
     hendelser: List<UUID>,

@@ -75,6 +75,12 @@ class OppgaveObserver(
         )
     }
 
+    override fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean {
+        if (oppgaveDAO.harUtbetalingTilSøker(oppgave.dokumentId)) return false
+        forlengTimeout(oppgave, timeout)
+        return true
+    }
+
     private fun Oppgave.Tilstand.toDTO(): OppdateringstypeDTO = when (this) {
         Oppgave.Tilstand.KortSøknadFerdigbehandlet,
         Oppgave.Tilstand.SpleisFerdigbehandlet -> OppdateringstypeDTO.Ferdigbehandlet

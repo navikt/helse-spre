@@ -23,6 +23,7 @@ class Oppgave(
         fun lagre(oppgave: Oppgave) {}
         fun publiser(oppgave: Oppgave) {}
         fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime)
+        fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean
     }
 
     fun håndter(hendelse: Hendelse.TilInfotrygd) = tilstand.håndter(this, hendelse)
@@ -80,7 +81,8 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {
-                sikkerlogg.info("Ville utsatt oppgave i tilstand SpleisLest for ${oppgave.dokumentType.name}. {}, {}",
+                if (oppgave.observer?.forlengTimeoutUtenUtbetalingTilSøker(oppgave, LocalDateTime.now().plusDays(10)) == true) return
+                sikkerlogg.info("Vi utsetter ikke oppgave i tilstand SpleisLest ettersom det er utbetaling til søker. {}, {}",
                     keyValue("hendelseId", oppgave.hendelseId),
                     keyValue("dokumentId", oppgave.dokumentId)
                 )
@@ -128,7 +130,8 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {
-                sikkerlogg.info("Ville utsatt oppgave i tilstand KortInntektsmeldingFerdigbehandlet. {}, {}",
+                if (oppgave.observer?.forlengTimeoutUtenUtbetalingTilSøker(oppgave, LocalDateTime.now().plusDays(10)) == true) return
+                sikkerlogg.info("Vi utsetter ikke oppgave i tilstand KortInntektsmeldingFerdigbehandlet ettersom det er utbetaling til søker. {}, {}",
                     keyValue("hendelseId", oppgave.hendelseId),
                     keyValue("dokumentId", oppgave.dokumentId)
                 )
