@@ -42,4 +42,10 @@ sealed class Hendelse {
             oppgave.håndter(this)
         }
     }
+
+    object AvventerGodkjenning: Hendelse() {
+        override fun accept(oppgave: Oppgave) {
+            oppgave.håndter(this)
+        }
+    }
 }

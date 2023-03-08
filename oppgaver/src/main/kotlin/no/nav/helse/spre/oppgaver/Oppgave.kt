@@ -25,17 +25,13 @@ class Oppgave(
         fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime)
     }
 
-    // Skal ikke sende forleng-signal for oppgaver som allerede er avluttet
-    fun forlengTimeout() = if (kanUtsettes()) observer?.forlengTimeout(this, LocalDateTime.now().plusDays(180)) else Unit
-
-    private fun kanUtsettes() = tilstand == Tilstand.SpleisLest || tilstand == Tilstand.KortInntektsmeldingFerdigbehandlet
-
     fun håndter(hendelse: Hendelse.TilInfotrygd) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.Avsluttet) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.Lest) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.AvsluttetUtenUtbetaling) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.VedtaksperiodeVenter) = tilstand.håndter(this, hendelse)
+    fun håndter(hendelse: Hendelse.AvventerGodkjenning) = tilstand.håndter(this, hendelse)
 
     private fun tilstand(tilstand: Tilstand) {
         val forrigeTilstand = this.tilstand
@@ -58,6 +54,7 @@ class Oppgave(
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Lest) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {}
+        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {}
 
         object SpleisFerdigbehandlet : Tilstand() { }
 
@@ -83,10 +80,14 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {
-                sikkerlogg.info("Ville utsatt oppgave i tilstand SpleisLest for ${oppgave.dokumentType.name}). {}, {}",
+                sikkerlogg.info("Ville utsatt oppgave i tilstand SpleisLest for ${oppgave.dokumentType.name}. {}, {}",
                     keyValue("hendelseId", oppgave.hendelseId),
                     keyValue("dokumentId", oppgave.dokumentId)
                 )
+            }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {
+                oppgave.observer?.forlengTimeout(oppgave, LocalDateTime.now().plusDays(180))
             }
         }
 
@@ -131,6 +132,10 @@ class Oppgave(
                     keyValue("hendelseId", oppgave.hendelseId),
                     keyValue("dokumentId", oppgave.dokumentId)
                 )
+            }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {
+                oppgave.observer?.forlengTimeout(oppgave, LocalDateTime.now().plusDays(180))
             }
         }
 
