@@ -1,5 +1,7 @@
 package no.nav.helse.spre.oppgaver
 
+import net.logstash.logback.argument.StructuredArguments.keyValue
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
 
@@ -33,6 +35,7 @@ class Oppgave(
     fun håndter(hendelse: Hendelse.Avsluttet) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.Lest) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.AvsluttetUtenUtbetaling) = tilstand.håndter(this, hendelse)
+    fun håndter(hendelse: Hendelse.VedtaksperiodeVenter) = tilstand.håndter(this, hendelse)
 
     private fun tilstand(tilstand: Tilstand) {
         val forrigeTilstand = this.tilstand
@@ -43,6 +46,8 @@ class Oppgave(
 
 
     sealed class Tilstand {
+        protected val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
+
         open fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
             oppgave.observer?.publiser(oppgave)
         }
@@ -52,6 +57,7 @@ class Oppgave(
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Lest) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {}
+        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {}
 
         object SpleisFerdigbehandlet : Tilstand() { }
 
@@ -74,6 +80,13 @@ class Oppgave(
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {
                 oppgave.tilstand(if (oppgave.erSøknad) KortSøknadFerdigbehandlet else KortInntektsmeldingFerdigbehandlet)
+            }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {
+                sikkerlogg.info("Ville utsatt oppgave i tilstand SpleisLest for ${oppgave.dokumentType.name}). {}, {}",
+                    keyValue("hendelseId", oppgave.hendelseId),
+                    keyValue("dokumentId", oppgave.dokumentId)
+                )
             }
         }
 
@@ -111,6 +124,13 @@ class Oppgave(
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
                 oppgave.tilstand(SpleisFerdigbehandlet)
+            }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {
+                sikkerlogg.info("Ville utsatt oppgave i tilstand KortInntektsmeldingFerdigbehandlet. {}, {}",
+                    keyValue("hendelseId", oppgave.hendelseId),
+                    keyValue("dokumentId", oppgave.dokumentId)
+                )
             }
         }
 

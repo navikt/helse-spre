@@ -36,4 +36,10 @@ sealed class Hendelse {
             oppgave.håndter(this)
         }
     }
+
+    object VedtaksperiodeVenter: Hendelse() {
+        override fun accept(oppgave: Oppgave) {
+            oppgave.håndter(this)
+        }
+    }
 }

@@ -1,7 +1,6 @@
 package no.nav.helse.spre.oppgaver
 
 import no.nav.helse.rapids_rivers.*
-import org.slf4j.LoggerFactory
 import java.util.*
 
 class HåndterVedtaksperiodeVenter(
@@ -11,10 +10,6 @@ class HåndterVedtaksperiodeVenter(
 ) : River.PacketListener {
 
     private val observer = OppgaveObserver(oppgaveDAO, publisist, rapidsConnection)
-
-    private companion object {
-        val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
-    }
 
     init {
         River(rapidsConnection).apply {
@@ -33,7 +28,7 @@ class HåndterVedtaksperiodeVenter(
             .onEach { it.setObserver(observer) }
             .forEach { oppgave ->
                 withMDC(mapOf("event" to "vedtaksperiode_venter", "id" to vedtaksperiodeVenterId)) {
-                    sikkerlogg.info("Ville utsatt hendelseId ${oppgave.hendelseId} for ${oppgave.dokumentType}")
+                    Hendelse.VedtaksperiodeVenter.accept(oppgave)
                 }
             }
     }
