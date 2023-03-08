@@ -55,10 +55,12 @@ spec:
     sqlInstances:
       - type: {{gcp.type}}
         tier: db-custom-4-16384
+        name: {{gcp.databaseName}}
         databases:
           - name: {{gcp.databaseName}}
-            envVarPrefix: DB
+            envVarPrefix: {{#if envVarPrefix}}{{ envVarPrefix }}{{else}}DB{{/if}}
         diskAutoresize: {{#if diskAutoResize }}{{ diskAutoResize }}{{else}}false{{/if}}
+        pointInTimeRecovery: {{#if pointInTimeRecovery }}{{ pointInTimeRecovery }}{{else}}false{{/if}}
   {{/if}}
   prometheus:
     enabled: true
