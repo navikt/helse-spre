@@ -56,11 +56,11 @@ spec:
       - type: {{gcp.type}}
         tier: db-custom-4-16384
         name: {{gcp.databaseName}}
+        diskAutoresize: true
+        pointInTimeRecovery: true
         databases:
           - name: {{gcp.databaseName}}
             envVarPrefix: {{#if gcp.envVarPrefix}}{{ gcp.envVarPrefix }}{{else}}DB{{/if}}
-        diskAutoresize: "true"
-        pointInTimeRecovery: "true"
   {{/if}}
   prometheus:
     enabled: true
