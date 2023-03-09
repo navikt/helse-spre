@@ -23,6 +23,10 @@ class Oppgave(
 
     interface Observer {
         fun lagre(oppgave: Oppgave) {}
+
+        fun lagOppgaveSøknad(hendelseId: UUID, dokumentId: UUID) {}
+        fun lagOppgaveInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
+
         fun publiser(oppgave: Oppgave) {}
         fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime)
         fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean
@@ -61,7 +65,14 @@ class Oppgave(
 
         object SpleisFerdigbehandlet : Tilstand() { }
 
-        object LagOppgave : Tilstand()
+        object LagOppgave : Tilstand() {
+            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
+                when (oppgave.dokumentType) {
+                    DokumentType.Søknad -> oppgave.observer?.lagOppgaveSøknad(oppgave.hendelseId, oppgave.dokumentId)
+                    DokumentType.Inntektsmelding -> oppgave.observer?.lagOppgaveInntektsmelding(oppgave.hendelseId, oppgave.dokumentId)
+                }
+            }
+        }
 
         object LagOppgaveForSpeilsaksbehandlere : Tilstand()
 

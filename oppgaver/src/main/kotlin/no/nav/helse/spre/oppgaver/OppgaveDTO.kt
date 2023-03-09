@@ -8,7 +8,19 @@ data class OppgaveDTO(
     val oppdateringstype: OppdateringstypeDTO,
     val dokumentId: UUID,
     val timeout: LocalDateTime? = null
-)
+) {
+    internal companion object {
+        fun nySøknadoppgave(dokumentId: UUID) = nyOppgave(dokumentId, DokumentTypeDTO.Søknad)
+        fun nyInntektsmeldingoppgave(dokumentId: UUID) = nyOppgave(dokumentId, DokumentTypeDTO.Inntektsmelding)
+
+        private fun nyOppgave(dokumentId: UUID, dokumentType: DokumentTypeDTO) = OppgaveDTO(
+            dokumentType = dokumentType,
+            oppdateringstype = OppdateringstypeDTO.Opprett,
+            dokumentId = dokumentId,
+            timeout = null,
+        )
+    }
+}
 
 fun DokumentType.toDTO(): DokumentTypeDTO = when (this) {
     DokumentType.Inntektsmelding -> DokumentTypeDTO.Inntektsmelding

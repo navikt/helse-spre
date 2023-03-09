@@ -4,6 +4,7 @@ import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.oppgaver.DokumentType.Søknad
+import no.nav.helse.spre.oppgaver.OppgaveObserver.Companion.timeoutToString
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
@@ -18,6 +19,15 @@ class OppgaveObserver(
         oppgaveDAO.oppdaterTilstand(oppgave)
     }
 
+    override fun lagOppgaveSøknad(hendelseId: UUID, dokumentId: UUID) {
+        val dto = OppgaveDTO.nySøknadoppgave(dokumentId)
+        sendOppgaveoppdatering("LagOppgave", hendelseId, dto, "oppgavestyring_opprett")
+    }
+    override fun lagOppgaveInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
+        val dto = OppgaveDTO.nyInntektsmeldingoppgave(dokumentId)
+        sendOppgaveoppdatering("LagOppgave", hendelseId, dto, "oppgavestyring_opprett")
+    }
+
     override fun publiser(oppgave: Oppgave) {
         val dto = OppgaveDTO(
             dokumentType = oppgave.dokumentType.toDTO(),
@@ -25,24 +35,21 @@ class OppgaveObserver(
             dokumentId = oppgave.dokumentId,
             timeout = oppgave.timeout(),
         )
+        sendOppgaveoppdatering("${oppgave.tilstand}", oppgave.hendelseId, dto, oppgave.tilstand.toEventName())
+    }
 
-        publisist.publiser(oppgave.dokumentId.toString(), dto)
-
-        rapidsConnection.publish(
-            JsonMessage.newMessage(
-                mapOf(
-                    "@event_name" to oppgave.tilstand.toEventName(),
-                    "@id" to UUID.randomUUID(),
-                    "dokumentId" to oppgave.dokumentId,
-                    "hendelseId" to oppgave.hendelseId,
-                )
-            ).toJson()
-        )
-
+    private fun sendOppgaveoppdatering(tilstand: String, hendelseId: UUID, dto: OppgaveDTO, rapidEventName: String) {
+        publisist.publiser("${dto.dokumentId}", dto)
+        rapidsConnection.publish(JsonMessage.newMessage(mapOf(
+            "@event_name" to rapidEventName,
+            "@id" to UUID.randomUUID(),
+            "dokumentId" to dto.dokumentId,
+            "hendelseId" to hendelseId
+        )).toJson())
         log.info(
-            "Publisert oppgave på ${oppgave.dokumentType.name} i tilstand: ${oppgave.tilstand} med ider: {}, {}. ${oppgave.timeout().timeoutToString}. Sendes på tbd.spre-oppgaver:\n\t${objectMapper.writeValueAsString(dto)}",
-            keyValue("hendelseId", oppgave.hendelseId),
-            keyValue("dokumentId", oppgave.dokumentId)
+            "Publisert oppgave på ${dto.dokumentType.name} i tilstand: $tilstand med ider: {}, {}. ${dto.timeout.timeoutToString}. Sendes på tbd.spre-oppgaver:\n\t${objectMapper.writeValueAsString(dto)}",
+            keyValue("hendelseId", hendelseId),
+            keyValue("dokumentId", dto.dokumentId)
         )
     }
 
