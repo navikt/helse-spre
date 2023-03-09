@@ -35,6 +35,8 @@ class Oppgave(
 
         fun ferdigbehandletSøknad(hendelseId: UUID, dokumentId: UUID) {}
         fun ferdigbehandletInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
+        fun lestSøknad(hendelseId: UUID, dokumentId: UUID) {}
+        fun lestInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
         fun publiser(oppgave: Oppgave) {}
         fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime)
         fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean
@@ -90,6 +92,10 @@ class Oppgave(
         }
 
         object SpleisLest : Tilstand() {
+            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
+                oppgave.dokumentType.dokumentLest(oppgave.observer, oppgave.hendelseId, oppgave.dokumentId)
+            }
+
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
                 oppgave.tilstand(LagOppgave)
             }
@@ -188,6 +194,7 @@ sealed interface DokumentType {
     fun lagOppgave(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun lagOppgaveSpeilsaksbehandlere(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
+    fun dokumentLest(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
 
     object Inntektsmelding : DokumentType {
         override fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
@@ -200,6 +207,10 @@ sealed interface DokumentType {
 
         override fun lagOppgaveSpeilsaksbehandlere(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
             observer.lagOppgaveSpeilsaksbehandlereInntektsmelding(hendelseId, dokumentId)
+        }
+
+        override fun dokumentLest(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.lestInntektsmelding(hendelseId, dokumentId)
         }
     }
 
@@ -214,6 +225,10 @@ sealed interface DokumentType {
 
         override fun lagOppgaveSpeilsaksbehandlere(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
             observer.lagOppgaveSpeilsaksbehandlereSøknad(hendelseId, dokumentId)
+        }
+
+        override fun dokumentLest(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.lestSøknad(hendelseId, dokumentId)
         }
     }
 }

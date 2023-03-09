@@ -18,6 +18,15 @@ data class OppgaveDTO(
         fun nyInntektsmeldingoppgaveSpeil(dokumentId: UUID) = nyOppgave(dokumentId, Inntektsmelding, OpprettSpeilRelatert)
         fun ferdigbehandletSøknad(dokumentId: UUID) = ferdigbehandlet(dokumentId, Søknad)
         fun ferdigbehandletInntektsmelding(dokumentId: UUID) = ferdigbehandlet(dokumentId, Inntektsmelding)
+        fun utsettSøknad(dokumentId: UUID, timeout: LocalDateTime) = utsett(dokumentId, Søknad, timeout)
+        fun utsettInntektsmelding(dokumentId: UUID, timeout: LocalDateTime) = utsett(dokumentId, Inntektsmelding, timeout)
+
+        private fun utsett(dokumentId: UUID, dokumentType: DokumentTypeDTO, timeout: LocalDateTime) = OppgaveDTO(
+            dokumentType = dokumentType,
+            dokumentId = dokumentId,
+            oppdateringstype = Utsett,
+            timeout = timeout
+        )
 
         private fun ferdigbehandlet(dokumentId: UUID, dokumentType: DokumentTypeDTO) = OppgaveDTO(
             dokumentType = dokumentType,

@@ -18,6 +18,9 @@ class OppgaveObserver(
         oppgaveDAO.oppdaterTilstand(oppgave)
     }
 
+    /**
+     * søknader
+     */
     override fun lagOppgaveSøknad(hendelseId: UUID, dokumentId: UUID) {
         val dto = OppgaveDTO.nySøknadoppgave(dokumentId)
         sendOppgaveoppdatering("LagOppgave", hendelseId, dto, "oppgavestyring_opprett")
@@ -28,6 +31,20 @@ class OppgaveObserver(
         sendOppgaveoppdatering("LagOppgaveForSpeilsaksbehandlere", hendelseId, dto, "oppgavestyring_opprett_speilrelatert")
     }
 
+    override fun ferdigbehandletSøknad(hendelseId: UUID, dokumentId: UUID) {
+        val dto = OppgaveDTO.ferdigbehandletSøknad(dokumentId)
+        sendOppgaveoppdatering("SpleisFerdigbehandlet", hendelseId, dto, "oppgavestyring_ferdigbehandlet")
+    }
+
+    override fun lestSøknad(hendelseId: UUID, dokumentId: UUID) {
+        val timeout = LocalDateTime.now().plusDays(110)
+        val dto = OppgaveDTO.utsettSøknad(dokumentId, timeout)
+        sendOppgaveoppdatering("SpleisLest", hendelseId, dto, "oppgavestyring_utsatt")
+    }
+
+    /**
+     * inntektsmeldinger
+     */
     override fun lagOppgaveInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
         val dto = OppgaveDTO.nyInntektsmeldingoppgave(dokumentId)
         sendOppgaveoppdatering("LagOppgave", hendelseId, dto, "oppgavestyring_opprett")
@@ -38,14 +55,17 @@ class OppgaveObserver(
         sendOppgaveoppdatering("LagOppgaveForSpeilsaksbehandlere", hendelseId, dto, "oppgavestyring_opprett_speilrelatert")
     }
 
-    override fun ferdigbehandletSøknad(hendelseId: UUID, dokumentId: UUID) {
-        val dto = OppgaveDTO.ferdigbehandletSøknad(dokumentId)
-        sendOppgaveoppdatering("SpleisFerdigbehandlet", hendelseId, dto, "oppgavestyring_ferdigbehandlet")
-    }
 
     override fun ferdigbehandletInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
         val dto = OppgaveDTO.ferdigbehandletInntektsmelding(dokumentId)
         sendOppgaveoppdatering("SpleisFerdigbehandlet", hendelseId, dto, "oppgavestyring_ferdigbehandlet")
+    }
+
+    override fun lestInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
+        val antallDager = if (oppgaveDAO.harUtbetalingTilSøker(dokumentId)) 2 else 60
+        val timeout = LocalDateTime.now().plusDays(antallDager.toLong())
+        val dto = OppgaveDTO.utsettInntektsmelding(dokumentId, timeout)
+        sendOppgaveoppdatering("SpleisLest", hendelseId, dto, "oppgavestyring_utsatt")
     }
 
     override fun publiser(oppgave: Oppgave) {
