@@ -29,13 +29,13 @@ class HåndterVedtaksperiodeendringer(
             .forEach { oppgave ->
                 withMDC(mapOf("event" to "vedtaksperiode_endret", "tilstand" to gjeldendeTilstand, "forrigeTilstand" to forrigeTilstand)) {
                     when (gjeldendeTilstand) {
-                        "AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING" -> Hendelse.AvventerGodkjenning.accept(oppgave)
+                        "AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING" -> oppgave.håndter(Hendelse.AvventerGodkjenning)
                         // Når noe går til Infotrygd sender Spleis ut signal om "opprett_oppgave" eller "opprett_oppgave_for_speilsaksbehandlere"
                         // derfor sendes det ikke noe signal om å opprette oppgave her
                         "TIL_INFOTRYGD" -> oppgaveDAO.lagreVedtaksperiodeEndretTilInfotrygd(oppgave.hendelseId)
-                        "AVSLUTTET" -> Hendelse.Avsluttet.accept(oppgave)
-                        "AVSLUTTET_UTEN_UTBETALING" -> Hendelse.AvsluttetUtenUtbetaling.accept(oppgave)
-                        else -> Hendelse.Lest.accept(oppgave)
+                        "AVSLUTTET" -> oppgave.håndter(Hendelse.Avsluttet)
+                        "AVSLUTTET_UTEN_UTBETALING" -> oppgave.håndter(Hendelse.AvsluttetUtenUtbetaling)
+                        else -> oppgave.håndter(Hendelse.Lest)
                     }
                 }
             }

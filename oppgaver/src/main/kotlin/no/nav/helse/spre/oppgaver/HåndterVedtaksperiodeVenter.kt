@@ -27,7 +27,7 @@ class HåndterVedtaksperiodeVenter(
             .mapNotNull { oppgaveDAO.finnOppgave(it, observer) }
             .forEach { oppgave ->
                 withMDC(mapOf("event" to "vedtaksperiode_venter", "id" to vedtaksperiodeVenterId)) {
-                    Hendelse.VedtaksperiodeVenter.accept(oppgave)
+                    oppgave.håndter(Hendelse.VedtaksperiodeVenter)
                 }
             }
     }

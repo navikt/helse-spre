@@ -24,9 +24,8 @@ class HåndterOpprettOppgaveForSpeilsaksbehandlere(
             .mapNotNull { oppgaveDAO.finnOppgave(it, observer) }
             .forEach { oppgave ->
                 withMDC(mapOf("event" to "opprett_oppgave_for_speilsaksbehandlere")) {
-                    Hendelse.AvbruttOgHarRelatertUtbetaling.accept(oppgave)
-                    log.info("Mottok opprett_oppgave_for_speilsaksbehandlere-event : {}",
-                        oppgave.hendelseId)
+                    oppgave.håndter(Hendelse.AvbruttOgHarRelatertUtbetaling)
+                    log.info("Mottok opprett_oppgave_for_speilsaksbehandlere-event : {}", oppgave.hendelseId)
                 }
             }
     }
