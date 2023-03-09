@@ -33,10 +33,14 @@ fun inntektsmelding(
     dokumentId: UUID,
     inntekt: Double = 30000.00,
     refusjon: Double? = inntekt,
+    fødselsnummer: String = "12345678910",
+    organisasjonsnummer: String = "ORGNUMMER"
 ) = """{
             "@event_name": "inntektsmelding",
             "@id": "$hendelseId",
             "inntektsmeldingId": "$dokumentId",
+            "arbeidstakerFnr": "$fødselsnummer",
+            "virksomhetsnummer": "$organisasjonsnummer",
             "beregnetInntekt": "$inntekt"
             ${if (refusjon != null) """,
             "refusjon": {

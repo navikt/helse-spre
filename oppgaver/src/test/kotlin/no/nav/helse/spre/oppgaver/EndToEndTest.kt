@@ -624,14 +624,6 @@ class EndToEndTest {
     }
 
     @Test
-    fun `mottar hendelse_ikke_håndtert uten at hendelsen er tidligere lest`() {
-        val hendelseId = UUID.randomUUID()
-        sendHendelseIkkeHåndtert(hendelseId)
-        assertTrue(publiserteOppgaver.isEmpty())
-        assertEquals(0, rapid.inspektør.size)
-    }
-
-    @Test
     fun `oppretter oppgaver for søknad og inntektsmelding når perioden går til infotrygd`() {
         val periode = UUID.randomUUID()
         val søknadId1 = UUID.randomUUID()
@@ -876,6 +868,26 @@ class EndToEndTest {
         publiserteOppgaver[2].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
     }
 
+    @Test
+    fun `inntektsmelding kommer før søknad - utsetter oppgave `() {
+        val orgnummer = "123"
+        val fnr = "456"
+        val inntektsmeldingHendelseId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
+        sendInntektsmelding(
+            hendelseId = inntektsmeldingHendelseId,
+            dokumentId = inntektsmeldingDokumentId,
+            fødselsnummer = fnr,
+            organisasjonsnummer = orgnummer
+        )
+        inntektsmeldingFørSøknad(
+            inntektsmeldingId = inntektsmeldingHendelseId,
+            organisasjonsnummer = "orgnummer",
+            fødselsnummer = fnr
+        )
+        publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+    }
+
     companion object {
 
         private val OppgaveDTO.timeoutIDager get() = Duration.between(LocalDateTime.now().minusSeconds(1), this.timeout).toDays()
@@ -907,12 +919,15 @@ class EndToEndTest {
         rapid.sendTestMessage(sendtArbeidsgiversøknad(hendelseId, dokumentId))
     }
 
-    private fun sendInntektsmelding(hendelseId: UUID, dokumentId: UUID, inntekt: Double = 30000.00, refusjon: Double? = inntekt) {
-        rapid.sendTestMessage(inntektsmelding(hendelseId, dokumentId, inntekt, refusjon))
-    }
-
-    private fun sendHendelseIkkeHåndtert(hendelseId: UUID) {
-        rapid.sendTestMessage(hendelseIkkeHåndtert(hendelseId))
+    private fun sendInntektsmelding(
+        hendelseId: UUID,
+        dokumentId: UUID,
+        inntekt: Double = 30000.00,
+        refusjon: Double? = inntekt,
+        fødselsnummer: String = "12345678910",
+        organisasjonsnummer: String = "ORGNUMMER"
+    ) {
+        rapid.sendTestMessage(inntektsmelding(hendelseId, dokumentId, inntekt, refusjon, fødselsnummer, organisasjonsnummer))
     }
 
     private fun sendVedtaksperiodeVenter(hendelseIder: List<UUID>, venterPå: String ) {
@@ -938,6 +953,10 @@ class EndToEndTest {
         hendelseId: UUID,
     ) {
         rapid.sendTestMessage(no.nav.helse.spre.oppgaver.utsettOppgave(hendelseId))
+    }
+
+    private fun inntektsmeldingFørSøknad(inntektsmeldingId: UUID, organisasjonsnummer: String, fødselsnummer: String) {
+        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.inntektsmeldingFørSøknad(inntektsmeldingId, organisasjonsnummer, fødselsnummer))
     }
 
     private fun opprettOppgaveForSpeilsaksbehandler(
@@ -1027,9 +1046,21 @@ fun utsettOppgave(
             "hendelse": "$hendelse"
         }"""
 
-fun hendelseIkkeHåndtert(
-    hendelseId: UUID,
-) = """{
-            "@event_name": "hendelse_ikke_håndtert",
-            "hendelseId": "$hendelseId"
+fun inntektsmeldingFørSøknad(
+    inntektsmeldingId: UUID,
+    organisasjonsnummer: String,
+    fødselsnummer: String
+) =
+    """{
+            "@event_name": "inntektsmelding_før_søknad",
+            "inntektsmeldingId": "$inntektsmeldingId",
+            "organisasjonsnummer": "$organisasjonsnummer",
+            "fødselsnummer": "$fødselsnummer",
+            "overlappende_sykmeldingsperioder": [
+                {
+                    "fom":"2018-01-01",
+                    "tom":"2018-01-16"
+                }
+            ]
         }"""
+
