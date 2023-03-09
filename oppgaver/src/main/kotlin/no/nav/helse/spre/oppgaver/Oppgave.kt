@@ -8,8 +8,8 @@ import java.util.*
 class Oppgave(
     val hendelseId: UUID,
     val dokumentId: UUID,
-    val fødselsnummer: String,
-    val orgnummer: String,
+    val fødselsnummer: String?,
+    val orgnummer: String?,
     var tilstand: Tilstand = Tilstand.DokumentOppdaget,
     val dokumentType: DokumentType,
     val sistEndret: LocalDateTime?,
