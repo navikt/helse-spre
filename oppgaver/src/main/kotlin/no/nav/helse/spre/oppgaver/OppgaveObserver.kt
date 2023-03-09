@@ -3,7 +3,8 @@ package no.nav.helse.spre.oppgaver
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.oppgaver.DokumentType.Søknad
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
@@ -46,6 +47,15 @@ class OppgaveObserver(
 
     override fun lestSøknad(hendelseId: UUID, dokumentId: UUID) {
         val timeout = LocalDateTime.now().plusDays(110)
+        utsettSøknad(hendelseId, dokumentId, timeout)
+    }
+
+    override fun venterPåGodkjenningSøknad(hendelseId: UUID, dokumentId: UUID) {
+        // utsetter søknaden
+        utsettSøknad(hendelseId, dokumentId, LocalDateTime.now().plusDays(10))
+    }
+
+    private fun utsettSøknad(hendelseId: UUID, dokumentId: UUID, timeout: LocalDateTime) {
         val dto = OppgaveDTO.utsettSøknad(dokumentId, timeout)
         sendOppgaveoppdatering("SpleisLest", hendelseId, dto, "oppgavestyring_utsatt")
     }
@@ -76,18 +86,24 @@ class OppgaveObserver(
     override fun lestInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
         val antallDager = if (oppgaveDAO.harUtbetalingTilSøker(dokumentId)) 2 else 60
         val timeout = LocalDateTime.now().plusDays(antallDager.toLong())
-        val dto = OppgaveDTO.utsettInntektsmelding(dokumentId, timeout)
-        sendOppgaveoppdatering("SpleisLest", hendelseId, dto, "oppgavestyring_utsatt")
+        utsettInntektsmelding(hendelseId, dokumentId, timeout)
     }
 
-    override fun publiser(oppgave: Oppgave) {
-        val dto = OppgaveDTO(
-            dokumentType = oppgave.dokumentType.toDTO(),
-            oppdateringstype = oppgave.tilstand.toDTO(),
-            dokumentId = oppgave.dokumentId,
-            timeout = oppgave.timeout(),
-        )
-        sendOppgaveoppdatering("${oppgave.tilstand}", oppgave.hendelseId, dto, oppgave.tilstand.toEventName())
+    override fun venterPåGodkjenningInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
+        // utsetter inntektsmelding fordi en en tidligere periode avventer godkjenning
+        if (oppgaveDAO.harUtbetalingTilSøker(dokumentId)) {
+            return sikkerlogg.info("Vi utsetter ikke oppgave i tilstand SpleisLest ettersom det er utbetaling til søker. {}, {}",
+                keyValue("hendelseId", hendelseId),
+                keyValue("dokumentId", dokumentId)
+            )
+        }
+
+        utsettInntektsmelding(hendelseId, dokumentId, LocalDateTime.now().plusDays(10))
+    }
+
+    private fun utsettInntektsmelding(hendelseId: UUID, dokumentId: UUID, timeout: LocalDateTime) {
+        val dto = OppgaveDTO.utsettInntektsmelding(dokumentId, timeout)
+        sendOppgaveoppdatering("SpleisLest", hendelseId, dto, "oppgavestyring_utsatt")
     }
 
     private fun sendOppgaveoppdatering(tilstand: String, hendelseId: UUID, dto: OppgaveDTO, rapidEventName: String) {
@@ -134,12 +150,6 @@ class OppgaveObserver(
         )
     }
 
-    override fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean {
-        if (oppgaveDAO.harUtbetalingTilSøker(oppgave.dokumentId)) return false
-        forlengTimeout(oppgave, timeout)
-        return true
-    }
-
     private fun Oppgave.Tilstand.toDTO(): OppdateringstypeDTO = when (this) {
         Oppgave.Tilstand.KortSøknadFerdigbehandlet,
         Oppgave.Tilstand.SpleisFerdigbehandlet -> OppdateringstypeDTO.Ferdigbehandlet
@@ -149,20 +159,6 @@ class OppgaveObserver(
         Oppgave.Tilstand.SpleisLest -> OppdateringstypeDTO.Utsett
         Oppgave.Tilstand.DokumentOppdaget -> error("skal ikke legge melding på topic om at dokument er oppdaget")
     }
-
-    private fun Oppgave.timeout(): LocalDateTime? = when (tilstand) {
-        Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet,
-        Oppgave.Tilstand.SpleisLest -> LocalDateTime.now().plusDays(finnTimeout())
-        else -> null
-    }
-
-    private fun Oppgave.finnTimeout() =
-        when {
-            dokumentType == Søknad -> 110
-            oppgaveDAO.harUtbetalingTilSøker(dokumentId) -> 2
-            else -> 60
-        }.toLong()
-
 
     private fun Oppgave.Tilstand.toEventName(): String = when (this) {
         Oppgave.Tilstand.SpleisFerdigbehandlet -> "oppgavestyring_ferdigbehandlet"
@@ -175,6 +171,7 @@ class OppgaveObserver(
     }
 
     private companion object {
+        private val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
         private val LocalDateTime?.timeoutToString get() = if (this == null) "" else "Forlenger timeout med ${Duration.between(LocalDateTime.now().minusSeconds(1), this).toDays()} dager"
     }
 }

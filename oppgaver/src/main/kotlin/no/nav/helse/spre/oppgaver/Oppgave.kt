@@ -1,6 +1,5 @@
 package no.nav.helse.spre.oppgaver
 
-import net.logstash.logback.argument.StructuredArguments.keyValue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -18,7 +17,6 @@ class Oppgave(
     private val erSøknad = dokumentType == DokumentType.Søknad
     private var observer: Observer = object : Observer {
         override fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime) {}
-        override fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime) = true
     }
 
     fun setObserver(observer: Observer) = apply {
@@ -39,9 +37,9 @@ class Oppgave(
         fun lestInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
         fun kortSøknadFerdigbehandlet(hendelseId: UUID, dokumentId: UUID) {}
         fun kortInntektsmeldingFerdigbehandlet(hendelseId: UUID, dokumentId: UUID) {}
-        fun publiser(oppgave: Oppgave) {}
+        fun venterPåGodkjenningSøknad(hendelseId: UUID, dokumentId: UUID) {}
+        fun venterPåGodkjenningInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
         fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime)
-        fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean
     }
 
     fun håndter(hendelse: Hendelse.TilInfotrygd) = tilstand.håndter(this, hendelse)
@@ -63,9 +61,7 @@ class Oppgave(
     sealed class Tilstand {
         protected val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
-        open fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
-            oppgave.observer.publiser(oppgave)
-        }
+        abstract fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand)
 
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {}
@@ -115,11 +111,7 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {
-                if (oppgave.observer.forlengTimeoutUtenUtbetalingTilSøker(oppgave, LocalDateTime.now().plusDays(10))) return
-                sikkerlogg.info("Vi utsetter ikke oppgave i tilstand SpleisLest ettersom det er utbetaling til søker. {}, {}",
-                    keyValue("hendelseId", oppgave.hendelseId),
-                    keyValue("dokumentId", oppgave.dokumentId)
-                )
+                oppgave.dokumentType.venterPåGodkjenning(oppgave.observer, oppgave.hendelseId, oppgave.dokumentId)
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {
@@ -168,11 +160,7 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {
-                if (oppgave.observer.forlengTimeoutUtenUtbetalingTilSøker(oppgave, LocalDateTime.now().plusDays(10))) return
-                sikkerlogg.info("Vi utsetter ikke oppgave i tilstand KortInntektsmeldingFerdigbehandlet ettersom det er utbetaling til søker. {}, {}",
-                    keyValue("hendelseId", oppgave.hendelseId),
-                    keyValue("dokumentId", oppgave.dokumentId)
-                )
+                oppgave.observer.venterPåGodkjenningInntektsmelding(oppgave.hendelseId, oppgave.dokumentId)
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {
@@ -205,6 +193,7 @@ sealed interface DokumentType {
     fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun lagOppgaveSpeilsaksbehandlere(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun dokumentLest(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
+    fun venterPåGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
 
     object Inntektsmelding : DokumentType {
         override fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
@@ -221,6 +210,10 @@ sealed interface DokumentType {
 
         override fun dokumentLest(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
             observer.lestInntektsmelding(hendelseId, dokumentId)
+        }
+
+        override fun venterPåGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.venterPåGodkjenningInntektsmelding(hendelseId, dokumentId)
         }
     }
 
@@ -239,6 +232,10 @@ sealed interface DokumentType {
 
         override fun dokumentLest(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
             observer.lestSøknad(hendelseId, dokumentId)
+        }
+
+        override fun venterPåGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.venterPåGodkjenningSøknad(hendelseId, dokumentId)
         }
     }
 }

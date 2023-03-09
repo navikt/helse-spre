@@ -16,7 +16,6 @@ internal class OppgaveDAOTest {
     private val oppgaveDAO = OppgaveDAO(dataSource)
     private val observer = object : Oppgave.Observer {
         override fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime) {}
-        override fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean { return true }
     }
 
     @Test
