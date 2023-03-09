@@ -32,8 +32,16 @@ class OppgaveObserver(
     }
 
     override fun ferdigbehandletSøknad(hendelseId: UUID, dokumentId: UUID) {
+        ferdigstillSøknad(hendelseId, dokumentId, "oppgavestyring_ferdigbehandlet")
+    }
+
+    override fun kortSøknadFerdigbehandlet(hendelseId: UUID, dokumentId: UUID) {
+        ferdigstillSøknad(hendelseId, dokumentId, "oppgavestyring_kort_periode")
+    }
+
+    private fun ferdigstillSøknad(hendelseId: UUID, dokumentId: UUID, rapidEventName: String) {
         val dto = OppgaveDTO.ferdigbehandletSøknad(dokumentId)
-        sendOppgaveoppdatering("SpleisFerdigbehandlet", hendelseId, dto, "oppgavestyring_ferdigbehandlet")
+        sendOppgaveoppdatering("SpleisFerdigbehandlet", hendelseId, dto, rapidEventName)
     }
 
     override fun lestSøknad(hendelseId: UUID, dokumentId: UUID) {
@@ -59,6 +67,10 @@ class OppgaveObserver(
     override fun ferdigbehandletInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
         val dto = OppgaveDTO.ferdigbehandletInntektsmelding(dokumentId)
         sendOppgaveoppdatering("SpleisFerdigbehandlet", hendelseId, dto, "oppgavestyring_ferdigbehandlet")
+    }
+
+    override fun kortInntektsmeldingFerdigbehandlet(hendelseId: UUID, dokumentId: UUID) {
+        lestInntektsmelding(hendelseId, dokumentId)
     }
 
     override fun lestInntektsmelding(hendelseId: UUID, dokumentId: UUID) {

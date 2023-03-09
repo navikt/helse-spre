@@ -37,6 +37,8 @@ class Oppgave(
         fun ferdigbehandletInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
         fun lestSøknad(hendelseId: UUID, dokumentId: UUID) {}
         fun lestInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
+        fun kortSøknadFerdigbehandlet(hendelseId: UUID, dokumentId: UUID) {}
+        fun kortInntektsmeldingFerdigbehandlet(hendelseId: UUID, dokumentId: UUID) {}
         fun publiser(oppgave: Oppgave) {}
         fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime)
         fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean
@@ -149,6 +151,10 @@ class Oppgave(
         }
 
         object KortInntektsmeldingFerdigbehandlet: Tilstand() {
+            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
+                oppgave.observer.kortInntektsmeldingFerdigbehandlet(oppgave.hendelseId, oppgave.dokumentId)
+            }
+
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
                 oppgave.tilstand(LagOppgave)
             }
@@ -175,6 +181,10 @@ class Oppgave(
         }
 
         object KortSøknadFerdigbehandlet: Tilstand() {
+            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
+                oppgave.observer.kortSøknadFerdigbehandlet(oppgave.hendelseId, oppgave.dokumentId)
+            }
+
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
                 oppgave.tilstand(LagOppgave)
             }
