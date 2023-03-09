@@ -51,8 +51,12 @@ class OppgaveObserver(
     }
 
     override fun venterPåGodkjenningSøknad(hendelseId: UUID, dokumentId: UUID) {
-        // utsetter søknaden
+        // utsetter søknaden fordi tidligere periode er til godkjenning
         utsettSøknad(hendelseId, dokumentId, LocalDateTime.now().plusDays(10))
+    }
+
+    override fun avventerGodkjenningSøknad(hendelseId: UUID, dokumentId: UUID) {
+        utsettSøknad(hendelseId, dokumentId, LocalDateTime.now().plusDays(180))
     }
 
     private fun utsettSøknad(hendelseId: UUID, dokumentId: UUID, timeout: LocalDateTime) {
@@ -101,6 +105,10 @@ class OppgaveObserver(
         utsettInntektsmelding(hendelseId, dokumentId, LocalDateTime.now().plusDays(10))
     }
 
+    override fun avventerGodkjenningInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
+        utsettInntektsmelding(hendelseId, dokumentId, LocalDateTime.now().plusDays(180))
+    }
+
     private fun utsettInntektsmelding(hendelseId: UUID, dokumentId: UUID, timeout: LocalDateTime) {
         val dto = OppgaveDTO.utsettInntektsmelding(dokumentId, timeout)
         sendOppgaveoppdatering("SpleisLest", hendelseId, dto, "oppgavestyring_utsatt")
@@ -119,55 +127,6 @@ class OppgaveObserver(
             keyValue("hendelseId", hendelseId),
             keyValue("dokumentId", dto.dokumentId)
         )
-    }
-
-    override fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime) {
-        val dto = OppgaveDTO(
-            dokumentType = oppgave.dokumentType.toDTO(),
-            oppdateringstype = oppgave.tilstand.toDTO(),
-            dokumentId = oppgave.dokumentId,
-            timeout = timeout,
-        )
-
-        publisist.publiser(oppgave.dokumentId.toString(), dto)
-
-        rapidsConnection.publish(
-            JsonMessage.newMessage(
-                mapOf(
-                    "@event_name" to oppgave.tilstand.toEventName(),
-                    "@id" to UUID.randomUUID(),
-                    "dokumentId" to oppgave.dokumentId,
-                    "hendelseId" to oppgave.hendelseId,
-                    "timeout" to timeout,
-                )
-            ).toJson()
-        )
-
-        log.info(
-            "Publisert forlenging av timeout for oppgave på ${oppgave.dokumentType::class.simpleName} i tilstand: ${oppgave.tilstand} med ider: {}, {}. ${timeout.timeoutToString}. Sendes på tbd.spre-oppgaver:\n\t${objectMapper.writeValueAsString(dto)}",
-            keyValue("hendelseId", oppgave.hendelseId),
-            keyValue("dokumentId", oppgave.dokumentId),
-        )
-    }
-
-    private fun Oppgave.Tilstand.toDTO(): OppdateringstypeDTO = when (this) {
-        Oppgave.Tilstand.KortSøknadFerdigbehandlet,
-        Oppgave.Tilstand.SpleisFerdigbehandlet -> OppdateringstypeDTO.Ferdigbehandlet
-        Oppgave.Tilstand.LagOppgave -> OppdateringstypeDTO.Opprett
-        Oppgave.Tilstand.LagOppgaveForSpeilsaksbehandlere -> OppdateringstypeDTO.OpprettSpeilRelatert
-        Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet,
-        Oppgave.Tilstand.SpleisLest -> OppdateringstypeDTO.Utsett
-        Oppgave.Tilstand.DokumentOppdaget -> error("skal ikke legge melding på topic om at dokument er oppdaget")
-    }
-
-    private fun Oppgave.Tilstand.toEventName(): String = when (this) {
-        Oppgave.Tilstand.SpleisFerdigbehandlet -> "oppgavestyring_ferdigbehandlet"
-        Oppgave.Tilstand.LagOppgave -> "oppgavestyring_opprett"
-        Oppgave.Tilstand.LagOppgaveForSpeilsaksbehandlere -> "oppgavestyring_opprett_speilrelatert"
-        Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet,
-        Oppgave.Tilstand.SpleisLest -> "oppgavestyring_utsatt"
-        Oppgave.Tilstand.KortSøknadFerdigbehandlet -> "oppgavestyring_kort_periode"
-        Oppgave.Tilstand.DokumentOppdaget -> error("skal ikke legge melding på topic om at dokument er oppdaget")
     }
 
     private companion object {

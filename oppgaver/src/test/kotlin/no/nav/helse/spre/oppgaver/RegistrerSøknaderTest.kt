@@ -6,16 +6,14 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.LocalDateTime
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RegistrerSøknaderTest {
     private val dataSource = setupDataSourceMedFlyway()
     private val testRapid = TestRapid()
     private val oppgaveDAO = OppgaveDAO(dataSource)
-    private val observer = object : Oppgave.Observer {
-        override fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime) {}
-    }
+    private val observer = object : Oppgave.Observer {}
+
     init {
         RegistrerSøknader(testRapid, oppgaveDAO)
     }

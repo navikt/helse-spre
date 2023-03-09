@@ -14,9 +14,7 @@ import org.junit.jupiter.api.TestInstance
 internal class OppgaveDAOTest {
     private val dataSource = setupDataSourceMedFlyway()
     private val oppgaveDAO = OppgaveDAO(dataSource)
-    private val observer = object : Oppgave.Observer {
-        override fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime) {}
-    }
+    private val observer = object : Oppgave.Observer {}
 
     @Test
     fun `finner ikke en ikke-eksisterende oppgave`() {

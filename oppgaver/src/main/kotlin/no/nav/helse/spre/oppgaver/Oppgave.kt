@@ -1,7 +1,5 @@
 package no.nav.helse.spre.oppgaver
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
 
@@ -15,9 +13,7 @@ class Oppgave(
     val sistEndret: LocalDateTime?,
 ) {
     private val erSøknad = dokumentType == DokumentType.Søknad
-    private var observer: Observer = object : Observer {
-        override fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime) {}
-    }
+    private var observer: Observer = object : Observer {}
 
     fun setObserver(observer: Observer) = apply {
         this.observer = observer
@@ -39,7 +35,8 @@ class Oppgave(
         fun kortInntektsmeldingFerdigbehandlet(hendelseId: UUID, dokumentId: UUID) {}
         fun venterPåGodkjenningSøknad(hendelseId: UUID, dokumentId: UUID) {}
         fun venterPåGodkjenningInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
-        fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime)
+        fun avventerGodkjenningSøknad(hendelseId: UUID, dokumentId: UUID) {}
+        fun avventerGodkjenningInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
     }
 
     fun håndter(hendelse: Hendelse.TilInfotrygd) = tilstand.håndter(this, hendelse)
@@ -59,8 +56,6 @@ class Oppgave(
 
 
     sealed class Tilstand {
-        protected val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-
         abstract fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand)
 
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {}
@@ -115,7 +110,8 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {
-                oppgave.observer.forlengTimeout(oppgave, LocalDateTime.now().plusDays(180))
+                // todo: kunne kanskje endret tilstand her istedenfor 🤔
+                oppgave.dokumentType.avventerGodkjenning(oppgave.observer, oppgave.hendelseId, oppgave.dokumentId)
             }
         }
 
@@ -164,7 +160,7 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {
-                oppgave.observer.forlengTimeout(oppgave, LocalDateTime.now().plusDays(180))
+                oppgave.observer.avventerGodkjenningInntektsmelding(oppgave.hendelseId, oppgave.dokumentId)
             }
         }
 
@@ -194,6 +190,7 @@ sealed interface DokumentType {
     fun lagOppgaveSpeilsaksbehandlere(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun dokumentLest(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun venterPåGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
+    fun avventerGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
 
     object Inntektsmelding : DokumentType {
         override fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
@@ -214,6 +211,10 @@ sealed interface DokumentType {
 
         override fun venterPåGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
             observer.venterPåGodkjenningInntektsmelding(hendelseId, dokumentId)
+        }
+
+        override fun avventerGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.avventerGodkjenningInntektsmelding(hendelseId, dokumentId)
         }
     }
 
@@ -236,6 +237,10 @@ sealed interface DokumentType {
 
         override fun venterPåGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
             observer.venterPåGodkjenningSøknad(hendelseId, dokumentId)
+        }
+
+        override fun avventerGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.avventerGodkjenningSøknad(hendelseId, dokumentId)
         }
     }
 }
