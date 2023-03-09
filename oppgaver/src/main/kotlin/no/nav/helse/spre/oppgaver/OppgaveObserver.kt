@@ -14,6 +14,17 @@ class OppgaveObserver(
     private val publisist: Publisist,
     private val rapidsConnection: RapidsConnection
 ) : Oppgave.Observer {
+    private companion object {
+        private val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
+        private val LocalDateTime?.timeoutToString get() = if (this == null) "" else "Forlenger timeout med ${Duration.between(LocalDateTime.now().minusSeconds(1), this).toDays()} dager"
+
+        /* utsettelseregler, verdi oppgitt i antall dager fra *nå* */
+        private const val TimeoutLestSøknad = 110L
+        private const val TimeoutVenterPåTidligereGodkjenning = 10L
+        private const val TimeoutAvventerGodkjenning = 180L
+        private const val TimeoutLestInntektsmelding = 60L
+        private const val TimeoutLestInntektsmeldingBrukerutbetaling = 2L
+    }
 
     override fun lagre(oppgave: Oppgave) {
         oppgaveDAO.oppdaterTilstand(oppgave)
@@ -46,17 +57,17 @@ class OppgaveObserver(
     }
 
     override fun lestSøknad(hendelseId: UUID, dokumentId: UUID) {
-        val timeout = LocalDateTime.now().plusDays(110)
+        val timeout = LocalDateTime.now().plusDays(TimeoutLestSøknad)
         utsettSøknad(hendelseId, dokumentId, timeout)
     }
 
     override fun venterPåGodkjenningSøknad(hendelseId: UUID, dokumentId: UUID) {
         // utsetter søknaden fordi tidligere periode er til godkjenning
-        utsettSøknad(hendelseId, dokumentId, LocalDateTime.now().plusDays(10))
+        utsettSøknad(hendelseId, dokumentId, LocalDateTime.now().plusDays(TimeoutVenterPåTidligereGodkjenning))
     }
 
     override fun avventerGodkjenningSøknad(hendelseId: UUID, dokumentId: UUID) {
-        utsettSøknad(hendelseId, dokumentId, LocalDateTime.now().plusDays(180))
+        utsettSøknad(hendelseId, dokumentId, LocalDateTime.now().plusDays(TimeoutAvventerGodkjenning))
     }
 
     private fun utsettSøknad(hendelseId: UUID, dokumentId: UUID, timeout: LocalDateTime) {
@@ -88,8 +99,8 @@ class OppgaveObserver(
     }
 
     override fun lestInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
-        val antallDager = if (oppgaveDAO.harUtbetalingTilSøker(dokumentId)) 2 else 60
-        val timeout = LocalDateTime.now().plusDays(antallDager.toLong())
+        val antallDager = if (oppgaveDAO.harUtbetalingTilSøker(dokumentId)) TimeoutLestInntektsmeldingBrukerutbetaling else TimeoutLestInntektsmelding
+        val timeout = LocalDateTime.now().plusDays(antallDager)
         utsettInntektsmelding(hendelseId, dokumentId, timeout)
     }
 
@@ -102,11 +113,11 @@ class OppgaveObserver(
             )
         }
 
-        utsettInntektsmelding(hendelseId, dokumentId, LocalDateTime.now().plusDays(10))
+        utsettInntektsmelding(hendelseId, dokumentId, LocalDateTime.now().plusDays(TimeoutVenterPåTidligereGodkjenning))
     }
 
     override fun avventerGodkjenningInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
-        utsettInntektsmelding(hendelseId, dokumentId, LocalDateTime.now().plusDays(180))
+        utsettInntektsmelding(hendelseId, dokumentId, LocalDateTime.now().plusDays(TimeoutAvventerGodkjenning))
     }
 
     private fun utsettInntektsmelding(hendelseId: UUID, dokumentId: UUID, timeout: LocalDateTime) {
@@ -127,10 +138,5 @@ class OppgaveObserver(
             keyValue("hendelseId", hendelseId),
             keyValue("dokumentId", dto.dokumentId)
         )
-    }
-
-    private companion object {
-        private val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-        private val LocalDateTime?.timeoutToString get() = if (this == null) "" else "Forlenger timeout med ${Duration.between(LocalDateTime.now().minusSeconds(1), this).toDays()} dager"
     }
 }
