@@ -29,10 +29,12 @@ class Oppgave(
         fun lagre(oppgave: Oppgave) {}
 
         fun lagOppgaveSøknad(hendelseId: UUID, dokumentId: UUID) {}
+        fun lagOppgaveSpeilsaksbehandlereSøknad(hendelseId: UUID, dokumentId: UUID) {}
         fun lagOppgaveInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
+        fun lagOppgaveSpeilsaksbehandlereInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
+
         fun ferdigbehandletSøknad(hendelseId: UUID, dokumentId: UUID) {}
         fun ferdigbehandletInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
-
         fun publiser(oppgave: Oppgave) {}
         fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime)
         fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean
@@ -81,7 +83,11 @@ class Oppgave(
             }
         }
 
-        object LagOppgaveForSpeilsaksbehandlere : Tilstand()
+        object LagOppgaveForSpeilsaksbehandlere : Tilstand() {
+            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
+                oppgave.dokumentType.lagOppgaveSpeilsaksbehandlere(oppgave.observer, oppgave.hendelseId, oppgave.dokumentId)
+            }
+        }
 
         object SpleisLest : Tilstand() {
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
@@ -181,6 +187,7 @@ class Oppgave(
 sealed interface DokumentType {
     fun lagOppgave(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
+    fun lagOppgaveSpeilsaksbehandlere(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
 
     object Inntektsmelding : DokumentType {
         override fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
@@ -189,6 +196,10 @@ sealed interface DokumentType {
 
         override fun lagOppgave(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
             observer.lagOppgaveInntektsmelding(hendelseId, dokumentId)
+        }
+
+        override fun lagOppgaveSpeilsaksbehandlere(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.lagOppgaveSpeilsaksbehandlereInntektsmelding(hendelseId, dokumentId)
         }
     }
 
@@ -199,6 +210,10 @@ sealed interface DokumentType {
 
         override fun lagOppgave(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
             observer.lagOppgaveSøknad(hendelseId, dokumentId)
+        }
+
+        override fun lagOppgaveSpeilsaksbehandlere(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.lagOppgaveSpeilsaksbehandlereSøknad(hendelseId, dokumentId)
         }
     }
 }

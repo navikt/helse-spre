@@ -22,9 +22,20 @@ class OppgaveObserver(
         val dto = OppgaveDTO.nySøknadoppgave(dokumentId)
         sendOppgaveoppdatering("LagOppgave", hendelseId, dto, "oppgavestyring_opprett")
     }
+
+    override fun lagOppgaveSpeilsaksbehandlereSøknad(hendelseId: UUID, dokumentId: UUID) {
+        val dto = OppgaveDTO.nySøknadoppgaveSpeil(dokumentId)
+        sendOppgaveoppdatering("LagOppgaveForSpeilsaksbehandlere", hendelseId, dto, "oppgavestyring_opprett_speilrelatert")
+    }
+
     override fun lagOppgaveInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
         val dto = OppgaveDTO.nyInntektsmeldingoppgave(dokumentId)
         sendOppgaveoppdatering("LagOppgave", hendelseId, dto, "oppgavestyring_opprett")
+    }
+
+    override fun lagOppgaveSpeilsaksbehandlereInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
+        val dto = OppgaveDTO.nyInntektsmeldingoppgaveSpeil(dokumentId)
+        sendOppgaveoppdatering("LagOppgaveForSpeilsaksbehandlere", hendelseId, dto, "oppgavestyring_opprett_speilrelatert")
     }
 
     override fun ferdigbehandletSøknad(hendelseId: UUID, dokumentId: UUID) {
