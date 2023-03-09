@@ -4,7 +4,6 @@ import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.oppgaver.DokumentType.Søknad
-import no.nav.helse.spre.oppgaver.OppgaveObserver.Companion.timeoutToString
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
@@ -26,6 +25,16 @@ class OppgaveObserver(
     override fun lagOppgaveInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
         val dto = OppgaveDTO.nyInntektsmeldingoppgave(dokumentId)
         sendOppgaveoppdatering("LagOppgave", hendelseId, dto, "oppgavestyring_opprett")
+    }
+
+    override fun ferdigbehandletSøknad(hendelseId: UUID, dokumentId: UUID) {
+        val dto = OppgaveDTO.ferdigbehandletSøknad(dokumentId)
+        sendOppgaveoppdatering("SpleisFerdigbehandlet", hendelseId, dto, "oppgavestyring_ferdigbehandlet")
+    }
+
+    override fun ferdigbehandletInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
+        val dto = OppgaveDTO.ferdigbehandletInntektsmelding(dokumentId)
+        sendOppgaveoppdatering("SpleisFerdigbehandlet", hendelseId, dto, "oppgavestyring_ferdigbehandlet")
     }
 
     override fun publiser(oppgave: Oppgave) {
@@ -76,7 +85,7 @@ class OppgaveObserver(
         )
 
         log.info(
-            "Publisert forlenging av timeout for oppgave på ${oppgave.dokumentType.name} i tilstand: ${oppgave.tilstand} med ider: {}, {}. ${timeout.timeoutToString}. Sendes på tbd.spre-oppgaver:\n\t${objectMapper.writeValueAsString(dto)}",
+            "Publisert forlenging av timeout for oppgave på ${oppgave.dokumentType::class.simpleName} i tilstand: ${oppgave.tilstand} med ider: {}, {}. ${timeout.timeoutToString}. Sendes på tbd.spre-oppgaver:\n\t${objectMapper.writeValueAsString(dto)}",
             keyValue("hendelseId", oppgave.hendelseId),
             keyValue("dokumentId", oppgave.dokumentId),
         )

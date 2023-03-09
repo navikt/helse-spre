@@ -29,6 +29,11 @@ class OppgaveDAO(private val dataSource: DataSource) {
         KortSøknadFerdigbehandlet to Tilstand.KortSøknadFerdigbehandlet
     )
 
+    private val dokumentmapping = mapOf(
+        "Søknad" to DokumentType.Søknad,
+        "Inntektsmelding" to DokumentType.Inntektsmelding
+    )
+
     private fun fraDBTilstand(tilstand: String) = tilstandmapping.getValue(enumValueOf(tilstand))
     private fun Tilstand.toDBTilstand() = tilstandmapping.entries
         .single { (_, tilstand) -> this == tilstand }
@@ -49,7 +54,7 @@ class OppgaveDAO(private val dataSource: DataSource) {
         fødselsnummer = rs.stringOrNull("fodselsnummer"),
         orgnummer = rs.stringOrNull("orgnummer"),
         tilstand = fraDBTilstand(rs.string("tilstand")),
-        dokumentType = DokumentType.valueOf(rs.string("dokument_type")),
+        dokumentType = dokumentmapping.getValue(rs.string("dokument_type")),
         sistEndret = rs.localDateTimeOrNull("sist_endret")
 
     )
@@ -63,7 +68,7 @@ class OppgaveDAO(private val dataSource: DataSource) {
                     dokumentId,
                     fødselsnummer,
                     orgnummer,
-                    dokumentType.name
+                    dokumentmapping.entries.single { (_, dokument) -> dokument == dokumentType }.key
                 ).asUpdate
             )
         }

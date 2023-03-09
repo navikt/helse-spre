@@ -1,6 +1,7 @@
 package no.nav.helse.spre.oppgaver
 
 import net.logstash.logback.argument.StructuredArguments.keyValue
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.*
@@ -15,7 +16,10 @@ class Oppgave(
     val sistEndret: LocalDateTime?,
 ) {
     private val erSøknad = dokumentType == DokumentType.Søknad
-    private var observer: Observer? = null
+    private var observer: Observer = object : Observer {
+        override fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime) {}
+        override fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime) = true
+    }
 
     fun setObserver(observer: Observer) = apply {
         this.observer = observer
@@ -26,6 +30,8 @@ class Oppgave(
 
         fun lagOppgaveSøknad(hendelseId: UUID, dokumentId: UUID) {}
         fun lagOppgaveInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
+        fun ferdigbehandletSøknad(hendelseId: UUID, dokumentId: UUID) {}
+        fun ferdigbehandletInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
 
         fun publiser(oppgave: Oppgave) {}
         fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime)
@@ -43,16 +49,16 @@ class Oppgave(
     private fun tilstand(tilstand: Tilstand) {
         val forrigeTilstand = this.tilstand
         this.tilstand = tilstand
-        observer?.lagre(this)
+        observer.lagre(this)
         tilstand.entering(this, forrigeTilstand)
     }
 
 
     sealed class Tilstand {
-        protected val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
+        protected val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
         open fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
-            oppgave.observer?.publiser(oppgave)
+            oppgave.observer.publiser(oppgave)
         }
 
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {}
@@ -63,14 +69,15 @@ class Oppgave(
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {}
 
-        object SpleisFerdigbehandlet : Tilstand() { }
+        object SpleisFerdigbehandlet : Tilstand() {
+            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
+                oppgave.dokumentType.ferdigbehandlet(oppgave.observer, oppgave.hendelseId, oppgave.dokumentId)
+            }
+        }
 
         object LagOppgave : Tilstand() {
             override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
-                when (oppgave.dokumentType) {
-                    DokumentType.Søknad -> oppgave.observer?.lagOppgaveSøknad(oppgave.hendelseId, oppgave.dokumentId)
-                    DokumentType.Inntektsmelding -> oppgave.observer?.lagOppgaveInntektsmelding(oppgave.hendelseId, oppgave.dokumentId)
-                }
+                oppgave.dokumentType.lagOppgave(oppgave.observer, oppgave.hendelseId, oppgave.dokumentId)
             }
         }
 
@@ -94,7 +101,7 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {
-                if (oppgave.observer?.forlengTimeoutUtenUtbetalingTilSøker(oppgave, LocalDateTime.now().plusDays(10)) == true) return
+                if (oppgave.observer.forlengTimeoutUtenUtbetalingTilSøker(oppgave, LocalDateTime.now().plusDays(10))) return
                 sikkerlogg.info("Vi utsetter ikke oppgave i tilstand SpleisLest ettersom det er utbetaling til søker. {}, {}",
                     keyValue("hendelseId", oppgave.hendelseId),
                     keyValue("dokumentId", oppgave.dokumentId)
@@ -102,7 +109,7 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {
-                oppgave.observer?.forlengTimeout(oppgave, LocalDateTime.now().plusDays(180))
+                oppgave.observer.forlengTimeout(oppgave, LocalDateTime.now().plusDays(180))
             }
         }
 
@@ -143,7 +150,7 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {
-                if (oppgave.observer?.forlengTimeoutUtenUtbetalingTilSøker(oppgave, LocalDateTime.now().plusDays(10)) == true) return
+                if (oppgave.observer.forlengTimeoutUtenUtbetalingTilSøker(oppgave, LocalDateTime.now().plusDays(10))) return
                 sikkerlogg.info("Vi utsetter ikke oppgave i tilstand KortInntektsmeldingFerdigbehandlet ettersom det er utbetaling til søker. {}, {}",
                     keyValue("hendelseId", oppgave.hendelseId),
                     keyValue("dokumentId", oppgave.dokumentId)
@@ -151,7 +158,7 @@ class Oppgave(
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {
-                oppgave.observer?.forlengTimeout(oppgave, LocalDateTime.now().plusDays(180))
+                oppgave.observer.forlengTimeout(oppgave, LocalDateTime.now().plusDays(180))
             }
         }
 
@@ -171,6 +178,27 @@ class Oppgave(
     }
 }
 
-enum class DokumentType {
-    Inntektsmelding, Søknad
+sealed interface DokumentType {
+    fun lagOppgave(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
+    fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
+
+    object Inntektsmelding : DokumentType {
+        override fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.ferdigbehandletInntektsmelding(hendelseId, dokumentId)
+        }
+
+        override fun lagOppgave(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.lagOppgaveInntektsmelding(hendelseId, dokumentId)
+        }
+    }
+
+    object Søknad : DokumentType {
+        override fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.ferdigbehandletSøknad(hendelseId, dokumentId)
+        }
+
+        override fun lagOppgave(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
+            observer.lagOppgaveSøknad(hendelseId, dokumentId)
+        }
+    }
 }

@@ -12,11 +12,20 @@ data class OppgaveDTO(
     internal companion object {
         fun nySøknadoppgave(dokumentId: UUID) = nyOppgave(dokumentId, DokumentTypeDTO.Søknad)
         fun nyInntektsmeldingoppgave(dokumentId: UUID) = nyOppgave(dokumentId, DokumentTypeDTO.Inntektsmelding)
+        fun ferdigbehandletSøknad(dokumentId: UUID) = ferdigbehandlet(dokumentId, DokumentTypeDTO.Søknad)
+        fun ferdigbehandletInntektsmelding(dokumentId: UUID) = ferdigbehandlet(dokumentId, DokumentTypeDTO.Inntektsmelding)
+
+        private fun ferdigbehandlet(dokumentId: UUID, dokumentType: DokumentTypeDTO) = OppgaveDTO(
+            dokumentType = dokumentType,
+            dokumentId = dokumentId,
+            oppdateringstype = OppdateringstypeDTO.Ferdigbehandlet,
+            timeout = null
+        )
 
         private fun nyOppgave(dokumentId: UUID, dokumentType: DokumentTypeDTO) = OppgaveDTO(
             dokumentType = dokumentType,
-            oppdateringstype = OppdateringstypeDTO.Opprett,
             dokumentId = dokumentId,
+            oppdateringstype = OppdateringstypeDTO.Opprett,
             timeout = null,
         )
     }
