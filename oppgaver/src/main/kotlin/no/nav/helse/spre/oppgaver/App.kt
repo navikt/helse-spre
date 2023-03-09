@@ -33,26 +33,14 @@ fun main() {
 fun launchApplication(
     environment: Map<String, String> = System.getenv()
 ): RapidsConnection {
-
-
     val kafkaProducer = createProducer(environment)
 
     val publisist = Publisist { dokumentId: String, oppgave: OppgaveDTO ->
-        kafkaProducer.send(
-            ProducerRecord(
-                "tbd.spre-oppgaver",
-                dokumentId,
-                oppgave
-            )
-        )
+        kafkaProducer.send(ProducerRecord("tbd.spre-oppgaver", dokumentId, oppgave))
     }
 
     return RapidApplication.create(environment).apply {
-        val dsbuilder = when (environment["NAIS_CLUSTER_NAME"]) {
-            "dev-gcp", "prod-gcp" -> DataSourceBuilderGCP()
-            else -> DataSourceBuilder()
-        }
-
+        val dsbuilder = DataSourceBuilder()
         val oppgaveDAO = OppgaveDAO(dsbuilder.datasource())
 
         register(object : RapidsConnection.StatusListener {

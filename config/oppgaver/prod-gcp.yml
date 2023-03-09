@@ -1,5 +1,5 @@
 strategy: Recreate
-kafkaPool: nav-dev
+kafkaPool: nav-prod
 gcp:
   type: POSTGRES_14
   databaseName: spre-oppgaver
