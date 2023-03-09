@@ -59,7 +59,6 @@ internal fun RapidsConnection.registerRivers(
     RegistrerSøknader(this, oppgaveDAO)
     RegistrerInntektsmeldinger(this, oppgaveDAO)
     HåndterVedtaksperiodeendringer(this, oppgaveDAO, publisist)
-    HåndterHendelseIkkeHåndtert(this, oppgaveDAO, publisist)
     HåndterOpprettOppgaveForSpeilsaksbehandlere(this, oppgaveDAO, publisist)
     HåndterOpprettOppgave(this, oppgaveDAO, publisist)
     HåndterUtsettOppgave(this, oppgaveDAO, publisist)
