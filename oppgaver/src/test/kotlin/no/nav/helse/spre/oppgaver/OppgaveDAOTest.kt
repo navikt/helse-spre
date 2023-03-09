@@ -14,10 +14,14 @@ import org.junit.jupiter.api.TestInstance
 internal class OppgaveDAOTest {
     private val dataSource = setupDataSourceMedFlyway()
     private val oppgaveDAO = OppgaveDAO(dataSource)
+    private val observer = object : Oppgave.Observer {
+        override fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime) {}
+        override fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean { return true }
+    }
 
     @Test
     fun `finner ikke en ikke-eksisterende oppgave`() {
-        assertNull(oppgaveDAO.finnOppgave(hendelseId = UUID.randomUUID()))
+        assertNull(oppgaveDAO.finnOppgave(hendelseId = UUID.randomUUID(), observer))
     }
 
     @Test
@@ -31,7 +35,7 @@ internal class OppgaveDAOTest {
             orgnummer = "456",
             dokumentType = DokumentType.Søknad
         )
-        val oppgave = oppgaveDAO.finnOppgave(hendelseId)
+        val oppgave = oppgaveDAO.finnOppgave(hendelseId, observer)
         assertNotNull(oppgave)
         assertEquals(
             hendelseId = hendelseId,
@@ -43,7 +47,7 @@ internal class OppgaveDAOTest {
             oppgave = requireNotNull(oppgave),
         )
         oppgaveDAO.oppdaterTilstand(oppgave)
-        assertTrue(oppgaveDAO.finnOppgave(hendelseId)!!.sistEndret!!.isAfter(oppgave.sistEndret))
+        assertTrue(oppgaveDAO.finnOppgave(hendelseId, observer)!!.sistEndret!!.isAfter(oppgave.sistEndret))
     }
 
     private fun assertEquals(

@@ -21,8 +21,7 @@ class HåndterOpprettOppgave(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         packet["hendelser"]
             .map { UUID.fromString(it.asText()) }
-            .mapNotNull { oppgaveDAO.finnOppgave(it) }
-            .onEach { it.setObserver(observer) }
+            .mapNotNull { oppgaveDAO.finnOppgave(it, observer) }
             .forEach { oppgave ->
                 withMDC(mapOf("event" to "opprett_oppgave")) {
                     Hendelse.TilInfotrygd.accept(oppgave)

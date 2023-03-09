@@ -25,8 +25,7 @@ class HåndterVedtaksperiodeendringer(
         val gjeldendeTilstand = packet["gjeldendeTilstand"].asText()
         packet["hendelser"]
             .map { UUID.fromString(it.asText()) }
-            .mapNotNull { oppgaveDAO.finnOppgave(it) }
-            .onEach { it.setObserver(observer) }
+            .mapNotNull { oppgaveDAO.finnOppgave(it, observer) }
             .forEach { oppgave ->
                 withMDC(mapOf("event" to "vedtaksperiode_endret", "tilstand" to gjeldendeTilstand, "forrigeTilstand" to forrigeTilstand)) {
                     when (gjeldendeTilstand) {

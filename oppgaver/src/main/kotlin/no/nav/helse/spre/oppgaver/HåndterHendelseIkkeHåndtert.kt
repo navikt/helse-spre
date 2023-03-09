@@ -23,7 +23,7 @@ class HåndterHendelseIkkeHåndtert(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         UUID.fromString(packet["hendelseId"].asText()).let { hendelseId ->
-            oppgaveDAO.finnOppgave(hendelseId)?.setObserver(observer)?.let { oppgave ->
+            oppgaveDAO.finnOppgave(hendelseId, observer)?.let { oppgave ->
                 Hendelse.TilInfotrygd.accept(oppgave)
                 log.info("Oppgave på hendelseId: {} av type: {} med dokumentId: {}, fører til oppgaveopprettelse",
                     hendelseId,

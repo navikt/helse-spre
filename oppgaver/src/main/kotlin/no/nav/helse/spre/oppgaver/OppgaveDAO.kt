@@ -1,12 +1,14 @@
 package no.nav.helse.spre.oppgaver
 
+import kotliquery.Row
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import kotliquery.using
+import no.nav.helse.spre.oppgaver.DatabaseTilstand.*
+import no.nav.helse.spre.oppgaver.Oppgave.Tilstand
 import java.util.*
 import javax.sql.DataSource
 
-enum class DatabaseTilstand {
+private enum class DatabaseTilstand {
     SpleisFerdigbehandlet,
     LagOppgave,
     LagOppgaveForSpeilsaksbehandlere,
@@ -17,33 +19,40 @@ enum class DatabaseTilstand {
 }
 
 class OppgaveDAO(private val dataSource: DataSource) {
-    fun finnOppgave(hendelseId: UUID): Oppgave? = sessionOf(dataSource).use { session ->
-        session.run(queryOf(
-            "SELECT * FROM oppgave_tilstand WHERE hendelse_id=?;",
-            hendelseId
-        )
-            .map { rs ->
-                Oppgave(
-                    hendelseId = UUID.fromString(rs.string("hendelse_id")),
-                    dokumentId = UUID.fromString(rs.string("dokument_id")),
-                    fødselsnummer = rs.stringOrNull("fodselsnummer"),
-                    orgnummer = rs.stringOrNull("orgnummer"),
-                    tilstand = when (enumValueOf<DatabaseTilstand>(rs.string("tilstand"))) {
-                        DatabaseTilstand.SpleisFerdigbehandlet -> Oppgave.Tilstand.SpleisFerdigbehandlet
-                        DatabaseTilstand.LagOppgave -> Oppgave.Tilstand.LagOppgave
-                        DatabaseTilstand.LagOppgaveForSpeilsaksbehandlere -> Oppgave.Tilstand.LagOppgaveForSpeilsaksbehandlere
-                        DatabaseTilstand.SpleisLest -> Oppgave.Tilstand.SpleisLest
-                        DatabaseTilstand.DokumentOppdaget -> Oppgave.Tilstand.DokumentOppdaget
-                        DatabaseTilstand.KortInntektsmeldingFerdigbehandlet -> Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet
-                        DatabaseTilstand.KortSøknadFerdigbehandlet -> Oppgave.Tilstand.KortSøknadFerdigbehandlet
-                    },
-                    dokumentType = DokumentType.valueOf(rs.string("dokument_type")),
-                    sistEndret = rs.localDateTimeOrNull("sist_endret")
-                )
-            }
-            .asSingle
+    private val tilstandmapping = mapOf(
+        SpleisFerdigbehandlet to Tilstand.SpleisFerdigbehandlet,
+        LagOppgave to Tilstand.LagOppgave,
+        LagOppgaveForSpeilsaksbehandlere to Tilstand.LagOppgaveForSpeilsaksbehandlere,
+        SpleisLest to Tilstand.SpleisLest,
+        DokumentOppdaget to Tilstand.DokumentOppdaget,
+        KortInntektsmeldingFerdigbehandlet to Tilstand.KortInntektsmeldingFerdigbehandlet,
+        KortSøknadFerdigbehandlet to Tilstand.KortSøknadFerdigbehandlet
+    )
+
+    private fun fraDBTilstand(tilstand: String) = tilstandmapping.getValue(enumValueOf(tilstand))
+    private fun Tilstand.toDBTilstand() = tilstandmapping.entries
+        .single { (_, tilstand) -> this == tilstand }
+        .key
+
+
+    fun finnOppgave(hendelseId: UUID, observer: Oppgave.Observer) = sessionOf(dataSource).use { session ->
+        session.run(
+            queryOf("SELECT * FROM oppgave_tilstand WHERE hendelse_id=? LIMIT 1;", hendelseId)
+                .map { rs -> mapTilOppgave(rs).apply { setObserver(observer) } }
+                .asSingle
         )
     }
+
+    private fun mapTilOppgave(rs: Row) = Oppgave(
+        hendelseId = UUID.fromString(rs.string("hendelse_id")),
+        dokumentId = UUID.fromString(rs.string("dokument_id")),
+        fødselsnummer = rs.stringOrNull("fodselsnummer"),
+        orgnummer = rs.stringOrNull("orgnummer"),
+        tilstand = fraDBTilstand(rs.string("tilstand")),
+        dokumentType = DokumentType.valueOf(rs.string("dokument_type")),
+        sistEndret = rs.localDateTimeOrNull("sist_endret")
+
+    )
 
     fun opprettOppgaveHvisNy(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String, dokumentType: DokumentType) =
         sessionOf(dataSource).use { session ->
@@ -94,14 +103,4 @@ class OppgaveDAO(private val dataSource: DataSource) {
         ).map { it.int(1) }.asSingle
         )
     } == 1
-}
-
-private fun Oppgave.Tilstand.toDBTilstand(): DatabaseTilstand = when (this) {
-    Oppgave.Tilstand.SpleisFerdigbehandlet -> DatabaseTilstand.SpleisFerdigbehandlet
-    Oppgave.Tilstand.LagOppgave -> DatabaseTilstand.LagOppgave
-    Oppgave.Tilstand.LagOppgaveForSpeilsaksbehandlere -> DatabaseTilstand.LagOppgaveForSpeilsaksbehandlere
-    Oppgave.Tilstand.SpleisLest -> DatabaseTilstand.SpleisLest
-    Oppgave.Tilstand.DokumentOppdaget -> DatabaseTilstand.DokumentOppdaget
-    Oppgave.Tilstand.KortInntektsmeldingFerdigbehandlet -> DatabaseTilstand.KortInntektsmeldingFerdigbehandlet
-    Oppgave.Tilstand.KortSøknadFerdigbehandlet -> DatabaseTilstand.KortSøknadFerdigbehandlet
 }

@@ -20,9 +20,8 @@ class HåndterUtsettOppgave(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val hendelseId = UUID.fromString(packet["hendelse"].asText())
-        val oppgave = oppgaveDAO.finnOppgave(hendelseId) ?: return
+        val oppgave = oppgaveDAO.finnOppgave(hendelseId, observer) ?: return
         withMDC(mapOf("event" to "utsett_oppgave")) {
-            oppgave.setObserver(observer)
             Hendelse.Lest.accept(oppgave)
             log.info("Mottok utsett_oppgave-event: {}", oppgave.hendelseId)
         }

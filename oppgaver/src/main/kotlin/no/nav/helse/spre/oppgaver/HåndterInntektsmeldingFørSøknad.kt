@@ -21,9 +21,8 @@ class HåndterInntektsmeldingFørSøknad(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val hendelseId = UUID.fromString(packet["inntektsmeldingId"].asText())
-        val oppgave = oppgaveDAO.finnOppgave(hendelseId) ?: return
+        val oppgave = oppgaveDAO.finnOppgave(hendelseId, observer) ?: return
         withMDC(mapOf("event" to "inntektsmelding_før_søknad")) {
-            oppgave.setObserver(observer)
             oppgave.håndter(Hendelse.Lest)
             log.info("Mottok inntektsmelding_før_søknad-event: {}", oppgave.hendelseId)
         }

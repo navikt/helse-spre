@@ -4,6 +4,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.time.LocalDateTime
 import java.util.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -11,7 +12,10 @@ class RegistrerInntektsmeldingerTest {
     private val dataSource = setupDataSourceMedFlyway()
     private val testRapid = TestRapid()
     private val oppgaveDAO = OppgaveDAO(dataSource)
-
+    private val observer = object : Oppgave.Observer {
+        override fun forlengTimeout(oppgave: Oppgave, timeout: LocalDateTime) {}
+        override fun forlengTimeoutUtenUtbetalingTilSøker(oppgave: Oppgave, timeout: LocalDateTime): Boolean { return true }
+    }
     init {
         RegistrerInntektsmeldinger(testRapid, oppgaveDAO)
     }
@@ -22,7 +26,7 @@ class RegistrerInntektsmeldingerTest {
         val dokumentId = UUID.randomUUID()
         testRapid.sendTestMessage(inntektsmelding(hendelseId, dokumentId))
 
-        val oppgave = oppgaveDAO.finnOppgave(hendelseId)
+        val oppgave = oppgaveDAO.finnOppgave(hendelseId, observer)
         Assertions.assertNotNull(oppgave)
         Assertions.assertEquals(DokumentType.Inntektsmelding, oppgave!!.dokumentType)
     }
