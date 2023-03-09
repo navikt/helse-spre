@@ -24,10 +24,10 @@ class OppgaveDAO(private val dataSource: DataSource) {
         )
             .map { rs ->
                 Oppgave(
-                    hendelseId = UUID.fromString(rs.stringOrNull("hendelse_id")),
-                    dokumentId = UUID.fromString(rs.stringOrNull("dokument_id")),
-                    fødselsnummer = rs.string("fodselsnummer"),
-                    orgnummer = rs.string("orgnummer"),
+                    hendelseId = UUID.fromString(rs.string("hendelse_id")),
+                    dokumentId = UUID.fromString(rs.string("dokument_id")),
+                    fødselsnummer = rs.stringOrNull("fodselsnummer"),
+                    orgnummer = rs.stringOrNull("orgnummer"),
                     tilstand = when (enumValueOf<DatabaseTilstand>(rs.string("tilstand"))) {
                         DatabaseTilstand.SpleisFerdigbehandlet -> Oppgave.Tilstand.SpleisFerdigbehandlet
                         DatabaseTilstand.LagOppgave -> Oppgave.Tilstand.LagOppgave
