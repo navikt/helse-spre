@@ -11,13 +11,9 @@ class Oppgave(
     var tilstand: Tilstand = Tilstand.DokumentOppdaget,
     val dokumentType: DokumentType,
     val sistEndret: LocalDateTime?,
+    private val observer: Observer
 ) {
     private val erSøknad = dokumentType == DokumentType.Søknad
-    private var observer: Observer = object : Observer {}
-
-    fun setObserver(observer: Observer) = apply {
-        this.observer = observer
-    }
 
     interface Observer {
         fun lagre(oppgave: Oppgave) {}

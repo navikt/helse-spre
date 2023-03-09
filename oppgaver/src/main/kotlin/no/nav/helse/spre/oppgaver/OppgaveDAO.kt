@@ -43,20 +43,20 @@ class OppgaveDAO(private val dataSource: DataSource) {
     fun finnOppgave(hendelseId: UUID, observer: Oppgave.Observer) = sessionOf(dataSource).use { session ->
         session.run(
             queryOf("SELECT * FROM oppgave_tilstand WHERE hendelse_id=? LIMIT 1;", hendelseId)
-                .map { rs -> mapTilOppgave(rs).apply { setObserver(observer) } }
+                .map { rs -> mapTilOppgave(rs, observer) }
                 .asSingle
         )
     }
 
-    private fun mapTilOppgave(rs: Row) = Oppgave(
+    private fun mapTilOppgave(rs: Row, observer: Oppgave.Observer) = Oppgave(
         hendelseId = UUID.fromString(rs.string("hendelse_id")),
         dokumentId = UUID.fromString(rs.string("dokument_id")),
         fødselsnummer = rs.stringOrNull("fodselsnummer"),
         orgnummer = rs.stringOrNull("orgnummer"),
         tilstand = fraDBTilstand(rs.string("tilstand")),
         dokumentType = dokumentmapping.getValue(rs.string("dokument_type")),
-        sistEndret = rs.localDateTimeOrNull("sist_endret")
-
+        sistEndret = rs.localDateTimeOrNull("sist_endret"),
+        observer = observer
     )
 
     fun opprettOppgaveHvisNy(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String, dokumentType: DokumentType) =
