@@ -30,10 +30,17 @@ class RegistrerSøknaderTest {
 
 fun sendtSøknad(
     hendelseId: UUID,
-    dokumentId: UUID = UUID.randomUUID()
+    dokumentId: UUID = UUID.randomUUID(),
+    fnr: String = "12345678910",
+    orgnummer: String = "ORGNUMMER",
 ): String =
     """{
             "@event_name": "sendt_søknad_nav",
+            "fnr": "$fnr",
+            "arbeidsgiver": {
+                "navn": "navn",
+                "orgnummer": "$orgnummer"
+            },
             "@id": "$hendelseId",
             "id": "$dokumentId"
         }"""

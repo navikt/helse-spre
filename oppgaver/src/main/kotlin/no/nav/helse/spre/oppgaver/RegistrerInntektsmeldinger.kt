@@ -15,6 +15,8 @@ class RegistrerInntektsmeldinger(rapidsConnection: RapidsConnection, private val
             validate { it.requireKey("@id") }
             validate { it.requireKey("inntektsmeldingId") }
             validate { it.requireKey("beregnetInntekt") }
+            validate { it.requireKey("virksomhetsnummer") }
+            validate { it.requireKey("arbeidstakerFnr") }
             validate { it.requireValue("@event_name", "inntektsmelding") }
             validate { it.interestedIn("refusjon.beloepPrMnd") }
         }.register(this)
@@ -23,8 +25,10 @@ class RegistrerInntektsmeldinger(rapidsConnection: RapidsConnection, private val
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val hendelseId = UUID.fromString(packet["@id"].asText())
         val dokumentId = packet.dokumentId()
+        val fnr = packet["arbeidstakerFnr"].asText()
+        val organisasjonsnummer = packet["virksomhetsnummer"].asText()
 
-        oppgaveDAO.opprettOppgaveHvisNy(hendelseId, dokumentId, DokumentType.Inntektsmelding)
+        oppgaveDAO.opprettOppgaveHvisNy(hendelseId, dokumentId, fnr, organisasjonsnummer, DokumentType.Inntektsmelding)
         sjekkUtbetalingTilSøker(packet)
         log.info("Inntektsmelding oppdaget: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
     }

@@ -26,6 +26,8 @@ class OppgaveDAO(private val dataSource: DataSource) {
                 Oppgave(
                     hendelseId = UUID.fromString(rs.string("hendelse_id")),
                     dokumentId = UUID.fromString(rs.string("dokument_id")),
+                    fødselsnummer = rs.string("fodselsnummer"),
+                    orgnummer = rs.string("orgnummer"),
                     tilstand = when (enumValueOf<DatabaseTilstand>(rs.string("tilstand"))) {
                         DatabaseTilstand.SpleisFerdigbehandlet -> Oppgave.Tilstand.SpleisFerdigbehandlet
                         DatabaseTilstand.LagOppgave -> Oppgave.Tilstand.LagOppgave
@@ -43,13 +45,15 @@ class OppgaveDAO(private val dataSource: DataSource) {
         )
     }
 
-    fun opprettOppgaveHvisNy(hendelseId: UUID, dokumentId: UUID, dokumentType: DokumentType) =
+    fun opprettOppgaveHvisNy(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String, dokumentType: DokumentType) =
         sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
-                    "INSERT INTO oppgave_tilstand(hendelse_id, dokument_id, dokument_type, sist_endret) VALUES(?, ?, CAST(? AS dokument_type), NOW()) ON CONFLICT (hendelse_id) DO NOTHING;",
+                    "INSERT INTO oppgave_tilstand(hendelse_id, dokument_id, fodselsnummer, orgnummer, dokument_type, sist_endret) VALUES(?, ?, ?, ?, CAST(? AS dokument_type), NOW()) ON CONFLICT (hendelse_id) DO NOTHING;",
                     hendelseId,
                     dokumentId,
+                    fødselsnummer,
+                    orgnummer,
                     dokumentType.name
                 ).asUpdate
             )

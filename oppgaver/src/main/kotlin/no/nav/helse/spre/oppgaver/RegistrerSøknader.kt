@@ -13,6 +13,8 @@ class RegistrerSøknader(rapidsConnection: RapidsConnection, private val oppgave
         River(rapidsConnection).apply {
             validate { it.requireKey("@id") }
             validate { it.requireKey("id") }
+            validate { it.requireKey("fnr") }
+            validate { it.requireKey("arbeidsgiver.orgnummer") }
             validate { it.requireValue("@event_name", "sendt_søknad_nav") }
         }.register(this)
     }
@@ -20,8 +22,10 @@ class RegistrerSøknader(rapidsConnection: RapidsConnection, private val oppgave
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val hendelseId = UUID.fromString(packet["@id"].asText())
         val dokumentId = UUID.fromString(packet["id"].asText())
+        val fnr = packet["fnr"].asText()
+        val orgnummer = packet["arbeidsgiver.orgnummer"].asText()
 
-        oppgaveDAO.opprettOppgaveHvisNy(hendelseId, dokumentId, DokumentType.Søknad)
+        oppgaveDAO.opprettOppgaveHvisNy(hendelseId, dokumentId, fnr, orgnummer, DokumentType.Søknad)
         log.info("Søknad oppdaget: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
     }
 }

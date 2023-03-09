@@ -27,6 +27,8 @@ internal class OppgaveDAOTest {
         oppgaveDAO.opprettOppgaveHvisNy(
             hendelseId = hendelseId,
             dokumentId = dokumentId,
+            fødselsnummer = "123",
+            orgnummer = "456",
             dokumentType = DokumentType.Søknad
         )
         val oppgave = oppgaveDAO.finnOppgave(hendelseId)
@@ -34,6 +36,8 @@ internal class OppgaveDAOTest {
         assertEquals(
             hendelseId = hendelseId,
             dokumentId = dokumentId,
+            fødselsnummer = "123",
+            orgnummer = "456",
             tilstand = Oppgave.Tilstand.DokumentOppdaget,
             dokumentType = DokumentType.Søknad,
             oppgave = requireNotNull(oppgave),
@@ -45,12 +49,16 @@ internal class OppgaveDAOTest {
     private fun assertEquals(
         hendelseId: UUID,
         dokumentId: UUID,
+        fødselsnummer: String,
+        orgnummer: String,
         tilstand: Oppgave.Tilstand,
         dokumentType: DokumentType,
         oppgave: Oppgave
     ) {
         assertEquals(hendelseId, oppgave.hendelseId)
         assertEquals(dokumentId, oppgave.dokumentId)
+        assertEquals(fødselsnummer, oppgave.fødselsnummer)
+        assertEquals(orgnummer, oppgave.orgnummer)
         assertEquals(tilstand, oppgave.tilstand)
         assertEquals(dokumentType, oppgave.dokumentType)
         assertTrue(ChronoUnit.SECONDS.between(LocalDateTime.now(), oppgave.sistEndret) < 5)
