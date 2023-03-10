@@ -12,9 +12,10 @@ class RegistrerInntektsmeldingerTest {
     private val testRapid = TestRapid()
     private val oppgaveDAO = OppgaveDAO(dataSource)
     private val observer = object : Oppgave.Observer {}
+    private val publisist = Publisist { _, _ -> }
 
     init {
-        RegistrerInntektsmeldinger(testRapid, oppgaveDAO)
+        RegistrerInntektsmeldinger(testRapid, oppgaveDAO, publisist)
     }
 
     @Test

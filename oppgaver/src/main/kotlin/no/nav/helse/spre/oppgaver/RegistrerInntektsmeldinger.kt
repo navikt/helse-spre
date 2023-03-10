@@ -8,7 +8,7 @@ import no.nav.helse.rapids_rivers.River
 import java.util.*
 import no.nav.helse.rapids_rivers.isMissingOrNull
 
-class RegistrerInntektsmeldinger(rapidsConnection: RapidsConnection, private val oppgaveDAO: OppgaveDAO) :
+class RegistrerInntektsmeldinger(rapidsConnection: RapidsConnection, private val oppgaveDAO: OppgaveDAO, private val publisist: Publisist) :
     River.PacketListener {
     init {
         River(rapidsConnection).apply {
@@ -28,7 +28,8 @@ class RegistrerInntektsmeldinger(rapidsConnection: RapidsConnection, private val
         val fnr = packet["arbeidstakerFnr"].asText()
         val organisasjonsnummer = packet["virksomhetsnummer"].asText()
 
-        oppgaveDAO.opprettOppgaveHvisNy(hendelseId, dokumentId, fnr, organisasjonsnummer, DokumentType.Inntektsmelding)
+        val observer = OppgaveObserver(oppgaveDAO, publisist, context)
+        Oppgave.nyInntektsmelding(hendelseId, dokumentId, fnr, organisasjonsnummer, observer)
         sjekkUtbetalingTilSøker(packet)
         log.info("Inntektsmelding oppdaget: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
     }

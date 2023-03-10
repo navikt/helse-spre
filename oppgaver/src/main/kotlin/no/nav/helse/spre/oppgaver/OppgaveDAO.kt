@@ -63,23 +63,18 @@ class OppgaveDAO(private val dataSource: DataSource) {
         sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
-                    "INSERT INTO oppgave_tilstand(hendelse_id, dokument_id, fodselsnummer, orgnummer, dokument_type, sist_endret) VALUES(?, ?, ?, ?, CAST(? AS dokument_type), NOW()) ON CONFLICT (hendelse_id) DO NOTHING;",
+                    "INSERT INTO oppgave_tilstand(hendelse_id, dokument_id, fodselsnummer, orgnummer, tilstand, dokument_type, sist_endret) VALUES(?, ?, ?, ?, 'DokumentOppdaget', CAST(? AS dokument_type), NOW()) ON CONFLICT (hendelse_id) DO NOTHING;",
                     hendelseId,
                     dokumentId,
                     fødselsnummer,
                     orgnummer,
                     dokumentmapping.entries.single { (_, dokument) -> dokument == dokumentType }.key
                 ).asUpdate
-            )
+            ) == 1
         }
 
-    fun oppdaterTilstand(oppgave: Oppgave) = sessionOf(dataSource).use { session ->
-        session.run(
-            queryOf(
-                "UPDATE oppgave_tilstand SET tilstand=CAST(? AS tilstand_type), sist_endret = NOW() WHERE hendelse_id=?;",
-                oppgave.tilstand.toDBTilstand().name, oppgave.hendelseId
-            ).asUpdate
-        )
+    fun oppdaterTilstand(hendelseId: UUID, nyTilstand: Tilstand) = sessionOf(dataSource).use { session ->
+        session.run(queryOf("UPDATE oppgave_tilstand SET tilstand=CAST(? AS tilstand_type), sist_endret = NOW() WHERE hendelse_id=?;", nyTilstand.toDBTilstand().name, hendelseId).asUpdate)
     }
 
     fun lagreVedtaksperiodeEndretTilInfotrygd(hendelseId: UUID) = sessionOf(dataSource).use{ session ->

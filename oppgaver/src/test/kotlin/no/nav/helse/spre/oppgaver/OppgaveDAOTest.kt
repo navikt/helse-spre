@@ -43,7 +43,7 @@ internal class OppgaveDAOTest {
             dokumentType = DokumentType.Søknad,
             oppgave = requireNotNull(oppgave),
         )
-        oppgaveDAO.oppdaterTilstand(oppgave)
+        oppgaveDAO.oppdaterTilstand(hendelseId, Oppgave.Tilstand.DokumentOppdaget)
         assertTrue(oppgaveDAO.finnOppgave(hendelseId, observer)!!.sistEndret!!.isAfter(oppgave.sistEndret))
     }
 

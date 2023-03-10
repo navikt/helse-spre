@@ -2,7 +2,7 @@ package no.nav.helse.spre.oppgaver
 
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.rapids_rivers.MessageContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -12,10 +12,11 @@ import java.util.*
 class OppgaveObserver(
     private val oppgaveDAO: OppgaveDAO,
     private val publisist: Publisist,
-    private val rapidsConnection: RapidsConnection
+    private val rapidsConnection: MessageContext
 ) : Oppgave.Observer {
     private companion object {
         private val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
+        private val publiclogg: Logger = LoggerFactory.getLogger(OppgaveObserver::class.java)
         private val LocalDateTime?.timeoutToString get() = if (this == null) "" else "Forlenger timeout med ${Duration.between(LocalDateTime.now().minusSeconds(1), this).toDays()} dager"
 
         /* utsettelseregler, verdi oppgitt i antall dager fra *nå* */
@@ -26,13 +27,26 @@ class OppgaveObserver(
         private const val TimeoutLestInntektsmeldingBrukerutbetaling = 2L
     }
 
-    override fun lagre(oppgave: Oppgave) {
-        oppgaveDAO.oppdaterTilstand(oppgave)
+    override fun oppgaveEndretTilstand(hendelseId: UUID, dokumentId: UUID, forrigeTilstand: Oppgave.Tilstand, nyTilstand: Oppgave.Tilstand) {
+        if (nyTilstand === Oppgave.Tilstand.DokumentOppdaget) return
+        oppgaveDAO.oppdaterTilstand(hendelseId, nyTilstand)
+        publiclogg.info("Oppgave {} {} endret tilstand fra ${forrigeTilstand::class.simpleName} til ${nyTilstand::class.simpleName}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
+        sikkerlogg.info("Oppgave {} {} endret tilstand fra ${forrigeTilstand::class.simpleName} til ${nyTilstand::class.simpleName}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
     }
 
     /**
      * søknader
      */
+    override fun søknadOppdaget(fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {
+        if (!oppgaveDAO.opprettOppgaveHvisNy(hendelseId, dokumentId, fødselsnummer, orgnummer, DokumentType.Søknad)) {
+            publiclogg.info("Søknad finnes fra før som oppgave: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
+            sikkerlogg.info("Søknad finnes fra før som oppgave: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
+            return
+        }
+        publiclogg.info("Søknad oppdaget: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
+        sikkerlogg.info("Søknad oppdaget: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
+    }
+
     override fun lagOppgaveSøknad(hendelseId: UUID, dokumentId: UUID) {
         val dto = OppgaveDTO.nySøknadoppgave(dokumentId)
         sendOppgaveoppdatering("LagOppgave", hendelseId, dto, "oppgavestyring_opprett")
@@ -78,6 +92,16 @@ class OppgaveObserver(
     /**
      * inntektsmeldinger
      */
+    override fun inntektsmeldingOppdaget(fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {
+        if (!oppgaveDAO.opprettOppgaveHvisNy(hendelseId, dokumentId, fødselsnummer, orgnummer, DokumentType.Inntektsmelding)) {
+            publiclogg.info("Inntektsmelding finnes fra før som oppgave: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
+            sikkerlogg.info("Inntektsmelding finnes fra før som oppgave: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
+            return
+        }
+        publiclogg.info("Inntektsmelding oppdaget: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
+        sikkerlogg.info("Inntektsmelding oppdaget: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
+    }
+
     override fun lagOppgaveInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
         val dto = OppgaveDTO.nyInntektsmeldingoppgave(dokumentId)
         sendOppgaveoppdatering("LagOppgave", hendelseId, dto, "oppgavestyring_opprett")
@@ -107,10 +131,15 @@ class OppgaveObserver(
     override fun venterPåGodkjenningInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
         // utsetter inntektsmelding fordi en en tidligere periode avventer godkjenning
         if (oppgaveDAO.harUtbetalingTilSøker(dokumentId)) {
-            return sikkerlogg.info("Vi utsetter ikke oppgave i tilstand SpleisLest ettersom det er utbetaling til søker. {}, {}",
+            sikkerlogg.info("Vi utsetter ikke oppgave i tilstand SpleisLest ettersom det er utbetaling til søker. {}, {}",
                 keyValue("hendelseId", hendelseId),
                 keyValue("dokumentId", dokumentId)
             )
+            publiclogg.info("Vi utsetter ikke oppgave i tilstand SpleisLest ettersom det er utbetaling til søker. {}, {}",
+                keyValue("hendelseId", hendelseId),
+                keyValue("dokumentId", dokumentId)
+            )
+            return
         }
 
         utsettInntektsmelding(hendelseId, dokumentId, LocalDateTime.now().plusDays(TimeoutVenterPåTidligereGodkjenning))
@@ -133,7 +162,13 @@ class OppgaveObserver(
             "dokumentId" to dto.dokumentId,
             "hendelseId" to hendelseId
         )).toJson())
-        log.info(
+
+        publiclogg.info(
+            "Publisert oppgave på ${dto.dokumentType.name} i tilstand: $tilstand med ider: {}, {}. ${dto.timeout.timeoutToString}. Sendes på tbd.spre-oppgaver:\n\t${objectMapper.writeValueAsString(dto)}",
+            keyValue("hendelseId", hendelseId),
+            keyValue("dokumentId", dto.dokumentId)
+        )
+        sikkerlogg.info(
             "Publisert oppgave på ${dto.dokumentType.name} i tilstand: $tilstand med ider: {}, {}. ${dto.timeout.timeoutToString}. Sendes på tbd.spre-oppgaver:\n\t${objectMapper.writeValueAsString(dto)}",
             keyValue("hendelseId", hendelseId),
             keyValue("dokumentId", dto.dokumentId)

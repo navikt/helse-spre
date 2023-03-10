@@ -1,13 +1,12 @@
 package no.nav.helse.spre.oppgaver
 
-import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import java.util.UUID
 
-class RegistrerSøknader(rapidsConnection: RapidsConnection, private val oppgaveDAO: OppgaveDAO) : River.PacketListener{
+class RegistrerSøknader(rapidsConnection: RapidsConnection, private val oppgaveDAO: OppgaveDAO, private val publisist: Publisist) : River.PacketListener{
 
     init {
         River(rapidsConnection).apply {
@@ -25,7 +24,7 @@ class RegistrerSøknader(rapidsConnection: RapidsConnection, private val oppgave
         val fnr = packet["fnr"].asText()
         val orgnummer = packet["arbeidsgiver.orgnummer"].asText()
 
-        oppgaveDAO.opprettOppgaveHvisNy(hendelseId, dokumentId, fnr, orgnummer, DokumentType.Søknad)
-        log.info("Søknad oppdaget: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
+        val observer = OppgaveObserver(oppgaveDAO, publisist, context)
+        Oppgave.nySøknad(hendelseId, dokumentId, fnr, orgnummer, observer)
     }
 }

@@ -8,15 +8,39 @@ class Oppgave(
     val dokumentId: UUID,
     val fødselsnummer: String?,
     val orgnummer: String?,
-    var tilstand: Tilstand = Tilstand.DokumentOppdaget,
+    var tilstand: Tilstand,
     val dokumentType: DokumentType,
     val sistEndret: LocalDateTime?,
     private val observer: Observer
 ) {
+    companion object {
+        fun nyInntektsmelding(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String, observer: Observer) =
+            nyOppgve(hendelseId, dokumentId, fødselsnummer, orgnummer, DokumentType.Inntektsmelding, observer)
+
+        fun nySøknad(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String, observer: Observer) =
+            nyOppgve(hendelseId, dokumentId, fødselsnummer, orgnummer, DokumentType.Søknad, observer)
+
+        private fun nyOppgve(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String, dokumentType: DokumentType, observer: Observer) = Oppgave(
+            hendelseId = hendelseId,
+            dokumentId = dokumentId,
+            fødselsnummer = fødselsnummer,
+            orgnummer = orgnummer,
+            dokumentType = dokumentType,
+            tilstand = Tilstand.Ny,
+            sistEndret = LocalDateTime.now(),
+            observer = observer
+        ).apply {
+            dokumentOppdaget()
+        }
+    }
+
     private val erSøknad = dokumentType == DokumentType.Søknad
 
     interface Observer {
-        fun lagre(oppgave: Oppgave) {}
+        fun oppgaveEndretTilstand(hendelseId: UUID, dokumentId: UUID, forrigeTilstand: Tilstand, nyTilstand: Tilstand) {}
+
+        fun søknadOppdaget(fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {}
+        fun inntektsmeldingOppdaget(fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {}
 
         fun lagOppgaveSøknad(hendelseId: UUID, dokumentId: UUID) {}
         fun lagOppgaveSpeilsaksbehandlereSøknad(hendelseId: UUID, dokumentId: UUID) {}
@@ -35,6 +59,8 @@ class Oppgave(
         fun avventerGodkjenningInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
     }
 
+    private fun dokumentOppdaget() = tilstand.dokumentOppdaget(this)
+
     fun håndter(hendelse: Hendelse.TilInfotrygd) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.Avsluttet) = tilstand.håndter(this, hendelse)
@@ -46,7 +72,7 @@ class Oppgave(
     private fun tilstand(tilstand: Tilstand) {
         val forrigeTilstand = this.tilstand
         this.tilstand = tilstand
-        observer.lagre(this)
+        observer.oppgaveEndretTilstand(hendelseId, dokumentId, forrigeTilstand, tilstand)
         tilstand.entering(this, forrigeTilstand)
     }
 
@@ -54,6 +80,7 @@ class Oppgave(
     sealed class Tilstand {
         abstract fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand)
 
+        open fun dokumentOppdaget(oppgave: Oppgave) { throw IllegalStateException("forventet ikke dokumentoppdaget!") }
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {}
@@ -61,6 +88,39 @@ class Oppgave(
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {}
+
+        object Ny : Tilstand() {
+            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {}
+
+            override fun dokumentOppdaget(oppgave: Oppgave) {
+                oppgave.tilstand(DokumentOppdaget)
+            }
+        }
+
+        object DokumentOppdaget : Tilstand() {
+            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
+                oppgave.dokumentType.dokumentOppdaget(oppgave.observer, oppgave.fødselsnummer!!, oppgave.orgnummer!!, oppgave.hendelseId, oppgave.dokumentId)
+            }
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
+                oppgave.tilstand(LagOppgave)
+            }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {
+                oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
+            }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
+                oppgave.tilstand(SpleisFerdigbehandlet)
+            }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Lest) {
+                oppgave.tilstand(SpleisLest)
+            }
+
+            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {
+                oppgave.tilstand(if (oppgave.erSøknad) KortSøknadFerdigbehandlet else KortInntektsmeldingFerdigbehandlet)
+            }
+        }
 
         object SpleisFerdigbehandlet : Tilstand() {
             override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
@@ -111,29 +171,6 @@ class Oppgave(
             }
         }
 
-        object DokumentOppdaget : Tilstand() {
-            override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {}
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
-                oppgave.tilstand(LagOppgave)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {
-                oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
-                oppgave.tilstand(SpleisFerdigbehandlet)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Lest) {
-                oppgave.tilstand(SpleisLest)
-            }
-
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {
-                oppgave.tilstand(if (oppgave.erSøknad) KortSøknadFerdigbehandlet else KortInntektsmeldingFerdigbehandlet)
-            }
-        }
-
         object KortInntektsmeldingFerdigbehandlet: Tilstand() {
             override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
                 oppgave.observer.kortInntektsmeldingFerdigbehandlet(oppgave.hendelseId, oppgave.dokumentId)
@@ -181,6 +218,7 @@ class Oppgave(
 }
 
 sealed interface DokumentType {
+    fun dokumentOppdaget(observer: Oppgave.Observer, fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID)
     fun lagOppgave(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun lagOppgaveSpeilsaksbehandlere(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
@@ -189,6 +227,10 @@ sealed interface DokumentType {
     fun avventerGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
 
     object Inntektsmelding : DokumentType {
+        override fun dokumentOppdaget(observer: Oppgave.Observer, fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {
+            observer.inntektsmeldingOppdaget(fødselsnummer, orgnummer, hendelseId, dokumentId)
+        }
+
         override fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
             observer.ferdigbehandletInntektsmelding(hendelseId, dokumentId)
         }
@@ -215,6 +257,10 @@ sealed interface DokumentType {
     }
 
     object Søknad : DokumentType {
+        override fun dokumentOppdaget(observer: Oppgave.Observer, fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {
+            observer.søknadOppdaget(fødselsnummer, orgnummer, hendelseId, dokumentId)
+        }
+
         override fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID) {
             observer.ferdigbehandletSøknad(hendelseId, dokumentId)
         }
