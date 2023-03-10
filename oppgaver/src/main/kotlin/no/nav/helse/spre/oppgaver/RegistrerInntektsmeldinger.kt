@@ -31,7 +31,6 @@ class RegistrerInntektsmeldinger(rapidsConnection: RapidsConnection, private val
         val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         Oppgave.nyInntektsmelding(hendelseId, dokumentId, fnr, organisasjonsnummer, observer)
         sjekkUtbetalingTilSøker(packet)
-        log.info("Inntektsmelding oppdaget: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
     }
 
     private fun sjekkUtbetalingTilSøker(packet: JsonMessage) {
