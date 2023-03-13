@@ -64,7 +64,9 @@ class Oppgave(
     fun håndter(hendelse: Hendelse.TilInfotrygd) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.Avsluttet) = tilstand.håndter(this, hendelse)
-    fun håndter(hendelse: Hendelse.Lest) = tilstand.håndter(this, hendelse)
+    internal fun håndterLest() {
+        tilstand.håndterLest(this)
+    }
     fun håndter(hendelse: Hendelse.AvsluttetUtenUtbetaling) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.VedtaksperiodeVenter) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.AvventerGodkjenning) = tilstand.håndter(this, hendelse)
@@ -84,7 +86,7 @@ class Oppgave(
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {}
-        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Lest) {}
+        open fun håndterLest(oppgave: Oppgave) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {}
@@ -113,7 +115,7 @@ class Oppgave(
                 oppgave.tilstand(SpleisFerdigbehandlet)
             }
 
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Lest) {
+            override fun håndterLest(oppgave: Oppgave) {
                 oppgave.tilstand(SpleisLest)
             }
 

@@ -22,7 +22,7 @@ class HåndterUtsettOppgave(
         val hendelseId = UUID.fromString(packet["hendelse"].asText())
         val oppgave = oppgaveDAO.finnOppgave(hendelseId, observer) ?: return
         withMDC(mapOf("event" to "utsett_oppgave")) {
-            oppgave.håndter(Hendelse.Lest)
+            oppgave.håndterLest()
             log.info("Mottok utsett_oppgave-event: {}", oppgave.hendelseId)
         }
     }
