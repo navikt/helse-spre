@@ -267,7 +267,7 @@ class EndToEndTest {
         val søknadDokumentId = UUID.randomUUID()
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        utsettOppgave(inntektsmeldingHendelseId)
+        inntektsmeldingFørSøknad(inntektsmeldingHendelseId, "orgnr", "fnr")
         sendSøknad(søknadHendelseId, søknadDokumentId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
@@ -613,7 +613,6 @@ class EndToEndTest {
 
         sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
         sendInntektsmeldingHåndtert(hendelseId)
-        utsettOppgave(hendelseId)
 
         assertEquals(1, publiserteOppgaver.size)
 
@@ -674,7 +673,6 @@ class EndToEndTest {
         sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
         assertEquals(3, publiserteOppgaver.size)
-        utsettOppgave(inntektsmeldingHendelseId)
         assertEquals(3, publiserteOppgaver.size)
         publiserteOppgaver.last().also { dto ->
             dto.assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
@@ -741,26 +739,6 @@ class EndToEndTest {
             vedtaksperiodeId = vedtaksperiodeId,
         )
         assertEquals(antallOppgaverFørOgEtterGodkjenningEvent, publiserteOppgaver.size)
-    }
-
-    @Test
-    fun `mottar en utsett_oppgave for en inntektsmelding`() {
-        val hendelseId = UUID.randomUUID()
-        val dokumentId = UUID.randomUUID()
-        sendInntektsmelding(hendelseId = hendelseId, dokumentId = dokumentId)
-        sendInntektsmeldingHåndtert(hendelseId)
-        utsettOppgave(hendelseId)
-        publiserteOppgaver[0].assertInnhold(Utsett, dokumentId, Inntektsmelding)
-    }
-
-    @Test
-    fun `mottar en utsett_oppgave for en søknad`() {
-        val hendelseId = UUID.randomUUID()
-        val dokumentId = UUID.randomUUID()
-        sendSøknad(hendelseId = hendelseId, dokumentId = dokumentId)
-        sendInntektsmeldingHåndtert(hendelseId)
-        utsettOppgave(hendelseId)
-        publiserteOppgaver[0].assertInnhold(Utsett, dokumentId, Søknad)
     }
 
     @Test
@@ -899,11 +877,6 @@ class EndToEndTest {
         rapid.sendTestMessage(no.nav.helse.spre.oppgaver.opprettOppgave(hendelseIder))
     }
 
-    private fun utsettOppgave(
-        hendelseId: UUID,
-    ) {
-        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.utsettOppgave(hendelseId))
-    }
 
     private fun inntektsmeldingFørSøknad(inntektsmeldingId: UUID, organisasjonsnummer: String, fødselsnummer: String) {
         rapid.sendTestMessage(
@@ -990,14 +963,6 @@ fun opprettOppgave(
             "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
         }"""
 
-
-fun utsettOppgave(
-    hendelse: UUID
-) =
-    """{
-            "@event_name": "utsett_oppgave",
-            "hendelse": "$hendelse"
-        }"""
 
 fun inntektsmeldingFørSøknad(
     inntektsmeldingId: UUID,
