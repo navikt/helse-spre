@@ -1,0 +1,1 @@
+DROP TABLE vedtaksperiode_endret_tilinfotrygd;

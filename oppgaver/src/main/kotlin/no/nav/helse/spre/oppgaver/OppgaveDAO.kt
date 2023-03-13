@@ -77,15 +77,6 @@ class OppgaveDAO(private val dataSource: DataSource) {
         session.run(queryOf("UPDATE oppgave_tilstand SET tilstand=CAST(? AS tilstand_type), sist_endret = NOW() WHERE hendelse_id=?;", nyTilstand.toDBTilstand().name, hendelseId).asUpdate)
     }
 
-    fun lagreVedtaksperiodeEndretTilInfotrygd(hendelseId: UUID) = sessionOf(dataSource).use{ session ->
-        session.run(
-            queryOf(
-                "INSERT INTO vedtaksperiode_endret_tilinfotrygd(hendelse_id, sist_endret) VALUES(?, NOW()) ON CONFLICT (hendelse_id) DO NOTHING;",
-                hendelseId
-            ).asUpdate
-        )
-    }
-
     fun markerSomUtbetalingTilSøker(dokumentId: UUID) =
         sessionOf(dataSource).use { session ->
             session.run(

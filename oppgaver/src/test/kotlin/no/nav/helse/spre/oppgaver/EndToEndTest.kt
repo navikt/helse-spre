@@ -180,7 +180,6 @@ class EndToEndTest {
         val søknad1DokumentId = UUID.randomUUID()
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
-        sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "TIL_INFOTRYGD")
         vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId))
 
         publiserteOppgaver[0].assertInnhold(Opprett, søknad1DokumentId, Søknad)
@@ -217,7 +216,7 @@ class EndToEndTest {
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
         sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
-        sendVedtaksperiodeEndret(hendelseIder = listOf(inntektsmeldingHendelseId), tilstand = "TIL_INFOTRYGD")
+
         vedtaksperiodeForkastet(hendelseIder = listOf(inntektsmeldingHendelseId))
 
         publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
@@ -308,11 +307,6 @@ class EndToEndTest {
 
         sendSøknad(søknadHendelseId2, søknadDokumentId2)
         sendSøknadHåndtert(søknadHendelseId2)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadHendelseId2, inntektsmeldingHendelseId),
-            tilstand = "TIL_INFOTRYGD",
-            vedtaksperiodeId = periode2
-        )
         vedtaksperiodeForkastet(listOf(søknadHendelseId2, inntektsmeldingHendelseId))
 
         assertEquals(6, publiserteOppgaver.size)
@@ -355,21 +349,11 @@ class EndToEndTest {
         sendSøknad(søknadHendelseId2, søknadDokumentId2)
         sendSøknadHåndtert(søknadHendelseId2)
 
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadHendelseId2, inntektsmeldingHendelseId),
-            tilstand = "TIL_INFOTRYGD",
-            vedtaksperiodeId = periode2
-        )
         vedtaksperiodeForkastet(hendelseIder = listOf(søknadHendelseId2, inntektsmeldingHendelseId))
 
         sendSøknad(søknadHendelseId3, søknadDokumentId3)
         sendSøknadHåndtert(søknadHendelseId3)
 
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId),
-            tilstand = "TIL_INFOTRYGD",
-            vedtaksperiodeId = periode3
-        )
         vedtaksperiodeForkastet(hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId))
 
 
@@ -414,11 +398,6 @@ class EndToEndTest {
 
         sendSøknad(søknadHendelseId3, søknadDokumentId3)
         sendSøknadHåndtert(søknadHendelseId3)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId),
-            tilstand = "TIL_INFOTRYGD",
-            vedtaksperiodeId = periode3
-        )
         vedtaksperiodeForkastet(hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId))
 
         assertEquals(9, rapid.inspektør.size)
@@ -462,11 +441,6 @@ class EndToEndTest {
 
         sendSøknad(søknadHendelseId3, søknadDokumentId3)
         sendSøknadHåndtert(søknadHendelseId3)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId),
-            tilstand = "TIL_INFOTRYGD",
-            vedtaksperiodeId = periode3
-        )
         vedtaksperiodeForkastet(hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId))
 
         assertEquals(8, rapid.inspektør.size)
@@ -544,11 +518,6 @@ class EndToEndTest {
 
         sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
         sendInntektsmeldingHåndtert(inntektsmeldingId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadId, inntektsmeldingId),
-            tilstand = "TIL_INFOTRYGD",
-            vedtaksperiodeId = periode
-        )
         vedtaksperiodeForkastet(hendelseIder = listOf(inntektsmeldingId))
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
@@ -586,11 +555,6 @@ class EndToEndTest {
 
         sendSøknad(søknadId2)
         sendSøknadHåndtert(søknadId2)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadId2, inntektsmeldingId),
-            tilstand = "TIL_INFOTRYGD",
-            vedtaksperiodeId = periode
-        )
         vedtaksperiodeForkastet(hendelseIder = listOf(søknadId2))
 
         assertEquals(7, publiserteOppgaver.size)
@@ -752,7 +716,6 @@ class EndToEndTest {
         val søknadDokumentId = UUID.randomUUID()
         sendSøknad(hendelseId = søknadHendelseId, dokumentId = søknadDokumentId)
         sendSøknadHåndtert(søknadHendelseId)
-        vedtaksperiodeEndret(listOf(søknadHendelseId), "TIL_INFOTRYGD", UUID.randomUUID())
         vedtaksperiodeForkastet(listOf(søknadHendelseId))
         vedtaksperiodeForkastet(listOf(inntektsmeldingHendelseId))
         assertEquals(4, publiserteOppgaver.size)
