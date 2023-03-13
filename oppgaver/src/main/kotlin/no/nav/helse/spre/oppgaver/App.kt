@@ -64,6 +64,8 @@ internal fun RapidsConnection.registerRivers(
     HåndterUtsettOppgave(this, oppgaveDAO, publisist)
     HåndterVedtaksperiodeVenter(this, oppgaveDAO, publisist)
     HåndterInntektsmeldingFørSøknad(this, oppgaveDAO, publisist)
+    InntektsmeldingHåndtert(this, oppgaveDAO, publisist)
+    SøknadHåndtert(this, oppgaveDAO, publisist)
 }
 
 private fun createProducer(env: Map<String, String>): KafkaProducer<String, OppgaveDTO> {

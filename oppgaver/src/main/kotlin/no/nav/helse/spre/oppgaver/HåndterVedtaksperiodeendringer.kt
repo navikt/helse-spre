@@ -35,9 +35,6 @@ class HåndterVedtaksperiodeendringer(
                         "TIL_INFOTRYGD" -> oppgaveDAO.lagreVedtaksperiodeEndretTilInfotrygd(oppgave.hendelseId)
                         "AVSLUTTET" -> oppgave.håndter(Hendelse.Avsluttet)
                         "AVSLUTTET_UTEN_UTBETALING" -> oppgave.håndter(Hendelse.AvsluttetUtenUtbetaling)
-                        else -> {
-                            oppgave.håndterLest()
-                        }
                     }
                 }
             }

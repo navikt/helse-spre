@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Søknad
 import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
+import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -47,38 +48,14 @@ class EndToEndTest {
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId),
-            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"
-        )
+        sendSøknadHåndtert(søknad1HendelseId)
+
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_BLOKKERENDE_PERIODE"
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK"
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_VILKÅRSPRØVING"
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK"
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_SIMULERING"
-        )
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
+
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
             tilstand = "AVVENTER_GODKJENNING"
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
-            tilstand = "TIL_UTBETALING"
         )
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
@@ -112,10 +89,7 @@ class EndToEndTest {
         val inntektsmeldingDokumentId = UUID.fromString("00000000-0000-0000-0000-100000000001")
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId),
-            tilstand = "AVVENTER_INNTEKTSMELDING"
-        )
+        sendSøknadHåndtert(søknad1HendelseId)
 
         assertEquals(1, publiserteOppgaver.size)
         publiserteOppgaver[0].let { søknadOppgave ->
@@ -124,10 +98,7 @@ class EndToEndTest {
         }
 
         sendSøknad(søknad2HendelseId, søknad2DokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad2HendelseId),
-            tilstand = "AVVENTER_INNTEKTSMELDING"
-        )
+        sendSøknadHåndtert(søknad2HendelseId)
 
         assertEquals(2, publiserteOppgaver.size)
         publiserteOppgaver[1].let { søknadOppgave ->
@@ -136,11 +107,7 @@ class EndToEndTest {
         }
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK"
-        )
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
         assertEquals(3, publiserteOppgaver.size)
         publiserteOppgaver[2].let { inntektsmeldingOppgave ->
@@ -163,11 +130,6 @@ class EndToEndTest {
             assertEquals(inntektsmeldingDokumentId, inntektsmeldingOppgave.dokumentId)
         }
 
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad2HendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_BLOKKERENDE_PERIODE"
-        )
-
         assertEquals(5, publiserteOppgaver.size)
 
         sendVedtaksperiodeVenter(
@@ -188,22 +150,16 @@ class EndToEndTest {
     }
 
     @Test
-    fun `spleis replayer søknad`() {
+    fun `spleis replayer søknad👽`() {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId),
-            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"
-        )
+        sendSøknadHåndtert(søknad1HendelseId)
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId),
-            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK"
-        )
+        sendSøknadHåndtert(søknad1HendelseId)
         sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
 
         publiserteOppgaver[0].also { dto ->
@@ -260,7 +216,7 @@ class EndToEndTest {
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(hendelseIder = listOf(inntektsmeldingHendelseId), tilstand = "AVVENTER_VILKÅRSPRØVING")
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
         sendVedtaksperiodeEndret(hendelseIder = listOf(inntektsmeldingHendelseId), tilstand = "TIL_INFOTRYGD")
         opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
 
@@ -280,9 +236,9 @@ class EndToEndTest {
     }
 
     @Test
-    fun `ignorerer endrede vedtaksperioder uten tidligere dokumenter`() {
+    fun `ignorerer signal på at dokument er håndtert uten at vi har hørt om dokument`() {
         val inntektsmeldingHendelseId = UUID.randomUUID()
-        sendVedtaksperiodeEndret(hendelseIder = listOf(inntektsmeldingHendelseId), tilstand = "AVVENTER_VILKÅRSPRØVING")
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
         assertTrue(publiserteOppgaver.isEmpty())
         assertEquals(0, rapid.inspektør.size)
@@ -334,27 +290,39 @@ class EndToEndTest {
 
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
+        val søknadHendelseId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        val søknadHendelseId2 = UUID.randomUUID()
+        val søknadDokumentId2 = UUID.randomUUID()
 
+        sendSøknad(søknadHendelseId, søknadDokumentId)
+        sendSøknadHåndtert(søknadHendelseId)
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        navSøknadUtenUtbetaling(inntektsmeldingHendelseId, periode1)
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode2
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = periode1
         )
+
+        sendSøknad(søknadHendelseId2, søknadDokumentId2)
+        sendSøknadHåndtert(søknadHendelseId2)
         sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
+            hendelseIder = listOf(søknadHendelseId2, inntektsmeldingHendelseId),
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode2
         )
-        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
+        opprettOppgave(listOf(søknadHendelseId2, inntektsmeldingHendelseId))
 
-        assertEquals(3, publiserteOppgaver.size)
+        assertEquals(6, publiserteOppgaver.size)
 
-        publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[0].assertInnhold(Utsett, søknadDokumentId, Søknad)
         publiserteOppgaver[1].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        publiserteOppgaver[2].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[2].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[3].assertInnhold(Utsett, søknadDokumentId2, Søknad)
+        publiserteOppgaver[4].assertInnhold(Opprett, søknadDokumentId2, Søknad)
+        publiserteOppgaver[5].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
     }
 
     @Test
@@ -365,92 +333,49 @@ class EndToEndTest {
 
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
+        val søknadHendelseId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        val søknadHendelseId2 = UUID.randomUUID()
+        val søknadDokumentId2 = UUID.randomUUID()
+        val søknadHendelseId3 = UUID.randomUUID()
+        val søknadDokumentId3 = UUID.randomUUID()
+
+        sendSøknad(søknadHendelseId, søknadDokumentId)
+        sendSøknadHåndtert(søknadHendelseId)
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        navSøknadUtenUtbetaling(inntektsmeldingHendelseId, periode1)
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode2
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = periode1
         )
+
+        sendSøknad(søknadHendelseId2, søknadDokumentId2)
+        sendSøknadHåndtert(søknadHendelseId2)
+
         sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
+            hendelseIder = listOf(søknadHendelseId2, inntektsmeldingHendelseId),
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode2
         )
-        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
+        opprettOppgave(hendelseIder = listOf(søknadHendelseId2, inntektsmeldingHendelseId))
 
+        sendSøknad(søknadHendelseId3, søknadDokumentId3)
+        sendSøknadHåndtert(søknadHendelseId3)
 
         sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode3
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
+            hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId),
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode3
         )
-        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
+        opprettOppgave(hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId))
 
 
-        assertEquals(3, publiserteOppgaver.size)
-        assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
-        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
-
+        assertEquals(8, publiserteOppgaver.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingHendelseId).size)
-        assertEquals(Opprett, publiserteOppgaver[2].oppdateringstype)
-    }
-
-    @Test
-    fun `Sender kun opprett oppgaver på forkastet inntektsmelding dersom forrige periode var en kort periode`() {
-        val periode1 = UUID.randomUUID()
-        val periode2 = UUID.randomUUID()
-        val periode3 = UUID.randomUUID()
-
-        val inntektsmeldingHendelseId = UUID.randomUUID()
-        val inntektsmeldingDokumentId = UUID.randomUUID()
-
-        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode1
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING_MED_INNTEKTSMELDING",
-            vedtaksperiodeId = periode1
-        )
-
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode2
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET",
-            vedtaksperiodeId = periode2
-        )
-
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode3
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "TIL_INFOTRYGD",
-            vedtaksperiodeId = periode3
-        )
-        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
-
-        assertEquals(2, publiserteOppgaver.size)
-        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[5].oppdateringstype)
     }
 
     @Test
@@ -458,65 +383,48 @@ class EndToEndTest {
         val periode1 = UUID.randomUUID()
         val periode2 = UUID.randomUUID()
         val periode3 = UUID.randomUUID()
-
+        val søknadHendelseId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        val søknadHendelseId2 = UUID.randomUUID()
+        val søknadDokumentId2 = UUID.randomUUID()
+        val søknadHendelseId3 = UUID.randomUUID()
+        val søknadDokumentId3 = UUID.randomUUID()
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
-        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        navSøknadUtenUtbetaling(inntektsmeldingHendelseId, periode1)
+        sendSøknad(søknadHendelseId, søknadDokumentId)
+        sendSøknadHåndtert(søknadHendelseId)
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        navSøknadUtenUtbetaling(inntektsmeldingHendelseId, periode2)
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
         sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode3
+            hendelseIder = listOf(søknadHendelseId, inntektsmeldingHendelseId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = periode1
         )
+
+        sendSøknad(søknadHendelseId2, søknadDokumentId2)
+        sendSøknadHåndtert(søknadHendelseId2)
         sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
+            hendelseIder = listOf(søknadHendelseId2, inntektsmeldingHendelseId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = periode2
+        )
+
+        sendSøknad(søknadHendelseId3, søknadDokumentId3)
+        sendSøknadHåndtert(søknadHendelseId3)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId),
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode3
         )
-        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
+        opprettOppgave(hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId))
 
-        assertEquals(3, rapid.inspektør.size)
-        assertEquals(3, publiserteOppgaver.size)
-        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
-        assertEquals(Opprett, publiserteOppgaver[2].oppdateringstype)
-    }
-
-    @Test
-    fun `to arbeidgiversøknad-perioder og en lang periode hvor siste går til infotrygd`() {
-        val periode1 = UUID.randomUUID()
-        val periode2 = UUID.randomUUID()
-        val periode3 = UUID.randomUUID()
-
-        val inntektsmeldingHendelseId = UUID.randomUUID()
-        val inntektsmeldingDokumentId = UUID.randomUUID()
-
-        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        arbeidsgiverSøknad(inntektsmeldingHendelseId, periode1)
-
-        arbeidsgiverSøknad(inntektsmeldingHendelseId, periode2)
-
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode3
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "TIL_INFOTRYGD",
-            vedtaksperiodeId = periode3
-        )
-        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
-
-        assertEquals(2, rapid.inspektør.size)
-        assertEquals(2, publiserteOppgaver.size)
-        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Opprett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(9, rapid.inspektør.size)
+        assertEquals(9, publiserteOppgaver.size)
+        assertEquals(Opprett, publiserteOppgaver[7].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[8].oppdateringstype)
     }
 
     @Test
@@ -524,41 +432,46 @@ class EndToEndTest {
         val periode1 = UUID.randomUUID()
         val periode2 = UUID.randomUUID()
         val periode3 = UUID.randomUUID()
+        val søknadHendelseId = UUID.randomUUID()
+        val søknadDokumentId = UUID.randomUUID()
+        val søknadHendelseId2 = UUID.randomUUID()
+        val søknadDokumentId2 = UUID.randomUUID()
+        val søknadHendelseId3 = UUID.randomUUID()
+        val søknadDokumentId3 = UUID.randomUUID()
 
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
-        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        arbeidsgiverSøknad(inntektsmeldingHendelseId, periode1)
+        sendSøknad(søknadHendelseId, søknadDokumentId)
+        sendSøknadHåndtert(søknadHendelseId)
 
+        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
         sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode2
+            hendelseIder = listOf(søknadHendelseId, inntektsmeldingHendelseId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = periode1
         )
 
+        sendSøknad(søknadHendelseId2, søknadDokumentId2)
+        sendSøknadHåndtert(søknadHendelseId2)
         sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
+            hendelseIder = listOf(søknadHendelseId2, inntektsmeldingHendelseId),
             tilstand = "AVSLUTTET",
             vedtaksperiodeId = periode2
         )
 
+        sendSøknad(søknadHendelseId3, søknadDokumentId3)
+        sendSøknadHåndtert(søknadHendelseId3)
         sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode3
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
+            hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId),
             tilstand = "TIL_INFOTRYGD",
             vedtaksperiodeId = periode3
         )
-        opprettOppgave(hendelseIder = listOf(inntektsmeldingHendelseId))
+        opprettOppgave(hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId))
 
-        assertEquals(2, rapid.inspektør.size)
-        assertEquals(2, publiserteOppgaver.size)
-        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(8, rapid.inspektør.size)
+        assertEquals(Opprett, publiserteOppgaver[7].oppdateringstype)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", søknadHendelseId3).size)
     }
 
     @Test
@@ -567,14 +480,20 @@ class EndToEndTest {
         val søknadId = UUID.randomUUID()
 
         sendSøknad(søknadId)
-        arbeidsgiverSøknad(søknadId, periode)
+        sendSøknadHåndtert(søknadId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = periode
+        )
         opprettOppgave(listOf(søknadId))
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", søknadId).size)
-        assertEquals(2, publiserteOppgaver.size)
-        assertEquals(Ferdigbehandlet, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Opprett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(3, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[2].oppdateringstype)
     }
 
     @Test
@@ -584,10 +503,16 @@ class EndToEndTest {
         val inntektsmeldingId = UUID.randomUUID()
 
         sendSøknad(søknadId)
-        arbeidsgiverSøknad(søknadId, periode)
+        sendSøknadHåndtert(søknadId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = periode
+        )
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
 
         sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
+        sendInntektsmeldingHåndtert(inntektsmeldingId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknadId, inntektsmeldingId),
             tilstand = "AVSLUTTET_UTEN_UTBETALING",
@@ -595,10 +520,12 @@ class EndToEndTest {
         )
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingId).size)
-        assertEquals(2, publiserteOppgaver.size)
-        assertEquals(Ferdigbehandlet, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingId).size)
+        assertEquals(4, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[3].oppdateringstype)
     }
 
     @Test
@@ -608,9 +535,15 @@ class EndToEndTest {
         val inntektsmeldingId = UUID.randomUUID()
 
         sendSøknad(søknadId)
-        arbeidsgiverSøknad(søknadId, periode)
+        sendSøknadHåndtert(søknadId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadId),
+            tilstand = "AVSLUTTET_UTEN_UTBETALING",
+            vedtaksperiodeId = periode
+        )
 
         sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
+        sendInntektsmeldingHåndtert(inntektsmeldingId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknadId, inntektsmeldingId),
             tilstand = "TIL_INFOTRYGD",
@@ -620,9 +553,11 @@ class EndToEndTest {
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingId).size)
-        assertEquals(2, publiserteOppgaver.size)
-        assertEquals(Ferdigbehandlet, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Opprett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(4, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[3].oppdateringstype)
     }
 
     @Test
@@ -633,6 +568,7 @@ class EndToEndTest {
         val inntektsmeldingId = UUID.randomUUID()
 
         sendSøknad(søknadId1)
+        sendSøknadHåndtert(søknadId1)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknadId1),
             tilstand = "AVSLUTTET_UTEN_UTBETALING",
@@ -640,6 +576,7 @@ class EndToEndTest {
         )
 
         sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
+        sendInntektsmeldingHåndtert(inntektsmeldingId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknadId1, inntektsmeldingId),
             tilstand = "AVSLUTTET_UTEN_UTBETALING",
@@ -648,6 +585,7 @@ class EndToEndTest {
         opprettOppgave(hendelseIder = listOf(inntektsmeldingId))
 
         sendSøknad(søknadId2)
+        sendSøknadHåndtert(søknadId2)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknadId2, inntektsmeldingId),
             tilstand = "TIL_INFOTRYGD",
@@ -655,16 +593,14 @@ class EndToEndTest {
         )
         opprettOppgave(hendelseIder = listOf(søknadId2))
 
-        assertEquals(4, publiserteOppgaver.size)
-        assertEquals(Ferdigbehandlet, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
-        assertEquals(Opprett, publiserteOppgaver[2].oppdateringstype)
-        assertEquals(Opprett, publiserteOppgaver[3].oppdateringstype)
-        assertEquals(4, rapid.inspektør.size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId1).size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingId).size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", søknadId2).size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingId).size)
+        assertEquals(7, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[3].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[4].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[5].oppdateringstype)
+        assertEquals(Opprett, publiserteOppgaver[6].oppdateringstype)
     }
 
     @ParameterizedTest
@@ -676,6 +612,7 @@ class EndToEndTest {
         val dokumentId = UUID.randomUUID()
 
         sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
+        sendInntektsmeldingHåndtert(hendelseId)
         utsettOppgave(hendelseId)
 
         assertEquals(1, publiserteOppgaver.size)
@@ -695,17 +632,9 @@ class EndToEndTest {
         val vedtaksperiodeId = UUID.randomUUID()
 
         sendSøknad(søknadHendelseId, søknadDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadHendelseId),
-            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
-            vedtaksperiodeId = vedtaksperiodeId,
-        )
+        sendSøknadHåndtert(søknadHendelseId)
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = vedtaksperiodeId,
-        )
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
@@ -726,7 +655,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter inntektsmelding som treffer AUU selvom den ikke inngikk i vedtaksperiode_endret`() {
+    fun `utsetter inntektsmelding som treffer AUU`() {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
         val søknadHendelseId = UUID.randomUUID()
@@ -734,31 +663,19 @@ class EndToEndTest {
         val vedtaksperiodeId = UUID.randomUUID()
 
         sendSøknad(søknadHendelseId, søknadDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadHendelseId),
-            tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
-            vedtaksperiodeId = vedtaksperiodeId,
-        )
+        sendSøknadHåndtert(søknadHendelseId)
+
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknadHendelseId),
             tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = vedtaksperiodeId,
         )
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = vedtaksperiodeId,
-        )
-
-        assertEquals(2, publiserteOppgaver.size)
-        assertFalse(publiserteOppgaver.any { oppgave -> oppgave.dokumentType == Inntektsmelding })
-
-        utsettOppgave(inntektsmeldingHendelseId)
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
         assertEquals(3, publiserteOppgaver.size)
-        assertTrue(publiserteOppgaver.any { oppgave -> oppgave.dokumentType == Inntektsmelding })
-
+        utsettOppgave(inntektsmeldingHendelseId)
+        assertEquals(3, publiserteOppgaver.size)
         publiserteOppgaver.last().also { dto ->
             dto.assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
         }
@@ -773,6 +690,7 @@ class EndToEndTest {
         val vedtaksperiodeId = UUID.randomUUID()
 
         sendSøknad(søknadHendelseId, søknadDokumentId)
+        sendSøknadHåndtert(søknadHendelseId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(søknadHendelseId),
             tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
@@ -784,15 +702,10 @@ class EndToEndTest {
             vedtaksperiodeId = vedtaksperiodeId,
         )
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
         sendVedtaksperiodeEndret(
             hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
-            tilstand = "AVVENTER_HISTORIKK_REVURDERING",
-            vedtaksperiodeId = vedtaksperiodeId,
-        )
-
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
-            tilstand = "AVVENTER_GODKJENNING_REVURDERING",
+            tilstand = "AVVENTER_GODKJENNING",
             vedtaksperiodeId = vedtaksperiodeId,
         )
 
@@ -815,11 +728,7 @@ class EndToEndTest {
         val vedtaksperiodeId = UUID.randomUUID()
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId),
-            tilstand = "AVVENTER_BLOKKERENDE_PERIODE",
-            vedtaksperiodeId = vedtaksperiodeId,
-        )
+        sendSøknadHåndtert(søknad1HendelseId)
         opprettOppgave(hendelseIder = listOf(søknad1HendelseId))
 
         publiserteOppgaver[1].assertInnhold(Opprett, søknad1DokumentId, Søknad)
@@ -839,6 +748,7 @@ class EndToEndTest {
         val hendelseId = UUID.randomUUID()
         val dokumentId = UUID.randomUUID()
         sendInntektsmelding(hendelseId = hendelseId, dokumentId = dokumentId)
+        sendInntektsmeldingHåndtert(hendelseId)
         utsettOppgave(hendelseId)
         publiserteOppgaver[0].assertInnhold(Utsett, dokumentId, Inntektsmelding)
     }
@@ -848,26 +758,41 @@ class EndToEndTest {
         val hendelseId = UUID.randomUUID()
         val dokumentId = UUID.randomUUID()
         sendSøknad(hendelseId = hendelseId, dokumentId = dokumentId)
+        sendInntektsmeldingHåndtert(hendelseId)
         utsettOppgave(hendelseId)
         publiserteOppgaver[0].assertInnhold(Utsett, dokumentId, Søknad)
     }
 
     @Test
     fun `inntektsmelding kommer før søknad, søknad kastes ut ved håndtering - inntektsmelding får opprettet oppgave`() {
+        val orgnummer = "123"
+        val fnr = "456"
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
-        sendInntektsmelding(hendelseId = inntektsmeldingHendelseId, dokumentId = inntektsmeldingDokumentId)
-        utsettOppgave(inntektsmeldingHendelseId)
+        sendInntektsmelding(
+            hendelseId = inntektsmeldingHendelseId,
+            dokumentId = inntektsmeldingDokumentId,
+            fødselsnummer = fnr,
+            organisasjonsnummer = orgnummer
+        )
+        inntektsmeldingFørSøknad(
+            inntektsmeldingId = inntektsmeldingHendelseId,
+            organisasjonsnummer = "orgnummer",
+            fødselsnummer = fnr
+        )
 
         val søknadHendelseId = UUID.randomUUID()
         val søknadDokumentId = UUID.randomUUID()
         sendSøknad(hendelseId = søknadHendelseId, dokumentId = søknadDokumentId)
+        sendSøknadHåndtert(søknadHendelseId)
         vedtaksperiodeEndret(listOf(søknadHendelseId), "TIL_INFOTRYGD", UUID.randomUUID())
         opprettOppgave(listOf(søknadHendelseId))
         opprettOppgave(listOf(inntektsmeldingHendelseId))
+        assertEquals(4, publiserteOppgaver.size)
         publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        publiserteOppgaver[1].assertInnhold(Opprett, søknadDokumentId, Søknad)
-        publiserteOppgaver[2].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[1].assertInnhold(Utsett, søknadDokumentId, Søknad)
+        publiserteOppgaver[2].assertInnhold(Opprett, søknadDokumentId, Søknad)
+        publiserteOppgaver[3].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
     }
 
     @Test
@@ -892,7 +817,9 @@ class EndToEndTest {
 
     companion object {
 
-        private val OppgaveDTO.timeoutIDager get() = Duration.between(LocalDateTime.now().minusSeconds(1), this.timeout).toDays()
+        private val OppgaveDTO.timeoutIDager
+            get() = Duration.between(LocalDateTime.now().minusSeconds(1), this.timeout).toDays()
+
         @JvmStatic
         fun permutations() = listOf(
             Arguments.of(40000.00, 50000.95, 2),
@@ -929,10 +856,19 @@ class EndToEndTest {
         fødselsnummer: String = "12345678910",
         organisasjonsnummer: String = "ORGNUMMER"
     ) {
-        rapid.sendTestMessage(inntektsmelding(hendelseId, dokumentId, inntekt, refusjon, fødselsnummer, organisasjonsnummer))
+        rapid.sendTestMessage(
+            inntektsmelding(
+                hendelseId,
+                dokumentId,
+                inntekt,
+                refusjon,
+                fødselsnummer,
+                organisasjonsnummer
+            )
+        )
     }
 
-    private fun sendVedtaksperiodeVenter(hendelseIder: List<UUID>, venterPå: String ) {
+    private fun sendVedtaksperiodeVenter(hendelseIder: List<UUID>, venterPå: String) {
         rapid.sendTestMessage(vedtaksperiodeVenter(hendelseIder, venterPå))
     }
 
@@ -943,6 +879,18 @@ class EndToEndTest {
         vedtaksperiodeId: UUID = UUID.randomUUID()
     ) {
         rapid.sendTestMessage(vedtaksperiodeEndret(hendelseIder, tilstand, vedtaksperiodeId))
+    }
+
+    private fun sendInntektsmeldingHåndtert(
+        inntektsmeldingId: UUID
+    ) {
+        rapid.sendTestMessage(inntektsmeldingHåndtert(inntektsmeldingId))
+    }
+
+    private fun sendSøknadHåndtert(
+        søknadId: UUID
+    ) {
+        rapid.sendTestMessage(søknadHåndtert(søknadId))
     }
 
     private fun opprettOppgave(
@@ -958,7 +906,13 @@ class EndToEndTest {
     }
 
     private fun inntektsmeldingFørSøknad(inntektsmeldingId: UUID, organisasjonsnummer: String, fødselsnummer: String) {
-        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.inntektsmeldingFørSøknad(inntektsmeldingId, organisasjonsnummer, fødselsnummer))
+        rapid.sendTestMessage(
+            no.nav.helse.spre.oppgaver.inntektsmeldingFørSøknad(
+                inntektsmeldingId,
+                organisasjonsnummer,
+                fødselsnummer
+            )
+        )
     }
 
     private fun opprettOppgaveForSpeilsaksbehandler(
@@ -967,26 +921,6 @@ class EndToEndTest {
         rapid.sendTestMessage(no.nav.helse.spre.oppgaver.opprettOppgaveForSpeilsaksbehandler(hendelseIder))
     }
 
-    private fun navSøknadUtenUtbetaling(inntektsmeldingHendelseId: UUID, periode2: UUID) {
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVVENTER_HISTORIKK",
-            vedtaksperiodeId = periode2
-        )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode2
-        )
-    }
-
-    private fun arbeidsgiverSøknad(hendelseId: UUID, periode1: UUID) {
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(hendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
-            vedtaksperiodeId = periode1
-        )
-    }
 }
 
 private fun TestRapid.RapidInspector.events(eventnavn: String, hendelseId: UUID) =
@@ -1021,6 +955,23 @@ fun vedtaksperiodeEndret(
             "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
             "gjeldendeTilstand": "$gjeldendeTilstand",
             "vedtaksperiodeId": "$vedtaksperiodeId"
+        }"""
+
+@Language("JSON")
+fun inntektsmeldingHåndtert(
+    inntektsmeldingId: UUID
+) =
+    """{
+            "@event_name": "inntektsmelding_håndtert",
+            "inntektsmeldingId": "$inntektsmeldingId"
+        }"""
+@Language("JSON")
+fun søknadHåndtert(
+    søknadId: UUID
+) =
+    """{
+            "@event_name": "søknad_håndtert",
+            "søknadId": "$søknadId"
         }"""
 
 fun opprettOppgaveForSpeilsaksbehandler(
