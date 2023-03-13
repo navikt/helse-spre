@@ -3,7 +3,7 @@ package no.nav.helse.spre.oppgaver
 import no.nav.helse.rapids_rivers.*
 import java.util.*
 
-class HåndterOpprettOppgaveForSpeilsaksbehandlere(
+class HåndterVedtaksperiodeForkastet(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
     publisist: Publisist,
@@ -13,20 +13,26 @@ class HåndterOpprettOppgaveForSpeilsaksbehandlere(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireKey("hendelser") }
-            validate { it.requireValue("@event_name", "opprett_oppgave_for_speilsaksbehandlere") }
+            validate { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
+            validate {it.requireKey("hendelser", "harOverlappendeVedtaksperiode", "fødselsnummer", "organisasjonsnummer")}
         }.register(this)
     }
 
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val harOverlappendeVedtaksperiode = packet["harOverlappendeVedtaksperiode"].asBoolean()
+        val orgnummer = packet["organisasjonsnummer"].asText()
+        val fødselsnummer = packet["fødselsnummer"].asText()
+
         packet["hendelser"]
             .map { UUID.fromString(it.asText()) }
             .mapNotNull { oppgaveDAO.finnOppgave(it, observer) }
             .forEach { oppgave ->
-                withMDC(mapOf("event" to "opprett_oppgave_for_speilsaksbehandlere")) {
-                    oppgave.håndter(Hendelse.AvbruttOgHarRelatertUtbetaling)
-                    log.info("Mottok opprett_oppgave_for_speilsaksbehandlere-event : {}", oppgave.hendelseId)
+                withMDC(mapOf("event" to "vedtaksperiode_forkastet")) {
+                    if (harOverlappendeVedtaksperiode) oppgave.lagOppgavePåSpeilKø()
+                    else oppgave.lagOppgave()
                 }
             }
     }
 }
+
