@@ -61,8 +61,8 @@ class Oppgave(
 
     private fun dokumentOppdaget() = tilstand.dokumentOppdaget(this)
 
-    fun håndter(hendelse: Hendelse.TilInfotrygd) = tilstand.håndter(this, hendelse)
-    fun håndter(hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) = tilstand.håndter(this, hendelse)
+    fun lagOppgave() = tilstand.håndterLagOppgave(this)
+    fun lagOppgavePåSpeilKø() = tilstand.håndterLagOppgavePåSpeilKø(this)
     fun håndter(hendelse: Hendelse.Avsluttet) = tilstand.håndter(this, hendelse)
     internal fun håndterLest() {
         tilstand.håndterLest(this)
@@ -83,8 +83,8 @@ class Oppgave(
         abstract fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand)
 
         open fun dokumentOppdaget(oppgave: Oppgave) { throw IllegalStateException("forventet ikke dokumentoppdaget!") }
-        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {}
-        open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {}
+        open fun håndterLagOppgave(oppgave: Oppgave) {}
+        open fun håndterLagOppgavePåSpeilKø(oppgave: Oppgave) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {}
         open fun håndterLest(oppgave: Oppgave) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {}
@@ -103,11 +103,11 @@ class Oppgave(
             override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
                 oppgave.dokumentType.dokumentOppdaget(oppgave.observer, oppgave.fødselsnummer!!, oppgave.orgnummer!!, oppgave.hendelseId, oppgave.dokumentId)
             }
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
+            override fun håndterLagOppgave(oppgave: Oppgave) {
                 oppgave.tilstand(LagOppgave)
             }
 
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {
+            override fun håndterLagOppgavePåSpeilKø(oppgave: Oppgave) {
                 oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
             }
 
@@ -147,11 +147,11 @@ class Oppgave(
                 oppgave.dokumentType.dokumentLest(oppgave.observer, oppgave.hendelseId, oppgave.dokumentId)
             }
 
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
+            override fun håndterLagOppgave(oppgave: Oppgave) {
                 oppgave.tilstand(LagOppgave)
             }
 
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {
+            override fun håndterLagOppgavePåSpeilKø(oppgave: Oppgave) {
                 oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
             }
 
@@ -178,11 +178,11 @@ class Oppgave(
                 oppgave.observer.kortInntektsmeldingFerdigbehandlet(oppgave.hendelseId, oppgave.dokumentId)
             }
 
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
+            override fun håndterLagOppgave(oppgave: Oppgave) {
                 oppgave.tilstand(LagOppgave)
             }
 
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvbruttOgHarRelatertUtbetaling) {
+            override fun håndterLagOppgavePåSpeilKø(oppgave: Oppgave) {
                 oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
             }
 
@@ -204,7 +204,7 @@ class Oppgave(
                 oppgave.observer.kortSøknadFerdigbehandlet(oppgave.hendelseId, oppgave.dokumentId)
             }
 
-            override fun håndter(oppgave: Oppgave, hendelse: Hendelse.TilInfotrygd) {
+            override fun håndterLagOppgave(oppgave: Oppgave) {
                 oppgave.tilstand(LagOppgave)
             }
 
