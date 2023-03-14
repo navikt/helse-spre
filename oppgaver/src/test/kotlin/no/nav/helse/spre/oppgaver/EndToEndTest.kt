@@ -760,6 +760,16 @@ class EndToEndTest {
         publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
     }
 
+    @Test
+    fun `inntektsmelding ikke håndtert - oppretter oppgave`() {
+        val inntektsmeldingHendelseId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
+        sendInntektsmelding(hendelseId = inntektsmeldingHendelseId, dokumentId = inntektsmeldingDokumentId)
+        inntektsmeldingIkkeHåndtert(inntektsmeldingId = inntektsmeldingHendelseId)
+        assertEquals(1, publiserteOppgaver.size)
+        publiserteOppgaver[0].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
+    }
+
     companion object {
 
         private val FØDSELSNUMMER = "12345678910"
@@ -862,6 +872,16 @@ class EndToEndTest {
         )
     }
 
+    private fun inntektsmeldingIkkeHåndtert(inntektsmeldingId: UUID, organisasjonsnummer: String = ORGNUMMER, fødselsnummer: String = FØDSELSNUMMER) {
+        rapid.sendTestMessage(
+            no.nav.helse.spre.oppgaver.inntektsmeldingIkkeHåndtert(
+                inntektsmeldingId,
+                organisasjonsnummer,
+                fødselsnummer
+            )
+        )
+    }
+
 }
 
 private fun TestRapid.RapidInspector.events(eventnavn: String, hendelseId: UUID) =
@@ -949,5 +969,18 @@ fun inntektsmeldingFørSøknad(
                     "tom":"2018-01-16"
                 }
             ]
+        }
+"""
+
+fun inntektsmeldingIkkeHåndtert(
+    inntektsmeldingId: UUID,
+    organisasjonsnummer: String,
+    fødselsnummer: String
+) =
+    """{
+            "@event_name": "inntektsmelding_ikke_håndtert",
+            "inntektsmeldingId": "$inntektsmeldingId",
+            "organisasjonsnummer": "$organisasjonsnummer",
+            "fødselsnummer": "$fødselsnummer"
         }"""
 

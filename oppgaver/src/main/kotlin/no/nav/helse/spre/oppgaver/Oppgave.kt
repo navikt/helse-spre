@@ -71,8 +71,13 @@ class Oppgave(
     internal fun håndterInntektsmeldingFørSøknad() {
         tilstand.håndterInntektsmeldingFørSøknad(this)
     }
+    fun håndterInntektsmeldingIkkeHåndtert() {
+        tilstand.håndterInntektsmeldingIkkeHåndtert(this)
+    }
+
     fun håndter(hendelse: Hendelse.AvsluttetUtenUtbetaling) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.VedtaksperiodeVenter) = tilstand.håndter(this, hendelse)
+
     fun håndter(hendelse: Hendelse.AvventerGodkjenning) = tilstand.håndter(this, hendelse)
 
     private fun tilstand(tilstand: Tilstand) {
@@ -92,6 +97,7 @@ class Oppgave(
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {}
         open fun håndterLest(oppgave: Oppgave) {}
         open fun håndterInntektsmeldingFørSøknad(oppgave: Oppgave) {}
+        open fun håndterInntektsmeldingIkkeHåndtert(oppgave: Oppgave) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {}
@@ -122,6 +128,10 @@ class Oppgave(
 
             override fun håndterLest(oppgave: Oppgave) {
                 oppgave.tilstand(SpleisLest)
+            }
+
+            override fun håndterInntektsmeldingIkkeHåndtert(oppgave: Oppgave) {
+                oppgave.tilstand(LagOppgave)
             }
 
             override fun håndterInntektsmeldingFørSøknad(oppgave: Oppgave) {

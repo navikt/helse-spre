@@ -63,6 +63,7 @@ internal fun RapidsConnection.registerRivers(
     HåndterVedtaksperiodeForkastet(this, oppgaveDAO, publisist)
     HåndterInntektsmeldingFørSøknad(this, oppgaveDAO, publisist)
     InntektsmeldingHåndtert(this, oppgaveDAO, publisist)
+    InntektsmeldingIkkeHåndtert(this, oppgaveDAO, publisist)
     SøknadHåndtert(this, oppgaveDAO, publisist)
 }
 
