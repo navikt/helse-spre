@@ -190,7 +190,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `spleis sender medlingen opprettOppgaveForSpeilsaksbehandler`() {
+    fun `oppgave opprettet speilrelatert harPeriodeInnenfor16Dager`() {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
         val imDokumentId = UUID.randomUUID()
@@ -198,7 +198,27 @@ class EndToEndTest {
 
         sendInntektsmelding(imHendelseId, imDokumentId)
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
-        vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId, imHendelseId), harOverlappendeVedtaksperiode = true)
+        vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId, imHendelseId), harPeriodeInnenfor16Dager = true)
+
+        assertEquals(2, publiserteOppgaver.size)
+        publiserteOppgaver[0].assertInnhold(OpprettSpeilRelatert, søknad1DokumentId, Søknad)
+        publiserteOppgaver[1].assertInnhold(OpprettSpeilRelatert, imDokumentId, Inntektsmelding)
+
+        assertEquals(2, rapid.inspektør.size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett_speilrelatert", søknad1HendelseId).size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett_speilrelatert", imHendelseId).size)
+    }
+
+    @Test
+    fun `oppgave opprettet speilrelatert forlenger periode`() {
+        val søknad1HendelseId = UUID.randomUUID()
+        val søknad1DokumentId = UUID.randomUUID()
+        val imDokumentId = UUID.randomUUID()
+        val imHendelseId = UUID.randomUUID()
+
+        sendInntektsmelding(imHendelseId, imDokumentId)
+        sendSøknad(søknad1HendelseId, søknad1DokumentId)
+        vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId, imHendelseId), forlengerPeriode = true)
 
         assertEquals(2, publiserteOppgaver.size)
         publiserteOppgaver[0].assertInnhold(OpprettSpeilRelatert, søknad1DokumentId, Søknad)
@@ -817,11 +837,12 @@ class EndToEndTest {
 
     private fun vedtaksperiodeForkastet(
         hendelseIder: List<UUID>,
-        harOverlappendeVedtaksperiode: Boolean = false,
+        harPeriodeInnenfor16Dager: Boolean = false,
+        forlengerPeriode: Boolean = false,
         organisasjonsnummer: String = ORGNUMMER,
         fødselsnummer: String = FØDSELSNUMMER
     ) {
-        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, harOverlappendeVedtaksperiode, fødselsnummer, organisasjonsnummer))
+        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, harPeriodeInnenfor16Dager, forlengerPeriode, fødselsnummer, organisasjonsnummer))
     }
 
 
@@ -891,13 +912,15 @@ fun søknadHåndtert(
 
 fun vedtaksperiodeForkastet(
     hendelser: List<UUID>,
-    harOverlappendeVedtaksperiode: Boolean,
+    harPeriodeInnenfor16Dager: Boolean,
+    forlengerPeriode: Boolean,
     fødselsnummer: String,
     organisasjonsnummer: String
 ) =
     """{
             "@event_name": "vedtaksperiode_forkastet",
-            "harOverlappendeVedtaksperiode": "$harOverlappendeVedtaksperiode",
+            "harPeriodeInnenfor16Dager": "$harPeriodeInnenfor16Dager",
+            "forlengerPeriode": "$forlengerPeriode",
             "fødselsnummer": "$fødselsnummer",
             "organisasjonsnummer": "$organisasjonsnummer",
             "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
