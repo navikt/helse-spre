@@ -48,6 +48,25 @@ class OppgaveDAO(private val dataSource: DataSource) {
         )
     }
 
+
+    fun finnOppgaverIDokumentOppdaget(
+        orgnummer: String,
+        fødselsnummer: String,
+        observer: OppgaveObserver,
+        hendelser: List<UUID>
+    ) = sessionOf(dataSource).use { session ->
+        session.run(
+            queryOf(
+                "SELECT * FROM oppgave_tilstand WHERE tilstand = 'DokumentOppdaget' AND orgnummer=? AND fodselsnummer = ? AND hendelse_id NOT IN (${hendelser.joinToString { "?" }});",
+                orgnummer,
+                fødselsnummer,
+                *hendelser.toTypedArray()
+            )
+                .map { rs -> mapTilOppgave(rs, observer) }
+                .asList
+        )
+    }
+
     private fun mapTilOppgave(rs: Row, observer: Oppgave.Observer) = Oppgave(
         hendelseId = UUID.fromString(rs.string("hendelse_id")),
         dokumentId = UUID.fromString(rs.string("dokument_id")),
@@ -59,7 +78,13 @@ class OppgaveDAO(private val dataSource: DataSource) {
         observer = observer
     )
 
-    fun opprettOppgaveHvisNy(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String, dokumentType: DokumentType) =
+    fun opprettOppgaveHvisNy(
+        hendelseId: UUID,
+        dokumentId: UUID,
+        fødselsnummer: String,
+        orgnummer: String,
+        dokumentType: DokumentType
+    ) =
         sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
@@ -74,7 +99,13 @@ class OppgaveDAO(private val dataSource: DataSource) {
         }
 
     fun oppdaterTilstand(hendelseId: UUID, nyTilstand: Tilstand) = sessionOf(dataSource).use { session ->
-        session.run(queryOf("UPDATE oppgave_tilstand SET tilstand=CAST(? AS tilstand_type), sist_endret = NOW() WHERE hendelse_id=?;", nyTilstand.toDBTilstand().name, hendelseId).asUpdate)
+        session.run(
+            queryOf(
+                "UPDATE oppgave_tilstand SET tilstand=CAST(? AS tilstand_type), sist_endret = NOW() WHERE hendelse_id=?;",
+                nyTilstand.toDBTilstand().name,
+                hendelseId
+            ).asUpdate
+        )
     }
 
     fun markerSomUtbetalingTilSøker(dokumentId: UUID) =
@@ -88,10 +119,11 @@ class OppgaveDAO(private val dataSource: DataSource) {
         }
 
     fun harUtbetalingTilSøker(dokumentId: UUID): Boolean = sessionOf(dataSource).use { session ->
-        session.run(queryOf(
-            "SELECT COUNT(1) FROM utbetaling_til_søker WHERE dokument_id=?;",
-            dokumentId
-        ).map { it.int(1) }.asSingle
+        session.run(
+            queryOf(
+                "SELECT COUNT(1) FROM utbetaling_til_søker WHERE dokument_id=?;",
+                dokumentId
+            ).map { it.int(1) }.asSingle
         )
     } == 1
 }

@@ -128,6 +128,10 @@ class OppgaveObserver(
         utsettInntektsmelding(hendelseId, dokumentId, timeout)
     }
 
+    override fun lestInntektsmeldingFørSøknad(hendelseId: UUID, dokumentId: UUID) {
+        lestInntektsmelding(hendelseId, dokumentId)
+    }
+
     override fun venterPåGodkjenningInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
         // utsetter inntektsmelding fordi en en tidligere periode avventer godkjenning
         if (oppgaveDAO.harUtbetalingTilSøker(dokumentId)) {

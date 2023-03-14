@@ -23,7 +23,7 @@ class HåndterInntektsmeldingFørSøknad(
         val hendelseId = UUID.fromString(packet["inntektsmeldingId"].asText())
         val oppgave = oppgaveDAO.finnOppgave(hendelseId, observer) ?: return
         withMDC(mapOf("event" to "inntektsmelding_før_søknad")) {
-            oppgave.håndterLest()
+            oppgave.håndterInntektsmeldingFørSøknad()
             log.info("Mottok inntektsmelding_før_søknad-event: {}", oppgave.hendelseId)
         }
     }

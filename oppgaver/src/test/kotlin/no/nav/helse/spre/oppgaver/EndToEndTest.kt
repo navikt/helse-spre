@@ -1,6 +1,8 @@
 package no.nav.helse.spre.oppgaver
 
 import kotlinx.coroutines.runBlocking
+import kotliquery.queryOf
+import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Søknad
@@ -38,6 +40,11 @@ class EndToEndTest {
     fun reset() {
         publiserteOppgaver.clear()
         rapid.reset()
+        sessionOf(dataSource).use {session ->
+            session.run(queryOf(
+                "TRUNCATE TABLE oppgave_tilstand;"
+            ).asExecute)
+        }
     }
 
     @Test
@@ -196,8 +203,8 @@ class EndToEndTest {
         val imDokumentId = UUID.randomUUID()
         val imHendelseId = UUID.randomUUID()
 
-        sendInntektsmelding(imHendelseId, imDokumentId)
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
+        sendInntektsmelding(imHendelseId, imDokumentId)
         vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId, imHendelseId), harPeriodeInnenfor16Dager = true)
 
         assertEquals(2, publiserteOppgaver.size)
@@ -216,8 +223,8 @@ class EndToEndTest {
         val imDokumentId = UUID.randomUUID()
         val imHendelseId = UUID.randomUUID()
 
-        sendInntektsmelding(imHendelseId, imDokumentId)
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
+        sendInntektsmelding(imHendelseId, imDokumentId)
         vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId, imHendelseId), forlengerPeriode = true)
 
         assertEquals(2, publiserteOppgaver.size)
@@ -375,7 +382,6 @@ class EndToEndTest {
         sendSøknadHåndtert(søknadHendelseId3)
 
         vedtaksperiodeForkastet(hendelseIder = listOf(søknadHendelseId3, inntektsmeldingHendelseId))
-
 
         assertEquals(8, publiserteOppgaver.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", inntektsmeldingHendelseId).size)
@@ -737,7 +743,7 @@ class EndToEndTest {
         sendSøknad(hendelseId = søknadHendelseId, dokumentId = søknadDokumentId)
         sendSøknadHåndtert(søknadHendelseId)
         vedtaksperiodeForkastet(listOf(søknadHendelseId))
-        vedtaksperiodeForkastet(listOf(inntektsmeldingHendelseId))
+
         assertEquals(4, publiserteOppgaver.size)
         publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
         publiserteOppgaver[1].assertInnhold(Utsett, søknadDokumentId, Søknad)

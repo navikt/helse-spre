@@ -24,16 +24,17 @@ class HåndterVedtaksperiodeForkastet(
         val forlengerPeriode = packet["forlengerPeriode"].asBoolean()
         val orgnummer = packet["organisasjonsnummer"].asText()
         val fødselsnummer = packet["fødselsnummer"].asText()
+        val speilRelatert = harPeriodeInnenfor16Dager || forlengerPeriode
 
-        packet["hendelser"]
+        val hendelser = packet["hendelser"]
             .map { UUID.fromString(it.asText()) }
-            .mapNotNull { oppgaveDAO.finnOppgave(it, observer) }
-            .forEach { oppgave ->
-                withMDC(mapOf("event" to "vedtaksperiode_forkastet", "harPeriodeInnenfor16Dager" to harPeriodeInnenfor16Dager.utfall(), "forlengerPeriode" to forlengerPeriode.utfall())) {
-                    if (harPeriodeInnenfor16Dager || forlengerPeriode) oppgave.lagOppgavePåSpeilKø()
-                    else oppgave.lagOppgave()
-                }
+        val oppgaver = hendelser.mapNotNull { oppgaveDAO.finnOppgave(it, observer) } + oppgaveDAO.finnOppgaverIDokumentOppdaget(orgnummer, fødselsnummer, observer, hendelser)
+        oppgaver.forEach { oppgave ->
+            withMDC(mapOf("event" to "vedtaksperiode_forkastet", "harPeriodeInnenfor16Dager" to harPeriodeInnenfor16Dager.utfall(), "forlengerPeriode" to forlengerPeriode.utfall())) {
+                if (speilRelatert) oppgave.lagOppgavePåSpeilKø()
+                else oppgave.lagOppgave()
             }
+        }
     }
 
     private fun Boolean.utfall() = if (this) "JA" else "NEI"

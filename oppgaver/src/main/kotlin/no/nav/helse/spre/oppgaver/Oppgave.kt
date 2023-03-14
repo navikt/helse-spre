@@ -51,6 +51,7 @@ class Oppgave(
         fun ferdigbehandletInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
         fun lestSøknad(hendelseId: UUID, dokumentId: UUID) {}
         fun lestInntektsmelding(hendelseId: UUID, dokumentId: UUID) {}
+        fun lestInntektsmeldingFørSøknad(hendelseId: UUID, dokumentId: UUID) {}
         fun kortSøknadFerdigbehandlet(hendelseId: UUID, dokumentId: UUID) {}
         fun kortInntektsmeldingFerdigbehandlet(hendelseId: UUID, dokumentId: UUID) {}
         fun venterPåGodkjenningSøknad(hendelseId: UUID, dokumentId: UUID) {}
@@ -66,6 +67,9 @@ class Oppgave(
     fun håndter(hendelse: Hendelse.Avsluttet) = tilstand.håndter(this, hendelse)
     internal fun håndterLest() {
         tilstand.håndterLest(this)
+    }
+    internal fun håndterInntektsmeldingFørSøknad() {
+        tilstand.håndterInntektsmeldingFørSøknad(this)
     }
     fun håndter(hendelse: Hendelse.AvsluttetUtenUtbetaling) = tilstand.håndter(this, hendelse)
     fun håndter(hendelse: Hendelse.VedtaksperiodeVenter) = tilstand.håndter(this, hendelse)
@@ -87,6 +91,7 @@ class Oppgave(
         open fun håndterLagOppgavePåSpeilKø(oppgave: Oppgave) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {}
         open fun håndterLest(oppgave: Oppgave) {}
+        open fun håndterInntektsmeldingFørSøknad(oppgave: Oppgave) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {}
@@ -117,6 +122,10 @@ class Oppgave(
 
             override fun håndterLest(oppgave: Oppgave) {
                 oppgave.tilstand(SpleisLest)
+            }
+
+            override fun håndterInntektsmeldingFørSøknad(oppgave: Oppgave) {
+                oppgave.observer.lestInntektsmeldingFørSøknad(oppgave.hendelseId, oppgave.dokumentId)
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {
