@@ -764,11 +764,11 @@ class EndToEndTest {
 
         @JvmStatic
         fun permutations() = listOf(
-            Arguments.of(40000.00, 50000.95, 2),
-            Arguments.of(40000.00, null, 2),
+            Arguments.of(40000.00, 50000.95, 28),
+            Arguments.of(40000.00, null, 28),
             Arguments.of(60000.00, 60000.95, 60),
             Arguments.of(60000.95, 60000.00, 60),
-            Arguments.of(40001.00, 40000.99, 2),
+            Arguments.of(40001.00, 40000.99, 28),
         )
     }
 

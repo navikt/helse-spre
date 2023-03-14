@@ -24,7 +24,7 @@ class OppgaveObserver(
         private const val TimeoutVenterPåTidligereGodkjenning = 10L
         private const val TimeoutAvventerGodkjenning = 180L
         private const val TimeoutLestInntektsmelding = 60L
-        private const val TimeoutLestInntektsmeldingBrukerutbetaling = 2L
+        private const val TimeoutLestInntektsmeldingBrukerutbetaling = 28L
     }
 
     override fun oppgaveEndretTilstand(hendelseId: UUID, dokumentId: UUID, forrigeTilstand: Oppgave.Tilstand, nyTilstand: Oppgave.Tilstand) {
