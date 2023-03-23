@@ -55,7 +55,7 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
                 dato = LocalDateTime.of(2020, 5, 4, 8, 8, 0),
                 epost = "sara.saksbehandler@nav.no",
                 ident = "A123456",
-                personFagsystemId = null,
+                personFagsystemId = "tilfeldig",
                 arbeidsgiverFagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY",
                 organisasjonsnavn = "PENGELØS SPAREBANK",
                 navn = "Molefonken Ert"
@@ -83,20 +83,12 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
                 epost = "sara.saksbehandler@nav.no",
                 ident = "A123456",
                 personFagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY",
-                arbeidsgiverFagsystemId = null,
+                arbeidsgiverFagsystemId = "tilfeldig",
                 organisasjonsnavn = "PENGELØS SPAREBANK",
                 navn = "Molefonken Ert"
             )
 
             assertEquals(expectedPdfPayload, pdfPayload)
-        }
-    }
-
-    @Test
-    fun `behandler ikke annullering uten fagsystemId`() {
-        runBlocking {
-            testRapid.sendTestMessage(annulleringUtenFagsytemId())
-            assertEquals(0, capturedJoarkRequests.size)
         }
     }
 
@@ -118,23 +110,13 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
             "fødselsnummer": "fnr",
             "aktørId": "aktørid",
             "organisasjonsnummer": "123456789",
-            "fagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
-            "saksbehandlerEpost": "sara.saksbehandler@nav.no",
-            "annullertAvSaksbehandler": "2020-05-04T08:08:00.00000",
-            "utbetalingslinjer": [
-                {
-                  "fom": "2020-01-01",
-                  "tom": "2020-01-10",
-                  "grad": 100,
-                  "beløp": 1345
-                }
-            ],
+            "tidspunkt": "2020-05-04T08:08:00.00000",
             "fom": "2020-01-01",
             "tom": "2020-01-10",
             "epost": "sara.saksbehandler@nav.no",
             "ident": "A123456",
             "arbeidsgiverFagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
-            "personFagsystemId": null 
+            "personFagsystemId": "tilfeldig" 
         }
     """
 
@@ -147,50 +129,13 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
             "fødselsnummer": "fnr",
             "aktørId": "aktørid",
             "organisasjonsnummer": "123456789",
-            "saksbehandlerEpost": "sara.saksbehandler@nav.no",
-            "annullertAvSaksbehandler": "2020-05-04T08:08:00.00000",
-            "utbetalingslinjer": [
-                {
-                  "fom": "2020-01-01",
-                  "tom": "2020-01-10",
-                  "grad": 100,
-                  "beløp": 1345
-                }
-            ],
+            "tidspunkt": "2020-05-04T08:08:00.00000",
             "fom": "2020-01-01",
             "tom": "2020-01-10",
             "epost": "sara.saksbehandler@nav.no",
             "ident": "A123456",
-            "arbeidsgiverFagsystemId": null,
+            "arbeidsgiverFagsystemId": "tilfeldig",
             "personFagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY" 
-        }
-    """
-
-    @Language("JSON")
-    private fun annulleringUtenFagsytemId(id: UUID = UUID.randomUUID()) = """
-        {
-            "@event_name": "utbetaling_annullert",
-            "@opprettet": "2020-05-04T11:26:47.088455",
-            "@id": "$id",
-            "fødselsnummer": "fnr",
-            "aktørId": "aktørid",
-            "organisasjonsnummer": "123456789",
-            "saksbehandlerEpost": "sara.saksbehandler@nav.no",
-            "annullertAvSaksbehandler": "2020-05-04T08:08:00.00000",
-            "utbetalingslinjer": [
-                {
-                  "fom": "2020-01-01",
-                  "tom": "2020-01-10",
-                  "grad": 100,
-                  "beløp": 1345
-                }
-            ],
-            "fom": "2020-01-01",
-            "tom": "2020-01-10",
-            "epost": "sara.saksbehandler@nav.no",
-            "ident": "A123456",
-            "arbeidsgiverFagsystemId": null,
-            "personFagsystemId": null 
         }
     """
 

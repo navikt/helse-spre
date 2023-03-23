@@ -26,21 +26,19 @@ class AnnulleringMessage private constructor(
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
 
-    constructor(hendelseId: UUID, packet: JsonMessage) :
-            this(
-                hendelseId = hendelseId,
-                fødselsnummer = packet["fødselsnummer"].asText(),
-                aktørId = packet["aktørId"].asText(),
-                fom = packet["fom"].asLocalDate(),
-                tom = packet["tom"].asLocalDate(),
-                organisasjonsnummer = packet["organisasjonsnummer"].asText(),
-                dato = packet["annullertAvSaksbehandler"].asLocalDateTime(),
-                saksbehandlerIdent = packet["ident"].asText(),
-                saksbehandlerEpost = packet["epost"].asText(),
-                personFagsystemId = packet["personFagsystemId"].takeUnless { it.isMissingOrNull() }?.asText(),
-                arbeidsgiverFagsystemId = packet["arbeidsgiverFagsystemId"].takeUnless { it.isMissingOrNull() }
-                    ?.asText()
-            )
+    constructor(hendelseId: UUID, packet: JsonMessage) : this(
+        hendelseId = hendelseId,
+        fødselsnummer = packet["fødselsnummer"].asText(),
+        aktørId = packet["aktørId"].asText(),
+        fom = packet["fom"].asLocalDate(),
+        tom = packet["tom"].asLocalDate(),
+        organisasjonsnummer = packet["organisasjonsnummer"].asText(),
+        dato = packet["tidspunkt"].asLocalDateTime(),
+        saksbehandlerIdent = packet["ident"].asText(),
+        saksbehandlerEpost = packet["epost"].asText(),
+        personFagsystemId = packet["personFagsystemId"].takeUnless { it.isMissingOrNull() }?.asText(),
+        arbeidsgiverFagsystemId = packet["arbeidsgiverFagsystemId"].takeUnless { it.isMissingOrNull() }?.asText()
+    )
 
     internal fun toPdfPayloadV2(organisasjonsnavn: String?, navn: String?) = AnnulleringPdfPayloadV2(
         fødselsnummer = fødselsnummer,
@@ -54,21 +52,5 @@ class AnnulleringMessage private constructor(
         arbeidsgiverFagsystemId = arbeidsgiverFagsystemId,
         organisasjonsnavn = organisasjonsnavn,
         navn = navn
-    )
-
-    data class Linje(
-        val fom: LocalDate,
-        val tom: LocalDate,
-        val grad: Int,
-        val beløp: Int
-    )
-}
-
-private fun JsonMessage.utbetalingslinjer() = this["utbetalingslinjer"].map {
-    AnnulleringMessage.Linje(
-        fom = it["fom"].asLocalDate(),
-        tom = it["tom"].asLocalDate(),
-        grad = it["grad"].asInt(),
-        beløp = it["beløp"].asInt()
     )
 }
