@@ -7,17 +7,21 @@ import no.nav.helse.spre.arbeidsgiver.InntektsmeldingDTO.Companion.tilInntektsme
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.header.internals.RecordHeader
+import org.slf4j.LoggerFactory
 import java.util.*
 
 internal class BeOmInntektsmeldinger(
     private val rapidsConnection: RapidsConnection,
     private val arbeidsgiverProducer: KafkaProducer<String, InntektsmeldingDTO>
 ) : River.PacketListener{
+    private companion object {
+        private val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
+    }
 
     init {
         River(rapidsConnection).apply {
             validate {
-                it.requireValue("@event_name", "trenger_inntektsmelding")
+                it.demandValue("@event_name", "trenger_inntektsmelding")
                 it.requireKey("organisasjonsnummer", "fødselsnummer", "vedtaksperiodeId")
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
@@ -26,11 +30,16 @@ internal class BeOmInntektsmeldinger(
         }.register(this)
     }
 
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        sikkerLogg.error("forstår ikke trenger_inntektsmelding:\n${problems.toExtendedReport()}")
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         log.info("Ber om inntektsmelding på vedtaksperiode: {}", packet["vedtaksperiodeId"].asText())
 
         val payload = packet.tilInntektsmeldingDTO(meldingstype = Meldingstype.TRENGER_INNTEKTSMELDING)
         val topicName = "tbd.aapen-helse-spre-arbeidsgiver"
+        log.info("Publiserer behov for inntektsmelding på vedtak: ${packet["vedtaksperiodeId"].textValue()}:\n{}", objectMapper.writeValueAsString(payload))
         arbeidsgiverProducer.send(ProducerRecord(
             topicName,
             null,
