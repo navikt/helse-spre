@@ -133,19 +133,6 @@ class OppgaveObserver(
     }
 
     override fun venterPåGodkjenningInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
-        // utsetter inntektsmelding fordi en en tidligere periode avventer godkjenning
-        if (oppgaveDAO.harUtbetalingTilSøker(dokumentId)) {
-            sikkerlogg.info("Vi utsetter ikke oppgave i tilstand SpleisLest ettersom det er utbetaling til søker. {}, {}",
-                keyValue("hendelseId", hendelseId),
-                keyValue("dokumentId", dokumentId)
-            )
-            publiclogg.info("Vi utsetter ikke oppgave i tilstand SpleisLest ettersom det er utbetaling til søker. {}, {}",
-                keyValue("hendelseId", hendelseId),
-                keyValue("dokumentId", dokumentId)
-            )
-            return
-        }
-
         utsettInntektsmelding(hendelseId, dokumentId, LocalDateTime.now().plusDays(TimeoutVenterPåTidligereGodkjenning))
     }
 
