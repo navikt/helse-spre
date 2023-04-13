@@ -475,7 +475,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `oppretter oppgaver for perioder som var avsluttet, men som blir kastet ut senere`() {
+    fun `oppretter ikke oppgaver for perioder som var avsluttet, men som blir kastet ut senere`() {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
 
@@ -489,11 +489,10 @@ class EndToEndTest {
         vedtaksperiodeForkastet(listOf(søknadId))
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", søknadId).size)
-        assertEquals(3, publiserteOppgaver.size)
+        assertEquals(0, rapid.inspektør.events("oppgavestyring_opprett", søknadId).size)
+        assertEquals(2, publiserteOppgaver.size)
         assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
         assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
-        assertEquals(Opprett, publiserteOppgaver[2].oppdateringstype)
     }
 
     @Test

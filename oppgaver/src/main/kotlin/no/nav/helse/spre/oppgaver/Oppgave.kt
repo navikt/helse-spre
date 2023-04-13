@@ -223,10 +223,6 @@ class Oppgave(
                 oppgave.observer.kortSøknadFerdigbehandlet(oppgave.hendelseId, oppgave.dokumentId)
             }
 
-            override fun håndterLagOppgave(oppgave: Oppgave) {
-                oppgave.tilstand(LagOppgave)
-            }
-
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
                 oppgave.tilstand(SpleisFerdigbehandlet)
             }
