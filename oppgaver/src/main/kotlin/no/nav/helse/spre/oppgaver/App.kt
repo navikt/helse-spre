@@ -21,6 +21,7 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .registerModule(JavaTimeModule())
 
 internal val log = LoggerFactory.getLogger("helse-spre-oppgaver")
+internal val sikkerLog = LoggerFactory.getLogger("tjenestekall")
 
 fun interface Publisist {
     fun publiser(dokumentId: String, oppgaveDTO: OppgaveDTO)
