@@ -13,9 +13,12 @@ class HåndterVedtaksperiodeendringer(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireKey("gjeldendeTilstand", "hendelser") }
+            validate { it.requireKey("hendelser") }
             validate { it.requireValue("@event_name", "vedtaksperiode_endret") }
             validate { it.interestedIn("forrigeTilstand") }
+            validate { it.requireAny("gjeldendeTilstand", listOf(
+                "AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING", "AVSLUTTET", "AVSLUTTET_UTEN_UTBETALING"
+            ))}
         }.register(this)
     }
 
