@@ -24,7 +24,8 @@ class AnnulleringMediator(
             val navn = try {
                 pdlClient.hentPersonNavn(annulleringMessage.fødselsnummer, annulleringMessage.hendelseId)
             } catch (e: Exception) {
-                log.error("Feil ved henting av navn")
+                log.error("Feil ved henting av navn for ${annulleringMessage.aktørId}")
+                sikkerLogg.error("Feil ved henting av navn for ${annulleringMessage.aktørId}", e)
                 null
             }
             val pdf = pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayloadV2(organisasjonsnavn, navn))

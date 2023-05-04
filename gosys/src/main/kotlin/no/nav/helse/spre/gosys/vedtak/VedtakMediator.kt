@@ -41,6 +41,7 @@ class VedtakMediator(
                 pdlClient.hentPersonNavn(vedtakMessage.fødselsnummer, vedtakMessage.hendelseId) ?: ""
             } catch (e: Exception) {
                 log.error("Feil ved henting av navn for ${vedtakMessage.aktørId}")
+                sikkerLogg.error("Feil ved henting av navn for ${vedtakMessage.aktørId}", e)
                 ""
             }
             val pdf = pdfClient.hentVedtakPdfV2(vedtakMessage.toVedtakPdfPayloadV2(organisasjonsnavn, navn))
