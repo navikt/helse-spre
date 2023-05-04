@@ -10,7 +10,6 @@ import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -23,7 +22,6 @@ import java.util.*
 import kotlin.math.absoluteValue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Disabled
 class EndToEndTest {
     private val dataSource = setupDataSourceMedFlyway()
 

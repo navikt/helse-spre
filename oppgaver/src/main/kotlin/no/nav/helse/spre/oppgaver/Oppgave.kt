@@ -1,6 +1,5 @@
 package no.nav.helse.spre.oppgaver
 
-import net.logstash.logback.argument.StructuredArguments.keyValue
 import java.time.LocalDateTime
 import java.util.*
 
@@ -199,13 +198,11 @@ class Oppgave(
             }
 
             override fun håndterLagOppgave(oppgave: Oppgave) {
-                sikkerLog.info("Dropper å lage oppgave for hendelseId=${oppgave.hendelseId}, dokumentId=${oppgave.dokumentId}, {}", keyValue("fødselsnummer", oppgave.fødselsnummer))
-                //oppgave.tilstand(LagOppgave)
+                oppgave.tilstand(LagOppgave)
             }
 
             override fun håndterLagOppgavePåSpeilKø(oppgave: Oppgave) {
-                sikkerLog.info("Dropper å lage speiloppgave for hendelseId=${oppgave.hendelseId}, dokumentId=${oppgave.dokumentId}, {}", keyValue("fødselsnummer", oppgave.fødselsnummer))
-                //oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
+                oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
