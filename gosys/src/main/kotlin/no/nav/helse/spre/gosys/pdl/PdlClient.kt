@@ -39,7 +39,10 @@ class PdlClient(
         }
 
         response.status.let {
-            if (!it.isSuccess()) throw RuntimeException("error (responseCode=$it) from PDL")
+            if (!it.isSuccess()) {
+                sikkerLogg.error("Feil henting av navn fra PDL. ResponseCode=$it, Body=${response.bodyAsText()}")
+                throw RuntimeException("error (responseCode=$it) from PDL")
+            }
         }
 
         val parsetRespons: PdlResponse<PdlHentPerson> = response.body()
