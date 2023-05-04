@@ -198,11 +198,11 @@ class Oppgave(
             }
 
             override fun håndterLagOppgave(oppgave: Oppgave) {
-                oppgave.tilstand(LagOppgave)
+                //oppgave.tilstand(LagOppgave)
             }
 
             override fun håndterLagOppgavePåSpeilKø(oppgave: Oppgave) {
-                oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
+                //oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
             }
 
             override fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {
