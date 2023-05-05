@@ -217,6 +217,20 @@ class EndToEndTest {
     }
 
     @Test
+    fun `ignorer vedtaksperiode_forkastet som skyldes person_påminnelse`() {
+        val imDokumentId = UUID.randomUUID()
+        val imHendelseId = UUID.randomUUID()
+
+        sendInntektsmelding(imHendelseId, imDokumentId)
+
+        vedtaksperiodeForkastet(hendelseIder = listOf(imHendelseId), forårsaketAv = "person_påminnelse")
+        assertEquals(0, publiserteOppgaver.size)
+
+        vedtaksperiodeForkastet(hendelseIder = listOf(imHendelseId), forårsaketAv = "ikke_person_påminnelse")
+        assertEquals(1, publiserteOppgaver.size)
+    }
+
+    @Test
     fun `oppgave opprettet speilrelatert forlenger periode`() {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
@@ -855,9 +869,10 @@ class EndToEndTest {
         harPeriodeInnenfor16Dager: Boolean = false,
         forlengerPeriode: Boolean = false,
         organisasjonsnummer: String = ORGNUMMER,
-        fødselsnummer: String = FØDSELSNUMMER
+        fødselsnummer: String = FØDSELSNUMMER,
+        forårsaketAv: String = "hva_som_helst"
     ) {
-        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, harPeriodeInnenfor16Dager, forlengerPeriode, fødselsnummer, organisasjonsnummer))
+        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, harPeriodeInnenfor16Dager, forlengerPeriode, fødselsnummer, organisasjonsnummer, forårsaketAv))
     }
 
 
@@ -940,7 +955,8 @@ fun vedtaksperiodeForkastet(
     harPeriodeInnenfor16Dager: Boolean,
     forlengerPeriode: Boolean,
     fødselsnummer: String,
-    organisasjonsnummer: String
+    organisasjonsnummer: String,
+    forårsaketAv: String
 ) =
     """{
             "@event_name": "vedtaksperiode_forkastet",
@@ -948,7 +964,10 @@ fun vedtaksperiodeForkastet(
             "forlengerPeriode": "$forlengerPeriode",
             "fødselsnummer": "$fødselsnummer",
             "organisasjonsnummer": "$organisasjonsnummer",
-            "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }}
+            "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
+            "@forårsaket_av": {
+                "event_name": "$forårsaketAv"
+            }
         }"""
 
 
