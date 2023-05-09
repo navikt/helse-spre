@@ -15,7 +15,7 @@ class HåndterVedtaksperiodeForkastet(
         River(rapidsConnection).apply {
             validate { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
             validate { it.requireKey("hendelser", "harPeriodeInnenfor16Dager", "forlengerPeriode", "fødselsnummer", "organisasjonsnummer") }
-            validate { it.rejectValues("@forårsaket_av.event_name", listOf("person_påminnelse", "anmodning_om_forkasting")) }
+            validate { it.rejectValue("@forårsaket_av.event_name", "person_påminnelse") }
         }.register(this)
     }
 
