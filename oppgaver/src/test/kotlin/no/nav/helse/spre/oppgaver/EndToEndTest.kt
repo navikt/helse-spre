@@ -8,13 +8,11 @@ import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Søknad
 import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.SECONDS
@@ -326,7 +324,6 @@ class EndToEndTest {
     @Test
     fun `Forkastet oppgave på inntektsmelding skal opprettes`() {
         val periode1 = UUID.randomUUID()
-        val periode2 = UUID.randomUUID()
 
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
@@ -363,8 +360,6 @@ class EndToEndTest {
     @Test
     fun `Sender ikke flere opprett-meldinger hvis vi allerede har forkastet en periode`() {
         val periode1 = UUID.randomUUID()
-        val periode2 = UUID.randomUUID()
-        val periode3 = UUID.randomUUID()
 
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
@@ -406,7 +401,6 @@ class EndToEndTest {
     fun `to perioder uten utbetaling og en lang periode hvor siste går til infotrygd`() {
         val periode1 = UUID.randomUUID()
         val periode2 = UUID.randomUUID()
-        val periode3 = UUID.randomUUID()
         val søknadHendelseId = UUID.randomUUID()
         val søknadDokumentId = UUID.randomUUID()
         val søknadHendelseId2 = UUID.randomUUID()
@@ -450,7 +444,6 @@ class EndToEndTest {
     fun `kort periode - forlengelse #1 utbetales - forlengelse #2 forkastes`() {
         val periode1 = UUID.randomUUID()
         val periode2 = UUID.randomUUID()
-        val periode3 = UUID.randomUUID()
         val søknadHendelseId = UUID.randomUUID()
         val søknadDokumentId = UUID.randomUUID()
         val søknadHendelseId2 = UUID.randomUUID()
@@ -606,22 +599,37 @@ class EndToEndTest {
         assertEquals(Opprett, publiserteOppgaver[6].oppdateringstype)
     }
 
-    @ParameterizedTest
-    @MethodSource("permutations")
-    fun `setter timeout på oppgave for inntektsmelding avhengig av utbetaling til søker`(
-        inntekt: Double, refusjon: Double?, dager: Long
-    ) {
+    @Test
+    fun `setter timeout på oppgave for inntektsmelding ved utbetaling til søker`() {
         val hendelseId = UUID.randomUUID()
         val dokumentId = UUID.randomUUID()
+        val inntekt = 40000.00
+        val refusjon = 20000.00
 
         sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
         sendInntektsmeldingHåndtert(hendelseId)
-
         assertEquals(1, publiserteOppgaver.size)
-
+        val TimeoutLestInntektsmelding = 60L
         publiserteOppgaver[0].also { dto ->
             dto.assertInnhold(Utsett, dokumentId, Inntektsmelding)
-            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(dager)).absoluteValue < 2)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(TimeoutLestInntektsmelding)).absoluteValue < 2)
+        }
+    }
+
+    @Test
+    fun `setter timeout på oppgave for inntektsmelding ved full refusjon`() {
+        val hendelseId = UUID.randomUUID()
+        val dokumentId = UUID.randomUUID()
+        val inntekt = 40000.00
+        val refusjon = 40000.00
+
+        sendInntektsmelding(hendelseId, dokumentId, inntekt, refusjon)
+        sendInntektsmeldingHåndtert(hendelseId)
+        assertEquals(1, publiserteOppgaver.size)
+        val TimeoutLestInntektsmelding = 60L
+        publiserteOppgaver[0].also { dto ->
+            dto.assertInnhold(Utsett, dokumentId, Inntektsmelding)
+            assertTrue(SECONDS.between(dto.timeout, LocalDateTime.now().plusDays(TimeoutLestInntektsmelding)).absoluteValue < 2)
         }
     }
 
@@ -790,15 +798,6 @@ class EndToEndTest {
 
         private val OppgaveDTO.timeoutIDager
             get() = Duration.between(LocalDateTime.now().minusSeconds(1), this.timeout).toDays()
-
-        @JvmStatic
-        fun permutations() = listOf(
-            Arguments.of(40000.00, 50000.95, 28),
-            Arguments.of(40000.00, null, 28),
-            Arguments.of(60000.00, 60000.95, 60),
-            Arguments.of(60000.95, 60000.00, 60),
-            Arguments.of(40001.00, 40000.99, 28),
-        )
     }
 
     private fun OppgaveDTO.assertInnhold(

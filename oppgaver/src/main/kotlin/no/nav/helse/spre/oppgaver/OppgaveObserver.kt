@@ -24,7 +24,6 @@ class OppgaveObserver(
         private const val TimeoutVenterPåTidligereGodkjenning = 10L
         private const val TimeoutAvventerGodkjenning = 180L
         private const val TimeoutLestInntektsmelding = 60L
-        private const val TimeoutLestInntektsmeldingBrukerutbetaling = 28L
     }
 
     override fun oppgaveEndretTilstand(hendelseId: UUID, dokumentId: UUID, forrigeTilstand: Oppgave.Tilstand, nyTilstand: Oppgave.Tilstand) {
@@ -123,8 +122,7 @@ class OppgaveObserver(
     }
 
     override fun lestInntektsmelding(hendelseId: UUID, dokumentId: UUID) {
-        val antallDager = if (oppgaveDAO.harUtbetalingTilSøker(dokumentId)) TimeoutLestInntektsmeldingBrukerutbetaling else TimeoutLestInntektsmelding
-        val timeout = LocalDateTime.now().plusDays(antallDager)
+        val timeout = LocalDateTime.now().plusDays(TimeoutLestInntektsmelding)
         utsettInntektsmelding(hendelseId, dokumentId, timeout)
     }
 

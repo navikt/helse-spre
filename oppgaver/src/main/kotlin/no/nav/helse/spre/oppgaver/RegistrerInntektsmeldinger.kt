@@ -1,12 +1,10 @@
 package no.nav.helse.spre.oppgaver
 
-import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import java.util.*
-import no.nav.helse.rapids_rivers.isMissingOrNull
 
 class RegistrerInntektsmeldinger(rapidsConnection: RapidsConnection, private val oppgaveDAO: OppgaveDAO, private val publisist: Publisist) :
     River.PacketListener {
@@ -30,13 +28,6 @@ class RegistrerInntektsmeldinger(rapidsConnection: RapidsConnection, private val
 
         val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         Oppgave.nyInntektsmelding(hendelseId, dokumentId, fnr, organisasjonsnummer, observer)
-        sjekkUtbetalingTilSøker(packet)
-    }
-
-    private fun sjekkUtbetalingTilSøker(packet: JsonMessage) {
-        val refusjon = packet["refusjon.beloepPrMnd"].takeUnless { it.isMissingOrNull() }?.asInt()
-        val inntekt = packet["beregnetInntekt"].asInt()
-        if (refusjon != inntekt) oppgaveDAO.markerSomUtbetalingTilSøker(packet.dokumentId())
     }
 
     private fun JsonMessage.dokumentId() =

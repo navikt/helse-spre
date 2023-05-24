@@ -107,23 +107,4 @@ class OppgaveDAO(private val dataSource: DataSource) {
             ).asUpdate
         )
     }
-
-    fun markerSomUtbetalingTilSøker(dokumentId: UUID) =
-        sessionOf(dataSource).use { session ->
-            session.run(
-                queryOf(
-                    "INSERT INTO utbetaling_til_søker(dokument_id) VALUES(?) ON CONFLICT (dokument_id) DO NOTHING;",
-                    dokumentId,
-                ).asUpdate
-            )
-        }
-
-    fun harUtbetalingTilSøker(dokumentId: UUID): Boolean = sessionOf(dataSource).use { session ->
-        session.run(
-            queryOf(
-                "SELECT COUNT(1) FROM utbetaling_til_søker WHERE dokument_id=?;",
-                dokumentId
-            ).map { it.int(1) }.asSingle
-        )
-    } == 1
 }
