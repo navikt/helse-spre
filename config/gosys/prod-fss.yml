@@ -4,6 +4,8 @@ mountPaths:
   kvPath: /serviceuser/data/prod/srvspregosys
 fromEnv:
   - spre-gosys
+minReplicas: 6
+maxReplicas: 6
 azure:
   enabled: true
 env:
