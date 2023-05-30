@@ -29,10 +29,9 @@ spec:
     initialDelay: {{#if readinessInitialDelay }}{{ readinessInitialDelay }}{{else}}5{{/if}}
   resources:
     limits:
-      cpu: 2000m
-      memory: 512Mi
+      memory: 1024Mi
     requests:
-      cpu: 50m
+      cpu: 250m
       memory: 128Mi
   replicas:
     min: {{#if minReplicas }}{{ minReplicas }}{{else}}1{{/if}}
