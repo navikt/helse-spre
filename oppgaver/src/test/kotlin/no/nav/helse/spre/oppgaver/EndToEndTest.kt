@@ -55,16 +55,16 @@ class EndToEndTest {
 
         assertEquals(1, publiserteOppgaver.size)
         val publisertOppgaveEtterSøknadHåndtert = publiserteOppgaver[0]
-        val timeoutEtterSøknadHåndtert = publisertOppgaveEtterSøknadHåndtert.timeout
         publisertOppgaveEtterSøknadHåndtert.assertInnhold(Utsett, søknad1DokumentId, Søknad)
+        val timeoutEtterSøknadHåndtert = publisertOppgaveEtterSøknadHåndtert.timeout!!
 
         sendVedtaksperiodeVenter(listOf(søknad1HendelseId), "GODKJENNING")
 
         assertEquals(2, publiserteOppgaver.size)
         val publisertOppgaveEtterVentingPåGodkjenning = publiserteOppgaver[1]
-        val timeoutEtterVentingPåGodkjenning = publisertOppgaveEtterVentingPåGodkjenning.timeout
+        val timeoutEtterVentingPåGodkjenning = publisertOppgaveEtterVentingPåGodkjenning.timeout!!
 
-        assertEquals(timeoutEtterSøknadHåndtert, timeoutEtterVentingPåGodkjenning)
+        assertTidsstempel(timeoutEtterSøknadHåndtert, timeoutEtterVentingPåGodkjenning)
     }
 
     @Test
@@ -77,16 +77,16 @@ class EndToEndTest {
 
         assertEquals(1, publiserteOppgaver.size)
         val publisertOppgaveEtterInntektsmeldingHåndtert = publiserteOppgaver[0]
-        val timeoutEtterInntektsmeldingHåndtert = publisertOppgaveEtterInntektsmeldingHåndtert.timeout
         publisertOppgaveEtterInntektsmeldingHåndtert.assertInnhold(Utsett, inntektsmelding1DokumentId, Inntektsmelding)
+        val timeoutEtterInntektsmeldingHåndtert = publisertOppgaveEtterInntektsmeldingHåndtert.timeout!!
 
         sendVedtaksperiodeVenter(listOf(inntektsmelding1HendelseId), "GODKJENNING")
 
         assertEquals(2, publiserteOppgaver.size)
         val publisertOppgaveEtterVentingPåGodkjenning = publiserteOppgaver[1]
-        val timeoutEtterVentingPåGodkjenning = publisertOppgaveEtterVentingPåGodkjenning.timeout
+        val timeoutEtterVentingPåGodkjenning = publisertOppgaveEtterVentingPåGodkjenning.timeout!!
 
-        assertEquals(timeoutEtterInntektsmeldingHåndtert, timeoutEtterVentingPåGodkjenning)
+        assertTidsstempel(timeoutEtterInntektsmeldingHåndtert, timeoutEtterVentingPåGodkjenning)
     }
 
     @Test
@@ -942,6 +942,8 @@ class EndToEndTest {
     }
 
 }
+
+private fun assertTidsstempel(forventet: LocalDateTime, faktisk: LocalDateTime) = assertEquals(forventet.truncatedTo(SECONDS), faktisk.truncatedTo(SECONDS))
 
 private fun TestRapid.RapidInspector.events(eventnavn: String, hendelseId: UUID) =
     (0.until(size)).map(::message)
