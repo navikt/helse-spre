@@ -3,10 +3,11 @@ package no.nav.helse.spre.oppgaver
 import kotliquery.Row
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.spre.oppgaver.DatabaseTilstand.*
 import no.nav.helse.spre.oppgaver.Oppgave.Tilstand
-import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit.SECONDS
 import java.util.*
 import javax.sql.DataSource
 
@@ -125,6 +126,9 @@ class OppgaveDAO(private val dataSource: DataSource) {
             }.asSingle)
         } ?: LocalDateTime.MIN
 
-        return maxOf(forrigeTimeout, foreslåttTimeout)
+        return maxOf(forrigeTimeout, foreslåttTimeout).also { benyttetTimeout ->
+            if (benyttetTimeout == foreslåttTimeout) log.info("Bruker foreslått timeout for {}, foreslåttTimeout=${foreslåttTimeout.truncatedTo(SECONDS)}, forrigeTimeout=${forrigeTimeout.takeUnless { it == LocalDateTime.MIN }?.truncatedTo(SECONDS)}", keyValue("dokumentId", dokumentId))
+            else log.info("Bruker forrige timeout for {}, foreslåttTimeout=${foreslåttTimeout.truncatedTo(SECONDS)}, forrigeTimeout=${forrigeTimeout.takeUnless { it == LocalDateTime.MIN }?.truncatedTo(SECONDS)}", keyValue("dokumentId", dokumentId))
+        }
     }
 }

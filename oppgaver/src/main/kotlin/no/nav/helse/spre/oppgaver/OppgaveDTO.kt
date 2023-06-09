@@ -44,11 +44,6 @@ data class OppgaveDTO(
     }
 }
 
-fun DokumentType.toDTO(): DokumentTypeDTO = when (this) {
-    DokumentType.Inntektsmelding -> Inntektsmelding
-    DokumentType.Søknad -> Søknad
-}
-
 enum class OppdateringstypeDTO {
     Utsett, Opprett, OpprettSpeilRelatert, Ferdigbehandlet
 }

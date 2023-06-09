@@ -40,9 +40,53 @@ class EndToEndTest {
         rapid.reset()
         sessionOf(dataSource).use {session ->
             session.run(queryOf(
-                "TRUNCATE TABLE oppgave_tilstand;"
+                "TRUNCATE TABLE oppgave_tilstand, timeout;"
             ).asExecute)
         }
+    }
+
+    @Test
+    fun `beholder forrige timeout på søknad om den er etter ny timeout`() {
+        val søknad1HendelseId = UUID.randomUUID()
+        val søknad1DokumentId = UUID.randomUUID()
+
+        sendSøknad(søknad1HendelseId, søknad1DokumentId)
+        sendSøknadHåndtert(søknad1HendelseId)
+
+        assertEquals(1, publiserteOppgaver.size)
+        val publisertOppgaveEtterSøknadHåndtert = publiserteOppgaver[0]
+        val timeoutEtterSøknadHåndtert = publisertOppgaveEtterSøknadHåndtert.timeout
+        publisertOppgaveEtterSøknadHåndtert.assertInnhold(Utsett, søknad1DokumentId, Søknad)
+
+        sendVedtaksperiodeVenter(listOf(søknad1HendelseId), "GODKJENNING")
+
+        assertEquals(2, publiserteOppgaver.size)
+        val publisertOppgaveEtterVentingPåGodkjenning = publiserteOppgaver[1]
+        val timeoutEtterVentingPåGodkjenning = publisertOppgaveEtterVentingPåGodkjenning.timeout
+
+        assertEquals(timeoutEtterSøknadHåndtert, timeoutEtterVentingPåGodkjenning)
+    }
+
+    @Test
+    fun `beholder forrige timeout på inntektsmelding om den er etter ny timeout`() {
+        val inntektsmelding1HendelseId = UUID.randomUUID()
+        val inntektsmelding1DokumentId = UUID.randomUUID()
+
+        sendInntektsmelding(inntektsmelding1HendelseId, inntektsmelding1DokumentId)
+        sendInntektsmeldingHåndtert(inntektsmelding1HendelseId)
+
+        assertEquals(1, publiserteOppgaver.size)
+        val publisertOppgaveEtterInntektsmeldingHåndtert = publiserteOppgaver[0]
+        val timeoutEtterInntektsmeldingHåndtert = publisertOppgaveEtterInntektsmeldingHåndtert.timeout
+        publisertOppgaveEtterInntektsmeldingHåndtert.assertInnhold(Utsett, inntektsmelding1DokumentId, Inntektsmelding)
+
+        sendVedtaksperiodeVenter(listOf(inntektsmelding1HendelseId), "GODKJENNING")
+
+        assertEquals(2, publiserteOppgaver.size)
+        val publisertOppgaveEtterVentingPåGodkjenning = publiserteOppgaver[1]
+        val timeoutEtterVentingPåGodkjenning = publisertOppgaveEtterVentingPåGodkjenning.timeout
+
+        assertEquals(timeoutEtterInntektsmeldingHåndtert, timeoutEtterVentingPåGodkjenning)
     }
 
     @Test
@@ -144,12 +188,12 @@ class EndToEndTest {
 
         assertEquals(7, publiserteOppgaver.size)
         publiserteOppgaver[5].let { søknadOppgave ->
-            assertEquals(10, søknadOppgave.timeoutIDager)
+            assertEquals(110, søknadOppgave.timeoutIDager)
             assertEquals(søknad2DokumentId, søknadOppgave.dokumentId)
 
         }
         publiserteOppgaver[6].let { inntektsmeldingOppgave ->
-            assertEquals(10, inntektsmeldingOppgave.timeoutIDager)
+            assertEquals(180, inntektsmeldingOppgave.timeoutIDager)
             assertEquals(inntektsmeldingDokumentId, inntektsmeldingOppgave.dokumentId)
         }
     }
@@ -796,8 +840,10 @@ class EndToEndTest {
         private val FØDSELSNUMMER = "12345678910"
         private val ORGNUMMER = "ORGNUMMER"
 
+        private val nå = LocalDateTime.now().minusSeconds(1)
+
         private val OppgaveDTO.timeoutIDager
-            get() = Duration.between(LocalDateTime.now().minusSeconds(1), this.timeout).toDays()
+            get() = Duration.between(nå, this.timeout).toDays()
     }
 
     private fun OppgaveDTO.assertInnhold(

@@ -3,6 +3,7 @@ package no.nav.helse.spre.oppgaver
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.Utsett
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -84,7 +85,7 @@ class OppgaveObserver(
     }
 
     private fun utsettSøknad(hendelseId: UUID, dokumentId: UUID, timeout: LocalDateTime) {
-        val dto = OppgaveDTO.utsettSøknad(dokumentId, timeout)
+        val dto = OppgaveDTO.utsettSøknad(dokumentId, oppgaveDAO.hentTimeout(dokumentId, timeout))
         sendOppgaveoppdatering("SpleisLest", hendelseId, dto, "oppgavestyring_utsatt")
     }
 
@@ -139,11 +140,14 @@ class OppgaveObserver(
     }
 
     private fun utsettInntektsmelding(hendelseId: UUID, dokumentId: UUID, timeout: LocalDateTime) {
-        val dto = OppgaveDTO.utsettInntektsmelding(dokumentId, timeout)
+        val dto = OppgaveDTO.utsettInntektsmelding(dokumentId, oppgaveDAO.hentTimeout(dokumentId, timeout))
         sendOppgaveoppdatering("SpleisLest", hendelseId, dto, "oppgavestyring_utsatt")
     }
 
     private fun sendOppgaveoppdatering(tilstand: String, hendelseId: UUID, dto: OppgaveDTO, rapidEventName: String) {
+        if (dto.oppdateringstype == Utsett && dto.timeout != null) {
+            oppgaveDAO.lagreTimeout(dto.dokumentId, dto.timeout)
+        }
         publisist.publiser("${dto.dokumentId}", dto)
         rapidsConnection.publish(JsonMessage.newMessage(mapOf(
             "@event_name" to rapidEventName,
