@@ -5,6 +5,8 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.oppgaver.DatabaseTilstand.*
 import no.nav.helse.spre.oppgaver.Oppgave.Tilstand
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
@@ -106,5 +108,23 @@ class OppgaveDAO(private val dataSource: DataSource) {
                 hendelseId
             ).asUpdate
         )
+    }
+
+    internal fun lagreTimeout(dokumentId: UUID, timeout: LocalDateTime) {
+        sessionOf(dataSource).use { session ->
+            session.run(queryOf("INSERT INTO timeout(dokumentId, timeout) VALUES(:dokumentId, :timeout) ON CONFLICT(dokumentId) DO UPDATE SET timeout = :timeout",
+                mapOf("dokumentId" to dokumentId, "timeout" to timeout)
+            ).asExecute)
+        }
+    }
+
+    internal fun hentTimeout(dokumentId: UUID, foreslåttTimeout: LocalDateTime): LocalDateTime {
+        val forrigeTimeout =  sessionOf(dataSource).use { session ->
+            session.run(queryOf("SELECT timeout FROM timeout WHERE dokumentId = :dokumentId", mapOf("dokumentId" to dokumentId)).map { row ->
+                row.localDateTime("timeout")
+            }.asSingle)
+        } ?: LocalDateTime.MIN
+
+        return maxOf(forrigeTimeout, foreslåttTimeout)
     }
 }
