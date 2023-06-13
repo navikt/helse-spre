@@ -1,5 +1,6 @@
 strategy: Recreate
 kafkaPool: nav-dev
+kafkaResetPolicy: earliest
 gcp:
   type: POSTGRES_15
   databaseName: spre-styringsinfo
