@@ -1,0 +1,6 @@
+strategy: Recreate
+kafkaPool: nav-dev
+gcp:
+  type: POSTGRES_15
+  databaseName: spre-styringsinfo
+  envVarPrefix: DATABASE
