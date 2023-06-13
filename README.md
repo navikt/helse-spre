@@ -14,7 +14,8 @@ Navnet på appen prefikses med `spre-` i nais.yml, slik at navnet på modulen sk
 
 1. Gjør 'Legge til en ny gradlemodul'. Mappenavnet korresponderer med appnavnet
 2. Lag `config/[app]/[cluster].yml` for de klustrene appen skal deployes til.
-3. Push endringene
+3. Lag en minimal `App.kt` så appen kan starte opp. 
+4. Push endringene
 
 ## Disable deploy av app eller begrense miljøer:
 
