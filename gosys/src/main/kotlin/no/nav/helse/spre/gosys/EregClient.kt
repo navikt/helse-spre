@@ -6,6 +6,7 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import net.logstash.logback.argument.StructuredArguments.kv
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.util.*
 
@@ -25,7 +26,7 @@ class EregClient(
     ): EregResponse {
         try {
             //TODO finn ut om vi trenger ha med historikk eller ikke..
-            sikkerLogg.info("Henter navn på organisasjon: $organisasjonsnummer")
+            sikkerLogg.info("Henter navn på organisasjon: $organisasjonsnummer, {}", kv("Nav-Call-Id", callId))
             return httpClient.prepareGet("$baseUrl/v1/organisasjon/$organisasjonsnummer?inkluderHierarki=true&inkluderHistorikk=true") {
                 header("Authorization", "Bearer ${stsRestClient.token()}")
                 header("Nav-Consumer-Token", "Bearer ${stsRestClient.token()}")
