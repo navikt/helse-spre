@@ -19,9 +19,11 @@ fun launchApplication(environment: Map<String, String>): RapidsConnection {
     dataSourceBuilder.migrate()
 
     val sendtSøknadDao = SendtSøknadDao(dataSource)
+    val vedtakFattetDao = VedtakFattetDao(dataSource)
 
     return RapidApplication.create(environment).apply {
         SendtSøknadArbeidsgiverRiver(this, sendtSøknadDao)
         SendtSøknadNavRiver(this, sendtSøknadDao)
+        VedtakFattetRiver(this, vedtakFattetDao)
     }
 }
