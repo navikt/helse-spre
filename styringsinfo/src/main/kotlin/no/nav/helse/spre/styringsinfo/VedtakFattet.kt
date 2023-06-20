@@ -10,5 +10,6 @@ data class VedtakFattet(
     val tom: LocalDate,
     val vedtakFattetTidspunkt: LocalDateTime,
     val hendelseId: UUID,
-    val melding: String
+    val melding: String,
+    val hendelser: List<UUID>
 )

@@ -47,6 +47,7 @@ internal fun JsonMessage.toVedtakFattet(): VedtakFattet {
         tom = this["tom"].asLocalDate(),
         vedtakFattetTidspunkt = this["vedtakFattetTidspunkt"].asLocalDateTime(),
         hendelseId = UUID.fromString(this["@id"].asText()),
+        hendelser = hendelseIder,
         melding = this.toJson()
     )
 }

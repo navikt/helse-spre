@@ -1,5 +1,6 @@
 package no.nav.helse.spre.styringsinfo.db
 
+import kotliquery.Session
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.VedtakFattet
@@ -46,6 +47,11 @@ class VedtakFattetDaoTest : AbstractDatabaseTest() {
             tom = LocalDate.parse("2023-06-11"),
             vedtakFattetTidspunkt = LocalDateTime.parse("2023-06-01T00:00:00.0"),
             hendelseId = UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"),
+            hendelser = listOf(
+                UUID.fromString("65ca68fa-0f12-40f3-ac34-141fa77c4270"),
+                UUID.fromString("6977170d-5a99-4e7f-8d5f-93bda94a9ba3"),
+                UUID.fromString("15aa9c84-a9cc-4787-b82a-d5447aa3fab1")
+            ),
             melding = json
         )
         vedtakFattetDao.lagre(vedtakFattet)
@@ -56,11 +62,11 @@ class VedtakFattetDaoTest : AbstractDatabaseTest() {
         )
     }
 
-    private fun hent(id: UUID) = sessionOf(dataSource).use { session ->
+    private fun hent(vedtakFattetId: UUID) = sessionOf(dataSource).use { session ->
         session.run(
             queryOf(
                 """select fnr, fom, tom, vedtak_fattet_tidspunkt, hendelse_id, melding from vedtak_fattet where hendelse_id = :hendelseId""",
-                mapOf("hendelseId" to id)
+                mapOf("hendelseId" to vedtakFattetId)
             )
                 .map { row ->
                     VedtakFattet(
@@ -69,9 +75,18 @@ class VedtakFattetDaoTest : AbstractDatabaseTest() {
                         tom = row.localDate("tom"),
                         vedtakFattetTidspunkt = row.localDateTime("vedtak_fattet_tidspunkt"),
                         hendelseId = row.uuid("hendelse_id"),
+                        hendelser = hentHendelser(vedtakFattetId, session),
                         melding = row.string("melding")
                     )
                 }.asSingle
         )
     }
+
+    private fun hentHendelser(vedtakFattet: UUID, session: Session): List<UUID> =
+        session.run(
+            queryOf(
+                "select dokument_hendelse_id from vedtak_dokument_mapping where vedtak_hendelse_id = :vedtakFattet",
+                mapOf("vedtakFattet" to vedtakFattet)
+            ).map { row -> row.uuid("dokument_hendelse_id") }.asList
+        )
 }
