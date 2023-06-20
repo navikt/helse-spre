@@ -1,0 +1,7 @@
+strategy: Recreate
+kafkaPool: nav-prod
+kafkaResetPolicy: earliest
+gcp:
+  type: POSTGRES_15
+  databaseName: spre-styringsinfo
+  envVarPrefix: DATABASE
