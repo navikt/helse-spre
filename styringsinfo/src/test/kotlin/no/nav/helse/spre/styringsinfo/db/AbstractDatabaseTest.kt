@@ -2,10 +2,23 @@ package no.nav.helse.spre.styringsinfo.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import kotliquery.queryOf
+import kotliquery.sessionOf
 import org.flywaydb.core.Flyway
+import org.junit.jupiter.api.BeforeAll
 import org.testcontainers.containers.PostgreSQLContainer
 
 abstract class AbstractDatabaseTest {
+
+    @BeforeAll
+    fun truncateAllTheTings() {
+        sessionOf(dataSource).use { session ->
+            session.run(
+                queryOf(
+                    """truncate sendt_soknad"""
+                ).asUpdate)
+        }
+    }
 
     companion object {
         private val postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {

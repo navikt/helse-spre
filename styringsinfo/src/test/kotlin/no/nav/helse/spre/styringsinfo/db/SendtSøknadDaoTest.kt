@@ -39,7 +39,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
 
         val sendtSøknad = SendtSøknad(
             sendt = LocalDateTime.parse("2023-06-01T00:00:00.0"),
-            korrigerer = UUID.randomUUID(),
+            korrigerer = UUID.fromString("4c6f931d-63b6-3ff7-b3bc-74d1ad627201"),
             fnr = "12345678910",
             fom = LocalDate.parse("2023-06-05"),
             tom = LocalDate.parse("2023-06-11"),
