@@ -6,8 +6,10 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.TestInstance
 import org.testcontainers.containers.PostgreSQLContainer
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class AbstractDatabaseTest {
 
     @BeforeAll
