@@ -1,7 +1,10 @@
 package no.nav.helse.spre.styringsinfo.db
 
+import kotliquery.queryOf
+import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.SendtSøknad
 import no.nav.helse.spre.styringsinfo.SendtSøknadDao
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -24,6 +27,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
 
         val json = """
             {
+              "@id": "08a92c25-0e59-452f-ba60-83b7515de8e5",
               "sendtArbeidsgiver": "2023-06-01T00:00:00.0",
               "sendtNav": null,
               "korrigerer": "4c6f931d-63b6-3ff7-b3bc-74d1ad627201",
@@ -39,9 +43,34 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
             fnr = "12345678910",
             fom = LocalDate.parse("2023-06-05"),
             tom = LocalDate.parse("2023-06-11"),
-            hendelseId = UUID.randomUUID(),
+            hendelseId = UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"),
             melding = json
         )
         sendtSøknadDao.lagre(sendtSøknad)
+
+        assertEquals(
+            sendtSøknad,
+            hent(UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"))
+        )
+    }
+
+    private fun hent(id: UUID) = sessionOf(dataSource).use { session ->
+        session.run(
+            queryOf(
+                """select sendt, korrigerer, fnr, fom, tom, hendelse_id, melding from sendt_soknad where hendelse_id = :hendelseId""",
+                mapOf("hendelseId" to id)
+            )
+                .map { row ->
+                    SendtSøknad(
+                        sendt = row.localDateTime("sendt"),
+                        korrigerer = row.uuidOrNull("korrigerer"),
+                        fnr = row.string("fnr"),
+                        fom = row.localDate("fom"),
+                        tom = row.localDate("tom"),
+                        hendelseId = row.uuid("hendelse_id"),
+                        melding = row.string("melding")
+                    )
+                }.asSingle
+        )
     }
 }
