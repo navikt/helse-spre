@@ -45,14 +45,14 @@ class VedtakFattetDaoTest : AbstractDatabaseTest() {
             fom = LocalDate.parse("2023-06-05"),
             tom = LocalDate.parse("2023-06-11"),
             vedtakFattetTidspunkt = LocalDateTime.parse("2023-06-01T00:00:00.0"),
-            hendelseId = UUID.fromString("65ca68fa-0f12-40f3-ac34-141fa77c4270"),
+            hendelseId = UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"),
             melding = json
         )
         vedtakFattetDao.lagre(vedtakFattet)
 
         assertEquals(
             vedtakFattet,
-            hent(UUID.fromString("65ca68fa-0f12-40f3-ac34-141fa77c4270"))
+            hent(UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"))
         )
     }
 
