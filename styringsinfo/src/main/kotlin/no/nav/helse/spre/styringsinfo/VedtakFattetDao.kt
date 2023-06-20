@@ -11,19 +11,23 @@ class VedtakFattetDao(private val datasource: DataSource) {
     fun lagre(vedtakFattet: VedtakFattet) {
         @Language("PostgreSQL")
         val query = """INSERT INTO vedtak_fattet (fnr, fom, tom, vedtak_fattet_tidspunkt, hendelse_id, melding) 
-            VALUES (?,?,?,?,?,CAST(? as json)) 
+            VALUES (:fnr,:fom,:tom,:vedtak_fattet_tidspunkt, :hendelse_id,CAST(:melding as json)) 
             ON CONFLICT DO NOTHING;""".trimIndent()
 
         sessionOf(datasource).use { session ->
-            session.run(queryOf(
-                query,
-                vedtakFattet.fnr,
-                vedtakFattet.fom,
-                vedtakFattet.tom,
-                vedtakFattet.vedtakFattetTidspunkt,
-                vedtakFattet.hendelseId,
-                vedtakFattet.melding
-            ).asUpdate)
+            session.run(
+                queryOf(
+                    query,
+                    mapOf(
+                        "fnr" to vedtakFattet.fnr,
+                        "fom" to vedtakFattet.fom,
+                        "tom" to vedtakFattet.tom,
+                        "vedtak_fattet_tidspunkt" to vedtakFattet.vedtakFattetTidspunkt,
+                        "hendelse_id" to vedtakFattet.hendelseId,
+                        "melding" to vedtakFattet.melding
+                    )
+                ).asUpdate
+            )
         }
     }
 }
