@@ -60,6 +60,11 @@ spec:
         databases:
           - name: {{gcp.databaseName}}
             envVarPrefix: {{#if gcp.envVarPrefix}}{{ gcp.envVarPrefix }}{{else}}DB{{/if}}
+        {{#if gcp.datastream}}
+        flags:
+          - name: cloudsql.logical_decoding
+            value: "on"
+        {{/if}}
   {{/if}}
   prometheus:
     enabled: true
