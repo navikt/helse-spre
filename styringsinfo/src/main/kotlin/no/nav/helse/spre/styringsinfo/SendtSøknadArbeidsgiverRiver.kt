@@ -23,7 +23,7 @@ internal class SendtSøknadArbeidsgiverRiver(
                 it.requireKey("@id", "fnr")
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
-                it.require("sendtArbeidsgiver", JsonNode::asLocalDate)
+                it.require("sendtArbeidsgiver", JsonNode::asLocalDateTime)
                 it.interestedIn("korrigerer")
             }
         }.register(this)

@@ -23,7 +23,7 @@ internal class SendtSøknadNavRiver(
                 it.requireKey("@id", "fnr")
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
-                it.require("sendtNav", JsonNode::asLocalDate)
+                it.require("sendtNav", JsonNode::asLocalDateTime)
                 it.interestedIn("korrigerer")
             }
         }.register(this)
