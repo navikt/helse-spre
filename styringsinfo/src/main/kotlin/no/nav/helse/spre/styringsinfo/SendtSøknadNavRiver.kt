@@ -48,5 +48,6 @@ internal fun JsonMessage.toSendtSøknadNav(): SendtSøknad =
         fnr = this["fnr"].asText(),
         fom = this["fom"].asLocalDate(),
         tom = this["tom"].asLocalDate(),
+        hendelseId = UUID.fromString(this["@id"].asText()),
         melding = this.toJson()
     )

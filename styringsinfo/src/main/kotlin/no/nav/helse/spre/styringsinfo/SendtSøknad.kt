@@ -10,6 +10,7 @@ data class SendtSøknad(
     val fnr: String,
     val fom: LocalDate,
     val tom: LocalDate,
-    val melding: String,
+    val hendelseId: UUID,
+    val melding: String
 )
 

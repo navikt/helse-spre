@@ -39,6 +39,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
             fnr = "12345678910",
             fom = LocalDate.parse("2023-06-05"),
             tom = LocalDate.parse("2023-06-11"),
+            hendelseId = UUID.randomUUID(),
             melding = json
         )
         sendtSøknadDao.lagre(sendtSøknad)
