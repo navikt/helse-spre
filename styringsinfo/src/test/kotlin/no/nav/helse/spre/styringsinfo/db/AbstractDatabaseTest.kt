@@ -15,7 +15,7 @@ abstract class AbstractDatabaseTest {
         sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
-                    """truncate sendt_soknad"""
+                    """truncate sendt_soknad; truncate vedtak_fattet; truncate vedtak_dokument_mapping;"""
                 ).asUpdate)
         }
     }

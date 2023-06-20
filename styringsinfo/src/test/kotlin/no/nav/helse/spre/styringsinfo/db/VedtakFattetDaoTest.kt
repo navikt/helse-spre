@@ -1,6 +1,6 @@
 package no.nav.helse.spre.styringsinfo.db
 
-import kotliquery.Session
+import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.VedtakFattet
@@ -63,27 +63,29 @@ class VedtakFattetDaoTest : AbstractDatabaseTest() {
     }
 
     private fun hent(vedtakFattetId: UUID) = sessionOf(dataSource).use { session ->
-        session.run(
-            queryOf(
-                """select fnr, fom, tom, vedtak_fattet_tidspunkt, hendelse_id, melding from vedtak_fattet where hendelse_id = :hendelseId""",
-                mapOf("hendelseId" to vedtakFattetId)
+        session.transaction { tx ->
+            tx.run(
+                queryOf(
+                    """select fnr, fom, tom, vedtak_fattet_tidspunkt, hendelse_id, melding from vedtak_fattet where hendelse_id = :hendelseId""",
+                    mapOf("hendelseId" to vedtakFattetId)
+                )
+                    .map { row ->
+                        VedtakFattet(
+                            fnr = row.string("fnr"),
+                            fom = row.localDate("fom"),
+                            tom = row.localDate("tom"),
+                            vedtakFattetTidspunkt = row.localDateTime("vedtak_fattet_tidspunkt"),
+                            hendelseId = row.uuid("hendelse_id"),
+                            hendelser = hentHendelser(vedtakFattetId, tx),
+                            melding = row.string("melding")
+                        )
+                    }.asSingle
             )
-                .map { row ->
-                    VedtakFattet(
-                        fnr = row.string("fnr"),
-                        fom = row.localDate("fom"),
-                        tom = row.localDate("tom"),
-                        vedtakFattetTidspunkt = row.localDateTime("vedtak_fattet_tidspunkt"),
-                        hendelseId = row.uuid("hendelse_id"),
-                        hendelser = hentHendelser(vedtakFattetId, session),
-                        melding = row.string("melding")
-                    )
-                }.asSingle
-        )
+        }
     }
 
-    private fun hentHendelser(vedtakFattet: UUID, session: Session): List<UUID> =
-        session.run(
+    private fun hentHendelser(vedtakFattet: UUID, tx: TransactionalSession): List<UUID> =
+        tx.run(
             queryOf(
                 "select dokument_hendelse_id from vedtak_dokument_mapping where vedtak_hendelse_id = :vedtakFattet",
                 mapOf("vedtakFattet" to vedtakFattet)
