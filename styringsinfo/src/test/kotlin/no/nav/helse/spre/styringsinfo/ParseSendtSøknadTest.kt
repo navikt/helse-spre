@@ -12,7 +12,7 @@ import java.util.UUID
 class ParseSendtSøknadTest {
 
     @Test
-    internal fun `parser alle felter i sendt_søknad-melding`() {
+    internal fun `parser alle felter i sendt_søknad_arbeidsgiver-melding`() {
         val json = """
             {
               "sendtArbeidsgiver": "2023-06-01T00:00:00.0",
@@ -27,7 +27,7 @@ class ParseSendtSøknadTest {
             this.interestedIn("sendtArbeidsgiver", "sendtNav", "korrigerer", "fnr", "fom", "tom")
         }
         message.toJson()
-        val sendtSøknad = message.toSendtSøknad()
+        val sendtSøknad = message.toSendtSøknadArbeidsgiver()
         val expected = SendtSøknad(
             sendt = LocalDateTime.parse("2023-06-01T00:00:00.0"),
             korrigerer = UUID.fromString("4c6f931d-63b6-3ff7-b3bc-74d1ad627201"),
@@ -40,7 +40,7 @@ class ParseSendtSøknadTest {
     }
 
     @Test
-    internal fun `hånterer null-verdi for feltet "korrigerer" og "sendtArbeidsgiver"`() {
+    internal fun `parser alle felter i sendt_søknad_nav-melding`() {
         val json = """
             {
               "sendtArbeidsgiver": null,
@@ -54,9 +54,8 @@ class ParseSendtSøknadTest {
         val message = JsonMessage(json, MessageProblems(json)).apply {
             this.interestedIn("sendtArbeidsgiver", "sendtNav", "korrigerer", "fnr", "fom", "tom")
         }
-        val sendtSøknad = message.toSendtSøknad()
+        val sendtSøknad = message.toSendtSøknadNav()
         assertNull(sendtSøknad.korrigerer)
-        // Dersom sendtArbeidsgiver er null skal sendtNav brukes til å populere sendt (og motsatt). En av de vil alltid være satt.
         assertEquals(LocalDateTime.parse("2023-06-01T00:00:00.0"), sendtSøknad.sendt)
     }
 }

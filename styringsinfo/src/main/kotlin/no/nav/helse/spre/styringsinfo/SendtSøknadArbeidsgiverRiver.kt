@@ -11,7 +11,7 @@ import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.toUUID
 import java.util.UUID
 
-class SendtSøknadRiver(
+internal class SendtSøknadArbeidsgiverRiver(
     rapidsConnection: RapidsConnection,
     private val sendtSøknadDao: SendtSøknadDao,
 ) : River.PacketListener {
@@ -19,31 +19,31 @@ class SendtSøknadRiver(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandAny("@event_name", listOf("sendt_søknad_nav", "sendt_søknad_arbeidsgiver"))
+                it.demandValue("@event_name", "sendt_søknad_arbeidsgiver")
                 it.requireKey("@id", "fnr")
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
-                it.interestedIn("korrigerer", "sendtArbeidsgiver", "sendtNav")
+                it.require("sendtArbeidsgiver", JsonNode::asLocalDate)
+                it.interestedIn("korrigerer")
             }
         }.register(this)
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        sikkerLogg.error("forstår ikke sendt_søknad_nav:\n${problems.toExtendedReport()}")
+        sikkerLogg.error("forstår ikke sendt_søknad_arbeidsgiver:\n${problems.toExtendedReport()}")
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val id = UUID.fromString(packet["@id"].asText())
         log.info("Leser inn og lagrer melding $id")
-        val sendtSøknad = packet.toSendtSøknad()
+        val sendtSøknad = packet.toSendtSøknadArbeidsgiver()
         sendtSøknadDao.lagre(sendtSøknad)
     }
 }
 
-fun JsonMessage.toSendtSøknad(): SendtSøknad =
+internal fun JsonMessage.toSendtSøknadArbeidsgiver(): SendtSøknad =
     SendtSøknad(
-        sendt = this["sendtArbeidsgiver"].takeIf { !it.isNull }?.asLocalDateTime()
-            ?: this["sendtNav"].asLocalDateTime(),
+        sendt = this["sendtArbeidsgiver"].asLocalDateTime(),
         korrigerer = this["korrigerer"].takeIf { !it.isNull }?.asText()?.toUUID(),
         fnr = this["fnr"].asText(),
         fom = this["fom"].asLocalDate(),
