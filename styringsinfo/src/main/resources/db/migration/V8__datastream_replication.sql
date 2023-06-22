@@ -1,0 +1,1 @@
+SELECT PG_CREATE_LOGICAL_REPLICATION_SLOT ('spre_styringsinfo_replication', 'pgoutput');

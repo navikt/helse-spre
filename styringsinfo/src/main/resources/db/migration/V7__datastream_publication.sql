@@ -1,0 +1,1 @@
+CREATE PUBLICATION spre_styringsinfo_publication for ALL TABLES;
