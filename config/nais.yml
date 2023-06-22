@@ -60,6 +60,10 @@ spec:
         databases:
           - name: {{gcp.databaseName}}
             envVarPrefix: {{#if gcp.envVarPrefix}}{{ gcp.envVarPrefix }}{{else}}DB{{/if}}
+            {{#if gcp.datastream}}
+            users:
+              - name: bigquery-datastream
+            {{/if}}
         {{#if gcp.datastream}}
         flags:
           - name: cloudsql.logical_decoding
