@@ -6,7 +6,6 @@ on:
 env:
   DOCKER_REGISTRY: ghcr.io
   DOCKER_IMAGE_PREFIX: ${{ github.repository }}/spreapp-
-  SNYK_ORG: tbd-ty7
   RESOURCE: config/nais.yml
   TEAM: tbd
 
@@ -146,18 +145,3 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           VAR: team=${{ needs.generate_vars.outputs.team }},app=${{ matrix.project }},git_sha=${{ github.sha }}
 
-  snyk:
-    name: check vulnerabilities
-    needs: generate_vars
-    # only check for vulns if any code has been changed
-    if: needs.generate_vars.outputs.emptyMatrix == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Gradle vulnerability check
-        uses: snyk/actions/gradle@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --debug --all-sub-projects --org=tbd-ty7 --fail-on=all --configuration-matching='^runtimeClasspath'
-          command: monitor
