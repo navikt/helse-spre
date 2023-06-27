@@ -20,10 +20,12 @@ fun launchApplication(environment: Map<String, String>): RapidsConnection {
 
     val sendtSøknadDao = SendtSøknadDao(dataSource)
     val vedtakFattetDao = VedtakFattetDao(dataSource)
+    val vedtakForkastetDao = VedtakForkastetDao(dataSource)
 
     return RapidApplication.create(environment).apply {
         SendtSøknadArbeidsgiverRiver(this, sendtSøknadDao)
         SendtSøknadNavRiver(this, sendtSøknadDao)
         VedtakFattetRiver(this, vedtakFattetDao)
+        VedtakForkastetRiver(this, vedtakForkastetDao)
     }
 }
