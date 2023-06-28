@@ -475,7 +475,7 @@ internal abstract class AbstractE2ETest {
         internal val dokumenttittel: String,
         internal val lesbarTittel: String
     ) {
-        UTBETALING("Vedtak om sykepenger", "Sykepenger behandlet i ny løsning", "utbetalt"),
+        UTBETALING("Vedtak om sykepenger", "Sykepenger behandlet i ny løsning", "utbetaling av"),
         REVURDERING("Vedtak om revurdering av sykepenger", "Sykepenger revurdert i ny løsning", "revurdering av")
     }
 }
