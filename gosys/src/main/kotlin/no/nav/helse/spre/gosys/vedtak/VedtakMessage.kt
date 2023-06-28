@@ -167,7 +167,7 @@ data class VedtakMessage(
     private fun lesbarTittel(): String {
         return when (this.type) {
             Utbetalingtype.UTBETALING -> "utbetalt"
-            Utbetalingtype.ETTERUTBETALING -> "etterutbetaling av"
+            Utbetalingtype.ETTERUTBETALING -> "etterbetaling av"
             Utbetalingtype.REVURDERING -> "revurdering av"
             Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
         }
