@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
@@ -68,38 +69,7 @@ data class Utbetaling(
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
 
     companion object {
-        fun fromJson(packet: JsonMessage): Utbetaling {
-            return Utbetaling(
-                utbetalingId = packet["utbetalingId"].let { UUID.fromString(it.asText()) },
-                fødselsnummer = packet["fødselsnummer"].asText(),
-                aktørId = packet["aktørId"].asText(),
-                organisasjonsnummer = packet["organisasjonsnummer"].asText(),
-                fom = packet["fom"].asLocalDate(),
-                tom = packet["tom"].asLocalDate(),
-                forbrukteSykedager = packet["forbrukteSykedager"].asInt(),
-                gjenståendeSykedager = packet["gjenståendeSykedager"].asInt(),
-                maksdato = packet["maksdato"].asLocalDate(),
-                automatiskBehandling = packet["automatiskBehandling"].asBoolean(),
-                arbeidsgiverOppdrag = packet["arbeidsgiverOppdrag"].tilOppdragDto(),
-                personOppdrag = packet["personOppdrag"].tilOppdragDto(),
-                type = Utbetalingtype.valueOf(packet["type"].asText()),
-                ident = packet["ident"].asText(),
-                epost = packet["epost"].asText(),
-                vedtaksperiodeIder = packet["vedtaksperiodeIder"].toList()
-                    .map { UUID.fromString(it.asText()) },
-                opprettet = packet["@opprettet"].asLocalDateTime(),
-                ikkeUtbetalingsdager = packet["utbetalingsdager"].toList()
-                    .filter { dag -> erIkkeUtbetaltDag(dag) }
-                    .map { dag ->
-                        UtbetalingdagDto(
-                            dato = dag["dato"].asLocalDate(),
-                            type = dag["type"].asText(),
-                            begrunnelser = dag.path("begrunnelser").takeUnless(JsonNode::isMissingOrNull)
-                                ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList())
-                    }
-            )
-        }
-
+        fun fromJson(packet: JsonMessage) = fromJson(objectMapper.readTree(packet.toJson()))
 
         fun fromJson(packet: JsonNode): Utbetaling {
             return Utbetaling(
