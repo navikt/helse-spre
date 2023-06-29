@@ -3,7 +3,6 @@ package no.nav.helse.spre.gosys.vedtak
 import no.nav.helse.spre.gosys.log
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.MottakerType
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Oppdrag
 import java.time.LocalDate
@@ -72,8 +71,8 @@ data class VedtakMessage(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
         type = lesbarTittel(),
-        linjer = utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver, navn,)
-            .slåSammen(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person, navn,)),
+        linjer = utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver, navn)
+            .slåSammen(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person, navn)),
         personOppdrag = personOppdrag(),
         arbeidsgiverOppdrag = arbeidsgiverOppdrag(),
         fødselsnummer = fødselsnummer,
@@ -122,48 +121,6 @@ data class VedtakMessage(
             if (utbetalingslinjer.isNotEmpty()) Oppdrag(fagsystemId = fagsystemId) else null
         }
 
-    internal fun toVedtakPdfPayload() = VedtakPdfPayload(
-        fagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
-        totaltTilUtbetaling = utbetaling.arbeidsgiverOppdrag.nettoBeløp,
-        type = lesbarTittel(),
-        linjer = utbetaling.arbeidsgiverOppdrag.linjer(MottakerType.Arbeidsgiver),
-        personOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.personOppdrag.linjer(MottakerType.Person)),
-        arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag(utbetaling.arbeidsgiverOppdrag.linjer(MottakerType.Arbeidsgiver)),
-        dagsats = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.takeIf { it.isNotEmpty() }?.first()?.dagsats,
-        fødselsnummer = fødselsnummer,
-        fom = fom,
-        tom = tom,
-        behandlingsdato = opprettet.toLocalDate(),
-        organisasjonsnummer = organisasjonsnummer,
-        dagerIgjen = gjenståendeSykedager,
-        automatiskBehandling = automatiskBehandling,
-        godkjentAv = godkjentAv,
-        maksdato = maksdato,
-        sykepengegrunnlag = sykepengegrunnlag,
-        grunnlagForSykepengegrunnlag = grunnlagForSykepengegrunnlag,
-        ikkeUtbetalteDager = ikkeUtbetalteDager
-            .settSammenIkkeUtbetalteDager()
-            .map {
-                VedtakPdfPayload.IkkeUtbetalteDager(
-                    fom = it.fom,
-                    tom = it.tom,
-                    begrunnelser = mapBegrunnelser(it.begrunnelser),
-                    grunn = when (it.type) {
-                        "AvvistDag" -> "Avvist dag"
-                        "Fridag" -> "Ferie/Permisjon"
-                        "Feriedag" -> "Feriedag"
-                        "Permisjonsdag" -> "Permisjonsdag"
-                        "Arbeidsdag" -> "Arbeidsdag"
-                        "Annullering" -> "Annullering"
-                        else -> {
-                            log.error("Ukjent dagtype $it")
-                            "Ukjent dagtype: \"${it.type}\""
-                        }
-                    }
-                )
-            }
-    )
-
     private fun lesbarTittel(): String {
         return when (this.type) {
             Utbetalingtype.UTBETALING -> "utbetaling av"
@@ -172,7 +129,6 @@ data class VedtakMessage(
             Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
         }
     }
-
 
     private fun mapBegrunnelser(begrunnelser: List<String>): List<String> = begrunnelser.map {
         when (it) {
