@@ -1,5 +1,6 @@
 strategy: Recreate
 kafkaPool: nav-prod
+kafkaConsumerGroup: tbd-spre-styringsinfo-v2
 kafkaResetPolicy: earliest
 gcp:
   type: POSTGRES_15
