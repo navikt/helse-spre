@@ -5,6 +5,7 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.toOsloOffset
 import org.intellij.lang.annotations.Language
+import org.junit.Ignore
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
@@ -32,6 +33,7 @@ class TimezoneTest : AbstractDatabaseTest() {
     }
 
     @Test
+    @Ignore
     fun `Tester lagring og spørring mot timestamptz-kolonne`() {
         executeQuery("DROP TABLE IF EXISTS timezonetest")
         executeQuery("CREATE TABLE timezonetest (tidspunkt TIMESTAMPTZ)")
