@@ -31,7 +31,7 @@ class VedtakForkastetDao(private val datasource: DataSource) {
                     "fnr" to vedtakForkastet.fnr,
                     "fom" to vedtakForkastet.fom,
                     "tom" to vedtakForkastet.tom,
-                    "forkastet_tidspunkt" to vedtakForkastet.forkastetTidspunkt,
+                    "forkastet_tidspunkt" to vedtakForkastet.forkastetTidspunkt.toOsloOffset(),
                     "hendelse_id" to vedtakForkastet.hendelseId,
                     "melding" to vedtakForkastet.melding
                 )

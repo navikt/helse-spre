@@ -19,7 +19,7 @@ class SendtSøknadDao(private val datasource: DataSource) {
                 queryOf(
                     query,
                     mapOf(
-                        "sendt" to sendtSøknad.sendt,
+                        "sendt" to sendtSøknad.sendt.toOsloOffset(),
                         "korrigerer" to sendtSøknad.korrigerer,
                         "fnr" to sendtSøknad.fnr,
                         "fom" to sendtSøknad.fom,
