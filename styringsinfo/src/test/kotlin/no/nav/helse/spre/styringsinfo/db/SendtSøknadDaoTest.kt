@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.Calendar
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -48,6 +49,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
         )
         sendtSøknadDao.lagre(sendtSøknad)
 
+        println("Timezone=${Calendar.getInstance().timeZone}")
         assertEquals(
             sendtSøknad,
             hent(UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"))
