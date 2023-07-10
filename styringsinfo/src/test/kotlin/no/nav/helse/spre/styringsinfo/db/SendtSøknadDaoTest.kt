@@ -5,14 +5,13 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.SendtSøknad
 import no.nav.helse.spre.styringsinfo.SendtSøknadDao
 import no.nav.helse.spre.styringsinfo.toOsloOffset
+import no.nav.helse.spre.styringsinfo.toOsloTid
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
-import java.util.Calendar
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -53,9 +52,6 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
 
         sendtSøknadDao.lagre(sendtSøknad)
 
-        println("Timezone JVM: ${Calendar.getInstance().timeZone}")
-        println("Timezone PG: ${hentTimezone()}")
-
         assertEquals(
             sendtSøknad,
             hent(UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"))
@@ -69,11 +65,8 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
                 mapOf("hendelseId" to id)
             )
                 .map { row ->
-                    println("Datostreng: ${row.string("sendt")}")
-                    println("ZonedDT: ${row.zonedDateTime("sendt").withZoneSameInstant(ZoneId.of("Europe/Oslo"))}")
-                    println("LDT: ${row.zonedDateTime("sendt").withZoneSameInstant(ZoneId.of("Europe/Oslo")).toLocalDateTime()}")
                     SendtSøknad(
-                        sendt = row.zonedDateTime("sendt").withZoneSameInstant(ZoneId.of("Europe/Oslo")).toLocalDateTime(),
+                        sendt = row.zonedDateTime("sendt").toOsloTid(),
                         korrigerer = row.uuidOrNull("korrigerer"),
                         fnr = row.string("fnr"),
                         fom = row.localDate("fom"),
@@ -82,14 +75,6 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
                         melding = row.string("melding")
                     )
                 }.asSingle
-        )
-    }
-
-    private fun hentTimezone() = sessionOf(dataSource).use { session ->
-        session.run(
-            queryOf(
-                "show timezone"
-            ).map { it.string(1) }.asSingle
         )
     }
 }

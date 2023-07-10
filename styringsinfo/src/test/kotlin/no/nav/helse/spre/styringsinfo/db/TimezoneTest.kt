@@ -4,6 +4,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.toOsloOffset
+import no.nav.helse.spre.styringsinfo.toOsloTid
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,24 +17,26 @@ import java.util.Calendar
 import java.util.TimeZone
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Disabled("Testen er primært committet som dokumentasjon rundt diverse aspekter knyttet til håndtering av tidspunkter i kombinasjon med tidssoner.")
 class TimezoneTest : AbstractDatabaseTest() {
 
-    lateinit var timeZone: String
+    lateinit var timeZoneDB: String
+    lateinit var timezoneJVM: TimeZone
 
     @BeforeAll
     fun hentTimeZone() {
-        timeZone = hentTimezone()!!
+        timeZoneDB = hentTimezone()!!
+        timezoneJVM = Calendar.getInstance().timeZone
     }
 
     @AfterAll
     fun setSetTimeZone() {
         // Må rydde opp i tilfelle timezone har blitt endret
-        executeQuery("SET TIMEZONE = '$timeZone'")
-        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Oslo"))
+        executeQuery("SET TIMEZONE = '$timeZoneDB'")
+        TimeZone.setDefault(timezoneJVM)
     }
 
     @Test
-    @Disabled
     fun `Tester lagring og spørring mot timestamptz-kolonne`() {
         executeQuery("DROP TABLE IF EXISTS timezonetest")
         executeQuery("CREATE TABLE timezonetest (tidspunkt TIMESTAMPTZ)")
@@ -48,7 +51,7 @@ class TimezoneTest : AbstractDatabaseTest() {
 
         // Postgres forventes å vise en streng-representasjon av tidspunktet med Oslo-offset (selv om tidspunktet alltid er lagret i UTC i databasen).
         assertEquals("2023-06-01 10:00:00+02", hentTidspunkt<String>())
-        // LocalDateTime som hentes opp forventes også å representere testens "baseline-Oslo-tidspunkt".
+        // LocalDateTime hentes vha ZonedDateTime for tidssone Oslo og skal følgelig være på Oslo-tid.
         assertEquals(tidspunkt, hentTidspunkt<LocalDateTime>())
 
         // Endrer timezone i postgres
@@ -57,18 +60,19 @@ class TimezoneTest : AbstractDatabaseTest() {
 
         // Nå forventes det at postgres viser en streng-representasjon som reflekterer ny timezone (UTC). Den underliggende lagrede verdien er uforandret.
         assertEquals("2023-06-01 08:00:00+00", hentTidspunkt<String>())
-        // LocalDateTime som hentes opp forventes fremdeles å representere Oslo-tid ettersom denne baserer seg på timezone satt på JVM, uavhengig av databasen.
+        // LocalDateTime hentes vha ZonedDateTime for tidssone Oslo og skal være uforandret på Oslo-tid.
         assertEquals(tidspunkt, hentTidspunkt<LocalDateTime>())
 
         // Endrer timezone på JVM. NB: Kan potensielt gi krøll dersom tester kjøres i parallell.
-        assertEquals(TimeZone.getTimeZone("Europe/Oslo"), Calendar.getInstance().timeZone)
         TimeZone.setDefault(TimeZone.getTimeZone("Europe/Helsinki"))
         assertEquals(TimeZone.getTimeZone("Europe/Helsinki"), Calendar.getInstance().timeZone)
 
         // Forventer ingen endring i oppførsel til postgres, skal fremdeles hente ut ihht sin konfigurerte timezone (UTC).
         assertEquals("2023-06-01 08:00:00+00", hentTidspunkt<String>())
-        // LocalDateTime som hentes opp forventes derimot å representere Helsinki-tid.
-        assertEquals(tidspunkt.plusHours(1), hentTidspunkt<LocalDateTime>())
+        // LocalDateTime hentes vha ZonedDateTime for tidssone Oslo og skal være uforandret på Oslo-tid.
+        assertEquals(tidspunkt, hentTidspunkt<LocalDateTime>())
+        // LocalDateTime som hentes opp uten eksplisitt sone forventes å representere Helsinki-tid.
+        assertEquals(tidspunkt.plusHours(1), hentTidspunktSomLocalDateTimeUtenSoneangivelse())
     }
 }
 
@@ -86,17 +90,24 @@ private fun hentTimezone() = sessionOf(dataSource).use { session ->
     )
 }
 
-inline fun <reified T> hentTidspunkt(): T =
+private inline fun <reified T> hentTidspunkt(): T =
     sessionOf(dataSource).use { session ->
         session.single<T>(
             queryOf("SELECT tidspunkt FROM timezonetest")
         ) {
             when (T::class.java) {
                 String::class.java -> return@single it.string("tidspunkt") as T
-                LocalDateTime::class.java -> return@single it.localDateTime("tidspunkt") as T
+                LocalDateTime::class.java -> return@single it.zonedDateTime("tidspunkt").toOsloTid() as T
                 else -> throw Exception()
             }
         }!!
+    }
+
+private fun hentTidspunktSomLocalDateTimeUtenSoneangivelse() =
+    sessionOf(dataSource).use { session ->
+        session.single(
+            queryOf("SELECT tidspunkt FROM timezonetest")
+        ) {it.localDateTime("tidspunkt") }
     }
 
 private fun lagre(tidspunkt: LocalDateTime) = sessionOf(dataSource).use { session ->

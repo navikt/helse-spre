@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 
 internal val log: Logger = LoggerFactory.getLogger("sprestyringsinfo")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
@@ -35,3 +36,6 @@ fun launchApplication(environment: Map<String, String>): RapidsConnection {
 
 fun LocalDateTime.toOsloOffset(): OffsetDateTime =
     this.atOffset(ZoneId.of("Europe/Oslo").rules.getOffset(this))
+
+fun ZonedDateTime.toOsloTid(): LocalDateTime =
+    this.withZoneSameInstant(ZoneId.of("Europe/Oslo")).toLocalDateTime()

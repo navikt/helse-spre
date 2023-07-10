@@ -5,6 +5,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.VedtakForkastet
 import no.nav.helse.spre.styringsinfo.VedtakForkastetDao
+import no.nav.helse.spre.styringsinfo.toOsloTid
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -74,7 +75,7 @@ class VedtakForkastetDaoTest : AbstractDatabaseTest() {
                             fnr = row.string("fnr"),
                             fom = row.localDate("fom"),
                             tom = row.localDate("tom"),
-                            forkastetTidspunkt = row.localDateTime("forkastet_tidspunkt"),
+                            forkastetTidspunkt = row.zonedDateTime("forkastet_tidspunkt").toOsloTid(),
                             hendelseId = row.uuid("hendelse_id"),
                             hendelser = hentHendelser(vedtakForkastet, tx),
                             melding = row.string("melding")
