@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Calendar
 import java.util.UUID
 
@@ -69,8 +70,10 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
             )
                 .map { row ->
                     println("Datostreng: ${row.string("sendt")}")
+                    println("ZonedDT: ${row.zonedDateTime("sendt").withZoneSameInstant(ZoneId.of("Europe/Oslo"))}")
+                    println("LDT: ${row.zonedDateTime("sendt").withZoneSameInstant(ZoneId.of("Europe/Oslo")).toLocalDateTime()}")
                     SendtSøknad(
-                        sendt = row.offsetDateTime("sendt").toLocalDateTime(),
+                        sendt = row.zonedDateTime("sendt").withZoneSameInstant(ZoneId.of("Europe/Oslo")).toLocalDateTime(),
                         korrigerer = row.uuidOrNull("korrigerer"),
                         fnr = row.string("fnr"),
                         fom = row.localDate("fom"),
