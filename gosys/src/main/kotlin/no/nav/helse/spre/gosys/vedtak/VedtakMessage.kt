@@ -142,6 +142,13 @@ data class VedtakMessage(
             "ManglerMedlemskap" -> "Krav til medlemskap er ikke oppfylt"
             "EtterDødsdato" -> "Personen er død"
             "Over70" -> "Personen er 70 år eller eldre"
+            "AndreYtelserAap" -> "Personen mottar Aap"
+            "AndreYtelserDagpenger" -> "Personen mottar Dagpenger"
+            "AndreYtelserForeldrepenger" -> "Personen mottar Foreldrepenger"
+            "AndreYtelserOmsorgspenger" -> "Personen mottar Omsorgspenger"
+            "AndreYtelserOpplaringspenger" -> "Personen mottar Opplæringspenger"
+            "AndreYtelserPleiepenger" -> "Personen mottar Pleiepenger"
+            "AndreYtelserSvangerskapspenger" -> "Personen mottar Svangerskapspenger"
             else -> {
                 log.error("Ukjent begrunnelse $it")
                 "Ukjent begrunnelse: \"${it}\""
