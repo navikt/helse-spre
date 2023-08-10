@@ -56,6 +56,23 @@ internal class UtbetalingUtenUtbetalingRiver(
                 it.require("maksdato", JsonNode::asLocalDate)
                 it.require("@opprettet", JsonNode::asLocalDateTime)
                 it.require("utbetalingId") { id -> UUID.fromString(id.asText()) }
+
+                it.requireKey("arbeidsgiverOppdrag.mottaker", "arbeidsgiverOppdrag.fagområde", "arbeidsgiverOppdrag.fagsystemId",
+                    "arbeidsgiverOppdrag.nettoBeløp")
+                it.requireArray("arbeidsgiverOppdrag.linjer") {
+                    require("fom", JsonNode::asLocalDate)
+                    require("tom", JsonNode::asLocalDate)
+                    requireKey("sats", "totalbeløp", "grad", "stønadsdager")
+                    interestedIn("statuskode")
+                }
+                it.requireKey("personOppdrag.mottaker", "personOppdrag.fagområde", "personOppdrag.fagsystemId",
+                    "personOppdrag.nettoBeløp")
+                it.requireArray("personOppdrag.linjer") {
+                    require("fom", JsonNode::asLocalDate)
+                    require("tom", JsonNode::asLocalDate)
+                    requireKey("sats", "totalbeløp", "grad", "stønadsdager")
+                    interestedIn("statuskode")
+                }
             }
         }.register(this)
     }

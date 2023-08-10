@@ -114,7 +114,7 @@ data class Utbetaling(
                     OppdragDto.UtbetalingslinjeDto(
                         fom = linje["fom"].asLocalDate(),
                         tom = linje["tom"].asLocalDate(),
-                        dagsats = linje["dagsats"].asInt(),
+                        dagsats = (linje.path("sats").takeUnless { it.isMissingOrNull() } ?: linje.path("dagsats")).asInt(),
                         totalbeløp = linje["totalbeløp"].asInt(),
                         grad = linje["grad"].asDouble(),
                         stønadsdager = linje["stønadsdager"].asInt(),

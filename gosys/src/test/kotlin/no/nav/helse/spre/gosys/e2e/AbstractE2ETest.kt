@@ -433,14 +433,14 @@ internal abstract class AbstractE2ETest {
                 sykdomstidslinje = sykdomstidslinje,
                 personOppdrag = Oppdrag(
                     sykdomstidslinje,
-                    dagsats = 700,
+                    sats = 700,
                     mottaker = fødselsnummer,
                     fagområde = "SP",
                     fagsystemId = "fagsystemIdPerson"
                 ),
                 arbeidsgiverOppdrag = Oppdrag(
                     sykdomstidslinje,
-                    dagsats = 741,
+                    sats = 741,
                     mottaker = orgnummer,
                     fagområde = "SPREF",
                     fagsystemId = "fagsystemIdArbeidsgiver"

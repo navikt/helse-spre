@@ -2,7 +2,6 @@ package no.nav.helse.spre.testhelpers
 
 import java.time.DayOfWeek
 import java.time.LocalDateTime
-import kotlin.streams.toList
 
 /* Typet objekt for å lage en json-representasjon av et oppdrag, til bruk i test av
 * eventet utbetaling_utbetalt (og potensielt andre eventer)
@@ -11,9 +10,8 @@ import kotlin.streams.toList
 
 class Oppdrag(
     private val tidslinje: List<Dag>,
-    private val dagsats: Int = 1431,
+    private val sats: Int = 1431,
     private val grad: Double = 100.0,
-    private val lønn: Int = 2193,
     private val mottaker: String = "123456789",
     private val fagområde: String = "SPREF",
     private val fagsystemId: String = "fagsystemId",
@@ -21,7 +19,7 @@ class Oppdrag(
 ) {
 
     fun toJson(): String {
-        val linjer = Linjer(tidslinje, grad, lønn, dagsats)
+        val linjer = Linjer(tidslinje, grad, sats)
         val stønadsdager = tidslinje.count {
             it.type == Dagtype.UTBETALINGSDAG && it.dato.dayOfWeek !in listOf(
                 DayOfWeek.SATURDAY,
@@ -32,7 +30,7 @@ class Oppdrag(
              "linjer": ${linjer.toJson()},
              "stønadsdager": $stønadsdager,
              "fagområde": "$fagområde",
-             "nettoBeløp": ${stønadsdager * dagsats},
+             "nettoBeløp": ${stønadsdager * sats},
              "mottaker": "$mottaker",
              "fagsystemId": "$fagsystemId",
              "tidsstempel": "$tidsstempel",
@@ -49,8 +47,7 @@ class Oppdrag(
     class Linjer(
         tidslinje: List<Dag>,
         private val grad: Double,
-        private val lønn: Int,
-        private val dagsats: Int
+        private val sats: Int
     ) {
 
         private val påbegynt = mutableListOf<Dag>()
@@ -83,10 +80,9 @@ class Oppdrag(
                     """{
                             "fom": "${fom.dato}",
                             "tom": "${tom.dato}",
-                             "dagsats": $dagsats,
-                             "lønn": $lønn,
+                             "sats": $sats,
                              "grad": $grad,
-                             "totalbeløp": ${stønadsdager * dagsats},
+                             "totalbeløp": ${stønadsdager * sats},
                              "stønadsdager": $stønadsdager
                             }"""
                 }

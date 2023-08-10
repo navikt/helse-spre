@@ -38,8 +38,7 @@ internal class OppdragTest {
         assertEquals(6.januar, linje["fom"].asLocalDate())
         assertEquals(13.januar, linje["tom"].asLocalDate())
         assertEquals(5, linje["stønadsdager"].asInt())
-        assertEquals(1431, linje["dagsats"].asInt())
-        assertEquals(2193, linje["lønn"].asInt())
+        assertEquals(1431, linje["sats"].asInt())
         assertEquals(100.0, linje["grad"].asDouble())
     }
 
@@ -68,8 +67,7 @@ internal class OppdragTest {
         assertEquals(6.januar, linje1["fom"].asLocalDate())
         assertEquals(13.januar, linje1["tom"].asLocalDate())
         assertEquals(5, linje1["stønadsdager"].asInt())
-        assertEquals(1431, linje1["dagsats"].asInt())
-        assertEquals(2193, linje1["lønn"].asInt())
+        assertEquals(1431, linje1["sats"].asInt())
         assertEquals(100.0, linje1["grad"].asDouble())
 
         //ASSERT LINJER
@@ -77,8 +75,7 @@ internal class OppdragTest {
         assertEquals(20.januar, linje2["fom"].asLocalDate())
         assertEquals(30.januar, linje2["tom"].asLocalDate())
         assertEquals(7, linje2["stønadsdager"].asInt())
-        assertEquals(1431, linje2["dagsats"].asInt())
-        assertEquals(2193, linje2["lønn"].asInt())
+        assertEquals(1431, linje2["sats"].asInt())
         assertEquals(100.0, linje2["grad"].asDouble())
     }
 }
