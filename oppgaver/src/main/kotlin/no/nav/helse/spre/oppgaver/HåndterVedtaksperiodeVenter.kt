@@ -15,7 +15,7 @@ class HåndterVedtaksperiodeVenter(
         River(rapidsConnection).apply {
             validate { it.requireValue("@event_name", "vedtaksperiode_venter") }
             validate { it.requireKey("hendelser", "@id") }
-            validate { it.demandValue("venterPå.venteårsak.hva", "GODKJENNING") }
+            validate { it.demandAny("venterPå.venteårsak.hva", listOf("GODKJENNING", "SKJØNNSMESSIG_FASTSETTELSE")) }
         }.register(this)
     }
 

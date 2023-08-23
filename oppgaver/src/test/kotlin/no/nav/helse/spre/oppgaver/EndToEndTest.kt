@@ -127,7 +127,41 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter oppgave på forlengelse når perioden før avventer godkjenning`() {
+    fun `utsetter oppgave som venter på skjønnsfastsettelse`() {
+        val søknadHendelseId = UUID.randomUUID()
+        val søknadDokumentId = UUID.fromString("00000000-0000-0000-0000-500000000001")
+        val inntektsmeldingHendelseId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.fromString("00000000-0000-0000-0000-100000000001")
+
+        sendSøknad(søknadHendelseId, søknadDokumentId)
+        sendSøknadHåndtert(søknadHendelseId)
+        assertEquals(1, publiserteOppgaver.size)
+        publiserteOppgaver[0].let { søknadOppgave ->
+            assertEquals(110, søknadOppgave.timeoutIDager)
+            assertEquals(søknadDokumentId, søknadOppgave.dokumentId)
+        }
+
+        sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
+        sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
+        assertEquals(2, publiserteOppgaver.size)
+        publiserteOppgaver[1].let { inntektsmeldingOppgave ->
+            assertEquals(60, inntektsmeldingOppgave.timeoutIDager)
+            assertEquals(inntektsmeldingDokumentId, inntektsmeldingOppgave.dokumentId)
+        }
+
+        sendVedtaksperiodeVenter(listOf(søknadHendelseId, inntektsmeldingHendelseId), "SKJØNNSMESSIG_FASTSETTELSE")
+        publiserteOppgaver[2].let { søknadOppgave ->
+            assertEquals(110, søknadOppgave.timeoutIDager)
+            assertEquals(søknadDokumentId, søknadOppgave.dokumentId)
+        }
+        publiserteOppgaver[3].let { inntektsmeldingOppgave ->
+            assertEquals(60, inntektsmeldingOppgave.timeoutIDager)
+            assertEquals(inntektsmeldingDokumentId, inntektsmeldingOppgave.dokumentId)
+        }
+    }
+
+    @Test
+    fun `utsetter oppgave på forlengelse når perioden før er i avventer godkjenning`() {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.fromString("00000000-0000-0000-0000-500000000001")
 
