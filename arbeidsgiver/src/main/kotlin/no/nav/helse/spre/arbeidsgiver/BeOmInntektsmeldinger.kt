@@ -39,7 +39,7 @@ internal class BeOmInntektsmeldinger(
 
         val payload = packet.tilInntektsmeldingDTO(meldingstype = Meldingstype.TRENGER_INNTEKTSMELDING)
         val topicName = "tbd.aapen-helse-spre-arbeidsgiver"
-        log.info("Publiserer behov for inntektsmelding på vedtak: ${packet["vedtaksperiodeId"].textValue()}:\n{}", objectMapper.writeValueAsString(payload))
+        sikkerLogg.info("Publiserer behov for inntektsmelding på vedtak: ${packet["vedtaksperiodeId"].textValue()}:\n{}", objectMapper.writeValueAsString(payload))
         arbeidsgiverProducer.send(ProducerRecord(
             topicName,
             null,
