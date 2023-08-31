@@ -19,28 +19,29 @@ class Mapper(
 
 
     fun hentSykmeldingIder(hendelseIder: List<UUID>): List<UUID> {
-        val ider = hendelseIder.map { mappingDao.hentSykmeldingId(it) ?: håndterMissingId(it, "sykmelding") }
+        val ider = hendelseIder.mapNotNull { håndterMissingId(mappingDao.hentSykmeldingId(it), "sykmelding") }
         sykmeldingIder.addAll(ider)
         return ider
     }
 
     fun hentSøknadIder(hendelseIder: List<UUID>): List<UUID> {
-        val ider = hendelseIder.map { mappingDao.hentSøknadId(it) ?: håndterMissingId(it, "søkand") }
+        val ider = hendelseIder.mapNotNull { håndterMissingId(mappingDao.hentSøknadId(it), "søkand") }
         søkandIder.addAll(ider)
         return ider
     }
 
     fun hentInntektsmeldingIder(hendelseIder: List<UUID>): List<UUID> {
-        val ider = hendelseIder.map { mappingDao.hentInntektsmeldingId(it) ?: håndterMissingId(it, "inntektsmelding") }
+        val ider = hendelseIder.mapNotNull { håndterMissingId(mappingDao.hentInntektsmeldingId(it), "inntektsmelding") }
         inntektsmeldingIder.addAll(ider)
         return ider
     }
 
-    fun håndterMissingId(hendlseId: UUID, eventName: String): Nothing {
+    fun håndterMissingId(hendlseId: UUID?, eventName: String): UUID? {
+        if (hendlseId != null) return hendlseId
         sikkerLogg.error("Kunne ikke hente dokumentId fra databasen: hendelseId: $hendlseId " +
                 "eventName: $eventName ikke funnet. subsumsjonsId: $subsumsjonsId fødselsnummer: $fødselsnummer " +
                 "sporing: ${objectMapper.writeValueAsString(sporing)}")
-        throw IllegalStateException("Hendelse id: $hendlseId hendelseNavn: $eventName ikke funnet i databasen")
+        return null
     }
 
     fun updateSporing() {
