@@ -12,6 +12,7 @@ internal class SubsumsjonRiver(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "subsumsjon") }
+            validate { it.rejectValue("paragraf", "22-13") }
             validate { it.requireKey("@id") }
             validate { it.requireKey("@opprettet") }
             validate { it.requireKey("subsumsjon") }
