@@ -64,6 +64,8 @@ jobs:
 
   build:
     needs: generate_vars
+    permissions:
+      packages: write
     name: build
     runs-on: ubuntu-latest
     if: needs.generate_vars.outputs.emptyMatrix == 'false'
