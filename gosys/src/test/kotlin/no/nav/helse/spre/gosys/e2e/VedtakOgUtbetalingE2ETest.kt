@@ -710,6 +710,41 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             )
         )
     }
+    @Test
+    fun `Vedtak med bruk av arbeid ikke gjenopptatt setter fom til første dag etter arbeid ikke gjenopptatt`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = utbetalingsdager(1.juni(2023), 5.juni(2023))
+        )
+        testRapid.sendTestMessage(utbetalingUtbetaltMedAig(utbetalingId, vedtaksperiodeId))
+
+        assertJournalpost(
+            expectedJournalpost(
+                journalpostTittel = "Vedtak om revurdering av sykepenger",
+                dokumentTittel = "Sykepenger revurdert i ny løsning, 04.06.2023 - 05.06.2023"
+            )
+        )
+
+        assertVedtakPdf(
+            expectedPdfPayloadV2(
+                fom = 4.juni(2023),
+                tom = 5.juni(2023),
+                totaltTilUtbetaling = 0,
+                maksdato = 27.juni(2024),
+                utbetalingstype = REVURDERING,
+                behandlingsdato = 22.september(2023),
+                dagerIgjen = 215,
+                godkjentAv = "test",
+                linjer = emptyList(),
+                // Nå tar vi ikke med `ArbeidIkkeGjenopptattDag` som en del av `IkkeUtbetalingsdagtyper`
+                // Om vi tar med disse skal med må de legges til, men da får vi i den listen dager som ikke er avgrenset av fom/tom
+                ikkeUtbetalteDager = emptyList()
+            )
+        )
+    }
 
     @Test
     fun `markerer linjer utbetaling_utbetalt som er opphørt i PDFPayloadV2`() {
@@ -1131,4 +1166,79 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     """.trimIndent()
 
 
+    @Language("JSON")
+    private fun utbetalingUtbetaltMedAig(utbetalingId: UUID, vedtaksperiodeId: UUID) =
+        """
+        {
+            "@event_name": "utbetaling_utbetalt",
+            "organisasjonsnummer": "123456789",
+            "utbetalingId": "$utbetalingId",
+            "korrelasjonsId": "8a27c827-90ff-49a5-9079-c190b9ff4a9e",
+            "type": "REVURDERING",
+            "fom": "2023-06-01",
+            "tom": "2023-06-04",
+            "maksdato": "2024-06-27",
+            "forbrukteSykedager": 33,
+            "gjenståendeSykedager": 215,
+            "stønadsdager": 33,
+            "ident": "test",
+            "epost": "test@nav.no",
+            "tidspunkt": "${LocalDateTime.now()}",
+            "automatiskBehandling": false,
+            "arbeidsgiverOppdrag": {
+                "fagsystemId": "44DZ446C52EYP5NSBTKSDCJRLX",
+                "fagområde": "SPREF",
+                "mottaker": "123456789",
+                "nettoBeløp": 0,
+                "stønadsdager": 0,
+                "fom": "-999999999-01-01",
+                "tom": "-999999999-01-01",
+                "linjer": []
+            },
+            "personOppdrag": {
+                "fagsystemId": "9WUTHBNERC2L5CEQKZCN568L6P",
+                "fagområde": "SP",
+                "mottaker": "12345678910",
+                "nettoBeløp": 0,
+                "stønadsdager": 0,
+                "fom": "-999999999-01-01",
+                "tom": "-999999999-01-01",
+                "linjer": []
+            },
+            "utbetalingsdager": [
+                {
+                  "dato": "2023-06-01",
+                  "type": "ArbeidIkkeGjenopptattDag",
+                  "begrunnelser": null
+                },
+                {
+                  "dato": "2023-06-02",
+                  "type": "ArbeidIkkeGjenopptattDag",
+                  "begrunnelser": null
+                },
+                {
+                  "dato": "2023-06-03",
+                  "type": "ArbeidIkkeGjenopptattDag",
+                  "begrunnelser": null
+                },
+                {
+                  "dato": "2023-06-04",
+                  "type": "NavDag",
+                  "begrunnelser": null
+                },
+                {
+                  "dato": "2023-06-05",
+                  "type": "NavDag",
+                  "begrunnelser": null
+                }
+            ],
+            "vedtaksperiodeIder": [
+              "$vedtaksperiodeId"
+            ],
+            "@id": "${UUID.randomUUID()}",
+            "@opprettet": "${LocalDateTime.now()}",
+            "fødselsnummer": "12345678910",
+            "aktørId": "1234567890123"
+        }
+        """
 }

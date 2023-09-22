@@ -31,9 +31,22 @@ data class Utbetaling(
     val ident: String,
     val epost: String,
     val vedtaksperiodeIder: List<UUID>,
-    val ikkeUtbetalingsdager: List<UtbetalingdagDto>,
-    val opprettet: LocalDateTime
+    val opprettet: LocalDateTime,
+    private val utbetalingsdager: List<UtbetalingdagDto>
 ) {
+
+    val ikkeUtbetalingsdager = utbetalingsdager.filter { it.type in IkkeUtbetalingsdagtyper }
+
+    internal fun søknadsperiode(vedtaksperiode: Pair<LocalDate, LocalDate>): Pair<LocalDate, LocalDate> {
+        val dager = utbetalingsdager.filter { it.dato >= vedtaksperiode.first && it.dato <= vedtaksperiode.second }
+
+        val fom = when (dager.none { it.type == "ArbeidIkkeGjenopptattDag" }) {
+            true -> vedtaksperiode.first
+            false -> dager.firstOrNull { it.type != "ArbeidIkkeGjenopptattDag" }?.dato ?: vedtaksperiode.first
+        }
+
+        return fom to vedtaksperiode.second
+    }
 
     private fun alleVedtakOrNull(vedtakFattetDao: VedtakFattetDao) = vedtakFattetDao.finnVedtakFattetData(utbetalingId).let { vedtakFattetHendelser ->
         // Hvis vi har alle vedtak knyttet til utbetalingen kan vi gå videre med opprettelse av dokument
@@ -69,6 +82,8 @@ data class Utbetaling(
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
 
     companion object {
+        private val IkkeUtbetalingsdagtyper = listOf("AvvistDag", "Fridag", "Feriedag", "Permisjonsdag", "Arbeidsdag")
+
         fun fromJson(packet: JsonMessage) = fromJson(objectMapper.readTree(packet.toJson()))
 
         fun fromJson(packet: JsonNode): Utbetaling {
@@ -91,16 +106,7 @@ data class Utbetaling(
                 vedtaksperiodeIder = packet["vedtaksperiodeIder"].toList()
                     .map { UUID.fromString(it.asText()) },
                 opprettet = packet["@opprettet"].asLocalDateTime(),
-                ikkeUtbetalingsdager = packet["utbetalingsdager"].toList()
-                    .filter(::erIkkeUtbetaltDag)
-                    .map { dag ->
-                        UtbetalingdagDto(
-                            dato = dag["dato"].asLocalDate(),
-                            type = dag["type"].asText(),
-                            begrunnelser = dag.path("begrunnelser").takeUnless(JsonNode::isMissingOrNull)
-                                ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList()
-                        )
-                    }
+                utbetalingsdager = packet.utbetalingsdager
             )
         }
 
@@ -124,8 +130,14 @@ data class Utbetaling(
             )
         }
 
-        private fun erIkkeUtbetaltDag(dag: JsonNode) =
-            listOf("AvvistDag", "Fridag", "Feriedag", "Permisjonsdag", "Arbeidsdag").contains(dag["type"].asText())
+        private val JsonNode.utbetalingsdager get() = path("utbetalingsdager").map { dag ->
+            UtbetalingdagDto(
+                dato = dag["dato"].asLocalDate(),
+                type = dag["type"].asText(),
+                begrunnelser = dag.path("begrunnelser").takeUnless(JsonNode::isMissingOrNull)
+                    ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList()
+            )
+        }
     }
 
     data class OppdragDto(

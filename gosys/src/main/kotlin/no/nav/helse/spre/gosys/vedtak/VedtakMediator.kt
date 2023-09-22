@@ -20,8 +20,8 @@ class VedtakMediator(
         skjæringstidspunkt: LocalDate,
         utbetaling: Utbetaling
     ) {
-        val vedtak =
-            VedtakMessage(fom, tom, sykepengegrunnlag, grunnlagForSykepengegrunnlag, skjæringstidspunkt, utbetaling)
+        val (søknadsperiodeFom, søknadsperiodeTom) = utbetaling.søknadsperiode(fom to tom)
+        val vedtak = VedtakMessage(søknadsperiodeFom, søknadsperiodeTom, sykepengegrunnlag, grunnlagForSykepengegrunnlag, skjæringstidspunkt, utbetaling)
         opprettSammenslåttVedtak(vedtak)
     }
 
