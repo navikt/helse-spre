@@ -42,7 +42,6 @@ internal class VedtakForkastetRiver(
 internal fun JsonMessage.toVedtakForkastet(): VedtakForkastet {
     val hendelseIder = this["hendelser"].map { UUID.fromString(it.asText()) }
     return VedtakForkastet(
-        fnr = this["fødselsnummer"].asText(),
         fom = this["fom"].asLocalDate(),
         tom = this["tom"].asLocalDate(),
         forkastetTidspunkt = this["@opprettet"].asLocalDateTime(),

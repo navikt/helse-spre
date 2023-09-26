@@ -42,7 +42,6 @@ internal class VedtakFattetRiver(
 internal fun JsonMessage.toVedtakFattet(): VedtakFattet {
     val hendelseIder = this["hendelser"].map { UUID.fromString(it.asText()) }
     return VedtakFattet(
-        fnr = this["fødselsnummer"].asText(),
         fom = this["fom"].asLocalDate(),
         tom = this["tom"].asLocalDate(),
         vedtakFattetTidspunkt = this["vedtakFattetTidspunkt"].asLocalDateTime(),

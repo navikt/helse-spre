@@ -10,8 +10,8 @@ class SendtSøknadDao(private val datasource: DataSource) {
 
     fun lagre(sendtSøknad: SendtSøknad) {
         @Language("PostgreSQL")
-        val query = """INSERT INTO sendt_soknad (sendt, korrigerer, fnr, fom, tom, hendelse_id, melding) 
-            VALUES (:sendt, :korrigerer, :fnr, :fom, :tom, :hendelse_id,CAST(:melding as json)) 
+        val query = """INSERT INTO sendt_soknad (sendt, korrigerer, fom, tom, hendelse_id, melding)
+            VALUES (:sendt, :korrigerer, :fom, :tom, :hendelse_id,CAST(:melding as json))
             ON CONFLICT DO NOTHING;""".trimIndent()
 
         sessionOf(datasource).use { session ->
@@ -21,7 +21,6 @@ class SendtSøknadDao(private val datasource: DataSource) {
                     mapOf(
                         "sendt" to sendtSøknad.sendt.toOsloOffset(),
                         "korrigerer" to sendtSøknad.korrigerer,
-                        "fnr" to sendtSøknad.fnr,
                         "fom" to sendtSøknad.fom,
                         "tom" to sendtSøknad.tom,
                         "hendelse_id" to sendtSøknad.hendelseId,

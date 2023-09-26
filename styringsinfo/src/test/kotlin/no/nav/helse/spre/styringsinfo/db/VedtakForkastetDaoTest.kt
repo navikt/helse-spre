@@ -43,7 +43,6 @@ class VedtakForkastetDaoTest : AbstractDatabaseTest() {
         """.trimIndent()
 
         val vedtakForkastet = VedtakForkastet(
-            fnr = "12345678910",
             fom = LocalDate.parse("2023-06-05"),
             tom = LocalDate.parse("2023-06-11"),
             forkastetTidspunkt = LocalDateTime.parse("2023-06-01T00:00:00.0"),
@@ -67,12 +66,11 @@ class VedtakForkastetDaoTest : AbstractDatabaseTest() {
         session.transaction { tx ->
             tx.run(
                 queryOf(
-                    """select fnr, fom, tom, forkastet_tidspunkt, hendelse_id, melding from vedtak_forkastet where hendelse_id = :hendelseId""",
+                    """select fom, tom, forkastet_tidspunkt, hendelse_id, melding from vedtak_forkastet where hendelse_id = :hendelseId""",
                     mapOf("hendelseId" to vedtakForkastet)
                 )
                     .map { row ->
                         VedtakForkastet(
-                            fnr = row.string("fnr"),
                             fom = row.localDate("fom"),
                             tom = row.localDate("tom"),
                             forkastetTidspunkt = row.zonedDateTime("forkastet_tidspunkt").toOsloTid(),

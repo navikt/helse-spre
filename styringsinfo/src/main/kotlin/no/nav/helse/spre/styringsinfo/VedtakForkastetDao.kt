@@ -20,15 +20,14 @@ class VedtakForkastetDao(private val datasource: DataSource) {
 
     private fun lagreVedtaket(vedtakForkastet: VedtakForkastet, tx: TransactionalSession) {
         @Language("PostgreSQL")
-        val query = """INSERT INTO vedtak_forkastet (fnr, fom, tom, forkastet_tidspunkt, hendelse_id, melding) 
-            VALUES (:fnr,:fom,:tom,:forkastet_tidspunkt,:hendelse_id,CAST(:melding as json)) 
+        val query = """INSERT INTO vedtak_forkastet (fom, tom, forkastet_tidspunkt, hendelse_id, melding) 
+            VALUES (:fom,:tom,:forkastet_tidspunkt,:hendelse_id,CAST(:melding as json)) 
             ON CONFLICT DO NOTHING;""".trimIndent()
 
         tx.run(
             queryOf(
                 query,
                 mapOf(
-                    "fnr" to vedtakForkastet.fnr,
                     "fom" to vedtakForkastet.fom,
                     "tom" to vedtakForkastet.tom,
                     "forkastet_tidspunkt" to vedtakForkastet.forkastetTidspunkt.toOsloOffset(),

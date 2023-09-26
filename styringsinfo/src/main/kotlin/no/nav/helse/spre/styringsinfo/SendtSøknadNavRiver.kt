@@ -45,7 +45,6 @@ internal fun JsonMessage.toSendtSøknadNav(): SendtSøknad =
     SendtSøknad(
         sendt = this["sendtNav"].asLocalDateTime(),
         korrigerer = this["korrigerer"].takeIf { !it.isNull }?.asText()?.toUUID(),
-        fnr = this["fnr"].asText(),
         fom = this["fom"].asLocalDate(),
         tom = this["tom"].asLocalDate(),
         hendelseId = UUID.fromString(this["@id"].asText()),

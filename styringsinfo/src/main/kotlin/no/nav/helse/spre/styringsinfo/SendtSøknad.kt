@@ -7,7 +7,6 @@ import java.util.UUID
 data class SendtSøknad(
     val sendt: LocalDateTime,
     val korrigerer: UUID?,
-    val fnr: String,
     val fom: LocalDate,
     val tom: LocalDate,
     val hendelseId: UUID,
