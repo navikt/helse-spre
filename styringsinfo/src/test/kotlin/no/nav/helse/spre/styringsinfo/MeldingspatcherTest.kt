@@ -17,7 +17,6 @@ class MeldingspatcherTest {
         val input = SendtSøknad(
             sendt = LocalDateTime.parse("2023-06-01T10:00:00.0"),
             korrigerer = UUID.fromString("4c6f931d-63b6-3ff7-b3bc-74d1ad627201"),
-            fnr = "12345678910",
             fom = LocalDate.parse("2023-06-05"),
             tom = LocalDate.parse("2023-06-11"),
             hendelseId = UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"),
@@ -62,7 +61,6 @@ class MeldingspatcherTest {
         val input = SendtSøknad(
             sendt = LocalDateTime.parse("2023-06-01T10:00:00.0"),
             korrigerer = UUID.fromString("4c6f931d-63b6-3ff7-b3bc-74d1ad627201"),
-            fnr = "12345678910",
             fom = LocalDate.parse("2023-06-05"),
             tom = LocalDate.parse("2023-06-11"),
             hendelseId = UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"),
@@ -99,7 +97,6 @@ class MeldingspatcherTest {
         val input = SendtSøknad(
             sendt = LocalDateTime.parse("2023-06-01T10:00:00.0"),
             korrigerer = UUID.fromString("4c6f931d-63b6-3ff7-b3bc-74d1ad627201"),
-            fnr = "12345678910",
             fom = LocalDate.parse("2023-06-05"),
             tom = LocalDate.parse("2023-06-11"),
             hendelseId = UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"),
