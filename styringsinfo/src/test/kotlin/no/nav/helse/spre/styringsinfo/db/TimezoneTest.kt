@@ -16,8 +16,8 @@ import java.time.LocalDateTime
 import java.util.Calendar
 import java.util.TimeZone
 
+// Testen er primært committet som dokumentasjon rundt diverse aspekter knyttet til håndtering av tidspunkter i kombinasjon med tidssoner.
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Disabled("Testen er primært committet som dokumentasjon rundt diverse aspekter knyttet til håndtering av tidspunkter i kombinasjon med tidssoner.")
 class TimezoneTest : AbstractDatabaseTest() {
 
     lateinit var timeZoneDB: String
