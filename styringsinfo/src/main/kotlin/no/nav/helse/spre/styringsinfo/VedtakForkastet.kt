@@ -10,5 +10,6 @@ data class VedtakForkastet(
     val forkastetTidspunkt: LocalDateTime,
     val hendelseId: UUID,
     val melding: String,
-    val hendelser: List<UUID>
+    val hendelser: List<UUID>,
+    val patchLevel: Int? = null
 )

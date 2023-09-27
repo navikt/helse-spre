@@ -20,8 +20,8 @@ class VedtakForkastetDao(private val datasource: DataSource) {
 
     private fun lagreVedtaket(vedtakForkastet: VedtakForkastet, tx: TransactionalSession) {
         @Language("PostgreSQL")
-        val query = """INSERT INTO vedtak_forkastet (fom, tom, forkastet_tidspunkt, hendelse_id, melding) 
-            VALUES (:fom,:tom,:forkastet_tidspunkt,:hendelse_id,CAST(:melding as json)) 
+        val query = """INSERT INTO vedtak_forkastet (fom, tom, forkastet_tidspunkt, hendelse_id, melding, patch_level)
+            VALUES (:fom,:tom,:forkastet_tidspunkt,:hendelse_id,CAST(:melding as json), :patchLevel)
             ON CONFLICT DO NOTHING;""".trimIndent()
 
         tx.run(
@@ -32,7 +32,8 @@ class VedtakForkastetDao(private val datasource: DataSource) {
                     "tom" to vedtakForkastet.tom,
                     "forkastet_tidspunkt" to vedtakForkastet.forkastetTidspunkt.toOsloOffset(),
                     "hendelse_id" to vedtakForkastet.hendelseId,
-                    "melding" to vedtakForkastet.melding
+                    "melding" to vedtakForkastet.melding,
+                    "patchLevel" to vedtakForkastet.patchLevel
                 )
             ).asUpdate
         )

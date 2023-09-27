@@ -33,14 +33,13 @@ class MeldingspatcherTest {
         """
         )
 
-        val result = input.patch(null, ::fjernFnrFraJsonString, "v.1")
+        val result = input.patch(null, ::fjernFnrFraJsonString, 1)
 
         assertEquals(input.sendt, result.sendt)
         assertEquals(input.fom, result.fom)
         assertEquals(input.tom, result.tom)
         assertEquals(input.hendelseId, result.hendelseId)
         assertEquals(input.korrigerer, result.korrigerer)
-        assertEquals("v.1", result.patchLevel)
         JSONAssert.assertEquals("""
             {
               "@id": "08a92c25-0e59-452f-ba60-83b7515de8e5",
@@ -53,6 +52,7 @@ class MeldingspatcherTest {
         """
             , result.melding, STRICT_ORDER
         )
+        assertEquals(1, result.patchLevel)
     }
 
 
@@ -77,7 +77,7 @@ class MeldingspatcherTest {
         """
         )
 
-        val result = input.patch(null, ::fjernFnrFraJsonString, "v.1")
+        val result = input.patch(null, ::fjernFnrFraJsonString, 1)
 
         JSONAssert.assertEquals("""
             {
@@ -89,7 +89,7 @@ class MeldingspatcherTest {
               "tom": "2023-06-11"
             }
         """, result.melding, STRICT_ORDER)
-        assertEquals("v.1", result.patchLevel)
+        assertEquals(1, result.patchLevel)
     }
 
     @Test
@@ -111,11 +111,11 @@ class MeldingspatcherTest {
               "tom": "2023-06-11"
             }
             """,
-            patchLevel = "jalla"
+            patchLevel = 42
         )
 
         val result = input
-            .patch(null, ::fjernFnrFraJsonString, "v.1")
+            .patch(null, ::fjernFnrFraJsonString, 1)
 
         JSONAssert.assertEquals("""
             {
@@ -128,7 +128,7 @@ class MeldingspatcherTest {
               "tom": "2023-06-11"
             }
         """, result.melding, STRICT_ORDER)
-        assertEquals("jalla", result.patchLevel)
+        assertEquals(42, result.patchLevel)
     }
 }
 
@@ -142,9 +142,9 @@ private fun fjernFnrFraJsonString(soknad: SendtSøknad): SendtSøknad {
 }
 
 private fun SendtSøknad.patch(
-    patchLevelPreCondition: String?,
+    patchLevelPreCondition: Int?,
     patchFunction: (input: SendtSøknad) -> SendtSøknad,
-    patchLevelPostPatch: String
+    patchLevelPostPatch: Int
 ): SendtSøknad {
     if (this.patchLevel != patchLevelPreCondition) {
         return this

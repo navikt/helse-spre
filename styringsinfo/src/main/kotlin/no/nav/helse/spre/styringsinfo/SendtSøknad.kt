@@ -11,5 +11,5 @@ data class SendtSøknad(
     val tom: LocalDate,
     val hendelseId: UUID,
     val melding: String,
-    val patchLevel: String? = null
+    val patchLevel: Int? = null
 )
