@@ -25,7 +25,7 @@ class ParseSendtSøknadTest {
             }
         """.trimIndent()
         val message = JsonMessage(json, MessageProblems(json)).apply {
-            this.interestedIn("sendtArbeidsgiver", "sendtNav", "korrigerer", "fnr", "fom", "tom", "@id")
+            this.interestedIn("sendtArbeidsgiver", "sendtNav", "korrigerer", "fom", "tom", "@id")
         }
         message.toJson()
         val sendtSøknad = message.toSendtSøknadArbeidsgiver()
