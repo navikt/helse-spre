@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -39,9 +41,7 @@ class MeldingspatcherTest {
         assertEquals(input.hendelseId, result.hendelseId)
         assertEquals(input.korrigerer, result.korrigerer)
         assertEquals("v.1", result.patchLevel)
-        assertEquals(
-            deformaterJson(
-                """
+        JSONAssert.assertEquals("""
             {
               "@id": "08a92c25-0e59-452f-ba60-83b7515de8e5",
               "sendtArbeidsgiver": "2023-06-01T10:00:00.0",
@@ -51,7 +51,7 @@ class MeldingspatcherTest {
               "tom": "2023-06-11"
             }
         """
-            ), result.melding
+            , result.melding, STRICT_ORDER
         )
     }
 
@@ -80,9 +80,7 @@ class MeldingspatcherTest {
 
         val result = input.patch(::fjernFnrFraJsonString, "v.1")
 
-        assertEquals(
-            deformaterJson(
-                """
+        JSONAssert.assertEquals("""
             {
               "@id": "08a92c25-0e59-452f-ba60-83b7515de8e5",
               "sendtArbeidsgiver": "2023-06-01T10:00:00.0",
@@ -91,9 +89,7 @@ class MeldingspatcherTest {
               "fom": "2023-06-05",
               "tom": "2023-06-11"
             }
-        """
-            ), result.melding
-        )
+        """, result.melding, STRICT_ORDER)
     }
 }
 
@@ -105,10 +101,6 @@ private fun fjernFnrFraJsonString(soknad: SendtSøknad): SendtSøknad {
     verdierSomSkalBort.map { objectNode.remove(it) }
     val jsonUtenFnr = objectMapper.writeValueAsString(objectNode)
     return soknad.copy(melding = jsonUtenFnr)
-}
-
-private fun deformaterJson(jsonString: String): String {
-    return objectMapper.writeValueAsString(objectMapper.readTree(jsonString))
 }
 
 private fun SendtSøknad.patch(patchFunction: (input: SendtSøknad) -> SendtSøknad, patchLevel: String): SendtSøknad {
