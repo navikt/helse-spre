@@ -20,7 +20,7 @@ internal class SendtSøknadArbeidsgiverRiver(
         River(rapidsConnection).apply {
             validate {
                 it.demandValue("@event_name", "sendt_søknad_arbeidsgiver")
-                it.requireKey("@id", "fnr")
+                it.requireKey("@id", "fnr") // TODO: Vurdere å fjerne fnr
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
                 it.require("sendtArbeidsgiver", JsonNode::asLocalDateTime)

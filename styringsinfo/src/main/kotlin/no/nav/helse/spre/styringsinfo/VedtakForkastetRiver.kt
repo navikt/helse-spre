@@ -19,7 +19,7 @@ internal class VedtakForkastetRiver(
         River(rapidsConnection).apply {
             validate {
                 it.demandValue("@event_name", "vedtaksperiode_forkastet")
-                it.requireKey("@id", "hendelser", "fødselsnummer")
+                it.requireKey("@id", "hendelser", "fødselsnummer") // TODO: Vurdere å fjerne fødselsnummer
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
                 it.require("@opprettet", JsonNode::asLocalDateTime)
