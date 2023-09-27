@@ -6,6 +6,7 @@ val testcontainersVersion = "1.19.0"
 
 dependencies {
     implementation("com.zaxxer:HikariCP:$hikariCPVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core:$flywaycoreVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")

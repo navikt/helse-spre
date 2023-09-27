@@ -1,5 +1,10 @@
 package no.nav.helse.spre.styringsinfo
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -14,6 +19,14 @@ import kotlin.concurrent.thread
 
 internal val log: Logger = LoggerFactory.getLogger("sprestyringsinfo")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
+
+
+internal val objectMapper: ObjectMapper = ObjectMapper().apply {
+    registerKotlinModule()
+    registerModule(JavaTimeModule())
+    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+}
 
 fun main() {
     val environment = System.getenv()
@@ -44,7 +57,6 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
         VedtakForkastetRiver(this, vedtakForkastetDao)
     }
 }
-
 
 fun LocalDateTime.toOsloOffset(): OffsetDateTime =
     this.atOffset(ZoneId.of("Europe/Oslo").rules.getOffset(this))
