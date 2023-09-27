@@ -34,7 +34,8 @@ class MeldingspatcherTest {
         """
         )
 
-        val result = input.patch(::fjernFnrFraJsonString, "v.1")
+        val result = input.patch(null, ::fjernFnrFraJsonString, "v.1")
+
         assertEquals(input.sendt, result.sendt)
         assertEquals(input.fom, result.fom)
         assertEquals(input.tom, result.tom)
@@ -78,7 +79,7 @@ class MeldingspatcherTest {
         """
         )
 
-        val result = input.patch(::fjernFnrFraJsonString, "v.1")
+        val result = input.patch(null, ::fjernFnrFraJsonString, "v.1")
 
         JSONAssert.assertEquals("""
             {
@@ -90,9 +91,49 @@ class MeldingspatcherTest {
               "tom": "2023-06-11"
             }
         """, result.melding, STRICT_ORDER)
+        assertEquals("v.1", result.patchLevel)
+    }
+
+    @Test
+    fun `hvis SendtSøknad ikke har null som patchLevel skal vi ikke fjerne fnr`() {
+        val input = SendtSøknad(
+            sendt = LocalDateTime.parse("2023-06-01T10:00:00.0"),
+            korrigerer = UUID.fromString("4c6f931d-63b6-3ff7-b3bc-74d1ad627201"),
+            fnr = "12345678910",
+            fom = LocalDate.parse("2023-06-05"),
+            tom = LocalDate.parse("2023-06-11"),
+            hendelseId = UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"),
+            melding = """
+            {
+              "@id": "08a92c25-0e59-452f-ba60-83b7515de8e5",
+              "sendtArbeidsgiver": "2023-06-01T10:00:00.0",
+              "sendtNav": null,
+              "korrigerer": "4c6f931d-63b6-3ff7-b3bc-74d1ad627201",
+              "fødselsnummer": "12345678910",
+              "fom": "2023-06-05",
+              "tom": "2023-06-11"
+            }
+            """,
+            patchLevel = "jalla"
+        )
+
+        val result = input
+            .patch(null, ::fjernFnrFraJsonString, "v.1")
+
+        JSONAssert.assertEquals("""
+            {
+              "@id": "08a92c25-0e59-452f-ba60-83b7515de8e5",
+              "sendtArbeidsgiver": "2023-06-01T10:00:00.0",
+              "sendtNav": null,
+              "korrigerer": "4c6f931d-63b6-3ff7-b3bc-74d1ad627201",
+              "fødselsnummer": "12345678910",
+              "fom": "2023-06-05",
+              "tom": "2023-06-11"
+            }
+        """, result.melding, STRICT_ORDER)
+        assertEquals("jalla", result.patchLevel)
     }
 }
-
 
 private val verdierSomSkalBort = listOf("fnr", "fødselsnummer")
 
@@ -103,6 +144,13 @@ private fun fjernFnrFraJsonString(soknad: SendtSøknad): SendtSøknad {
     return soknad.copy(melding = jsonUtenFnr)
 }
 
-private fun SendtSøknad.patch(patchFunction: (input: SendtSøknad) -> SendtSøknad, patchLevel: String): SendtSøknad {
-    return patchFunction(this).copy(patchLevel = patchLevel)
+private fun SendtSøknad.patch(
+    patchLevelPreCondition: String?,
+    patchFunction: (input: SendtSøknad) -> SendtSøknad,
+    patchLevelPostPatch: String
+): SendtSøknad {
+    if (this.patchLevel != patchLevelPreCondition) {
+        return this
+    }
+    return patchFunction(this).copy(patchLevel = patchLevelPostPatch)
 }
