@@ -58,6 +58,7 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
     }
 }
 
+
 fun LocalDateTime.toOsloOffset(): OffsetDateTime =
     this.atOffset(ZoneId.of("Europe/Oslo").rules.getOffset(this))
 
