@@ -24,7 +24,7 @@ fun main() {
     val sendtSøknadDao = SendtSøknadDao(dataSource)
     thread {
         sleep(60_000)
-        val antallSøknader = sendtSøknadDao.tellSøknaderSomFeiler()
+        val antallSøknader = sendtSøknadDao.tellSøknader()
         log.info("Kjører jobb i egen tråd og teller ${antallSøknader} søknader.")
     }
 
