@@ -13,7 +13,7 @@ class SendtSøknadTest {
     @Test
     fun `hvis SendtSøknad ikke matcher patchLevel skal meldingen være uendret`() {
         val input = enSendtSøknad(enMeldingMedFnr()).copy(patchLevel = 42)
-        val result = input.patch(null, ::fjernFnrFraJsonString, 1)
+        val result = input.patch()
         assertEquals(input, result)
     }
 
@@ -21,7 +21,7 @@ class SendtSøknadTest {
     fun `filtrerer vekk fnr i SendtSøknad på upatchede meldinger - og setter patchLevel`() {
         val input = enSendtSøknad(enMeldingMedFnr())
 
-        val result = input.patch(null, ::fjernFnrFraJsonString, 1)
+        val result = input.patch()
 
         JSONAssert.assertEquals(enMeldingUtenFnr(), result.melding, STRICT)
         assertEquals(1, result.patchLevel)

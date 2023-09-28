@@ -13,18 +13,22 @@ data class SendtSøknad(
     val hendelseId: UUID,
     val melding: String,
     val patchLevel: Int? = null
-)
+) {
+    fun patch() = this.patch(null, ::fjernFnrFraJsonString, 1)
+}
 
-private val verdierSomSkalBort = listOf("fnr")
-
-fun fjernFnrFraJsonString(soknad: SendtSøknad): SendtSøknad {
-    val objectNode = objectMapper.readTree(soknad.melding) as ObjectNode
-    verdierSomSkalBort.map { objectNode.remove(it) }
-    val jsonUtenFnr = objectMapper.writeValueAsString(objectNode)
+private fun fjernFnrFraJsonString(soknad: SendtSøknad): SendtSøknad {
+    val jsonUtenFnr = fjernNoderFraJson(soknad.melding, listOf("fnr"))
     return soknad.copy(melding = jsonUtenFnr)
 }
 
-fun SendtSøknad.patch(
+private fun fjernNoderFraJson(json: String, noder: List<String>): String {
+    val objectNode = objectMapper.readTree(json) as ObjectNode
+    noder.map { objectNode.remove(it) }
+    return objectMapper.writeValueAsString(objectNode)
+}
+
+private fun SendtSøknad.patch(
     patchLevelPreCondition: Int?,
     patchFunction: (input: SendtSøknad) -> SendtSøknad,
     patchLevelPostPatch: Int
