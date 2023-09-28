@@ -3,6 +3,7 @@ package no.nav.helse.spre.styringsinfo
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
+import java.util.*
 import javax.sql.DataSource
 
 class SendtSøknadDao(private val datasource: DataSource) {
@@ -29,16 +30,4 @@ class SendtSøknadDao(private val datasource: DataSource) {
             )
         }
     }
-
-    fun tellSøknader(): Int {
-        @Language("PostgreSQL")
-        val query = "SELECT count(*) FROM sendt_soknad"
-
-        return sessionOf(datasource).use { session ->
-            session.run(
-                queryOf(query).asUpdate
-            )
-        }
-    }
 }
-
