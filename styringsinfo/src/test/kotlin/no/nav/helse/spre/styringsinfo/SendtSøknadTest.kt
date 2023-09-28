@@ -12,29 +12,29 @@ class SendtSøknadTest {
 
     @Test
     fun `hvis SendtSøknad ikke matcher patchLevel skal meldingen være uendret`() {
-        val input = enSendtSøknad(enMelding()).copy(patchLevel = 42)
+        val input = enSendtSøknad(enMeldingMedFnr()).copy(patchLevel = 42)
         val result = input.patch(null, ::fjernFnrFraJsonString, 1)
         assertEquals(input, result)
     }
 
     @Test
     fun `filtrerer vekk fnr i SendtSøknad på upatchede meldinger - og setter patchLevel`() {
-        val input = enSendtSøknad(enMelding())
+        val input = enSendtSøknad(enMeldingMedFnr())
 
         val result = input.patch(null, ::fjernFnrFraJsonString, 1)
 
-        JSONAssert.assertEquals(enMeldingUtenFnr(), result.melding, STRICT_ORDER)
+        JSONAssert.assertEquals(enMeldingUtenFnr(), result.melding, STRICT)
         assertEquals(1, result.patchLevel)
     }
 
 
-    private fun enMelding() = """
+    private fun enMeldingMedFnr() = """
             {
               "@id": "08a92c25-0e59-452f-ba60-83b7515de8e5",
               "sendtArbeidsgiver": "2023-06-01T10:00:00.0",
               "sendtNav": null,
               "korrigerer": "4c6f931d-63b6-3ff7-b3bc-74d1ad627201",
-              "fødselsnummer": "12345678910",
+              "fnr": "12345678910",
               "fom": "2023-06-05",
               "tom": "2023-06-11"
             }
