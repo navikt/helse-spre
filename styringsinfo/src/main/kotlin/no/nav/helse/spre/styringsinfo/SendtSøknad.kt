@@ -17,10 +17,8 @@ data class SendtSøknad(
     fun patch() = this.patch(null, ::fjernFnrFraJsonString, 1)
 }
 
-private fun fjernFnrFraJsonString(soknad: SendtSøknad): SendtSøknad {
-    val jsonUtenFnr = fjernNoderFraJson(soknad.melding, listOf("fnr"))
-    return soknad.copy(melding = jsonUtenFnr)
-}
+private fun fjernFnrFraJsonString(soknad: SendtSøknad) =
+    soknad.copy(melding = fjernNoderFraJson(soknad.melding, listOf("fnr")))
 
 private fun fjernNoderFraJson(json: String, noder: List<String>): String {
     val objectNode = objectMapper.readTree(json) as ObjectNode
@@ -32,9 +30,8 @@ private fun SendtSøknad.patch(
     patchLevelPreCondition: Int?,
     patchFunction: (input: SendtSøknad) -> SendtSøknad,
     patchLevelPostPatch: Int
-): SendtSøknad {
-    if (this.patchLevel != patchLevelPreCondition) {
-        return this
-    }
-    return patchFunction(this).copy(patchLevel = patchLevelPostPatch)
-}
+): SendtSøknad =
+    if (this.patchLevel == patchLevelPreCondition)
+        patchFunction(this).copy(patchLevel = patchLevelPostPatch)
+    else
+        this
