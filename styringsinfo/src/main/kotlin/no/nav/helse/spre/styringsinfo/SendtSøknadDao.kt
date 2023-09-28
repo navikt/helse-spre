@@ -38,5 +38,16 @@ class SendtSøknadDao(private val datasource: DataSource) {
             session.run(queryOf(query).map { row -> row.int(1) }.asSingle)
         } ?: 0
     }
+
+    fun tellSøknaderSomFeiler(): Int {
+        @Language("PostgreSQL")
+        val query = "SELECT count(*) FROM sendt_soknad"
+
+        return sessionOf(datasource).use { session ->
+            session.run(
+                queryOf(query).asUpdate
+            )
+        }
+    }
 }
 

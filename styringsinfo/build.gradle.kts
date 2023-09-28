@@ -6,6 +6,7 @@ val flywaycoreVersion = "9.19.4"
 dependencies {
     implementation("com.zaxxer:HikariCP:$hikariCPVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
     implementation("org.flywaydb:flyway-core:$flywaycoreVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     testImplementation("org.testcontainers:postgresql:1.18.3")
