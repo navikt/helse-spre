@@ -5,15 +5,16 @@ import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
 import javax.sql.DataSource
 
-class SendtSøknadDao(private val datasource: DataSource) {
+class SendtSøknadDao(private val dataSource: DataSource) {
 
     fun lagre(sendtSøknad: SendtSøknad) {
         @Language("PostgreSQL")
-        val query = """INSERT INTO sendt_soknad (sendt, korrigerer, fom, tom, hendelse_id, melding, patch_level)
+        val query = """
+            INSERT INTO sendt_soknad (sendt, korrigerer, fom, tom, hendelse_id, melding, patch_level)
             VALUES (:sendt, :korrigerer, :fom, :tom, :hendelse_id,CAST(:melding as json), :patchLevel)
-            ON CONFLICT DO NOTHING;""".trimIndent()
-
-        sessionOf(datasource).use { session ->
+            ON CONFLICT DO NOTHING;
+            """
+        sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
                     query,
@@ -31,13 +32,39 @@ class SendtSøknadDao(private val datasource: DataSource) {
         }
     }
 
-    fun tellSøknader(): Int {
+    fun oppdaterMelding(sendtSøknad: SendtSøknad) {
         @Language("PostgreSQL")
-        val query = "SELECT count(*) FROM sendt_soknad"
+        val query = """
+            UPDATE sendt_soknad
+            SET patch_level = :patchLevel, 
+                melding = CAST(:melding as json)
+            WHERE hendelse_id = :hendelseId
+            """
+        sessionOf(dataSource).use { session ->
+            session.run(
+                queryOf(
+                    query,
+                    mapOf(
+                        "hendelseId" to sendtSøknad.hendelseId,
+                        "melding" to sendtSøknad.melding,
+                        "patchLevel" to sendtSøknad.patchLevel
+                    )
+                ).asUpdate
+            )
+        }
+    }
 
-        return sessionOf(datasource).use { session ->
-            session.run(queryOf(query).map { row -> row.int(1) }.asSingle)
-        } ?: 0
+    fun tellSøknader(): Int? {
+        @Language("PostgreSQL")
+        val query = "SELECT count(*) AS antall FROM sendt_soknad"
+
+        return sessionOf(dataSource).use { session ->
+            session.run(
+                queryOf(query).map { row ->
+                    row.int("antall")
+                }.asSingle
+            )
+        }
     }
 }
 
