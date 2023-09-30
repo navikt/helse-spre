@@ -24,7 +24,7 @@ class VedtakFattetDao(private val dataSource: DataSource) {
         val fødselsnummer = vedtakFattetData.fødselsnummer
 
         @Language("PostgreSQL")
-        val query = "INSERT INTO vedtak_fattet (id, utbetaling_id, data) values(?, ?, to_json(?::json)) ON CONFLICT DO NOTHING"
+        val query = "INSERT INTO vedtak_fattet (id, utbetaling_id, fnr, data) values(?, ?, ?, to_json(?::json)) ON CONFLICT DO NOTHING"
         sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
