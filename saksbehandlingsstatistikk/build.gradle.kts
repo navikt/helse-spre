@@ -1,10 +1,10 @@
 val ktorVersion: String by project
 
-val kotliqueryVersion = "1.7.0"
-val flywayCoreVersion = "8.5.5"
+val kotliqueryVersion = "1.9.0"
+val flywayCoreVersion = "9.22.2"
 val vaultJdbcVersion = "1.3.10"
 val hikariCPVersion = "5.0.1"
-val testcontainersPostgresqlVersion = "1.16.3"
+val testcontainersPostgresqlVersion = "1.19.0"
 
 dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")

@@ -32,7 +32,7 @@ internal class DataSourceBuilder : DataSourceProvider {
         password = databasePassword
         connectionTimeout = Duration.ofSeconds(30).toMillis()
         initializationFailTimeout = Duration.ofMinutes(30).toMillis()
-        maximumPoolSize = 1
+        maximumPoolSize = 4
     }
 
     private val dataSource by lazy { HikariDataSource(hikariConfig) }

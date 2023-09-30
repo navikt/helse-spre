@@ -1,7 +1,7 @@
 val postgresqlVersion = "42.6.0"
 val kotliqueryVersion = "1.9.0"
 val hikariCPVersion = "5.0.1"
-val flywaycoreVersion = "9.19.4"
+val flywaycoreVersion = "9.22.2"
 
 dependencies {
     implementation("com.zaxxer:HikariCP:$hikariCPVersion")

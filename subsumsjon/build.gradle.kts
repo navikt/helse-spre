@@ -1,10 +1,10 @@
-val flywayCoreVersion = "8.5.12"
+val flywayCoreVersion = "9.22.2"
 val hikariCPVersion = "5.0.1"
-val kotliqueryVersion = "1.8.0"
+val kotliqueryVersion = "1.9.0"
 val postgresqlVersion = "42.5.0"
 val jsonSchemaValidatorVersion = "1.0.65"
 val kotestAssertionsCoreVersion = "5.1.0"
-val testcontainersPostgresqlVersion = "1.16.3"
+val testcontainersPostgresqlVersion = "1.19.0"
 
 repositories {
     mavenCentral()

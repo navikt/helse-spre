@@ -10,8 +10,8 @@ internal class DataSourceBuilder(private val dbConfig: Environment.DB) {
         jdbcUrl = dbConfig.jdbcUrl
         username = dbConfig.username
         password = dbConfig.password
-        maximumPoolSize = 3
-        minimumIdle = 1
+        maximumPoolSize = 4
+        minimumIdle = 2
         idleTimeout = 10001
         connectionTimeout = 1000
         maxLifetime = 30001

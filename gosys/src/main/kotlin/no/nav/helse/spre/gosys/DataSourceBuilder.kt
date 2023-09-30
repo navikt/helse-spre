@@ -9,8 +9,8 @@ import no.nav.vault.jdbc.hikaricp.HikariCPVaultUtil.createHikariDataSourceWithVa
 internal class DataSourceBuilder(val env: DatabaseEnvironment) {
     private val hikariConfig = HikariConfig().apply {
         jdbcUrl = env.jdbcUrl
-        maximumPoolSize = 3
-        minimumIdle = 1
+        maximumPoolSize = 4
+        minimumIdle = 2
         idleTimeout = 10001
         connectionTimeout = 1000
         maxLifetime = 30001

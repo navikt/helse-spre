@@ -1,15 +1,15 @@
 val ktorVersion: String by project
 
-val testcontainersPostgresqlVersion = "1.17.2"
+val testcontainersPostgresqlVersion = "1.19.0"
 val jsonassertVersion = "1.5.0"
-val kotliqueryVersion = "1.6.0"
-val flywayCoreVersion = "8.4.1"
+val kotliqueryVersion = "1.9.0"
+val flywayCoreVersion = "9.22.2"
 val vaultJdbcVersion = "1.3.10"
 val hikariCPVersion = "5.0.1"
-val kotlinxSerializationJsonVersion = "1.3.2"
+val kotlinxSerializationJsonVersion = "1.6.0"
 
 plugins {
-    kotlin("plugin.serialization") version "1.4.30"
+    kotlin("plugin.serialization") version "1.6.0"
 }
 
 dependencies {

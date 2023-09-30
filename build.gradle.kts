@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val jvmTarget = "17"
 
 plugins {
-    kotlin("jvm") version "1.7.0"
+    kotlin("jvm") version "1.9.10"
 }
 
 val gradlewVersion = "7.4.2"
