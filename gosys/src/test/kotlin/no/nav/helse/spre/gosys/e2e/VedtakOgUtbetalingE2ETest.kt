@@ -735,7 +735,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 totaltTilUtbetaling = 0,
                 maksdato = 27.juni(2024),
                 utbetalingstype = REVURDERING,
-                behandlingsdato = 22.september(2023),
+                behandlingsdato = LocalDate.now(),
                 dagerIgjen = 215,
                 godkjentAv = "test",
                 linjer = emptyList(),

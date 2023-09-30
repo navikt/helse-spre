@@ -10,6 +10,7 @@ internal fun setupDataSourceMedFlyway(): DataSource {
         withLabel("app-navn", "spre-gosys")
         withReuse(true)
         start()
+        println("Database: jdbc:postgresql://localhost:$firstMappedPort/test startet opp, credentials: test og test")
     }
     val dataSource: DataSource =
         HikariDataSource(HikariConfig().apply {
