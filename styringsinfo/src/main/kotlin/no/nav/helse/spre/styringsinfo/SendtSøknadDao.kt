@@ -3,7 +3,6 @@ package no.nav.helse.spre.styringsinfo
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
-import java.lang.IllegalStateException
 import javax.sql.DataSource
 
 class SendtSøknadDao(private val dataSource: DataSource) {
@@ -33,31 +32,25 @@ class SendtSøknadDao(private val dataSource: DataSource) {
         }
     }
 
-    fun patchMelding(patchLevelPreCondition: Int?, sendtSøknad: SendtSøknad) {
-        val preConditionClauseValue = if (patchLevelPreCondition == null) "IS NULL" else "= :patchLevelPreCondition"
+    fun oppdaterMelding(sendtSøknad: SendtSøknad) {
         @Language("PostgreSQL")
         val query = """
             UPDATE sendt_soknad
             SET patch_level = :patchLevel, 
                 melding = CAST(:melding as json)
-            WHERE hendelse_id = :hendelseId 
-            AND patch_level ${preConditionClauseValue} 
+            WHERE hendelse_id = :hendelseId
             """
         sessionOf(dataSource).use { session ->
-            val rowsChanged = session.run(
+            session.run(
                 queryOf(
                     query,
                     mapOf(
                         "hendelseId" to sendtSøknad.hendelseId,
                         "melding" to sendtSøknad.melding,
-                        "patchLevel" to sendtSøknad.patchLevel,
-                        "patchLevelPreCondition" to patchLevelPreCondition
+                        "patchLevel" to sendtSøknad.patchLevel
                     )
                 ).asUpdate
             )
-            if (rowsChanged != 1) {
-                throw IllegalStateException("Uventet antall rader å patch'e (${rowsChanged}) med hendelseId=${sendtSøknad.hendelseId} med patchLevelPreCondition=$patchLevelPreCondition")
-            }
         }
     }
 
