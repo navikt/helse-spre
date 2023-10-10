@@ -60,6 +60,25 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
         JSONAssert.assertEquals(json, patchetSøknad.melding, JSONCompareMode.STRICT)
     }
 
+    @Test
+    fun `hent alle SendtSøkand med angitt patchLevel`() {
+        val hendelseId1 = UUID.randomUUID().toString()
+        val sendtSøknad1 = opprettOgLagreSendtSøknad(hendelseId1)
+
+        sendtSøknad1.patch().also { sendtSøknadDao.oppdaterMelding(it) }
+
+        val hendelseId2 = UUID.randomUUID().toString().also { opprettOgLagreSendtSøknad(it) }
+        val hendelseId3 = UUID.randomUUID().toString().also { opprettOgLagreSendtSøknad(it) }
+
+        val meldingerMedPatchLevelNull = sendtSøknadDao.hentMeldingerMedPatchLevel(0)
+
+        assertEquals(2, meldingerMedPatchLevelNull.size)
+        meldingerMedPatchLevelNull.map { it.hendelseId }.also {
+            assertTrue(it.contains(UUID.fromString(hendelseId2)))
+            assertTrue(it.contains(UUID.fromString(hendelseId3)))
+        }
+    }
+
     private fun opprettOgLagreSendtSøknad(hendelseId: String): SendtSøknad {
         val json =
             """
@@ -104,7 +123,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
                     tom = row.localDate("tom"),
                     hendelseId = row.uuid("hendelse_id"),
                     melding = row.string("melding"),
-                    patchLevel = row.intOrNull("patch_level")
+                    patchLevel = row.int("patch_level")
                 )
             }.asSingle
         )

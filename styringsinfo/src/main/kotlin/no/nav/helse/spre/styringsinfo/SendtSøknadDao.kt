@@ -66,5 +66,32 @@ class SendtSøknadDao(private val dataSource: DataSource) {
             )
         }
     }
+
+    fun hentMeldingerMedPatchLevel(patchLevel: Int?): List<SendtSøknad> {
+        @Language("PostgreSQL")
+        val query = """
+            SELECT sendt, korrigerer, fom, tom, hendelse_id, melding, patch_level
+            FROM sendt_soknad 
+            WHERE patch_level = :patchLevel
+            """
+        return sessionOf(dataSource).use { session ->
+            session.run(
+                queryOf(
+                    query,
+                    mapOf("patchLevel" to patchLevel)
+                ).map { row ->
+                    SendtSøknad(
+                        sendt = row.zonedDateTime("sendt").toOsloTid(),
+                        korrigerer = row.uuidOrNull("korrigerer"),
+                        fom = row.localDate("fom"),
+                        tom = row.localDate("tom"),
+                        hendelseId = row.uuid("hendelse_id"),
+                        melding = row.string("melding"),
+                        patchLevel = row.int("patch_level")
+                    )
+                }.asList
+            )
+        }
+    }
 }
 
