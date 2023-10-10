@@ -80,7 +80,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
         val hendelseId2 = UUID.randomUUID().toString().also { opprettOgLagreSendtSøknad(it) }
         val hendelseId3 = UUID.randomUUID().toString().also { opprettOgLagreSendtSøknad(it) }
 
-        val meldingerMedPatchLevelNull = sendtSøknadDao.hentMeldingerMedPatchLevel(0)
+        val meldingerMedPatchLevelNull = sendtSøknadDao.hentMeldingerMedPatchLevelMindreEnn(1)
 
         assertEquals(2, meldingerMedPatchLevelNull.size)
         meldingerMedPatchLevelNull.map { it.hendelseId }.also {
@@ -99,7 +99,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
         UUID.randomUUID().toString().also { opprettOgLagreSendtSøknad(it) }
         UUID.randomUUID().toString().also { opprettOgLagreSendtSøknad(it) }
 
-        val meldingerMedPatchLevelNull = sendtSøknadDao.hentMeldingerMedPatchLevel(patchLevel = 0, limit = 1)
+        val meldingerMedPatchLevelNull = sendtSøknadDao.hentMeldingerMedPatchLevelMindreEnn(patchLevel = 1, limit = 1)
 
         assertEquals(1, meldingerMedPatchLevelNull.size)
     }

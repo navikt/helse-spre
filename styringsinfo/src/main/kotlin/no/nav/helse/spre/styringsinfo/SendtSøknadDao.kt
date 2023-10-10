@@ -67,12 +67,12 @@ class SendtSøknadDao(private val dataSource: DataSource) {
         }
     }
 
-    fun hentMeldingerMedPatchLevel(patchLevel: Int?, limit: Int = 100): List<SendtSøknad> {
+    fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, limit: Int = 100): List<SendtSøknad> {
         @Language("PostgreSQL")
         val query = """
             SELECT sendt, korrigerer, fom, tom, hendelse_id, melding, patch_level
             FROM sendt_soknad 
-            WHERE patch_level = :patchLevel
+            WHERE patch_level < :patchLevel
             LIMIT :limit
             """
         return sessionOf(dataSource).use { session ->
