@@ -9,6 +9,7 @@ import no.nav.helse.spre.styringsinfo.toOsloTid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.skyscreamer.jsonassert.JSONAssert
@@ -21,6 +22,15 @@ import java.util.*
 class SendtSøknadDaoTest : AbstractDatabaseTest() {
 
     private lateinit var sendtSøknadDao: SendtSøknadDao
+
+    @BeforeEach
+    fun slettAlleSendtSøknad() {
+        sessionOf(dataSource).use { session ->
+            session.run(
+                queryOf("DELETE FROM sendt_soknad").asExecute
+            )
+        }
+    }
 
     @BeforeAll
     fun setup() {
@@ -77,6 +87,21 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
             assertTrue(it.contains(UUID.fromString(hendelseId2)))
             assertTrue(it.contains(UUID.fromString(hendelseId3)))
         }
+    }
+
+    @Test
+    fun `hent alle SendtSøkand med angitt patchLevel med begrensing på antall`() {
+        val hendelseId1 = UUID.randomUUID().toString()
+        val sendtSøknad1 = opprettOgLagreSendtSøknad(hendelseId1)
+
+        sendtSøknad1.patch().also { sendtSøknadDao.oppdaterMelding(it) }
+
+        UUID.randomUUID().toString().also { opprettOgLagreSendtSøknad(it) }
+        UUID.randomUUID().toString().also { opprettOgLagreSendtSøknad(it) }
+
+        val meldingerMedPatchLevelNull = sendtSøknadDao.hentMeldingerMedPatchLevel(patchLevel = 0, limit = 1)
+
+        assertEquals(1, meldingerMedPatchLevelNull.size)
     }
 
     private fun opprettOgLagreSendtSøknad(hendelseId: String): SendtSøknad {

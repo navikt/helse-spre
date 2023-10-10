@@ -67,18 +67,22 @@ class SendtSøknadDao(private val dataSource: DataSource) {
         }
     }
 
-    fun hentMeldingerMedPatchLevel(patchLevel: Int?): List<SendtSøknad> {
+    fun hentMeldingerMedPatchLevel(patchLevel: Int?, limit: Int = 100): List<SendtSøknad> {
         @Language("PostgreSQL")
         val query = """
             SELECT sendt, korrigerer, fom, tom, hendelse_id, melding, patch_level
             FROM sendt_soknad 
             WHERE patch_level = :patchLevel
+            LIMIT :limit
             """
         return sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
                     query,
-                    mapOf("patchLevel" to patchLevel)
+                    mapOf(
+                        "patchLevel" to patchLevel,
+                        "limit" to limit
+                    )
                 ).map { row ->
                     SendtSøknad(
                         sendt = row.zonedDateTime("sendt").toOsloTid(),
