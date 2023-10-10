@@ -5,9 +5,16 @@ import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
 import javax.sql.DataSource
 
-class SendtSøknadDao(private val dataSource: DataSource) {
+interface SendtSøknadDaoInterface {
 
-    fun lagre(sendtSøknad: SendtSøknad) {
+    fun lagre(sendtSøknad: SendtSøknad)
+    fun oppdaterMelding(sendtSøknad: SendtSøknad)
+    fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, limit: Int = 100): List<SendtSøknad>
+}
+
+class SendtSøknadDao(private val dataSource: DataSource) : SendtSøknadDaoInterface {
+
+    override fun lagre(sendtSøknad: SendtSøknad) {
         @Language("PostgreSQL")
         val query = """
             INSERT INTO sendt_soknad (sendt, korrigerer, fom, tom, hendelse_id, melding, patch_level)
@@ -32,7 +39,7 @@ class SendtSøknadDao(private val dataSource: DataSource) {
         }
     }
 
-    fun oppdaterMelding(sendtSøknad: SendtSøknad) {
+    override fun oppdaterMelding(sendtSøknad: SendtSøknad) {
         @Language("PostgreSQL")
         val query = """
             UPDATE sendt_soknad
@@ -54,20 +61,7 @@ class SendtSøknadDao(private val dataSource: DataSource) {
         }
     }
 
-    fun tellSøknader(): Int? {
-        @Language("PostgreSQL")
-        val query = "SELECT count(*) AS antall FROM sendt_soknad"
-
-        return sessionOf(dataSource).use { session ->
-            session.run(
-                queryOf(query).map { row ->
-                    row.int("antall")
-                }.asSingle
-            )
-        }
-    }
-
-    fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, limit: Int = 100): List<SendtSøknad> {
+    override fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, limit: Int): List<SendtSøknad> {
         @Language("PostgreSQL")
         val query = """
             SELECT sendt, korrigerer, fom, tom, hendelse_id, melding, patch_level

@@ -9,6 +9,6 @@
         <appender-ref ref="console"/>
     </root>
 
-    <logger name="no.nav.helse" level="INFO"/>
+    <logger name="sprestyringsinfo" level="INFO"/>
 </configuration>
 

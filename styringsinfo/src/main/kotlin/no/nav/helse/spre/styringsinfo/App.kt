@@ -10,7 +10,6 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.lang.Thread.sleep
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -32,15 +31,15 @@ fun main() {
     val environment = System.getenv()
     val dataSourceBuilder = DataSourceBuilder(environment)
     val dataSource = dataSourceBuilder.getDataSource()
+    val sendtSøknadPatcher = SendtSøknadPatcher(SendtSøknadDao(dataSource))
     dataSourceBuilder.migrate()
-
-    val sendtSøknadDao = SendtSøknadDao(dataSource)
     thread {
-        sleep(60_000)
-        val antallSøknader = sendtSøknadDao.tellSøknader()
-        log.info("Kjører jobb i egen tråd og teller ${antallSøknader} søknader.")
+        sendtSøknadPatcher.patchSendtSøknad(
+            patchLevelMindreEnn = 1,
+            initialSleepMillis = 60_000,
+            loopSleepMillis = 10_000
+        )
     }
-
     val rapidsConnection = launchApplication(dataSource, environment)
     rapidsConnection.start()
 }
