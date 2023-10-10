@@ -12,9 +12,9 @@ data class SendtSøknad(
     val tom: LocalDate,
     val hendelseId: UUID,
     val melding: String,
-    val patchLevel: Int? = null
+    val patchLevel: Int = 0
 ) {
-    fun patch() = this.patch(null, ::fjernFnrFraJsonString, 1)
+    fun patch() = this.patch(0, ::fjernFnrFraJsonString, 1)
 }
 
 private fun fjernFnrFraJsonString(soknad: SendtSøknad) =
@@ -27,7 +27,7 @@ private fun fjernNoderFraJson(json: String, noder: List<String>): String {
 }
 
 private fun SendtSøknad.patch(
-    patchLevelPreCondition: Int?,
+    patchLevelPreCondition: Int,
     patchFunction: (input: SendtSøknad) -> SendtSøknad,
     patchLevelPostPatch: Int
 ): SendtSøknad =

@@ -48,7 +48,7 @@ class SendtSøknadTest {
             tom = LocalDate.parse("2023-06-11"),
             hendelseId = UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"),
             melding = meldingen,
-            patchLevel = null
+            patchLevel = 0
         )
 
     private fun enMeldingUtenFnr() = """
