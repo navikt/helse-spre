@@ -100,7 +100,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
         UUID.randomUUID().toString().also { opprettOgLagreSendtSøknad(it) }
         UUID.randomUUID().toString().also { opprettOgLagreSendtSøknad(it) }
 
-        val meldingerMedPatchLevelNull = sendtSøknadDao.hentMeldingerMedPatchLevelMindreEnn(patchLevel = 1, limit = 1)
+        val meldingerMedPatchLevelNull = sendtSøknadDao.hentMeldingerMedPatchLevelMindreEnn(patchLevel = 1, antallMeldinger = 1)
 
         assertEquals(1, meldingerMedPatchLevelNull.size)
     }

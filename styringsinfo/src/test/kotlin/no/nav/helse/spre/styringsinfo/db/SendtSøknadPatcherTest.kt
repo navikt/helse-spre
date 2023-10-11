@@ -23,7 +23,7 @@ class SendtSøknadPatcherTest {
             return 1
         }
 
-        override fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, limit: Int): List<SendtSøknad> {
+        override fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, antallMeldinger: Int): List<SendtSøknad> {
 
             // TODO: Vurder å implementer patching og støtte for limit.
 //            val ikkePatchet = soknader.map { it.patchLevel < patchLevel }.subList(0, limit)

@@ -67,13 +67,13 @@ class SendtSøknadDao(private val dataSource: DataSource) : SendtSøknadDaoInter
         }
     }
 
-    override fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, limit: Int): List<SendtSøknad> {
+    override fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, antallMeldinger: Int): List<SendtSøknad> {
         @Language("PostgreSQL")
         val query = """
             SELECT sendt, korrigerer, fom, tom, hendelse_id, melding, patch_level
             FROM sendt_soknad 
             WHERE patch_level < :patchLevel
-            LIMIT :limit
+            LIMIT :antallMeldinger
             """
         return sessionOf(dataSource).use { session ->
             session.run(
@@ -81,7 +81,7 @@ class SendtSøknadDao(private val dataSource: DataSource) : SendtSøknadDaoInter
                     query,
                     mapOf(
                         "patchLevel" to patchLevel,
-                        "limit" to limit
+                        "antallMeldinger" to antallMeldinger
                     )
                 ).map { row ->
                     SendtSøknad(
