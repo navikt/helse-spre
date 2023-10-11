@@ -11,5 +11,5 @@ data class VedtakFattet(
     val hendelseId: UUID,
     val melding: String,
     val hendelser: List<UUID>,
-    val patchLevel: Int? = null
+    val patchLevel: Int = 0
 )
