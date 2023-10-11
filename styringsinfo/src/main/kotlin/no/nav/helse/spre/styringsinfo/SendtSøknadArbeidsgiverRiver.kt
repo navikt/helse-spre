@@ -39,7 +39,7 @@ internal class SendtSøknadArbeidsgiverRiver(
         val id = UUID.fromString(packet["@id"].asText())
         log.info("Leser inn og lagrer melding $id")
         val sendtSøknad = packet.toSendtSøknadArbeidsgiver()
-        sendtSøknadDao.lagre(sendtSøknad)
+        sendtSøknadDao.lagre(sendtSøknad.patch())
     }
 }
 
