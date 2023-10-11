@@ -7,12 +7,13 @@ class SendtSøknadPatcher(
     fun patchSendtSøknad(
         patchLevelMindreEnn: Int,
         initialSleepMillis: Long,
-        loopSleepMillis: Long
+        loopSleepMillis: Long,
+        antallMeldinger: Int
     ) {
         Thread.sleep(initialSleepMillis)
         do {
             Thread.sleep(loopSleepMillis)
-            val søknader = sendtSøknadDao.hentMeldingerMedPatchLevelMindreEnn(patchLevelMindreEnn)
+            val søknader = sendtSøknadDao.hentMeldingerMedPatchLevelMindreEnn(patchLevelMindreEnn, antallMeldinger = antallMeldinger)
 
             if (søknader.isEmpty()) {
                 log.info("Avslutter patching siden ingen søknader har patchLevel mindre enn $patchLevelMindreEnn.")

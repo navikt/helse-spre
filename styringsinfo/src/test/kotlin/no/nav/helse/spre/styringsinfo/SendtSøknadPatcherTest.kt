@@ -59,7 +59,7 @@ class SendtSøknadPatcherTest {
         val sendtSøknadDaoMock = SendtSøknadDaoMock()
         val sendtSøknadPatcher = SendtSøknadPatcher(sendtSøknadDaoMock)
 
-        sendtSøknadPatcher.patchSendtSøknad(1, 10, 10)
+        sendtSøknadPatcher.patchSendtSøknad(1, 10, 10, 1)
 
         sendtSøknadDaoMock.oppdaterteSøknader.forEach {
             assertEquals(1, it.patchLevel)

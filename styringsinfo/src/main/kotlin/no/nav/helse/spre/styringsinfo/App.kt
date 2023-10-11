@@ -36,8 +36,9 @@ fun main() {
     thread {
         sendtSøknadPatcher.patchSendtSøknad(
             patchLevelMindreEnn = 1,
-            initialSleepMillis = 60_000,
-            loopSleepMillis = 10_000
+            initialSleepMillis = 60_000, // 60 sek fordi vi venter på at applikasjonen skal ha startet opp?
+            loopSleepMillis = 1000, // 1 sek mellom hver gang vi sjekker om det er flere søknader å patche
+            antallMeldinger = 1000 // gitt f eks 2.6 mill søknader, så vil vi sum ventetid mellom looper bli ca 43 minutter
         )
     }
     val rapidsConnection = launchApplication(dataSource, environment)

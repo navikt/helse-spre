@@ -9,7 +9,7 @@ interface SendtSøknadDaoInterface {
 
     fun lagre(sendtSøknad: SendtSøknad)
     fun oppdaterMelding(sendtSøknad: SendtSøknad): Int
-    fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, limit: Int = 100): List<SendtSøknad>
+    fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, antallMeldinger: Int = 1000): List<SendtSøknad>
 }
 
 class SendtSøknadDao(private val dataSource: DataSource) : SendtSøknadDaoInterface {
