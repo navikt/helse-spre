@@ -1,0 +1,1 @@
+CREATE INDEX idx_sendt_soknad_hendelse_id ON sendt_soknad (hendelse_id)
