@@ -1,7 +1,9 @@
-package no.nav.helse.spre.styringsinfo
+package no.nav.helse.spre.styringsinfo.domain
 
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageProblems
+import no.nav.helse.spre.styringsinfo.toSendtSøknadArbeidsgiver
+import no.nav.helse.spre.styringsinfo.toSendtSøknadNav
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test

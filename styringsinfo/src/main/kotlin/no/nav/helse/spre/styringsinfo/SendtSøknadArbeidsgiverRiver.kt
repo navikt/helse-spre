@@ -9,6 +9,8 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.toUUID
+import no.nav.helse.spre.styringsinfo.db.SendtSøknadDao
+import no.nav.helse.spre.styringsinfo.domain.SendtSøknad
 import java.util.UUID
 
 internal class SendtSøknadArbeidsgiverRiver(

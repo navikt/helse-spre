@@ -1,5 +1,6 @@
-package no.nav.helse.spre.styringsinfo
+package no.nav.helse.spre.styringsinfo.db
 
+import no.nav.helse.spre.styringsinfo.domain.SendtSøknad
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test

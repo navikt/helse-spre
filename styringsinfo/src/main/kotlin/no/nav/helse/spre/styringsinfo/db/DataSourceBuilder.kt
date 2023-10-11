@@ -1,4 +1,4 @@
-package no.nav.helse.spre.styringsinfo
+package no.nav.helse.spre.styringsinfo.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

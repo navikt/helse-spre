@@ -1,6 +1,7 @@
-package no.nav.helse.spre.styringsinfo
+package no.nav.helse.spre.styringsinfo.domain
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import no.nav.helse.spre.styringsinfo.objectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID

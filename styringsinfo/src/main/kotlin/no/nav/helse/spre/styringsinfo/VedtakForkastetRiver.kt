@@ -8,6 +8,8 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
+import no.nav.helse.spre.styringsinfo.db.VedtakForkastetDao
+import no.nav.helse.spre.styringsinfo.domain.VedtakForkastet
 import java.util.UUID
 
 internal class VedtakForkastetRiver(

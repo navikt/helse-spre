@@ -1,7 +1,10 @@
-package no.nav.helse.spre.styringsinfo
+package no.nav.helse.spre.styringsinfo.db
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import no.nav.helse.spre.styringsinfo.domain.SendtSøknad
+import no.nav.helse.spre.styringsinfo.toOsloOffset
+import no.nav.helse.spre.styringsinfo.toOsloTid
 import org.intellij.lang.annotations.Language
 import javax.sql.DataSource
 

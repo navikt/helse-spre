@@ -3,8 +3,7 @@ package no.nav.helse.spre.styringsinfo.db
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.spre.styringsinfo.VedtakForkastet
-import no.nav.helse.spre.styringsinfo.VedtakForkastetDao
+import no.nav.helse.spre.styringsinfo.domain.VedtakForkastet
 import no.nav.helse.spre.styringsinfo.toOsloTid
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll

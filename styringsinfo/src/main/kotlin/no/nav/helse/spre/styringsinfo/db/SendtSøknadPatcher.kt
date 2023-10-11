@@ -1,4 +1,6 @@
-package no.nav.helse.spre.styringsinfo
+package no.nav.helse.spre.styringsinfo.db
+
+import no.nav.helse.spre.styringsinfo.log
 
 class SendtSøknadPatcher(
     private val sendtSøknadDao: SendtSøknadDaoInterface
