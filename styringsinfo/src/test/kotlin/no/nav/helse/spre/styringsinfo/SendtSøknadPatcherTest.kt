@@ -9,7 +9,7 @@ import java.util.*
 
 class SendtSøknadPatcherTest {
 
-    private class SendtSøknadMock : SendtSøknadDaoInterface {
+    private class SendtSøknadDaoMock : SendtSøknadDaoInterface {
         val oppdaterteSøknader = mutableListOf<SendtSøknad>()
         var soknaderErHentet = false
 
@@ -17,8 +17,9 @@ class SendtSøknadPatcherTest {
             TODO("Not yet implemented.")
         }
 
-        override fun oppdaterMelding(sendtSøknad: SendtSøknad) {
+        override fun oppdaterMelding(sendtSøknad: SendtSøknad): Int {
             oppdaterteSøknader.add(sendtSøknad)
+            return 1
         }
 
         override fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, limit: Int): List<SendtSøknad> {
@@ -55,12 +56,12 @@ class SendtSøknadPatcherTest {
 
     @Test
     fun `patch SendtSøknad`() {
-        val sendtSøknadMock = SendtSøknadMock()
-        val sendtSøknadPatcher = SendtSøknadPatcher(sendtSøknadMock)
+        val sendtSøknadDaoMock = SendtSøknadDaoMock()
+        val sendtSøknadPatcher = SendtSøknadPatcher(sendtSøknadDaoMock)
 
         sendtSøknadPatcher.patchSendtSøknad(1, 10, 10)
 
-        sendtSøknadMock.oppdaterteSøknader.forEach {
+        sendtSøknadDaoMock.oppdaterteSøknader.forEach {
             assertEquals(1, it.patchLevel)
             assertFalse(it.melding.contains("fnr"))
         }
