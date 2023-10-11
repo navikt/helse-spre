@@ -8,7 +8,7 @@ import javax.sql.DataSource
 interface SendtSøknadDaoInterface {
 
     fun lagre(sendtSøknad: SendtSøknad)
-    fun oppdaterMelding(sendtSøknad: SendtSøknad)
+    fun oppdaterMelding(sendtSøknad: SendtSøknad): Int
     fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, limit: Int = 100): List<SendtSøknad>
 }
 
@@ -39,7 +39,10 @@ class SendtSøknadDao(private val dataSource: DataSource) : SendtSøknadDaoInter
         }
     }
 
-    override fun oppdaterMelding(sendtSøknad: SendtSøknad) {
+    /**
+     * @return antall rader oppdatert
+     */
+    override fun oppdaterMelding(sendtSøknad: SendtSøknad): Int {
         @Language("PostgreSQL")
         val query = """
             UPDATE sendt_soknad
@@ -47,7 +50,7 @@ class SendtSøknadDao(private val dataSource: DataSource) : SendtSøknadDaoInter
                 melding = CAST(:melding as json)
             WHERE hendelse_id = :hendelseId
             """
-        sessionOf(dataSource).use { session ->
+        return sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
                     query,

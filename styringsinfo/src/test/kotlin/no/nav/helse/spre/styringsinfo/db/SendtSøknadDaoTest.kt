@@ -50,7 +50,9 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
         val hendelseId = UUID.randomUUID().toString()
         val sendtSøknad = opprettOgLagreSendtSøknad(hendelseId)
 
-        sendtSøknad.patch().also { sendtSøknadDao.oppdaterMelding(it) }
+        val patched = sendtSøknad.patch()
+        val rowsChanged = sendtSøknadDao.oppdaterMelding(patched)
+        assertEquals(1, rowsChanged)
 
         val patchetSøknad = hentSøknad(UUID.fromString(hendelseId))
 
