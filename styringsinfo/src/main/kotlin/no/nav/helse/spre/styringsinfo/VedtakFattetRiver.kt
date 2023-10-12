@@ -37,7 +37,7 @@ internal class VedtakFattetRiver(
         val id = UUID.fromString(packet["@id"].asText())
         log.info("Leser inn og lagrer melding $id")
         val vedtakFattet = packet.toVedtakFattet()
-        vedtakFattetDao.lagre(vedtakFattet)
+        vedtakFattetDao.lagre(vedtakFattet.patch())
     }
 }
 
