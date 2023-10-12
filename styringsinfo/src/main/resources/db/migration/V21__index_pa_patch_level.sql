@@ -1,0 +1,1 @@
+CREATE INDEX idx_vedtak_forkastet_patch_level ON vedtak_forkastet (patch_level);
