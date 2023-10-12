@@ -3,6 +3,7 @@ package no.nav.helse.spre.styringsinfo
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.zaxxer.hikari.HikariDataSource
@@ -66,3 +67,9 @@ fun LocalDateTime.toOsloOffset(): OffsetDateTime =
 
 fun ZonedDateTime.toOsloTid(): LocalDateTime =
     this.withZoneSameInstant(ZoneId.of("Europe/Oslo")).toLocalDateTime()
+
+fun fjernNoderFraJson(json: String, noder: List<String>): String {
+    val objectNode = objectMapper.readTree(json) as ObjectNode
+    noder.map { objectNode.remove(it) }
+    return objectMapper.writeValueAsString(objectNode)
+}
