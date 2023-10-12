@@ -1,5 +1,6 @@
 package no.nav.helse.spre.styringsinfo.db
 
+import no.nav.helse.spre.styringsinfo.PatchOptions
 import no.nav.helse.spre.styringsinfo.domain.SendtSøknad
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -60,7 +61,14 @@ class SendtSøknadPatcherTest {
         val sendtSøknadDaoMock = SendtSøknadDaoMock()
         val sendtSøknadPatcher = SendtSøknadPatcher(sendtSøknadDaoMock)
 
-        sendtSøknadPatcher.patchSendtSøknad(1, 10, 10, 1)
+        sendtSøknadPatcher.patchSendtSøknad(
+            PatchOptions(
+                patchLevelMindreEnn = 1,
+                initialSleepMillis = 10,
+                loopSleepMillis = 10,
+                antallMeldinger = 1
+            )
+        )
 
         sendtSøknadDaoMock.oppdaterteSøknader.forEach {
             assertEquals(1, it.patchLevel)

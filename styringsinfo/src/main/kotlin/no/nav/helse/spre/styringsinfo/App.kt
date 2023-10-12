@@ -13,6 +13,7 @@ import no.nav.helse.spre.styringsinfo.db.DataSourceBuilder
 import no.nav.helse.spre.styringsinfo.db.SendtSøknadDao
 import no.nav.helse.spre.styringsinfo.db.SendtSøknadPatcher
 import no.nav.helse.spre.styringsinfo.db.VedtakFattetDao
+import no.nav.helse.spre.styringsinfo.db.VedtakFattetPatcher
 import no.nav.helse.spre.styringsinfo.db.VedtakForkastetDao
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -46,11 +47,16 @@ fun main() {
     val dataSourceBuilder = DataSourceBuilder(environment)
     val dataSource = dataSourceBuilder.getDataSource()
     val sendtSøknadPatcher = SendtSøknadPatcher(SendtSøknadDao(dataSource))
+    val vedtakFattetPatcher = VedtakFattetPatcher(VedtakFattetDao(dataSource))
     dataSourceBuilder.migrate()
 
     thread {
         sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = 1))
     }
+    thread {
+        vedtakFattetPatcher.patchVedtakFattet(PatchOptions(patchLevelMindreEnn = 1, initialSleepMillis = 1000))
+    }
+
     val rapidsConnection = launchApplication(dataSource, environment)
     rapidsConnection.start()
 }

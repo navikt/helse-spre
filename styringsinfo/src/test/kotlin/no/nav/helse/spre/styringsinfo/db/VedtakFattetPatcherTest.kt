@@ -1,5 +1,6 @@
 package no.nav.helse.spre.styringsinfo.db
 
+import no.nav.helse.spre.styringsinfo.PatchOptions
 import no.nav.helse.spre.styringsinfo.domain.VedtakFattet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -60,7 +61,14 @@ class VedtakFattetPatcherTest {
         val vedtakFattetDaoMock = VedtakFattetDaoMock()
         val vedtakFattetPatcher = VedtakFattetPatcher(vedtakFattetDaoMock)
 
-        vedtakFattetPatcher.patchVedtakFattet(1, 10, 10, 1)
+        vedtakFattetPatcher.patchVedtakFattet(
+            PatchOptions(
+                patchLevelMindreEnn = 1,
+                initialSleepMillis = 10,
+                loopSleepMillis = 10,
+                antallMeldinger = 1
+            )
+        )
 
         vedtakFattetDaoMock.oppdaterteVedtakFattet.forEach {
             assertEquals(1, it.patchLevel)
