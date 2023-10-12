@@ -1,0 +1,1 @@
+CREATE INDEX idx_vedtak_fattet_hendelse_id ON vedtak_fattet (hendelse_id);
