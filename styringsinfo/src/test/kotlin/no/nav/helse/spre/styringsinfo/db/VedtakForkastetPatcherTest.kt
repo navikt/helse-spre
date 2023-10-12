@@ -1,43 +1,43 @@
 package no.nav.helse.spre.styringsinfo.db
 
 import no.nav.helse.spre.styringsinfo.PatchOptions
-import no.nav.helse.spre.styringsinfo.domain.VedtakFattet
+import no.nav.helse.spre.styringsinfo.domain.VedtakForkastet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
-class VedtakFattetPatcherTest {
+class VedtakForkastetPatcherTest {
 
-    private class VedtakFattetDaoMock : VedtakFattetDaoInterface {
-        val oppdaterteVedtakFattet = mutableListOf<VedtakFattet>()
-        var vedtakFattetErHentet = false
+    private class VedtakForkastetDaoMock : VedtakForkastetDaoInterface {
+        val oppdaterteVedtakForkastet = mutableListOf<VedtakForkastet>()
+        var vedtakForkastetErHentet = false
 
-        override fun lagre(vedtakFattet: VedtakFattet) {
+        override fun lagre(vedtakForkastet: VedtakForkastet) {
             TODO("Not yet implemented.")
         }
 
-        override fun oppdaterMelding(vedtakFattet: VedtakFattet): Int {
-            oppdaterteVedtakFattet.add(vedtakFattet)
+        override fun oppdaterMelding(vedtakForkastet: VedtakForkastet): Int {
+            oppdaterteVedtakForkastet.add(vedtakForkastet)
             return 1
         }
 
-        override fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, antallMeldinger: Int): List<VedtakFattet> {
-            if (vedtakFattetErHentet) {
+        override fun hentMeldingerMedPatchLevelMindreEnn(patchLevel: Int, antallMeldinger: Int): List<VedtakForkastet> {
+            if (vedtakForkastetErHentet) {
                 return emptyList()
             }
 
-            val vedtakFattet = VedtakFattet(
-                vedtakFattetTidspunkt = LocalDateTime.parse("2023-10-01T01:00:00"),
+            val vedtakForkastet = VedtakForkastet(
+                forkastetTidspunkt = LocalDateTime.parse("2023-10-01T01:00:00"),
                 fom = LocalDate.parse("2023-10-01"),
                 tom = LocalDate.parse("2023-10-02"),
                 hendelseId = UUID.fromString("08a92c25-0e59-452f-ba60-83b7515de8e5"),
                 melding = """
                 {
                   "@id": "08a92c25-0e59-452f-ba60-83b7515de8e5",
-                  "vedtakFattetTidspunkt": "2023-06-01T10:00:00.0",
+                  "forkastetTidspunkt": "2023-06-01T10:00:00.0",
                   "fødselsnummer": "12345678910",
                   "fom": "2023-10-01",
                   "tom": "2023-10-02",
@@ -47,17 +47,17 @@ class VedtakFattetPatcherTest {
                 patchLevel = 0,
                 hendelser = emptyList()
             )
-            vedtakFattetErHentet = true
-            return listOf(vedtakFattet)
+            vedtakForkastetErHentet = true
+            return listOf(vedtakForkastet)
         }
     }
 
     @Test
-    fun `patch VedtakFattet`() {
-        val vedtakFattetDaoMock = VedtakFattetDaoMock()
-        val vedtakFattetPatcher = VedtakFattetPatcher(vedtakFattetDaoMock)
+    fun `patch VedtakForkastet`() {
+        val vedtakForkastetDaoMock = VedtakForkastetDaoMock()
+        val vedtakForkastetPatcher = VedtakForkastetPatcher(vedtakForkastetDaoMock)
 
-        vedtakFattetPatcher.patchVedtakFattet(
+        vedtakForkastetPatcher.patchVedtakForkastet(
             PatchOptions(
                 patchLevelMindreEnn = 1,
                 initialSleepMillis = 10,
@@ -66,7 +66,7 @@ class VedtakFattetPatcherTest {
             )
         )
 
-        vedtakFattetDaoMock.oppdaterteVedtakFattet.forEach {
+        vedtakForkastetDaoMock.oppdaterteVedtakForkastet.forEach {
             assertEquals(1, it.patchLevel)
             assertFalse(it.melding.contains("fnr"))
         }
