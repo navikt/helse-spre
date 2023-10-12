@@ -2,8 +2,8 @@ strategy: Recreate
 kafkaPool: nav-prod
 kafkaConsumerGroup: tbd-spre-styringsinfo-v3
 kafkaResetPolicy: earliest
-livenessInitialDelay: 300
-readinessInitialDelay: 300
+livenessInitialDelay: 30
+readinessInitialDelay: 30
 gcp:
   type: POSTGRES_15
   databaseName: spre-styringsinfo
