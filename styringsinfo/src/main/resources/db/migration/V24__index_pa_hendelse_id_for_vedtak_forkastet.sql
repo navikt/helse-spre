@@ -1,0 +1,1 @@
+CREATE INDEX idx_vedtak_forkastet_hendelse_id ON vedtak_forkastet (hendelse_id);
