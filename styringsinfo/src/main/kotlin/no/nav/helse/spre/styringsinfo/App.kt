@@ -9,8 +9,11 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.db.*
 import no.nav.helse.spre.styringsinfo.db.DataSourceBuilder
+import no.nav.helse.spre.styringsinfo.db.SendtSøknadDao
+import no.nav.helse.spre.styringsinfo.db.SendtSøknadPatcher
+import no.nav.helse.spre.styringsinfo.db.VedtakFattetDao
+import no.nav.helse.spre.styringsinfo.db.VedtakForkastetDao
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -30,19 +33,23 @@ internal val objectMapper: ObjectMapper = ObjectMapper().apply {
     configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 }
 
+
+data class PatchOptions(
+    val patchLevelMindreEnn: Int,
+    val initialSleepMillis: Long = 60_000, // Antall millisekunder vi venter før patching starter.
+    val loopSleepMillis: Long = 1000, // Antall millisekunder mellom hver iterasjon
+    val antallMeldinger: Int = 1000 // Hvor mange meldinger vi henter fra databasen for hver iterasjon.
+)
+
 fun main() {
     val environment = System.getenv()
     val dataSourceBuilder = DataSourceBuilder(environment)
     val dataSource = dataSourceBuilder.getDataSource()
     val sendtSøknadPatcher = SendtSøknadPatcher(SendtSøknadDao(dataSource))
     dataSourceBuilder.migrate()
+
     thread {
-        sendtSøknadPatcher.patchSendtSøknad(
-            patchLevelMindreEnn = 1,
-            initialSleepMillis = 60_000, // 60 sek fordi vi venter på at applikasjonen skal ha startet opp?
-            loopSleepMillis = 1000, // 1 sek mellom hver gang vi sjekker om det er flere søknader å patche
-            antallMeldinger = 1000 // gitt f eks 2.6 mill søknader, så vil vi sum ventetid mellom looper bli ca 43 minutter
-        )
+        sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = 1))
     }
     val rapidsConnection = launchApplication(dataSource, environment)
     rapidsConnection.start()

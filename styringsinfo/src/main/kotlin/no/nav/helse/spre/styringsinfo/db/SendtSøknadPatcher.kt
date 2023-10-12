@@ -1,17 +1,15 @@
 package no.nav.helse.spre.styringsinfo.db
 
+import no.nav.helse.spre.styringsinfo.PatchOptions
 import no.nav.helse.spre.styringsinfo.log
 
 class SendtSøknadPatcher(
     private val sendtSøknadDao: SendtSøknadDaoInterface
 ) {
 
-    fun patchSendtSøknad(
-        patchLevelMindreEnn: Int,
-        initialSleepMillis: Long,
-        loopSleepMillis: Long,
-        antallMeldinger: Int
-    ) {
+    fun patchSendtSøknad(patchOptions: PatchOptions) {
+        val (patchLevelMindreEnn, initialSleepMillis, loopSleepMillis, antallMeldinger) = patchOptions
+
         Thread.sleep(initialSleepMillis)
         var antallPatchet = 0
         do {
