@@ -15,6 +15,7 @@ import no.nav.helse.spre.styringsinfo.db.SendtSøknadPatcher
 import no.nav.helse.spre.styringsinfo.db.VedtakFattetDao
 import no.nav.helse.spre.styringsinfo.db.VedtakFattetPatcher
 import no.nav.helse.spre.styringsinfo.db.VedtakForkastetDao
+import no.nav.helse.spre.styringsinfo.db.VedtakForkastetPatcher
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -48,6 +49,7 @@ fun main() {
     val dataSource = dataSourceBuilder.getDataSource()
     val sendtSøknadPatcher = SendtSøknadPatcher(SendtSøknadDao(dataSource))
     val vedtakFattetPatcher = VedtakFattetPatcher(VedtakFattetDao(dataSource))
+    val vedtakForkastetPatcher = VedtakForkastetPatcher(VedtakForkastetDao(dataSource))
     dataSourceBuilder.migrate()
 
     thread {
@@ -55,6 +57,9 @@ fun main() {
     }
     thread {
         vedtakFattetPatcher.patchVedtakFattet(PatchOptions(patchLevelMindreEnn = 1, initialSleepMillis = 1000))
+    }
+    thread {
+        vedtakForkastetPatcher.patchVedtakForkastet(PatchOptions(patchLevelMindreEnn = 1, initialSleepMillis = 1000))
     }
 
     val rapidsConnection = launchApplication(dataSource, environment)
