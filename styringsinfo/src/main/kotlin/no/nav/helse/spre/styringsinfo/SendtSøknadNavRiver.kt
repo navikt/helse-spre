@@ -22,7 +22,7 @@ internal class SendtSøknadNavRiver(
         River(rapidsConnection).apply {
             validate {
                 it.demandValue("@event_name", "sendt_søknad_nav")
-                it.requireKey("@id", "fnr") // TODO: Vurdere å fjerne fnr
+                it.requireKey("@id")
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
                 it.require("sendtNav", JsonNode::asLocalDateTime)

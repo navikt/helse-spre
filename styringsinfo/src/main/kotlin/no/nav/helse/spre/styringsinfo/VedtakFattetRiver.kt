@@ -21,7 +21,7 @@ internal class VedtakFattetRiver(
         River(rapidsConnection).apply {
             validate {
                 it.demandValue("@event_name", "vedtak_fattet")
-                it.requireKey("@id", "hendelser", "fødselsnummer") // TODO: Vurdere å fjerne fødselsnummer
+                it.requireKey("@id", "hendelser")
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
                 it.require("vedtakFattetTidspunkt", JsonNode::asLocalDateTime)
