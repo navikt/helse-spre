@@ -39,7 +39,6 @@ internal class UtbetalingUtbetaltRiver(
                     "ident",
                     "epost"
                 )
-                it.requireKey("vedtaksperiodeIder")
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)
                 it.require("maksdato", JsonNode::asLocalDate)

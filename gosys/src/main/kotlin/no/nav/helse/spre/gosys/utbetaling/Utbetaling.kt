@@ -12,7 +12,6 @@ import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData
 
 data class Utbetaling(
     val utbetalingId: UUID,
@@ -30,7 +29,6 @@ data class Utbetaling(
     val type: Utbetalingtype,
     val ident: String,
     val epost: String,
-    val vedtaksperiodeIder: List<UUID>,
     val opprettet: LocalDateTime,
     private val utbetalingsdager: List<UtbetalingdagDto>
 ) {
@@ -48,29 +46,13 @@ data class Utbetaling(
         return fom to vedtaksperiode.second
     }
 
-    private fun alleVedtakOrNull(vedtakFattetDao: VedtakFattetDao) = vedtakFattetDao.finnVedtakFattetData(utbetalingId).let { vedtakFattetHendelser ->
-        // Hvis vi har alle vedtak knyttet til utbetalingen kan vi gå videre med opprettelse av dokument
-        // Hvis vi ikke har noen vedtak enda så null:
-        if(vedtakFattetHendelser.isEmpty()) return null
-        if (vedtaksperiodeIder.harAlle(vedtakFattetHendelser)) vedtakFattetHendelser
-        else null
-    }
-
-    private fun List<UUID>.harAlle(vedtakFattet: List<VedtakFattetData>) = all { vedtaksperiodeId ->
-        vedtaksperiodeId in vedtakFattet.map { it.vedtaksperiodeId }
-    }
+    private fun vedtakOrNull(vedtakFattetDao: VedtakFattetDao) = vedtakFattetDao.finnVedtakFattetData(utbetalingId).singleOrNullOrThrow()
 
     internal fun avgjørVidereBehandling(vedtakFattetDao: VedtakFattetDao, vedtakMediator: VedtakMediator) {
-        alleVedtakOrNull(vedtakFattetDao)?.let { vedtakFattetHendelser ->
-            val fom = vedtakFattetHendelser.minOf { it.fom }
-            val tom = vedtakFattetHendelser.maxOf { it.tom }
-            val vedtaksperiode = vedtakFattetHendelser.first()
-            check(vedtakFattetHendelser.all { it.fødselsnummer == fødselsnummer }) {
-                "Alvorlig feil: Vedtaket peker på utbetaling med et annet fødselnummer"
-            }
+        vedtakOrNull(vedtakFattetDao)?.let { vedtaksperiode ->
             vedtakMediator.opprettSammenslåttVedtak(
-                fom,
-                tom,
+                vedtaksperiode.fom,
+                vedtaksperiode.tom,
                 vedtaksperiode.sykepengegrunnlag,
                 vedtaksperiode.grunnlagForSykepengegrunnlag,
                 vedtaksperiode.skjæringstidspunkt,
@@ -103,8 +85,6 @@ data class Utbetaling(
                 type = Utbetalingtype.valueOf(packet["type"].asText()),
                 ident = packet["ident"].asText(),
                 epost = packet["epost"].asText(),
-                vedtaksperiodeIder = packet["vedtaksperiodeIder"].toList()
-                    .map { UUID.fromString(it.asText()) },
                 opprettet = packet["@opprettet"].asLocalDateTime(),
                 utbetalingsdager = packet.utbetalingsdager
             )
@@ -176,4 +156,8 @@ data class Utbetaling(
         val type: String,
         val begrunnelser: List<String>
     )
+
+    private fun <R> Collection<R>.singleOrNullOrThrow() =
+        if (size < 2) this.firstOrNull()
+        else throw IllegalStateException("Listen inneholder mer enn ett element!")
 }

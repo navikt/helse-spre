@@ -302,11 +302,14 @@ internal abstract class AbstractE2ETest {
         fødselsnummer: String = "12345678910",
         hendelseId: UUID = UUID.randomUUID(),
         utbetalingId: UUID = UUID.randomUUID(),
-        vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID()),
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
-        arbeidsgiverOppdrag: Oppdrag = Oppdrag(sykdomstidslinje, fagområde = "SPREF", fagsystemId = "fagsystemIdArbeidsgiver"),
+        arbeidsgiverOppdrag: Oppdrag = Oppdrag(
+            sykdomstidslinje,
+            fagområde = "SPREF",
+            fagsystemId = "fagsystemIdArbeidsgiver"
+        ),
         brukeroppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SP", fagsystemId = "fagsystemIdPerson")
     ) = """{
     "@id": "$hendelseId",
@@ -323,9 +326,6 @@ internal abstract class AbstractE2ETest {
     "type": "$type",
     "tidspunkt": "$opprettet",
     "automatiskBehandling": "true",
-    "vedtaksperiodeIder": [
-        ${vedtaksperiodeIder.joinToString { "\"$it\"" }}
-    ],
     "arbeidsgiverOppdrag": ${arbeidsgiverOppdrag.toJson()},
     "personOppdrag": ${brukeroppdrag.toJson()},
     "utbetalingsdager": ${sykdomstidslinje.toJson()},
@@ -342,10 +342,9 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay()
     ) = utbetalingArbeidsgiver(
-        hendelseId = id,
         fødselsnummer = fødselsnummer,
+        hendelseId = id,
         utbetalingId = utbetalingId,
-        vedtaksperiodeIder = vedtaksperiodeIder,
         sykdomstidslinje = sykdomstidslinje,
         type = "REVURDERING",
         opprettet = opprettet
@@ -383,10 +382,9 @@ internal abstract class AbstractE2ETest {
         require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
         testRapid.sendTestMessage(
             utbetalingArbeidsgiver(
-                hendelseId = hendelseId,
                 fødselsnummer = fødselsnummer,
+                hendelseId = hendelseId,
                 utbetalingId = utbetalingId,
-                vedtaksperiodeIder = vedtaksperiodeIder,
                 sykdomstidslinje = sykdomstidslinje,
                 type = type
             )

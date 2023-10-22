@@ -13,6 +13,7 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.lang.IllegalStateException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -451,20 +452,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `vedtak og utbetaling som linkes med ulik fnr`() {
-        val vedtaksperiodeId = UUID.randomUUID()
-        val utbetalingId = UUID.randomUUID()
-        sendVedtakFattet(vedtaksperiodeId = vedtaksperiodeId, utbetalingId = utbetalingId, fødselsnummer = "123")
-        assertThrows<IllegalStateException> {
-            sendUtbetaling(
-                fødselsnummer = "321",
-                utbetalingId = utbetalingId,
-                vedtaksperiodeIder = listOf(vedtaksperiodeId)
-            )
-        }
-    }
-
-    @Test
     fun `revurdering med flere vedtak knyttet til én utbetaling - utbetaling først`() {
         val utbetalingstidspunkt = LocalDateTime.now()
         val utbetalingId = UUID.randomUUID()
@@ -481,26 +468,13 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             vedtaksperiodeId = v1,
             sykdomstidslinje = p1
         )
-        sendVedtakFattet(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeId = v2,
-            sykdomstidslinje = p2
-        )
-
-        assertEquals(1, capturedJoarkRequests.size)
-        assertEquals(1, capturedPdfRequests.size)
-
-        assertVedtakPdf(
-            expectedPdfPayloadV2(
-                fom = 1.januar,
-                tom = 28.februar,
-                utbetalingstype = REVURDERING,
-                totaltTilUtbetaling = 61533,
-                behandlingsdato = utbetalingstidspunkt.toLocalDate(),
-                arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver")
+        assertThrows<IllegalStateException> {
+            sendVedtakFattet(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeId = v2,
+                sykdomstidslinje = p2
             )
-        )
-        assertJournalpost(expectedJournalpost(fom = 1.januar, tom = 28.februar, utbetalingstype = REVURDERING))
+        }
     }
 
     @Test
@@ -519,24 +493,13 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             vedtaksperiodeIder = listOf(v1, v2),
             sykdomstidslinje = p1 + p2
         )
-        sendVedtakFattet(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeId = v2,
-            sykdomstidslinje = p2
-        )
-
-        assertEquals(1, capturedJoarkRequests.size)
-        assertEquals(1, capturedPdfRequests.size)
-
-        assertVedtakPdf(
-            expectedPdfPayloadV2(
-                utbetalingstype = REVURDERING,
-                totaltTilUtbetaling = 61533,
-                fom = 1.januar,
-                tom = 28.februar,
-                arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver")
+        assertThrows<IllegalStateException> {
+            sendVedtakFattet(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeId = v2,
+                sykdomstidslinje = p2
             )
-        )
+        }
     }
 
     @Test
@@ -554,24 +517,13 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             utbetalingId = utbetalingId,
             sykdomstidslinje = p2
         )
-        sendRevurdering(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(v1, v2),
-            sykdomstidslinje = p1 + p2
-        )
-
-        assertEquals(1, capturedJoarkRequests.size)
-        assertEquals(1, capturedPdfRequests.size)
-
-        assertVedtakPdf(
-            expectedPdfPayloadV2(
-                utbetalingstype = REVURDERING,
-                fom = 1.januar,
-                tom = 28.februar,
-                totaltTilUtbetaling = 61533,
-                arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver")
+        assertThrows<IllegalStateException> {
+            sendRevurdering(
+                utbetalingId = utbetalingId,
+                vedtaksperiodeIder = listOf(v1, v2),
+                sykdomstidslinje = p1 + p2
             )
-        )
+        }
     }
 
     @Test
@@ -595,54 +547,13 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             utbetalingId = utbetalingId,
             sykdomstidslinje = p1
         )
-        sendVedtakFattet(
-            vedtaksperiodeId = v2,
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = p2
-        )
-
-        assertEquals(1, capturedJoarkRequests.size)
-        assertEquals(1, capturedPdfRequests.size)
-
-        assertVedtakPdf(
-            expectedPdfPayloadV2(
-                fom = 1.januar,
-                tom = 28.februar,
-                utbetalingstype = REVURDERING,
-                totaltTilUtbetaling = 60102,
-                behandlingsdato = utbetalingstidspunkt.toLocalDate(),
-                arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver"),
-                linjer = listOf(
-                    Linje(
-                        fom = 30.januar,
-                        tom = 28.februar,
-                        grad = 100,
-                        dagsats = 1431,
-                        mottaker = "Arbeidsgiver",
-                        erOpphørt = false,
-                        totalbeløp = 31482
-                    ),
-                    Linje(
-                        fom = 1.januar,
-                        tom = 28.januar,
-                        grad = 100,
-                        dagsats = 1431,
-                        mottaker = "Arbeidsgiver",
-                        erOpphørt = false,
-                        totalbeløp = 28620
-                    )
-                ),
-                ikkeUtbetalteDager = listOf(
-                    IkkeUtbetalteDager(
-                        fom = 29.januar,
-                        tom = 29.januar,
-                        grunn = "Ferie/Permisjon",
-                        begrunnelser = emptyList()
-                    )
-                )
+        assertThrows<IllegalStateException> {
+            sendVedtakFattet(
+                vedtaksperiodeId = v2,
+                utbetalingId = utbetalingId,
+                sykdomstidslinje = p2
             )
-        )
-        assertJournalpost(expectedJournalpost(fom = 1.januar, tom = 28.februar, utbetalingstype = REVURDERING))
+        }
     }
 
     @Test
