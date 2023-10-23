@@ -35,6 +35,7 @@ class PdlClient(
             header("Authorization", "Bearer ${token.accessToken}")
             header("Content-Type", "application/json")
             header("Accept", "application/json")
+            header("behandlingsnummer", "B139")
             header("Nav-Call-Id", hendelseId.toString())
             setBody(payload)
         }
