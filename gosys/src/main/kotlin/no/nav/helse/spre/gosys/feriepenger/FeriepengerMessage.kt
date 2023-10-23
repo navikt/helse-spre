@@ -13,18 +13,16 @@ class FeriepengerMessage(hendelseId: UUID, packet: JsonMessage) {
     val aktørId = packet["aktørId"].asText()
     val oppdrag = mutableListOf<Oppdrag>()
     val orgnummer: String = packet["organisasjonsnummer"].asText()
-    lateinit var utbetalt: LocalDateTime
+    val utbetalt: LocalDateTime = packet["@opprettet"].asLocalDateTime()
 
     init {
         if (!packet["arbeidsgiverOppdrag.linjer"].isEmpty) {
             val arbeidsgiverOppdrag = packet["arbeidsgiverOppdrag"]
             oppdrag.add(parseOppdrag(arbeidsgiverOppdrag, OppdragType.ARBEIDSGIVER))
-            utbetalt = arbeidsgiverOppdrag["tidsstempel"].asLocalDateTime()
         }
         if (!packet["personOppdrag.linjer"].isEmpty) {
             val personOppdrag = packet["personOppdrag"]
             oppdrag.add(parseOppdrag(personOppdrag, OppdragType.PERSON))
-            utbetalt = personOppdrag["tidsstempel"].asLocalDateTime()
         }
     }
 

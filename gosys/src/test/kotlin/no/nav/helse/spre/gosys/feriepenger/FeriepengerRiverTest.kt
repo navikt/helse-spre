@@ -122,7 +122,6 @@ internal class FeriepengerRiverTest {
           }
         ],
         "fagsystemId": "88ABRH3QENHB5K4XUY4LQ7HRTY",
-        "tidsstempel": "$utbetalt",
         "fom": "2021-05-01",
         "tom": "2021-05-31"
       },
@@ -130,13 +129,12 @@ internal class FeriepengerRiverTest {
         "mottaker": "20046912345",
         "linjer": [],
         "fagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
-        "tidsstempel": "$utbetalt",
         "fom": "-999999999-01-01",
         "tom": "-999999999-01-01"
       },
       "@event_name": "feriepenger_utbetalt",
       "@id": "${UUID.randomUUID()}",
-      "@opprettet": "2021-05-31T13:37:00.000000000",
+      "@opprettet": "$utbetalt",
       "aktørId": "123456",
       "fødselsnummer": "20046912345",
       "organisasjonsnummer": "123456789"
@@ -158,7 +156,6 @@ internal class FeriepengerRiverTest {
           }
         ],
         "fagsystemId": "88ABRH3QENHB5K4XUY4LQ7HRTY",
-        "tidsstempel": "$utbetalt",
         "fom": "2021-05-01",
         "tom": "2021-05-31"
       },
@@ -172,13 +169,12 @@ internal class FeriepengerRiverTest {
           }
         ],
         "fagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
-        "tidsstempel": "$utbetalt",
         "fom": "2021-05-01",
         "tom": "2021-05-31"
       },
       "@event_name": "feriepenger_utbetalt",
       "@id": "${UUID.randomUUID()}",
-      "@opprettet": "2021-05-31T13:37:00.000000000",
+      "@opprettet": "$utbetalt",
       "aktørId": "123456",
       "fødselsnummer": "20046912345",
       "organisasjonsnummer": "123456789"
