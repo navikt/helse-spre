@@ -49,9 +49,7 @@ spec:
       tenant: {{azure.tenant}}
       {{/if}}
   {{/if}}
-  {{#if gcp.election}}
-  leaderElection: true
-  {{/if}}
+  leaderElection: {{leaderElected}}
   {{#if gcp}}
   gcp:
     sqlInstances:
