@@ -2,7 +2,7 @@ strategy: Recreate
 kafkaPool: nav-dev
 kafkaConsumerGroup: tbd-spre-styringsinfo-v3
 kafkaResetPolicy: earliest
-leaderElected: true
+enableLeaderElection: true
 gcp:
   type: POSTGRES_15
   databaseName: spre-styringsinfo
