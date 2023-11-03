@@ -947,11 +947,12 @@ class EndToEndTest {
         hendelseIder: List<UUID>,
         harPeriodeInnenfor16Dager: Boolean = false,
         forlengerPeriode: Boolean = false,
+        påvirkerArbeidsgiverperioden: Boolean = false,
         organisasjonsnummer: String = ORGNUMMER,
         fødselsnummer: String = FØDSELSNUMMER,
         forårsaketAv: String = "hva_som_helst"
     ) {
-        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, harPeriodeInnenfor16Dager, forlengerPeriode, fødselsnummer, organisasjonsnummer, forårsaketAv))
+        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, harPeriodeInnenfor16Dager, påvirkerArbeidsgiverperioden, forlengerPeriode, fødselsnummer, organisasjonsnummer, forårsaketAv))
     }
 
 
@@ -1034,6 +1035,7 @@ fun søknadHåndtert(
 fun vedtaksperiodeForkastet(
     hendelser: List<UUID>,
     harPeriodeInnenfor16Dager: Boolean,
+    påvirkerArbeidsgiverperioden: Boolean,
     forlengerPeriode: Boolean,
     fødselsnummer: String,
     organisasjonsnummer: String,
@@ -1041,6 +1043,7 @@ fun vedtaksperiodeForkastet(
 ) =
     """{
             "@event_name": "vedtaksperiode_forkastet",
+            "påvirkerArbeidsgiverperioden": "$påvirkerArbeidsgiverperioden",
             "harPeriodeInnenfor16Dager": "$harPeriodeInnenfor16Dager",
             "forlengerPeriode": "$forlengerPeriode",
             "fødselsnummer": "$fødselsnummer",

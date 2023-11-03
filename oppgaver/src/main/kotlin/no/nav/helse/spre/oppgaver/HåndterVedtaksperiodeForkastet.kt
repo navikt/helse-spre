@@ -14,13 +14,14 @@ class HåndterVedtaksperiodeForkastet(
     init {
         River(rapidsConnection).apply {
             validate { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
-            validate { it.requireKey("hendelser", "harPeriodeInnenfor16Dager", "forlengerPeriode", "fødselsnummer", "organisasjonsnummer") }
+            validate { it.requireKey("hendelser", "harPeriodeInnenfor16Dager", "påvirkerArbeidsgiverperioden", "forlengerPeriode", "fødselsnummer", "organisasjonsnummer") }
             validate { it.rejectValue("@forårsaket_av.event_name", "person_påminnelse") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val harPeriodeInnenfor16Dager = packet["harPeriodeInnenfor16Dager"].asBoolean()
+        val påvirkerArbeidsgiverperioden = packet["påvirkerArbeidsgiverperioden"].asBoolean()
         val forlengerPeriode = packet["forlengerPeriode"].asBoolean()
         val orgnummer = packet["organisasjonsnummer"].asText()
         val fødselsnummer = packet["fødselsnummer"].asText()
@@ -30,7 +31,14 @@ class HåndterVedtaksperiodeForkastet(
             .map { UUID.fromString(it.asText()) }
         val oppgaver = hendelser.mapNotNull { oppgaveDAO.finnOppgave(it, observer) } + oppgaveDAO.finnOppgaverIDokumentOppdaget(orgnummer, fødselsnummer, observer, hendelser)
         oppgaver.forEach { oppgave ->
-            withMDC(mapOf("event" to "vedtaksperiode_forkastet", "harPeriodeInnenfor16Dager" to harPeriodeInnenfor16Dager.utfall(), "forlengerPeriode" to forlengerPeriode.utfall())) {
+            withMDC(
+                mapOf(
+                    "event" to "vedtaksperiode_forkastet",
+                    "harPeriodeInnenfor16Dager" to harPeriodeInnenfor16Dager.utfall(),
+                    "forlengerPeriode" to forlengerPeriode.utfall(),
+                    "påvirkerArbeidsgiverperioden" to påvirkerArbeidsgiverperioden.utfall()
+                )
+            ) {
                 if (speilRelatert) oppgave.lagOppgavePåSpeilKø()
                 else oppgave.lagOppgave()
             }
