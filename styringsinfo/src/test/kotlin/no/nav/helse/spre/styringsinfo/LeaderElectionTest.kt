@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test
 
 class LeaderElectionTest {
 
-
     @Test
     fun `Pod er leder`() {
         val leaderElection = LeaderElection(
@@ -75,15 +74,13 @@ class LeaderElectionTest {
 
         val httpClient = HttpClient(MockEngine) {
             install(ContentNegotiation) {
-                jackson {
-                    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                }
+                register(ContentType.Application.Json, JacksonConverter(objectMapper))
             }
             install(HttpTimeout) {
                 // Hvis den ikke settes høyt nok, vil det kastes HttpRequestTimeoutException før alle retries er gjort.
                 // https://youtrack.jetbrains.com/issue/KTOR-4652/Retry-and-timeout-client-plugins-dont-work-together
                 // https://youtrack.jetbrains.com/issue/KTOR-5466/Connect-timeout-is-not-respected-when-using-the-HttpRequestRetry-plugin
-                requestTimeoutMillis = 1500
+                requestTimeoutMillis = 2000
             }
             install(HttpRequestRetry) {
                 // Burde, i motsettning til retryOnServerErrors(), fange opp HttpRequestTimeoutException.
@@ -117,9 +114,7 @@ class LeaderElectionTest {
     private fun lagMockHttpClient(): HttpClient {
         return HttpClient(MockEngine) {
             install(ContentNegotiation) {
-                jackson {
-                    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                }
+                register(ContentType.Application.Json, JacksonConverter(objectMapper))
             }
             engine {
                 addHandler {
