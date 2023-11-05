@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.zaxxer.hikari.HikariDataSource
+import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.db.DataSourceBuilder
@@ -52,6 +53,26 @@ fun main() {
     val vedtakForkastetPatcher = VedtakForkastetPatcher(VedtakForkastetDao(dataSource))
     dataSourceBuilder.migrate()
 
+    val leaderElection = LeaderElection.build(
+        environment = environment,
+        // Vi har ikke noen garanti for at elector-containeren starter før applikasjonen, så setter lang connect timeout
+        // for å unngå at vi får exception når vi prøver å kalle pod som ikke er klar. Dette skjer uansett
+        // under oppstart, så vi har det ikke travelt.
+        connectTimeout = 10_000
+    )
+
+    // TODO: Skulle vi laget et coroutine scope her og kjørt patching i suspend funksjoner i stedet for i tråder?
+    runBlocking {
+        // TODO: Velg om vi vil skippe patching eller stoppe applikasjonen om kall til isLeader() kaster exception.
+        // TODO: Vurder egenlaget retyr her i stedet for HttpClient sin retry, som ikke funker så godt med timeout.
+        if (leaderElection.isLeader()) {
+            log.info("Pod er leder.")
+        } else {
+            log.info("Pod er ikke leder.")
+        }
+    }
+
+    // TODO: Kjør patching kun hvis podden er leder.
     thread {
         sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = 1))
     }
@@ -78,7 +99,6 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
         VedtakForkastetRiver(this, vedtakForkastetDao)
     }
 }
-
 
 fun LocalDateTime.toOsloOffset(): OffsetDateTime =
     this.atOffset(ZoneId.of("Europe/Oslo").rules.getOffset(this))

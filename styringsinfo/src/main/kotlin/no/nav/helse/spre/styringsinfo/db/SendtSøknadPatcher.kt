@@ -3,9 +3,7 @@ package no.nav.helse.spre.styringsinfo.db
 import no.nav.helse.spre.styringsinfo.PatchOptions
 import no.nav.helse.spre.styringsinfo.log
 
-class SendtSøknadPatcher(
-    private val sendtSøknadDao: SendtSøknadDaoInterface
-) {
+class SendtSøknadPatcher(private val sendtSøknadDao: SendtSøknadDaoInterface) {
 
     fun patchSendtSøknad(patchOptions: PatchOptions) {
         val (patchLevelMindreEnn, initialSleepMillis, loopSleepMillis, antallMeldinger) = patchOptions
