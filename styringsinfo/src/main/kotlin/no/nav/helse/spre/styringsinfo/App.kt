@@ -73,6 +73,7 @@ fun main() {
     }
 
     // TODO: Kjør patching kun hvis podden er leder.
+    // TODO: Bruk Coroutines i stedet for tråder: https://kotlinlang.org/docs/coroutines-basics.html#your-first-coroutine
     thread {
         sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = 1))
     }
