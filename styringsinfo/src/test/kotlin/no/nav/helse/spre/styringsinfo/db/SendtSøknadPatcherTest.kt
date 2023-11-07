@@ -1,9 +1,11 @@
 package no.nav.helse.spre.styringsinfo.db
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.spre.styringsinfo.PatchOptions
 import no.nav.helse.spre.styringsinfo.domain.SendtSøknad
+import no.nav.helse.spre.styringsinfo.objectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -42,7 +44,11 @@ class SendtSøknadPatcherTest {
                   "sendtNav": null,
                   "fnr": "12345678910",
                   "fom": "2023-10-01",
-                  "tom": "2023-10-02"
+                  "tom": "2023-10-02",
+                  "arbeidsgiver": {
+                    "navn": "Nærbutikken AS",
+                    "orgnummer": "810007842"
+                  }
                 }
                 """,
                 patchLevel = 0
@@ -67,8 +73,10 @@ class SendtSøknadPatcherTest {
         )
 
         sendtSøknadDaoMock.oppdaterteSøknader.forEach {
-            assertEquals(1, it.patchLevel)
-            assertFalse(it.melding.contains("fnr"))
+            assertEquals(2, it.patchLevel)
+            val objectNode = objectMapper.readTree(it.melding) as ObjectNode
+            assertTrue(objectNode.at("/fnr").isMissingNode)
+            assertTrue(objectNode.at("/arbeidsgiver").isMissingNode)
         }
     }
 }

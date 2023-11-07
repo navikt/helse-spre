@@ -1,9 +1,11 @@
 package no.nav.helse.spre.styringsinfo.db
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.spre.styringsinfo.PatchOptions
 import no.nav.helse.spre.styringsinfo.domain.VedtakForkastet
+import no.nav.helse.spre.styringsinfo.objectMapper
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -67,8 +69,10 @@ class VedtakForkastetPatcherTest {
         )
 
         vedtakForkastetDaoMock.oppdaterteVedtakForkastet.forEach {
-            assertEquals(1, it.patchLevel)
-            assertFalse(it.melding.contains("fnr"))
+            assertEquals(2, it.patchLevel)
+            val objectNode = objectMapper.readTree(it.melding) as ObjectNode
+            Assertions.assertTrue(objectNode.at("/fødselsnummer").isMissingNode)
+            Assertions.assertTrue(objectNode.at("/organisasjonsnummer").isMissingNode)
         }
     }
 }

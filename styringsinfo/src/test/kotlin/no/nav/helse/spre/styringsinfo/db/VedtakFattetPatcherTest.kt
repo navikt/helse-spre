@@ -1,9 +1,11 @@
 package no.nav.helse.spre.styringsinfo.db
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.spre.styringsinfo.PatchOptions
 import no.nav.helse.spre.styringsinfo.domain.VedtakFattet
+import no.nav.helse.spre.styringsinfo.objectMapper
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -39,6 +41,7 @@ class VedtakFattetPatcherTest {
                   "@id": "08a92c25-0e59-452f-ba60-83b7515de8e5",
                   "vedtakFattetTidspunkt": "2023-06-01T10:00:00.0",
                   "fødselsnummer": "12345678910",
+                  "organisasjonsnummer": "987654321",
                   "fom": "2023-10-01",
                   "tom": "2023-10-02",
                   "hendelser": []
@@ -67,8 +70,10 @@ class VedtakFattetPatcherTest {
         )
 
         vedtakFattetDaoMock.oppdaterteVedtakFattet.forEach {
-            assertEquals(1, it.patchLevel)
-            assertFalse(it.melding.contains("fnr"))
+            assertEquals(2, it.patchLevel)
+            val objectNode = objectMapper.readTree(it.melding) as ObjectNode
+            Assertions.assertTrue(objectNode.at("/fødselsnummer").isMissingNode)
+            Assertions.assertTrue(objectNode.at("/organisasjonsnummer").isMissingNode)
         }
     }
 }

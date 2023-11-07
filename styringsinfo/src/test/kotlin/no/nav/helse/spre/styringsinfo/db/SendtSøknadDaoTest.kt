@@ -45,7 +45,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
     }
 
     @Test
-    fun `oppdater sendtSøknad med ny melding`() {
+    fun `patch sendtSøknad slik at den oppdateres med ny json-melding`() {
         val hendelseId = UUID.randomUUID().toString()
         val sendtSøknad = opprettOgLagreSendtSøknad(hendelseId)
 
@@ -54,8 +54,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
         assertEquals(1, rowsChanged)
 
         val patchetSøknad = hentSøknad(UUID.fromString(hendelseId))
-
-        assertTrue(patchetSøknad!!.patchLevel == 1)
+        assertEquals(2, patchetSøknad!!.patchLevel)
 
         val json = """
             {
@@ -115,7 +114,11 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
               "korrigerer": "4c6f931d-63b6-3ff7-b3bc-74d1ad627201",
               "fnr": "12345678910",
               "fom": "2023-06-05",
-              "tom": "2023-06-11"
+              "tom": "2023-06-11",
+              "arbeidsgiver": {
+                "navn": "Nærbutikken AS",
+                "orgnummer": "810007842"
+              }
             }
             """
         val sendtSøknad = SendtSøknad(

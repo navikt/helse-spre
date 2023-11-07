@@ -14,19 +14,25 @@ data class VedtakFattet(
     val hendelser: List<UUID>,
     val patchLevel: Int = 0
 ) {
-    fun patch() = this.patch(0, ::fjernFødselsnummerFraJsonString, 1)
+    fun patch() = this
+        .patch(0, ::fjernFødselsnummerFraJsonString, 1)
+        .patch(1, ::fjernOrganisasjonsnummerFraJsonString, 2)
 }
 
 private fun fjernFødselsnummerFraJsonString(vedtakFattet: VedtakFattet) =
     vedtakFattet.copy(melding = fjernNoderFraJson(vedtakFattet.melding, listOf("fødselsnummer")))
+
+private fun fjernOrganisasjonsnummerFraJsonString(vedtakFattet: VedtakFattet) =
+    vedtakFattet.copy(melding = fjernNoderFraJson(vedtakFattet.melding, listOf("organisasjonsnummer")))
 
 private fun VedtakFattet.patch(
     patchLevelPreCondition: Int,
     patchFunction: (input: VedtakFattet) -> VedtakFattet,
     patchLevelPostPatch: Int
 ): VedtakFattet =
-    if (this.patchLevel == patchLevelPreCondition)
-        patchFunction(this).copy(patchLevel = patchLevelPostPatch)
-    else
+    if (this.patchLevel != patchLevelPreCondition) {
         this
+    } else {
+        patchFunction(this).copy(patchLevel = patchLevelPostPatch)
+    }
 
