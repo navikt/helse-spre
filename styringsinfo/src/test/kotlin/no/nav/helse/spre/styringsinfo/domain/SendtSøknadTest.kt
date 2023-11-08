@@ -1,6 +1,6 @@
 package no.nav.helse.spre.styringsinfo.domain
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -29,13 +29,32 @@ internal class SendtSøknadTest {
                   "arbeidsgiver": {
                     "navn": "Nærbutikken AS",
                     "orgnummer": "810007842"
-                  }
+                  },
+                  "sporsmalstekst": "bla bla",
+                  "sporsmal": [
+                    {
+                      "id": "456",
+                      "max": null,
+                      "min": null,
+                      "tag": "ANSVARSERKLARING",
+                      "svar": [
+                        {
+                          "verdi": "CHECKED"
+                        }
+                      ],
+                      "svartype": "CHECKBOX_PANEL",
+                      "undertekst": null,
+                      "undersporsmal": [],
+                      "sporsmalstekst": "bla bla",
+                      "kriterieForVisningAvUndersporsmal": null
+                    }
+                  ]
                 }
                 """,
             patchLevel = 1
         )
         val patched = sendtSøknad.patch()
-        assertEquals(2, patched.patchLevel)
+        assertEquals(3, patched.patchLevel)
 
         // Merk at fnr ikke fjernes ettersom dette er en del av patchlevel 1, som ikke blir kjørt her.
         val json = """
@@ -46,11 +65,27 @@ internal class SendtSøknadTest {
               "korrigerer": null,
               "fnr": "12345678910",
               "fom": "2023-06-05",
-              "tom": "2023-06-11"
+              "tom": "2023-06-11",
+              "sporsmal": [
+                {
+                  "id": "456",
+                  "max": null,
+                  "min": null,
+                  "tag": "ANSVARSERKLARING",
+                  "svar": [
+                    {
+                      "verdi": "CHECKED"
+                    }
+                  ],
+                  "svartype": "CHECKBOX_PANEL",
+                  "undertekst": null,
+                  "undersporsmal": [],
+                  "kriterieForVisningAvUndersporsmal": null
+                }
+              ]              
             }
             """
 
         JSONAssert.assertEquals(json, patched.melding, JSONCompareMode.STRICT)
     }
-
 }

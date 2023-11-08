@@ -1,9 +1,9 @@
 package no.nav.helse.spre.styringsinfo.domain
 
-import no.nav.helse.spre.styringsinfo.fjernNoderFraJson
+import no.nav.helse.spre.styringsinfo.dataminimering.JsonUtil.fjernRotNoderFraJson
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class VedtakForkastet(
     val fom: LocalDate,
@@ -15,23 +15,22 @@ data class VedtakForkastet(
     val patchLevel: Int = 0
 ) {
     fun patch() = this
-        .patch(0, ::fjernFødselsnummerFraJsonString, 1)
-        .patch(1, ::fjernOrganisasjonsnummerFraJsonString, 2)
+        .applyPatch(0, ::fjernFødselsnummerFraJsonString)
+        .applyPatch(1, ::fjernOrganisasjonsnummerFraJsonString)
+
+    private fun fjernFødselsnummerFraJsonString(vedtakForkastet: VedtakForkastet) =
+        vedtakForkastet.copy(melding = fjernRotNoderFraJson(vedtakForkastet.melding, listOf("fødselsnummer")))
+
+    private fun fjernOrganisasjonsnummerFraJsonString(vedtakForkastet: VedtakForkastet) =
+        vedtakForkastet.copy(melding = fjernRotNoderFraJson(vedtakForkastet.melding, listOf("organisasjonsnummer")))
+
+    private fun applyPatch(
+        patchLevelPreCondition: Int,
+        patchFunction: (input: VedtakForkastet) -> VedtakForkastet
+    ) =
+        if (this.patchLevel != patchLevelPreCondition) {
+            this
+        } else {
+            patchFunction(this).copy(patchLevel = patchLevelPreCondition.inc())
+        }
 }
-
-private fun fjernFødselsnummerFraJsonString(vedtakForkastet: VedtakForkastet) =
-    vedtakForkastet.copy(melding = fjernNoderFraJson(vedtakForkastet.melding, listOf("fødselsnummer")))
-
-private fun fjernOrganisasjonsnummerFraJsonString(vedtakForkastet: VedtakForkastet) =
-    vedtakForkastet.copy(melding = fjernNoderFraJson(vedtakForkastet.melding, listOf("organisasjonsnummer")))
-
-private fun VedtakForkastet.patch(
-    patchLevelPreCondition: Int,
-    patchFunction: (input: VedtakForkastet) -> VedtakForkastet,
-    patchLevelPostPatch: Int
-): VedtakForkastet =
-    if (this.patchLevel != patchLevelPreCondition) {
-        this
-    } else {
-        patchFunction(this).copy(patchLevel = patchLevelPostPatch)
-    }

@@ -1,6 +1,7 @@
 package no.nav.helse.spre.styringsinfo.domain
 
-import no.nav.helse.spre.styringsinfo.fjernNoderFraJson
+import no.nav.helse.spre.styringsinfo.dataminimering.JsonUtil.fjernRotNoderFraJson
+import no.nav.helse.spre.styringsinfo.dataminimering.JsonUtil.traverserOgFjernNoder
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -15,23 +16,26 @@ data class SendtSøknad(
     val patchLevel: Int = 0
 ) {
     fun patch() = this
-        .patch(0, ::fjernFnrFraJsonString, 1)
-        .patch(1, ::fjernArbeidsgiverFraJsonString, 2)
+        .applyPatch(0, ::fjernFnrFraJsonString)
+        .applyPatch(1, ::fjernArbeidsgiverFraJsonString)
+        .applyPatch(2, ::fjernSpørsmålstekstFraJsonString)
+
+    private fun fjernFnrFraJsonString(soknad: SendtSøknad) =
+        soknad.copy(melding = fjernRotNoderFraJson(soknad.melding, listOf("fnr")))
+
+    private fun fjernArbeidsgiverFraJsonString(soknad: SendtSøknad) =
+        soknad.copy(melding = fjernRotNoderFraJson(soknad.melding, listOf("arbeidsgiver")))
+
+    private fun fjernSpørsmålstekstFraJsonString(soknad: SendtSøknad) =
+        soknad.copy(melding = traverserOgFjernNoder(soknad.melding, "sporsmalstekst"))
+
+    private fun applyPatch(
+        patchLevelPreCondition: Int,
+        patchFunction: (input: SendtSøknad) -> SendtSøknad
+    ) =
+        if (this.patchLevel != patchLevelPreCondition) {
+            this
+        } else {
+            patchFunction(this).copy(patchLevel = patchLevelPreCondition.inc())
+        }
 }
-
-private fun fjernFnrFraJsonString(soknad: SendtSøknad) =
-    soknad.copy(melding = fjernNoderFraJson(soknad.melding, listOf("fnr")))
-
-private fun fjernArbeidsgiverFraJsonString(soknad: SendtSøknad) =
-    soknad.copy(melding = fjernNoderFraJson(soknad.melding, listOf("arbeidsgiver")))
-
-private fun SendtSøknad.patch(
-    patchLevelPreCondition: Int,
-    patchFunction: (input: SendtSøknad) -> SendtSøknad,
-    patchLevelPostPatch: Int
-): SendtSøknad =
-    if (this.patchLevel != patchLevelPreCondition) {
-        this
-    } else {
-        patchFunction(this).copy(patchLevel = patchLevelPostPatch)
-    }

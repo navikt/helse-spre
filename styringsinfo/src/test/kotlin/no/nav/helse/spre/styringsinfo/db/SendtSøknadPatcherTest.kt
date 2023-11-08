@@ -48,7 +48,13 @@ class SendtSøknadPatcherTest {
                   "arbeidsgiver": {
                     "navn": "Nærbutikken AS",
                     "orgnummer": "810007842"
-                  }
+                  },
+                  "sporsmal": [
+                    {
+                      "sporsmalstekst": ""                    
+                    }
+                  ],
+                  "sporsmalstekst": ""
                 }
                 """,
                 patchLevel = 0
@@ -73,10 +79,12 @@ class SendtSøknadPatcherTest {
         )
 
         sendtSøknadDaoMock.oppdaterteSøknader.forEach {
-            assertEquals(2, it.patchLevel)
+            assertEquals(3, it.patchLevel)
             val objectNode = objectMapper.readTree(it.melding) as ObjectNode
             assertTrue(objectNode.at("/fnr").isMissingNode)
             assertTrue(objectNode.at("/arbeidsgiver").isMissingNode)
+            assertTrue(objectNode.at("/sporsmalstekst").isMissingNode)
+            assertTrue(objectNode.at("/sporsmal/sporsmalstekst").isMissingNode)
         }
     }
 }

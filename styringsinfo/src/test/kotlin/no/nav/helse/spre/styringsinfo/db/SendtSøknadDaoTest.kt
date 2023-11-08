@@ -54,7 +54,7 @@ class SendtSøknadDaoTest : AbstractDatabaseTest() {
         assertEquals(1, rowsChanged)
 
         val patchetSøknad = hentSøknad(UUID.fromString(hendelseId))
-        assertEquals(2, patchetSøknad!!.patchLevel)
+        assertEquals(3, patchetSøknad!!.patchLevel)
 
         val json = """
             {
