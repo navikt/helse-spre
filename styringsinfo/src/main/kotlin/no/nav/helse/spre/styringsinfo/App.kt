@@ -52,13 +52,13 @@ fun main() {
     dataSourceBuilder.migrate()
 
     thread {
-        sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = 1))
+        sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = 2))
     }
     thread {
-        vedtakFattetPatcher.patchVedtakFattet(PatchOptions(patchLevelMindreEnn = 1, initialSleepMillis = 1000))
+        vedtakFattetPatcher.patchVedtakFattet(PatchOptions(patchLevelMindreEnn = 2, initialSleepMillis = 1000))
     }
     thread {
-        vedtakForkastetPatcher.patchVedtakForkastet(PatchOptions(patchLevelMindreEnn = 1, initialSleepMillis = 1000))
+        vedtakForkastetPatcher.patchVedtakForkastet(PatchOptions(patchLevelMindreEnn = 2, initialSleepMillis = 1000))
     }
 
     val rapidsConnection = launchApplication(dataSource, environment)
