@@ -12,11 +12,11 @@ data class VedtakForkastet(
     val hendelseId: UUID,
     val melding: String,
     val hendelser: List<UUID>,
-    val patchLevel: Int = 0
+    val patchLevel: Int = VedtakForkastetPatch.UPATCHET.ordinal
 ) {
     fun patch() = this
-        .applyPatch(0, ::fjernFødselsnummerFraJsonString)
-        .applyPatch(1, ::fjernOrganisasjonsnummerFraJsonString)
+        .applyPatch(VedtakForkastetPatch.FØDSELSNUMMER, ::fjernFødselsnummerFraJsonString)
+        .applyPatch(VedtakForkastetPatch.ORGANISASJONSNUMMER, ::fjernOrganisasjonsnummerFraJsonString)
 
     private fun fjernFødselsnummerFraJsonString(vedtakForkastet: VedtakForkastet) =
         vedtakForkastet.copy(melding = fjernRotNoderFraJson(vedtakForkastet.melding, listOf("fødselsnummer")))
@@ -25,12 +25,16 @@ data class VedtakForkastet(
         vedtakForkastet.copy(melding = fjernRotNoderFraJson(vedtakForkastet.melding, listOf("organisasjonsnummer")))
 
     private fun applyPatch(
-        patchLevelPreCondition: Int,
+        vedtakForkastetPatch: VedtakForkastetPatch,
         patchFunction: (input: VedtakForkastet) -> VedtakForkastet
     ) =
-        if (this.patchLevel != patchLevelPreCondition) {
-            this
+        if (this.patchLevel < vedtakForkastetPatch.ordinal) {
+            patchFunction(this).copy(patchLevel = vedtakForkastetPatch.ordinal)
         } else {
-            patchFunction(this).copy(patchLevel = patchLevelPreCondition.inc())
+            this
         }
+}
+
+enum class VedtakForkastetPatch {
+    UPATCHET, FØDSELSNUMMER, ORGANISASJONSNUMMER
 }

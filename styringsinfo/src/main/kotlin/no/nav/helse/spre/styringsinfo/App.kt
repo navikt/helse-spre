@@ -15,6 +15,9 @@ import no.nav.helse.spre.styringsinfo.db.VedtakFattetDao
 import no.nav.helse.spre.styringsinfo.db.VedtakFattetPatcher
 import no.nav.helse.spre.styringsinfo.db.VedtakForkastetDao
 import no.nav.helse.spre.styringsinfo.db.VedtakForkastetPatcher
+import no.nav.helse.spre.styringsinfo.domain.SendtSøknadPatch
+import no.nav.helse.spre.styringsinfo.domain.VedtakFattetPatch
+import no.nav.helse.spre.styringsinfo.domain.VedtakForkastetPatch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -26,14 +29,12 @@ import kotlin.concurrent.thread
 internal val log: Logger = LoggerFactory.getLogger("sprestyringsinfo")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
-
 internal val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
     registerModule(JavaTimeModule())
     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 }
-
 
 data class PatchOptions(
     val patchLevelMindreEnn: Int,
@@ -52,13 +53,19 @@ fun main() {
     dataSourceBuilder.migrate()
 
     thread {
-        sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = 3))
+        sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = SendtSøknadPatch.values().last().ordinal))
     }
     thread {
-        vedtakFattetPatcher.patchVedtakFattet(PatchOptions(patchLevelMindreEnn = 2, initialSleepMillis = 1000))
+        vedtakFattetPatcher.patchVedtakFattet(PatchOptions(
+            patchLevelMindreEnn = VedtakFattetPatch.values().last().ordinal,
+            initialSleepMillis = 1000
+        ))
     }
     thread {
-        vedtakForkastetPatcher.patchVedtakForkastet(PatchOptions(patchLevelMindreEnn = 2, initialSleepMillis = 1000))
+        vedtakForkastetPatcher.patchVedtakForkastet(PatchOptions(
+            patchLevelMindreEnn = VedtakForkastetPatch.values().last().ordinal,
+            initialSleepMillis = 1000
+        ))
     }
 
     val rapidsConnection = launchApplication(dataSource, environment)
@@ -77,7 +84,6 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
         VedtakForkastetRiver(this, vedtakForkastetDao)
     }
 }
-
 
 fun LocalDateTime.toOsloOffset(): OffsetDateTime =
     this.atOffset(ZoneId.of("Europe/Oslo").rules.getOffset(this))

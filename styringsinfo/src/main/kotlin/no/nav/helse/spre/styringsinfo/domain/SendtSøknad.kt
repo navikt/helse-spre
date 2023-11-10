@@ -13,12 +13,12 @@ data class SendtSøknad(
     val tom: LocalDate,
     val hendelseId: UUID,
     val melding: String,
-    val patchLevel: Int = 0
+    val patchLevel: Int = SendtSøknadPatch.UPATCHET.ordinal
 ) {
     fun patch() = this
-        .applyPatch(0, ::fjernFnrFraJsonString)
-        .applyPatch(1, ::fjernArbeidsgiverFraJsonString)
-        .applyPatch(2, ::fjernSpørsmålstekstFraJsonString)
+        .applyPatch(SendtSøknadPatch.FNR, ::fjernFnrFraJsonString)
+        .applyPatch(SendtSøknadPatch.ARBEIDSGIVER, ::fjernArbeidsgiverFraJsonString)
+        .applyPatch(SendtSøknadPatch.SPØRSMÅL, ::fjernSpørsmålstekstFraJsonString)
 
     private fun fjernFnrFraJsonString(soknad: SendtSøknad) =
         soknad.copy(melding = fjernRotNoderFraJson(soknad.melding, listOf("fnr")))
@@ -30,12 +30,16 @@ data class SendtSøknad(
         soknad.copy(melding = traverserOgFjernNoder(soknad.melding, "sporsmalstekst"))
 
     private fun applyPatch(
-        patchLevelPreCondition: Int,
+        sendtSøknadPatch: SendtSøknadPatch,
         patchFunction: (input: SendtSøknad) -> SendtSøknad
     ) =
-        if (this.patchLevel != patchLevelPreCondition) {
-            this
+        if (this.patchLevel < sendtSøknadPatch.ordinal) {
+            patchFunction(this).copy(patchLevel = sendtSøknadPatch.ordinal)
         } else {
-            patchFunction(this).copy(patchLevel = patchLevelPreCondition.inc())
+            this
         }
+}
+
+enum class SendtSøknadPatch {
+    UPATCHET, FNR, ARBEIDSGIVER, SPØRSMÅL
 }
