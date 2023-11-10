@@ -52,7 +52,7 @@ fun main() {
     dataSourceBuilder.migrate()
 
     thread {
-        sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = 2))
+        sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = 3))
     }
     thread {
         vedtakFattetPatcher.patchVedtakFattet(PatchOptions(patchLevelMindreEnn = 2, initialSleepMillis = 1000))
