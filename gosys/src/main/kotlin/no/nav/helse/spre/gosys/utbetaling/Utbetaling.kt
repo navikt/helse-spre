@@ -9,6 +9,7 @@ import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helse.spre.gosys.objectMapper
+import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
@@ -46,7 +47,10 @@ data class Utbetaling(
         return fom to vedtaksperiode.second
     }
 
-    private fun vedtakOrNull(vedtakFattetDao: VedtakFattetDao) = vedtakFattetDao.finnVedtakFattetData(utbetalingId).singleOrNullOrThrow()
+    private fun vedtakOrNull(vedtakFattetDao: VedtakFattetDao) = vedtakFattetDao.finnVedtakFattetData(utbetalingId).let { vedtak ->
+        if (vedtak.size > 1) sikkerLogg.warn("Vedtaksperiodene ${vedtak.map { it.vedtaksperiodeId }} peker alle på Utbetalingen $utbetalingId")
+        vedtak.singleOrNullOrThrow()
+    }
 
     internal fun avgjørVidereBehandling(vedtakFattetDao: VedtakFattetDao, vedtakMediator: VedtakMediator) {
         vedtakOrNull(vedtakFattetDao)?.let { vedtaksperiode ->
