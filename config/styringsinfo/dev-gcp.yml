@@ -8,3 +8,4 @@ gcp:
   databaseName: spre-styringsinfo
   envVarPrefix: DATABASE
   datastream: true
+  sqlInstanceTier: db-f1-micro

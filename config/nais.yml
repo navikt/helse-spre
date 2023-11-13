@@ -54,7 +54,7 @@ spec:
   gcp:
     sqlInstances:
       - type: {{gcp.type}}
-        tier: db-custom-4-16384
+        tier: {{#if gcp.sqlInstanceTier}}{{ gcp.sqlInstanceTier }}{{else}}db-custom-4-16384{{/if}}
         name: {{gcp.databaseName}}
         diskAutoresize: true
         pointInTimeRecovery: true
