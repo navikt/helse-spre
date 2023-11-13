@@ -48,7 +48,7 @@ data class Utbetaling(
     }
 
     private fun vedtakOrNull(vedtakFattetDao: VedtakFattetDao) = vedtakFattetDao.finnVedtakFattetData(utbetalingId).let { vedtak ->
-        if (vedtak.size > 1) sikkerLogg.warn("Vedtaksperiodene ${vedtak.map { it.vedtaksperiodeId }} peker alle på Utbetalingen $utbetalingId")
+        if (vedtak.size > 1) sikkerLogg.warn("${vedtak.map { "Vedtak ${it.id} for Vedtaksperiode ${it.vedtaksperiodeId}"}} peker alle på Utbetalingen $utbetalingId")
         vedtak.singleOrNullOrThrow()
     }
 
@@ -68,6 +68,12 @@ data class Utbetaling(
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
 
     companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val a = listOf(UUID.randomUUID() to UUID.randomUUID(), UUID.randomUUID() to UUID.randomUUID())
+            println("Hei he rer de $a")
+        }
+
         private val IkkeUtbetalingsdagtyper = listOf("AvvistDag", "Fridag", "Feriedag", "Permisjonsdag", "Arbeidsdag")
 
         fun fromJson(packet: JsonMessage) = fromJson(objectMapper.readTree(packet.toJson()))
