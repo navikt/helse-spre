@@ -68,12 +68,6 @@ data class Utbetaling(
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
 
     companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val a = listOf(UUID.randomUUID() to UUID.randomUUID(), UUID.randomUUID() to UUID.randomUUID())
-            println("Hei he rer de $a")
-        }
-
         private val IkkeUtbetalingsdagtyper = listOf("AvvistDag", "Fridag", "Feriedag", "Permisjonsdag", "Arbeidsdag")
 
         fun fromJson(packet: JsonMessage) = fromJson(objectMapper.readTree(packet.toJson()))
