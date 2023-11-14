@@ -4,10 +4,6 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
-import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
@@ -16,20 +12,12 @@ import java.util.*
 
 internal class VedtakOgUtbetalingJoarkFeilhåndteringTest : AbstractE2ETest() {
 
-    private val vedtakFattetDao = VedtakFattetDao(dataSource)
-    private val utbetalingDao = UtbetalingDao(dataSource)
-
-    init {
-        VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
-        UtbetalingUtbetaltRiver(testRapid, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
-    }
-
     @Test
     fun `gir opp og lar appen restarte om Joark-kallet feiler`() {
         val utbetalingId = UUID.randomUUID()
         val vedtaksperiodeId = UUID.randomUUID()
         assertThrows<IllegalStateException> {
-            sendUtbetaling(utbetalingId = utbetalingId, vedtaksperiodeIder = listOf(vedtaksperiodeId))
+            sendUtbetaling(utbetalingId = utbetalingId)
             sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
         }
         assertFalse(harLagretTilDuplikattabellen(vedtaksperiodeId))

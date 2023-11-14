@@ -11,12 +11,16 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.gosys.*
+import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
 import no.nav.helse.spre.gosys.e2e.VedtakOgUtbetalingE2ETest.Companion.formatted
+import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.pdl.PdlClient
 import no.nav.helse.spre.gosys.pdl.pdlResponse
+import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
+import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.testhelpers.*
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
 import org.intellij.lang.annotations.Language
@@ -49,11 +53,16 @@ internal abstract class AbstractE2ETest {
     protected val pdlClient = PdlClient(azureMock, mockClient, "scope")
 
     protected val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
+    protected val vedtakFattetDao = VedtakFattetDao(dataSource)
+    protected val utbetalingDao = UtbetalingDao(dataSource)
     protected val vedtakMediator = VedtakMediator(pdfClient, joarkClient, eregClient, pdlClient)
+    protected val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, pdlClient)
+    protected val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     @BeforeEach
     internal fun abstractSetup() {
         testRapid.reset()
+        testRapid.settOppRivers(duplikatsjekkDao, annulleringMediator, feriepengerMediator, vedtakFattetDao, utbetalingDao, vedtakMediator)
         capturedJoarkRequests.clear()
         capturedPdfRequests.clear()
     }
@@ -338,7 +347,6 @@ internal abstract class AbstractE2ETest {
         id: UUID = UUID.randomUUID(),
         fødselsnummer: String = "12345678910",
         utbetalingId: UUID = UUID.randomUUID(),
-        vedtaksperiodeIder: List<UUID> = listOf(UUID.randomUUID()),
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay()
     ) = utbetalingArbeidsgiver(
@@ -354,7 +362,6 @@ internal abstract class AbstractE2ETest {
         hendelseId: UUID = UUID.randomUUID(),
         fødselsnummer: String = "12345678910",
         utbetalingId: UUID = UUID.randomUUID(),
-        vedtaksperiodeIder: List<UUID> = emptyList(),
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay()
     ) {
@@ -364,7 +371,6 @@ internal abstract class AbstractE2ETest {
                 id = hendelseId,
                 fødselsnummer = fødselsnummer,
                 utbetalingId = utbetalingId,
-                vedtaksperiodeIder = vedtaksperiodeIder,
                 sykdomstidslinje = sykdomstidslinje,
                 opprettet = opprettet
             )
@@ -375,7 +381,6 @@ internal abstract class AbstractE2ETest {
         hendelseId: UUID = UUID.randomUUID(),
         fødselsnummer: String = "12345678910",
         utbetalingId: UUID = UUID.randomUUID(),
-        vedtaksperiodeIder: List<UUID> = emptyList(),
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
     ) {

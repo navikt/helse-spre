@@ -78,11 +78,21 @@ fun launchApplication(
 
     return RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(environment)).build()
         .apply {
-            AnnulleringRiver(this, duplikatsjekkDao, annulleringMediator)
-            FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
-            VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
-            UtbetalingUtbetaltRiver(this, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
-            UtbetalingUtenUtbetalingRiver(this, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
+            settOppRivers(duplikatsjekkDao, annulleringMediator, feriepengerMediator, vedtakFattetDao, utbetalingDao, vedtakMediator)
         }
+}
 
+internal fun RapidsConnection.settOppRivers(
+    duplikatsjekkDao: DuplikatsjekkDao,
+    annulleringMediator: AnnulleringMediator,
+    feriepengerMediator: FeriepengerMediator,
+    vedtakFattetDao: VedtakFattetDao,
+    utbetalingDao: UtbetalingDao,
+    vedtakMediator: VedtakMediator,
+) {
+    AnnulleringRiver(this, duplikatsjekkDao, annulleringMediator)
+    FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
+    VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
+    UtbetalingUtbetaltRiver(this, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
+    UtbetalingUtenUtbetalingRiver(this, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
 }

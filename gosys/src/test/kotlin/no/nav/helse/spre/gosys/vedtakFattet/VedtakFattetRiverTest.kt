@@ -1,8 +1,6 @@
 package no.nav.helse.spre.gosys.vedtakFattet
 
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
-import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
-import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -11,15 +9,6 @@ import org.junit.jupiter.api.assertThrows
 import java.util.*
 
 internal class VedtakFattetRiverTest : AbstractE2ETest() {
-
-    val vedtakFattetDao = VedtakFattetDao(dataSource)
-    val utbetalingDao = UtbetalingDao(dataSource)
-
-
-    init {
-        VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
-        UtbetalingUtbetaltRiver(testRapid, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
-    }
 
     @Test
     fun `Lagrer vedtak fattet`() {
@@ -40,7 +29,7 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
     fun `kan behandle samme vedtak flere ganger`() {
         val utbetalingId = UUID.randomUUID()
         val vedtaksperiodeId = UUID.randomUUID()
-        sendUtbetaling(utbetalingId = utbetalingId, vedtaksperiodeIder = listOf(vedtaksperiodeId))
+        sendUtbetaling(utbetalingId = utbetalingId)
         sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
         sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
         assertEquals(1, vedtakFattetDao.finnVedtakFattetData(utbetalingId).size)

@@ -1,34 +1,32 @@
 package no.nav.helse.spre.gosys.e2e
 
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.REVURDERING
-import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
-import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
-import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.*
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
-import no.nav.helse.spre.testhelpers.*
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Linje
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.MottakerType
+import no.nav.helse.spre.testhelpers.arbeidsdager
+import no.nav.helse.spre.testhelpers.avvistDager
+import no.nav.helse.spre.testhelpers.desember
+import no.nav.helse.spre.testhelpers.februar
+import no.nav.helse.spre.testhelpers.feriedager
+import no.nav.helse.spre.testhelpers.fridager
+import no.nav.helse.spre.testhelpers.januar
+import no.nav.helse.spre.testhelpers.juni
+import no.nav.helse.spre.testhelpers.november
+import no.nav.helse.spre.testhelpers.oktober
+import no.nav.helse.spre.testhelpers.permisjonsdager
+import no.nav.helse.spre.testhelpers.utbetalingsdager
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.lang.IllegalStateException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
-
-    private val vedtakFattetDao = VedtakFattetDao(dataSource)
-    private val utbetalingDao = UtbetalingDao(dataSource)
-
-    init {
-        VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
-        UtbetalingUtbetaltRiver(testRapid, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
-        UtbetalingUtenUtbetalingRiver(testRapid, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
-    }
 
     companion object {
         fun LocalDate.formatted(): String = format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
@@ -43,8 +41,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             utbetalingId = utbetalingId
         )
         sendUtbetaling(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(vedtaksperiodeId)
+            utbetalingId = utbetalingId
         )
         assertJournalpost()
         assertVedtakPdf(expectedPdfPayloadV2(arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver")))
@@ -229,7 +226,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         sendVedtakFattet(vedtaksperiodeId = vedtaksperiodeId, utbetalingId = utbetalingId)
         sendUtbetaling(
             utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(vedtaksperiodeId),
             sykdomstidslinje = fridager(1.januar, 31.januar)
         )
         assertJournalpost()
@@ -253,7 +249,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `journalfører vedtak med utbetaling_utbetalt og deretter vedtak_fattet`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        sendUtbetaling(utbetalingId = utbetalingId, vedtaksperiodeIder = listOf(vedtaksperiodeId))
+        sendUtbetaling(utbetalingId = utbetalingId)
         sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
 
         assertEquals(1, capturedJoarkRequests.size)
@@ -274,14 +270,12 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
         sendUtbetaling(
             hendelseId = hendelseIdUtbetaling,
-            utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(vedtaksperiodeId)
+            utbetalingId = utbetalingId
         )
 
         sendUtbetaling(
             hendelseId = hendelseIdUtbetaling,
-            utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(vedtaksperiodeId)
+            utbetalingId = utbetalingId
         )
         sendVedtakFattet(
             hendelseId = hendelseIdVedtak,
@@ -328,7 +322,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     arbeidsdager(22.januar)
         sendUtbetaling(
             utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(vedtaksperiodeId),
             sykdomstidslinje = sykdomstidslinje
         )
         sendVedtakFattet(
@@ -382,7 +375,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
         sendUtbetaling(
             utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(vedtaksperiodeId),
             sykdomstidslinje = sykdomstidslinje,
             type = "REVURDERING"
         )
@@ -435,7 +427,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
         sendUtbetaling(
             utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(vedtaksperiodeId),
             sykdomstidslinje = arbeidsdager(1.januar) + sykdomstidslinje
         )
 
@@ -459,7 +450,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val (p1, p2) = utbetalingsdager(1.januar, 31.januar) to utbetalingsdager(1.februar, 28.februar)
         sendRevurdering(
             utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(v1, v2),
             sykdomstidslinje = p1 + p2,
             opprettet = utbetalingstidspunkt
         )
@@ -490,7 +480,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
         sendRevurdering(
             utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(v1, v2),
             sykdomstidslinje = p1 + p2
         )
         assertThrows<IllegalStateException> {
@@ -520,7 +509,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertThrows<IllegalStateException> {
             sendRevurdering(
                 utbetalingId = utbetalingId,
-                vedtaksperiodeIder = listOf(v1, v2),
                 sykdomstidslinje = p1 + p2
             )
         }
@@ -538,7 +526,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     utbetalingsdager(1.februar, 28.februar)
         sendRevurdering(
             utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(v1, v2),
             sykdomstidslinje = p1 + p2,
             opprettet = utbetalingstidspunkt
         )
