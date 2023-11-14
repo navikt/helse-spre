@@ -47,12 +47,17 @@ internal class VedtakFattetRiver(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val id = UUID.fromString(packet["@id"].asText())
         duplikatsjekkDao.sjekkDuplikat(id) {
-            val utbetalingId =
-                packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let { UUID.fromString(it.asText()) }
+            val utbetalingId = packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let { UUID.fromString(it.asText()) }
             val vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
             log.info("vedtak_fattet leses inn for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId")
 
             val vedtakFattet = VedtakFattetData.fromJson(id, packet)
+
+            if (utbetalingId != null && erLogiskDuplikat(utbetalingId, vedtaksperiodeId)) {
+                log.warn("har allerede behandlet vedtak_fattet for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
+                return@sjekkDuplikat
+            }
+
             vedtakFattetDao.lagre(vedtakFattet, packet.toJson())
             log.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
 
@@ -62,6 +67,9 @@ internal class VedtakFattetRiver(
             }
         }
     }
+
+    private fun erLogiskDuplikat(utbetalingId: UUID, vedtaksperiodeId: UUID?) =
+        vedtakFattetDao.finnVedtakFattetData(utbetalingId).any { it.vedtaksperiodeId == vedtaksperiodeId }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         tjenestekall.info("Noe gikk galt: {}", problems.toExtendedReport())

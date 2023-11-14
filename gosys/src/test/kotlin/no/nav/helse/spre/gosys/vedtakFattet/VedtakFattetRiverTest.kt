@@ -2,10 +2,12 @@ package no.nav.helse.spre.gosys.vedtakFattet
 
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
+import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.*
 
 internal class VedtakFattetRiverTest : AbstractE2ETest() {
@@ -16,6 +18,7 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
 
     init {
         VedtakFattetRiver(testRapid, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
+        UtbetalingUtbetaltRiver(testRapid, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
     }
 
     @Test
@@ -26,12 +29,21 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
     }
 
     @Test
-    fun `kan lagre flere vedtak knyttet til samme utbetaling`() {
+    fun `kan ikke lagre flere vedtak knyttet til samme utbetaling`() {
         val utbetalingId = UUID.randomUUID()
         sendUtbetaling(utbetalingId = utbetalingId)
         sendVedtakFattet(utbetalingId = utbetalingId)
-        sendVedtakFattet(utbetalingId = utbetalingId)
-        assertEquals(2, vedtakFattetDao.finnVedtakFattetData(utbetalingId).size)
+        assertThrows<IllegalStateException> { sendVedtakFattet(utbetalingId = utbetalingId) }
+    }
+
+    @Test
+    fun `kan behandle samme vedtak flere ganger`() {
+        val utbetalingId = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
+        sendUtbetaling(utbetalingId = utbetalingId, vedtaksperiodeIder = listOf(vedtaksperiodeId))
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+        assertEquals(1, vedtakFattetDao.finnVedtakFattetData(utbetalingId).size)
     }
 
     @Language("json")

@@ -18,14 +18,14 @@ class VedtakFattetDao(private val dataSource: DataSource) {
         }
     }
 
-    fun lagre(vedtakFattetData: VedtakFattetData, json: String) {
+    fun lagre(vedtakFattetData: VedtakFattetData, json: String): Int {
         val id = vedtakFattetData.id
         val utbetalingId = vedtakFattetData.utbetalingId
         val fødselsnummer = vedtakFattetData.fødselsnummer
 
         @Language("PostgreSQL")
         val query = "INSERT INTO vedtak_fattet (id, utbetaling_id, fnr, data) values(?, ?, ?, to_json(?::json)) ON CONFLICT DO NOTHING"
-        sessionOf(dataSource).use { session ->
+        return sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
                     query,
