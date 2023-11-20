@@ -1077,12 +1077,14 @@ fun inntektsmeldingFørSøknad(
 fun inntektsmeldingIkkeHåndtert(
     inntektsmeldingId: UUID,
     organisasjonsnummer: String,
-    fødselsnummer: String
+    fødselsnummer: String,
+    harPeriodeInnenfor16Dager: Boolean = false
 ) =
     """{
             "@event_name": "inntektsmelding_ikke_håndtert",
             "inntektsmeldingId": "$inntektsmeldingId",
             "organisasjonsnummer": "$organisasjonsnummer",
+            "harPeriodeInnenfor16Dager" : "$harPeriodeInnenfor16Dager",
             "fødselsnummer": "$fødselsnummer"
         }"""
 
