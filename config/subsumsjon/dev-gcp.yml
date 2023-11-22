@@ -1,6 +1,7 @@
 gcp:
   type: POSTGRES_12
   databaseName: spre-subsumsjon
+  sqlInstanceTier: db-f1-micro
 kafkaPool: nav-dev
 kafkaConsumerGroup: tbd-spre-subsumsjon-v3
 kafkaResetPolicy: earliest
