@@ -66,6 +66,7 @@ internal fun RapidsConnection.registerRivers(
     InntektsmeldingHåndtert(this, oppgaveDAO, publisist)
     InntektsmeldingIkkeHåndtert(this, oppgaveDAO, publisist)
     SøknadHåndtert(this, oppgaveDAO, publisist)
+    if (System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp") SlettPersonRiver(this, oppgaveDAO)
 }
 
 private fun createProducer(env: Map<String, String>): KafkaProducer<String, OppgaveDTO> {

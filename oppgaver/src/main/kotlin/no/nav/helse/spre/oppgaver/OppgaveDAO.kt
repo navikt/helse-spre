@@ -6,6 +6,7 @@ import kotliquery.sessionOf
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.spre.oppgaver.DatabaseTilstand.*
 import no.nav.helse.spre.oppgaver.Oppgave.Tilstand
+import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.*
@@ -51,6 +52,11 @@ class OppgaveDAO(private val dataSource: DataSource) {
         )
     }
 
+    fun fjernOpgaver(fødselsnummer: String) = sessionOf(dataSource).use {
+        @Language("PostgreSQL")
+        val deleteStatement = "delete from oppgave_tilstand where fodselsnummer=?;"
+        it.run(queryOf(deleteStatement, fødselsnummer).asExecute)
+    }
 
     fun finnOppgaverIDokumentOppdaget(
         orgnummer: String,
