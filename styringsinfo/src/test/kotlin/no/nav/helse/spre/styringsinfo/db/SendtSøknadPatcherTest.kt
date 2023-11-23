@@ -17,9 +17,7 @@ class SendtSøknadPatcherTest {
         val oppdaterteSøknader = mutableListOf<SendtSøknad>()
         var soknaderErHentet = false
 
-        override fun lagre(sendtSøknad: SendtSøknad) {
-            TODO("Not yet implemented.")
-        }
+        override fun lagre(sendtSøknad: SendtSøknad) {}
 
         override fun oppdaterMelding(sendtSøknad: SendtSøknad): Int {
             oppdaterteSøknader.add(sendtSøknad)

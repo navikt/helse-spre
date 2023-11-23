@@ -17,9 +17,7 @@ class VedtakForkastetPatcherTest {
         val oppdaterteVedtakForkastet = mutableListOf<VedtakForkastet>()
         var vedtakForkastetErHentet = false
 
-        override fun lagre(vedtakForkastet: VedtakForkastet) {
-            TODO("Not yet implemented.")
-        }
+        override fun lagre(vedtakForkastet: VedtakForkastet) {}
 
         override fun oppdaterMelding(vedtakForkastet: VedtakForkastet): Int {
             oppdaterteVedtakForkastet.add(vedtakForkastet)
