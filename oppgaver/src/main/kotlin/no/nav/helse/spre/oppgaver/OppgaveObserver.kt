@@ -37,7 +37,7 @@ class OppgaveObserver(
     /**
      * søknader
      */
-    override fun søknadOppdaget(fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {
+    override fun søknadOppdaget(fødselsnummer: String, orgnummer: String?, hendelseId: UUID, dokumentId: UUID) {
         if (!oppgaveDAO.opprettOppgaveHvisNy(hendelseId, dokumentId, fødselsnummer, orgnummer, DokumentType.Søknad)) {
             publiclogg.info("Søknad finnes fra før som oppgave: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
             sikkerlogg.info("Søknad finnes fra før som oppgave: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
@@ -92,7 +92,7 @@ class OppgaveObserver(
     /**
      * inntektsmeldinger
      */
-    override fun inntektsmeldingOppdaget(fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {
+    override fun inntektsmeldingOppdaget(fødselsnummer: String, orgnummer: String?, hendelseId: UUID, dokumentId: UUID) {
         if (!oppgaveDAO.opprettOppgaveHvisNy(hendelseId, dokumentId, fødselsnummer, orgnummer, DokumentType.Inntektsmelding)) {
             publiclogg.info("Inntektsmelding finnes fra før som oppgave: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))
             sikkerlogg.info("Inntektsmelding finnes fra før som oppgave: {} og {}", keyValue("hendelseId", hendelseId), keyValue("dokumentId", dokumentId))

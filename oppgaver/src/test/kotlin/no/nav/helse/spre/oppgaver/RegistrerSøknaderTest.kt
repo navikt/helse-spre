@@ -28,6 +28,16 @@ class RegistrerSøknaderTest {
         assertNotNull(oppgave)
         assertEquals(DokumentType.Søknad, oppgave!!.dokumentType)
     }
+
+    @Test
+    fun `dytter arbeidsledigsøknader inn i db`() {
+        val hendelseId = UUID.randomUUID()
+        testRapid.sendTestMessage(sendtSøknadArbeidsledig(hendelseId))
+
+        val oppgave = oppgaveDAO.finnOppgave(hendelseId, observer)
+        assertNotNull(oppgave)
+        assertEquals(DokumentType.Søknad, oppgave!!.dokumentType)
+    }
 }
 
 fun sendtSøknad(
@@ -43,6 +53,18 @@ fun sendtSøknad(
                 "navn": "navn",
                 "orgnummer": "$orgnummer"
             },
+            "@id": "$hendelseId",
+            "id": "$dokumentId"
+        }"""
+
+fun sendtSøknadArbeidsledig(
+    hendelseId: UUID,
+    dokumentId: UUID = UUID.randomUUID(),
+    fnr: String = "12345678910"
+): String =
+    """{
+            "@event_name": "sendt_søknad_arbeidsledig",
+            "fnr": "$fnr",
             "@id": "$hendelseId",
             "id": "$dokumentId"
         }"""

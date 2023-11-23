@@ -91,7 +91,7 @@ class OppgaveDAO(private val dataSource: DataSource) {
         hendelseId: UUID,
         dokumentId: UUID,
         fødselsnummer: String,
-        orgnummer: String,
+        orgnummer: String?,
         dokumentType: DokumentType
     ) =
         sessionOf(dataSource).use { session ->

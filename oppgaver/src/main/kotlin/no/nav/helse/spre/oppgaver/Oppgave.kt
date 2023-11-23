@@ -17,10 +17,10 @@ class Oppgave(
         fun nyInntektsmelding(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String, observer: Observer) =
             nyOppgve(hendelseId, dokumentId, fødselsnummer, orgnummer, DokumentType.Inntektsmelding, observer)
 
-        fun nySøknad(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String, observer: Observer) =
+        fun nySøknad(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String?, observer: Observer) =
             nyOppgve(hendelseId, dokumentId, fødselsnummer, orgnummer, DokumentType.Søknad, observer)
 
-        private fun nyOppgve(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String, dokumentType: DokumentType, observer: Observer) = Oppgave(
+        private fun nyOppgve(hendelseId: UUID, dokumentId: UUID, fødselsnummer: String, orgnummer: String?, dokumentType: DokumentType, observer: Observer) = Oppgave(
             hendelseId = hendelseId,
             dokumentId = dokumentId,
             fødselsnummer = fødselsnummer,
@@ -39,8 +39,8 @@ class Oppgave(
     interface Observer {
         fun oppgaveEndretTilstand(hendelseId: UUID, dokumentId: UUID, forrigeTilstand: Tilstand, nyTilstand: Tilstand) {}
 
-        fun søknadOppdaget(fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {}
-        fun inntektsmeldingOppdaget(fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {}
+        fun søknadOppdaget(fødselsnummer: String, orgnummer: String?, hendelseId: UUID, dokumentId: UUID) {}
+        fun inntektsmeldingOppdaget(fødselsnummer: String, orgnummer: String?, hendelseId: UUID, dokumentId: UUID) {}
 
         fun lagOppgaveSøknad(hendelseId: UUID, dokumentId: UUID) {}
         fun lagOppgaveSpeilsaksbehandlereSøknad(hendelseId: UUID, dokumentId: UUID) {}
@@ -112,7 +112,7 @@ class Oppgave(
 
         object DokumentOppdaget : Tilstand() {
             override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
-                oppgave.dokumentType.dokumentOppdaget(oppgave.observer, oppgave.fødselsnummer!!, oppgave.orgnummer!!, oppgave.hendelseId, oppgave.dokumentId)
+                oppgave.dokumentType.dokumentOppdaget(oppgave.observer, oppgave.fødselsnummer!!, oppgave.orgnummer, oppgave.hendelseId, oppgave.dokumentId)
             }
             override fun håndterLagOppgave(oppgave: Oppgave) {
                 oppgave.tilstand(LagOppgave)
@@ -235,7 +235,7 @@ class Oppgave(
 }
 
 sealed interface DokumentType {
-    fun dokumentOppdaget(observer: Oppgave.Observer, fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID)
+    fun dokumentOppdaget(observer: Oppgave.Observer, fødselsnummer: String, orgnummer: String?, hendelseId: UUID, dokumentId: UUID)
     fun lagOppgave(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun ferdigbehandlet(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
     fun lagOppgaveSpeilsaksbehandlere(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
@@ -244,7 +244,7 @@ sealed interface DokumentType {
     fun avventerGodkjenning(observer: Oppgave.Observer, hendelseId: UUID, dokumentId: UUID)
 
     object Inntektsmelding : DokumentType {
-        override fun dokumentOppdaget(observer: Oppgave.Observer, fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {
+        override fun dokumentOppdaget(observer: Oppgave.Observer, fødselsnummer: String, orgnummer: String?, hendelseId: UUID, dokumentId: UUID) {
             observer.inntektsmeldingOppdaget(fødselsnummer, orgnummer, hendelseId, dokumentId)
         }
 
@@ -274,7 +274,7 @@ sealed interface DokumentType {
     }
 
     object Søknad : DokumentType {
-        override fun dokumentOppdaget(observer: Oppgave.Observer, fødselsnummer: String, orgnummer: String, hendelseId: UUID, dokumentId: UUID) {
+        override fun dokumentOppdaget(observer: Oppgave.Observer, fødselsnummer: String, orgnummer: String?, hendelseId: UUID, dokumentId: UUID) {
             observer.søknadOppdaget(fødselsnummer, orgnummer, hendelseId, dokumentId)
         }
 
