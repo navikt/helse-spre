@@ -12,7 +12,7 @@ internal class SykemeldingRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "ny_søknad") }
+            validate { it.demandAny("@event_name", listOf("ny_søknad", "ny_søknad_frilans", "ny_søknad_selvstendig", "ny_søknad_arbeidsledig")) }
             validate { it.requireKey("@id") }
             validate { it.requireKey("sykmeldingId") }
             validate { it.require("@opprettet", JsonNode::asLocalDateTime) }
