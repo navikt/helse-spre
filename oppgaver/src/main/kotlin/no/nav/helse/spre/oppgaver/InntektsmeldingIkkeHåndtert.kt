@@ -22,9 +22,11 @@ class InntektsmeldingIkkeHåndtert(
         val inntektsmeldingId = packet["inntektsmeldingId"].asText().let { UUID.fromString(it) }
         val harPeriodeInnenfor16Dager = packet["harPeriodeInnenfor16Dager"].asBoolean()
 
+        val speilRelatert = harPeriodeInnenfor16Dager
+
         val oppgave = oppgaveDAO.finnOppgave(inntektsmeldingId, observer) ?: return
         withMDC(mapOf("event" to "inntektsmelding_ikke_håndtert", "harPeriodeInnenfor16Dager" to harPeriodeInnenfor16Dager.utfall())) {
-            oppgave.håndterInntektsmeldingIkkeHåndtert()
+            oppgave.håndterInntektsmeldingIkkeHåndtert(speilRelatert)
             log.info("Mottok inntektsmelding_ikke_håndtert-event: {}", oppgave.hendelseId)
         }
     }

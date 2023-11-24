@@ -71,8 +71,8 @@ class Oppgave(
     internal fun håndterInntektsmeldingFørSøknad() {
         tilstand.håndterInntektsmeldingFørSøknad(this)
     }
-    fun håndterInntektsmeldingIkkeHåndtert() {
-        tilstand.håndterInntektsmeldingIkkeHåndtert(this)
+    fun håndterInntektsmeldingIkkeHåndtert(speilRelatert: Boolean) {
+        tilstand.håndterInntektsmeldingIkkeHåndtert(this, speilRelatert)
     }
 
     fun håndter(hendelse: Hendelse.AvsluttetUtenUtbetaling) = tilstand.håndter(this, hendelse)
@@ -97,7 +97,7 @@ class Oppgave(
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.Avsluttet) {}
         open fun håndterLest(oppgave: Oppgave) {}
         open fun håndterInntektsmeldingFørSøknad(oppgave: Oppgave) {}
-        open fun håndterInntektsmeldingIkkeHåndtert(oppgave: Oppgave) {}
+        open fun håndterInntektsmeldingIkkeHåndtert(oppgave: Oppgave, speilRelatert: Boolean) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvsluttetUtenUtbetaling) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.VedtaksperiodeVenter) {}
         open fun håndter(oppgave: Oppgave, hendelse: Hendelse.AvventerGodkjenning) {}
@@ -130,8 +130,9 @@ class Oppgave(
                 oppgave.tilstand(SpleisLest)
             }
 
-            override fun håndterInntektsmeldingIkkeHåndtert(oppgave: Oppgave) {
-                oppgave.tilstand(LagOppgave)
+            override fun håndterInntektsmeldingIkkeHåndtert(oppgave: Oppgave, speilRelatert: Boolean) {
+                if (speilRelatert) oppgave.tilstand(LagOppgaveForSpeilsaksbehandlere)
+                else oppgave.tilstand(LagOppgave)
             }
 
             override fun håndterInntektsmeldingFørSøknad(oppgave: Oppgave) {

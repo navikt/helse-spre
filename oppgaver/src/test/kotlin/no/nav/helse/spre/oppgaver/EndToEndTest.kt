@@ -869,6 +869,16 @@ class EndToEndTest {
         publiserteOppgaver[0].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
     }
 
+    @Test
+    fun `inntektsmelding ikke håndtert med periode innenfor 16 dager - oppretter oppgave på speilkø`() {
+        val inntektsmeldingHendelseId = UUID.randomUUID()
+        val inntektsmeldingDokumentId = UUID.randomUUID()
+        sendInntektsmelding(hendelseId = inntektsmeldingHendelseId, dokumentId = inntektsmeldingDokumentId)
+        inntektsmeldingIkkeHåndtert(inntektsmeldingId = inntektsmeldingHendelseId, harPeriodeInnenfor16Dager = true)
+        assertEquals(1, publiserteOppgaver.size)
+        publiserteOppgaver[0].assertInnhold(OpprettSpeilRelatert, inntektsmeldingDokumentId, Inntektsmelding)
+    }
+
     companion object {
 
         private val FØDSELSNUMMER = "12345678910"
@@ -965,12 +975,13 @@ class EndToEndTest {
         )
     }
 
-    private fun inntektsmeldingIkkeHåndtert(inntektsmeldingId: UUID, organisasjonsnummer: String = ORGNUMMER, fødselsnummer: String = FØDSELSNUMMER) {
+    private fun inntektsmeldingIkkeHåndtert(inntektsmeldingId: UUID, harPeriodeInnenfor16Dager: Boolean = false, organisasjonsnummer: String = ORGNUMMER, fødselsnummer: String = FØDSELSNUMMER) {
         rapid.sendTestMessage(
             no.nav.helse.spre.oppgaver.inntektsmeldingIkkeHåndtert(
                 inntektsmeldingId,
                 organisasjonsnummer,
-                fødselsnummer
+                fødselsnummer,
+                harPeriodeInnenfor16Dager
             )
         )
     }
