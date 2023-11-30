@@ -183,7 +183,7 @@ class EndToEndTest {
 
         sendVedtaksperiodeVenter(
             hendelseIder = listOf(søknad2HendelseId, inntektsmeldingHendelseId),
-            venterPå = "GODKJENNING"
+            venterPåHva = "GODKJENNING"
         )
 
         assertEquals(7, publiserteOppgaver.size)
@@ -196,6 +196,122 @@ class EndToEndTest {
             assertEquals(180, inntektsmeldingOppgave.timeoutIDager)
             assertEquals(inntektsmeldingDokumentId, inntektsmeldingOppgave.dokumentId)
         }
+    }
+
+    @Test
+    fun `utsetter når vi venter på overlappende abeidsgiver - MANGLER_TILSTREKKELIG_INFORMASJON_TIL_UTBETALING_ANDRE_ARBEIDSGIVERE`() {
+        val periode = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        sendSøknad(søknadId)
+        sendSøknadHåndtert(søknadId)
+        sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
+        sendInntektsmeldingHåndtert(inntektsmeldingId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadId),
+            tilstand = "AVVENTER_BLOKKERENDE_PERIODE",
+            vedtaksperiodeId = periode
+        )
+
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+
+        sendVedtaksperiodeVenter(listOf(søknadId, inntektsmeldingId), "INNTEKTSMELDING", "MANGLER_TILSTREKKELIG_INFORMASJON_TIL_UTBETALING_ANDRE_ARBEIDSGIVERE")
+
+        assertEquals(4, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[3].oppdateringstype)
+    }
+
+    @Test
+    fun `utsetter når vi venter på overlappende abeidsgiver - HAR_SYKMELDING_SOM_OVERLAPPER_PÅ_ANDRE_ARBEIDSGIVERE`() {
+        val periode = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        sendSøknad(søknadId)
+        sendSøknadHåndtert(søknadId)
+        sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
+        sendInntektsmeldingHåndtert(inntektsmeldingId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadId),
+            tilstand = "AVVENTER_BLOKKERENDE_PERIODE",
+            vedtaksperiodeId = periode
+        )
+
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+
+        sendVedtaksperiodeVenter(listOf(søknadId, inntektsmeldingId), "INNTEKTSMELDING", "HAR_SYKMELDING_SOM_OVERLAPPER_PÅ_ANDRE_ARBEIDSGIVERE")
+
+        assertEquals(4, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[3].oppdateringstype)
+    }
+
+    @Test
+    fun `utsetter når vi venter på overlappende abeidsgiver - MANGLER_INNTEKT_FOR_VILKÅRSPRØVING_PÅ_ANDRE_ARBEIDSGIVERE`() {
+        val periode = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        sendSøknad(søknadId)
+        sendSøknadHåndtert(søknadId)
+        sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
+        sendInntektsmeldingHåndtert(inntektsmeldingId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadId),
+            tilstand = "AVVENTER_BLOKKERENDE_PERIODE",
+            vedtaksperiodeId = periode
+        )
+
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+
+        sendVedtaksperiodeVenter(listOf(søknadId, inntektsmeldingId), "INNTEKTSMELDING", "MANGLER_INNTEKT_FOR_VILKÅRSPRØVING_PÅ_ANDRE_ARBEIDSGIVERE")
+
+        assertEquals(4, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[3].oppdateringstype)
+    }
+
+    @Test
+    fun `utsetter når vi venter på overlappende abeidsgiver - MANGLER_REFUSJONSOPPLYSNINGER_PÅ_ANDRE_ARBEIDSGIVERE`() {
+        val periode = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        sendSøknad(søknadId)
+        sendSøknadHåndtert(søknadId)
+        sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
+        sendInntektsmeldingHåndtert(inntektsmeldingId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadId),
+            tilstand = "AVVENTER_BLOKKERENDE_PERIODE",
+            vedtaksperiodeId = periode
+        )
+
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+
+        sendVedtaksperiodeVenter(listOf(søknadId, inntektsmeldingId), "INNTEKTSMELDING", "MANGLER_REFUSJONSOPPLYSNINGER_PÅ_ANDRE_ARBEIDSGIVERE")
+
+        assertEquals(4, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[3].oppdateringstype)
     }
 
     @Test
@@ -894,8 +1010,8 @@ class EndToEndTest {
         )
     }
 
-    private fun sendVedtaksperiodeVenter(hendelseIder: List<UUID>, venterPå: String) {
-        rapid.sendTestMessage(vedtaksperiodeVenter(hendelseIder, venterPå))
+    private fun sendVedtaksperiodeVenter(hendelseIder: List<UUID>, venterPåHva: String, venterPåHvorfor: String? = null) {
+        rapid.sendTestMessage(vedtaksperiodeVenter(hendelseIder, venterPåHva, venterPåHvorfor))
     }
 
 
@@ -965,7 +1081,8 @@ private fun TestRapid.RapidInspector.events(eventnavn: String, hendelseId: UUID)
 
 fun vedtaksperiodeVenter(
     hendelseIder: List<UUID>,
-    venterPå: String
+    venterPåHva: String,
+    venterPåHvorfor: String?
 ) =
     """{
             "@event_name": "vedtaksperiode_venter",
@@ -973,10 +1090,18 @@ fun vedtaksperiodeVenter(
             "hendelser": ${hendelseIder.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
             "venterPå": {
                 "venteårsak": {
-                  "hva": "$venterPå"
+                  "hva": "$venterPåHva",
+                  ${venterPåHvorfor.hvorfor()}
                 }
              }
         }"""
+
+private fun String?.hvorfor(): String? {
+    return if (this == null) {
+        "\"hvorfor\": ${null} "
+    }
+    else "\"hvorfor\": \"${this}\""
+}
 
 fun vedtaksperiodeEndret(
     hendelser: List<UUID>,
