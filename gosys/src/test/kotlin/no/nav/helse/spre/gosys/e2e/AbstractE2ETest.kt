@@ -86,7 +86,7 @@ internal abstract class AbstractE2ETest {
 
                         "/api/v1/genpdf/spre-gosys/vedtak-v2" -> handlerForPdfKall(request)
 
-                        "/v1/organisasjon/123456789?inkluderHierarki=true&inkluderHistorikk=true" -> handlerForEregKall(
+                        "/v1/organisasjon/123456789" -> handlerForEregKall(
                             request
                         )
 
