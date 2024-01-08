@@ -45,9 +45,7 @@ class VedtakMediator(
                 ""
             }
             val vedtakPdfPayload = vedtakMessage.toVedtakPdfPayloadV2(organisasjonsnavn, navn)
-            if (System.getenv("NAIS_CLUSTER_NAME") == "dev-fss") {
-                sikkerLogg.info("vedtak-payload: ${objectMapper.writeValueAsString(vedtakPdfPayload)}")
-            }
+            if (erUtvikling) sikkerLogg.info("vedtak-payload: ${objectMapper.writeValueAsString(vedtakPdfPayload)}")
             val pdf = pdfClient.hentVedtakPdfV2(vedtakPdfPayload)
             val journalpostPayload = JournalpostPayload(
                 tittel = journalpostTittel(vedtakMessage.type),

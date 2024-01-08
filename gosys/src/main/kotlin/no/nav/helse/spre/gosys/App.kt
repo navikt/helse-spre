@@ -34,6 +34,8 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
 internal val log: Logger = LoggerFactory.getLogger("spregosys")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
+val erUtvikling = System.getenv("NAIS_CLUSTER_NAME") == "dev-fss"
+
 fun main() {
     val rapidsConnection = launchApplication(System.getenv())
     rapidsConnection.start()

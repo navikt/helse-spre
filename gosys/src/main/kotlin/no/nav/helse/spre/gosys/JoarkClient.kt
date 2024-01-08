@@ -20,7 +20,7 @@ class JoarkClient(
         return httpClient.preparePost("$baseUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
             System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
             header("Nav-Consumer-Token", hendelseId.toString())
-            header("Authorization", "Bearer ${azureClient.getToken(joarkScope)?.accessToken}")
+            header("Authorization", "Bearer ${azureClient.getToken(joarkScope).accessToken}")
             contentType(ContentType.Application.Json)
             setBody(journalpostPayload)
         }
