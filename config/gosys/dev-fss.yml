@@ -7,8 +7,6 @@ fromEnv:
 azure:
   enabled: true
 env:
-  - name: KAFKA_BOOTSTRAP_SERVERS
-    value: b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443
   - name: KAFKA_MAX_RECORDS
     value: "50"
   - name: KAFKA_MAX_POLL_INTERVAL_MS
@@ -26,6 +24,6 @@ env:
   - name: VAULT_MOUNTPATH
     value: postgresql/preprod-fss/
   - name: EREG_BASE_URL
-    value: https://modapp-q1.adeo.no/ereg/api
+    value: http://ereg-services-q1.arbeidsforhold.svc.nais.local
   - name: PDL_CLIENT_SCOPE
     value: api://dev-fss.pdl.pdl-api/.default
