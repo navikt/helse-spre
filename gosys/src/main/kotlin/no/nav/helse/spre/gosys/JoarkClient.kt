@@ -2,12 +2,9 @@ package no.nav.helse.spre.gosys
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.call.receive
 import io.ktor.client.request.header
-import io.ktor.client.request.post
 import io.ktor.client.request.preparePost
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpStatement
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import net.logstash.logback.argument.StructuredArguments.keyValue
@@ -15,8 +12,7 @@ import java.util.UUID
 
 class JoarkClient(
     private val baseUrl: String,
-    private val stsRestClient: StsRestClient?,
-    private val azureClient: AzureClient?,
+    private val azureClient: AzureClient,
     private val joarkScope: String,
     private val httpClient: HttpClient
 ) {
@@ -24,7 +20,7 @@ class JoarkClient(
         return httpClient.preparePost("$baseUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
             System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
             header("Nav-Consumer-Token", hendelseId.toString())
-            header("Authorization", "Bearer ${stsRestClient?.token() ?: azureClient?.getToken(joarkScope)?.accessToken}")
+            header("Authorization", "Bearer ${azureClient.getToken(joarkScope)?.accessToken}")
             contentType(ContentType.Application.Json)
             setBody(journalpostPayload)
         }

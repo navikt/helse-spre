@@ -1,9 +1,4 @@
 kafkaPool: nav-dev
-mountPaths:
-- mountPath: /var/run/secrets/nais.io/service_user
-  kvPath: /serviceuser/data/dev/srvspregosys
-fromEnv:
-  - spre-gosys
 azure:
   enabled: true
   tenant: trygdeetaten.no

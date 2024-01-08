@@ -42,12 +42,10 @@ fun main() {
 fun launchApplication(
     environment: Map<String, String>
 ): RapidsConnection {
-    val serviceUser = readServiceUserCredentials()
-    val stsRestClient = StsRestClient(requireNotNull(environment["STS_URL"]), serviceUser)
     val azureClient = AzureClient(
-        tokenEndpoint = requireNotNull(environment["AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"]),
-        clientId = requireNotNull(environment["AZURE_APP_CLIENT_ID"]),
-        clientSecret = requireNotNull(environment["AZURE_APP_CLIENT_SECRET"])
+        tokenEndpoint = environment.getValue("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+        clientId = environment.getValue("AZURE_APP_CLIENT_ID"),
+        clientSecret = environment.getValue("AZURE_APP_CLIENT_SECRET")
     )
     val httpClient = HttpClient {
 
@@ -57,10 +55,10 @@ fun launchApplication(
 
         install(HttpTimeout) { requestTimeoutMillis = 10000 }
     }
-    val joarkClient = JoarkClient(requireNotNull(environment["JOARK_BASE_URL"]), stsRestClient, azureClient, environment["JOARK_SCOPE"] ?: "", httpClient)
+    val joarkClient = JoarkClient(environment.getValue("JOARK_BASE_URL"), azureClient, environment.getValue("JOARK_SCOPE"), httpClient)
     val pdfClient = PdfClient(httpClient)
-    val eregClient = EregClient(requireNotNull(environment["EREG_BASE_URL"]), httpClient)
-    val pdlClient = PdlClient(azureClient, httpClient, requireNotNull(environment["PDL_CLIENT_SCOPE"]))
+    val eregClient = EregClient(environment.getValue("EREG_BASE_URL"), httpClient)
+    val pdlClient = PdlClient(azureClient, httpClient, environment.getValue("PDL_CLIENT_SCOPE"))
 
     val dataSourceBuilder = DataSourceBuilder(readDatabaseEnvironment())
     dataSourceBuilder.migrate()

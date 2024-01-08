@@ -1,9 +1,4 @@
 kafkaPool: nav-prod
-mountPaths:
-- mountPath: /var/run/secrets/nais.io/service_user
-  kvPath: /serviceuser/data/prod/srvspregosys
-fromEnv:
-  - spre-gosys
 minReplicas: 6
 maxReplicas: 6
 azure:
@@ -13,10 +8,10 @@ env:
     value: "50"
   - name: KAFKA_MAX_POLL_INTERVAL_MS
     value: "500000"
-  - name: STS_URL
-    value: http://security-token-service.default.svc.nais.local
   - name: JOARK_BASE_URL
-    value: https://dokarkiv.nais.adeo.no
+    value: http://dokarkiv.teamdokumenthandtering.svc.nais.local
+  - name: JOARK_SCOPE
+    value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
   - name: DATABASE_HOST
     value: A01DBVL022.adeo.no
   - name: DATABASE_PORT
