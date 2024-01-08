@@ -52,6 +52,10 @@ spec:
   {{#if accessPolicy}}
   accessPolicy:
     outbound:
+      rules:
+        {{# each accessPolicy.external as |item| }}
+        - application: {{ item.application }}
+        {{/each}}
       external:
         {{# each accessPolicy.external as |item| }}
         - host: {{item}}

@@ -8,6 +8,8 @@ gcp:
   envVarPrefix: DB
   sqlInstanceTier: db-f1-micro
 accessPolicy:
+  outbound:
+    - application: spre-gosys-pdf
   external:
     - dokarkiv.dev-fss-pub.nais.io
     - ereg-services-q1.dev-fss-pub.nais.io
