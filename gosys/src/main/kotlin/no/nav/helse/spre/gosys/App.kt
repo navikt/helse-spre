@@ -57,7 +57,7 @@ fun launchApplication(
 
         install(HttpTimeout) { requestTimeoutMillis = 10000 }
     }
-    val joarkClient = JoarkClient(requireNotNull(environment["JOARK_BASE_URL"]), stsRestClient, httpClient)
+    val joarkClient = JoarkClient(requireNotNull(environment["JOARK_BASE_URL"]), stsRestClient, azureClient, environment["JOARK_SCOPE"] ?: "", httpClient)
     val pdfClient = PdfClient(httpClient)
     val eregClient = EregClient(requireNotNull(environment["EREG_BASE_URL"]), httpClient)
     val pdlClient = PdlClient(azureClient, httpClient, requireNotNull(environment["PDL_CLIENT_SCOPE"]))

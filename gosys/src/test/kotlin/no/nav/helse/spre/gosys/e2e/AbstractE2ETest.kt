@@ -42,13 +42,11 @@ internal abstract class AbstractE2ETest {
 
     private val mockClient = httpclient()
     protected val pdfClient = PdfClient(mockClient)
-    private val stsMock: StsRestClient = mockk {
-        coEvery { token() }.returns("6B70C162-8AAB-4B56-944D-7F092423FE4B")
-    }
     private val azureMock: AzureClient = mockk {
-        coEvery { getToken(any()) }.returns(AzureClient.Token("type", 3600, "token"))
+        coEvery { getToken("scope") }.returns(AzureClient.Token("type", 3600, "token"))
+        coEvery { getToken("JOARK_SCOPE") }.returns(AzureClient.Token("type", 3600, "6B70C162-8AAB-4B56-944D-7F092423FE4B"))
     }
-    protected val joarkClient = JoarkClient("https://url.no", stsMock, mockClient)
+    protected val joarkClient = JoarkClient("https://url.no", null, azureMock, "JOARK_SCOPE", mockClient)
     protected val eregClient = EregClient("https://url.no", mockClient)
     protected val pdlClient = PdlClient(azureMock, mockClient, "scope")
 

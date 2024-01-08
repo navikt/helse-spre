@@ -15,13 +15,16 @@ import java.util.UUID
 
 class JoarkClient(
     private val baseUrl: String,
-    private val stsRestClient: StsRestClient,
+    private val stsRestClient: StsRestClient?,
+    private val azureClient: AzureClient?,
+    private val joarkScope: String,
     private val httpClient: HttpClient
 ) {
     suspend fun opprettJournalpost(hendelseId: UUID, journalpostPayload: JournalpostPayload): Boolean {
         return httpClient.preparePost("$baseUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
+            System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
             header("Nav-Consumer-Token", hendelseId.toString())
-            header("Authorization", "Bearer ${stsRestClient.token()}")
+            header("Authorization", "Bearer ${stsRestClient?.token() ?: azureClient?.getToken(joarkScope)?.accessToken}")
             contentType(ContentType.Application.Json)
             setBody(journalpostPayload)
         }

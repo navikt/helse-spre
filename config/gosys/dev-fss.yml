@@ -6,15 +6,16 @@ fromEnv:
   - spre-gosys
 azure:
   enabled: true
+  tenant: trygdeetaten.no
 env:
   - name: KAFKA_MAX_RECORDS
     value: "50"
   - name: KAFKA_MAX_POLL_INTERVAL_MS
     value: "500000"
-  - name: STS_URL
-    value: http://security-token-service.default.svc.nais.local
   - name: JOARK_BASE_URL
-    value: https://dokarkiv-q1.nais.preprod.local
+    value: http://dokarkiv-q1.teamdokumenthandtering.svc.nais.local
+  - name: JOARK_SCOPE
+    value: api://dev-fss.teamdokumenthandtering.dokarkiv-q1/.default
   - name: DATABASE_HOST
     value: b27dbvl024.preprod.local
   - name: DATABASE_PORT
