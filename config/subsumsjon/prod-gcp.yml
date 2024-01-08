@@ -1,5 +1,5 @@
 gcp:
-  type: POSTGRES_12
+  type: POSTGRES_15
   databaseName: spre-subsumsjon
 kafkaPool: nav-prod
 kafkaResetPolicy: earliest
