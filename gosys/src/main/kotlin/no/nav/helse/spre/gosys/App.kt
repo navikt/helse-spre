@@ -38,7 +38,7 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
 internal val log: Logger = LoggerFactory.getLogger("spregosys")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
-val erUtvikling = System.getenv("NAIS_CLUSTER_NAME") == "dev-fss"
+val erUtvikling = System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp"
 
 fun main() {
     val rapidsConnection = launchApplication(System.getenv())
@@ -62,36 +62,24 @@ fun launchApplication(
         install(HttpTimeout) { requestTimeoutMillis = 10000 }
     }
     val joarkClient = JoarkClient(environment.getValue("JOARK_BASE_URL"), azureClient, environment.getValue("JOARK_SCOPE"), httpClient)
-    val pdfBaseUrl = if (System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp") {
-        "http://spre-gosys-pdf"
-    } else {
-        "http://spre-gosys-pdf.tbd.svc.nais.local"
-    }
-    val pdfClient = PdfClient(httpClient, pdfBaseUrl)
+    val pdfClient = PdfClient(httpClient, "http://spre-gosys-pdf")
     val eregClient = EregClient(environment.getValue("EREG_BASE_URL"), httpClient)
     val pdlClient = PdlClient(azureClient, httpClient, environment.getValue("PDL_BASE_URL"), environment.getValue("PDL_CLIENT_SCOPE"))
 
-    val dataSource = if (System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp") {
-        val hikariConfig = HikariConfig().apply {
-            jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", environment.getValue("DB_HOST"), environment.getValue("DB_PORT"), environment.getValue("DB_DATABASE"))
-            username = environment.getValue("DB_USERNAME")
-            password = environment.getValue("DB_PASSWORD")
-            maximumPoolSize = 3
-            initializationFailTimeout = Duration.ofMinutes(30).toMillis()
-        }
-
-        val dataSource = HikariDataSource(hikariConfig)
-        Flyway.configure()
-            .dataSource(dataSource)
-            .lockRetryCount(-1)
-            .load()
-            .migrate()
-        dataSource
-    } else {
-        val dataSourceBuilder = DataSourceBuilder(readDatabaseEnvironment())
-        dataSourceBuilder.migrate()
-        dataSourceBuilder.getDataSource()
+    val hikariConfig = HikariConfig().apply {
+        jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", environment.getValue("DB_HOST"), environment.getValue("DB_PORT"), environment.getValue("DB_DATABASE"))
+        username = environment.getValue("DB_USERNAME")
+        password = environment.getValue("DB_PASSWORD")
+        maximumPoolSize = 3
+        initializationFailTimeout = Duration.ofMinutes(30).toMillis()
     }
+
+    val dataSource = HikariDataSource(hikariConfig)
+    Flyway.configure()
+        .dataSource(dataSource)
+        .lockRetryCount(-1)
+        .load()
+        .migrate()
 
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
 

@@ -1,0 +1,31 @@
+kafkaPool: nav-prod
+minReplicas: 0
+maxReplicas: 0
+azure:
+  enabled: true
+gcp:
+  type: POSTGRES_15
+  databaseName: spre-gosys
+  envVarPrefix: DB
+accessPolicy:
+  outbound:
+    - application: spre-gosys-pdf
+  external:
+    - dokarkiv.prod-fss-pub.nais.io
+    - ereg-services.prod-fss-pub.nais.io
+    - pdl-api.prod-fss-pub.nais.io
+env:
+  - name: KAFKA_MAX_RECORDS
+    value: "50"
+  - name: KAFKA_MAX_POLL_INTERVAL_MS
+    value: "500000"
+  - name: JOARK_BASE_URL
+    value: https://dokarkiv.prod-fss-pub.nais.io
+  - name: JOARK_SCOPE
+    value: api://prod-fss.teamdokumenthandtering.dokarkiv/.default
+  - name: EREG_BASE_URL
+    value: https://ereg-services.prod-fss-pub.nais.io
+  - name: PDL_BASE_URL
+    value: https://pdl-api.prod-fss-pub.nais.io
+  - name: PDL_CLIENT_SCOPE
+    value: api://prod-fss.pdl.pdl-api/.default
