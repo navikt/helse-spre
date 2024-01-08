@@ -12,7 +12,6 @@ import java.util.*
 
 class EregClient(
     private val baseUrl: String,
-    private val stsRestClient: StsRestClient?,
     private val httpClient: HttpClient,
 ) {
     suspend fun hentOrganisasjonsnavn(
@@ -27,11 +26,7 @@ class EregClient(
         try {
             sikkerLogg.info("Henter navn på organisasjon: $organisasjonsnummer, {}", kv("Nav-Call-Id", callId))
             return httpClient.prepareGet("$baseUrl/v1/organisasjon/$organisasjonsnummer") {
-                if (stsRestClient != null) {
-                    header("Authorization", "Bearer ${stsRestClient.token()}")
-                    header("Nav-Consumer-Token", "Bearer ${stsRestClient.token()}")
-                }
-                header("Nav-Consumer-Id", "spre-gosys")
+                System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
                 header("Nav-Call-Id", callId)
                 accept(ContentType.Application.Json)
             }

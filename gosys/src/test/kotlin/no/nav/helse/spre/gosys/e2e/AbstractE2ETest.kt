@@ -49,7 +49,7 @@ internal abstract class AbstractE2ETest {
         coEvery { getToken(any()) }.returns(AzureClient.Token("type", 3600, "token"))
     }
     protected val joarkClient = JoarkClient("https://url.no", stsMock, mockClient)
-    protected val eregClient = EregClient("https://url.no", stsMock, mockClient)
+    protected val eregClient = EregClient("https://url.no", mockClient)
     protected val pdlClient = PdlClient(azureMock, mockClient, "scope")
 
     protected val duplikatsjekkDao = DuplikatsjekkDao(dataSource)

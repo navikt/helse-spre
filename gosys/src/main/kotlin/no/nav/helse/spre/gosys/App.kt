@@ -59,8 +59,7 @@ fun launchApplication(
     }
     val joarkClient = JoarkClient(requireNotNull(environment["JOARK_BASE_URL"]), stsRestClient, httpClient)
     val pdfClient = PdfClient(httpClient)
-    val erDev = System.getenv("NAIS_CLUSTER_NAME") == "dev-fss"
-    val eregClient = EregClient(requireNotNull(environment["EREG_BASE_URL"]), stsRestClient.takeUnless { erDev }, httpClient)
+    val eregClient = EregClient(requireNotNull(environment["EREG_BASE_URL"]), httpClient)
     val pdlClient = PdlClient(azureClient, httpClient, requireNotNull(environment["PDL_CLIENT_SCOPE"]))
 
     val dataSourceBuilder = DataSourceBuilder(readDatabaseEnvironment())
