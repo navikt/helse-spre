@@ -13,6 +13,7 @@ import java.util.*
 class PdlClient(
     private val azureClient: AzureClient,
     private val httpClient: io.ktor.client.HttpClient,
+    private val baseUrl: String,
     private val scope: String,
 ) {
     companion object {
@@ -30,7 +31,7 @@ class PdlClient(
         )
 
         sikkerLogg.info("Henter navn på person: $fødselsnummer, {}", StructuredArguments.kv("Nav-Call-Id", hendelseId.toString()))
-        val response: HttpResponse = httpClient.post(Url("http://pdl-api.pdl.svc.nais.local/graphql")) {
+        val response: HttpResponse = httpClient.post(Url("$baseUrl/graphql")) {
             header("TEMA", "SYK")
             header("Authorization", "Bearer ${token.accessToken}")
             header("Content-Type", "application/json")

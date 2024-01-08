@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.*
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.http.ContentType
@@ -23,8 +25,10 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
+import org.flywaydb.core.Flyway
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Duration
 
 internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -58,14 +62,37 @@ fun launchApplication(
         install(HttpTimeout) { requestTimeoutMillis = 10000 }
     }
     val joarkClient = JoarkClient(environment.getValue("JOARK_BASE_URL"), azureClient, environment.getValue("JOARK_SCOPE"), httpClient)
-    val pdfClient = PdfClient(httpClient)
+    val pdfBaseUrl = if (System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp") {
+        "http://spre-gosys-pdf"
+    } else {
+        "http://spre-gosys-pdf.tbd.svc.nais.local"
+    }
+    val pdfClient = PdfClient(httpClient, pdfBaseUrl)
     val eregClient = EregClient(environment.getValue("EREG_BASE_URL"), httpClient)
-    val pdlClient = PdlClient(azureClient, httpClient, environment.getValue("PDL_CLIENT_SCOPE"))
+    val pdlClient = PdlClient(azureClient, httpClient, environment.getValue("PDL_BASE_URL"), environment.getValue("PDL_CLIENT_SCOPE"))
 
-    val dataSourceBuilder = DataSourceBuilder(readDatabaseEnvironment())
-    dataSourceBuilder.migrate()
+    val dataSource = if (System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp") {
+        val hikariConfig = HikariConfig().apply {
+            jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", environment.getValue("DB_HOST"), environment.getValue("DB_PORT"), environment.getValue("DB_DATABASE"))
+            username = environment.getValue("DB_USERNAME")
+            password = environment.getValue("DB_PASSWORD")
+            maximumPoolSize = 3
+            initializationFailTimeout = Duration.ofMinutes(30).toMillis()
+        }
 
-    val dataSource = dataSourceBuilder.getDataSource()
+        val dataSource = HikariDataSource(hikariConfig)
+        Flyway.configure()
+            .dataSource(dataSource)
+            .lockRetryCount(-1)
+            .load()
+            .migrate()
+        dataSource
+    } else {
+        val dataSourceBuilder = DataSourceBuilder(readDatabaseEnvironment())
+        dataSourceBuilder.migrate()
+        dataSourceBuilder.getDataSource()
+    }
+
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
 
     val vedtakMediator = VedtakMediator(pdfClient, joarkClient, eregClient, pdlClient)

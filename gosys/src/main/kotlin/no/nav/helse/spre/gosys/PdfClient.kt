@@ -10,17 +10,17 @@ import no.nav.helse.spre.gosys.feriepenger.FeriepengerPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import java.util.*
 
-class PdfClient(private val httpClient: HttpClient) {
+class PdfClient(private val httpClient: HttpClient, private val baseUrl: String) {
     private val encoder = Base64.getEncoder()
 
     suspend fun hentVedtakPdfV2(vedtak: VedtakPdfPayloadV2) =
-        hentPdf("http://spre-gosys-pdf.tbd.svc.nais.local/api/v1/genpdf/spre-gosys/vedtak-v2", vedtak)
+        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/vedtak-v2", vedtak)
 
     suspend fun hentAnnulleringPdf(annullering: AnnulleringPdfPayloadV2) =
-        hentPdf("http://spre-gosys-pdf.tbd.svc.nais.local/api/v1/genpdf/spre-gosys/annullering-v2", annullering)
+        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/annullering-v2", annullering)
 
     suspend fun hentFeriepengerPdf(feriepenger: FeriepengerPdfPayload) =
-        hentPdf("http://spre-gosys-pdf.tbd.svc.nais.local/api/v1/genpdf/spre-gosys/feriepenger", feriepenger)
+        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/feriepenger", feriepenger)
 
     private suspend fun hentPdf(url: String, input: Any) =
         httpClient.post(url) {

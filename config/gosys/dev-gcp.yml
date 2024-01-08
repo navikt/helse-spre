@@ -1,0 +1,29 @@
+kafkaPool: nav-dev
+azure:
+  enabled: true
+  tenant: trygdeetaten.no
+gcp:
+  type: POSTGRES_15
+  databaseName: spre-gosys
+  envVarPrefix: DB
+  sqlInstanceTier: db-custom-1-3840
+accessPolicy:
+  external:
+    - dokarkiv.dev-fss-pub.nais.io
+    - ereg-services-q1.dev-fss-pub.nais.io
+    - pdl-api.dev-fss-pub.nais.io
+env:
+  - name: KAFKA_MAX_RECORDS
+    value: "50"
+  - name: KAFKA_MAX_POLL_INTERVAL_MS
+    value: "500000"
+  - name: JOARK_BASE_URL
+    value: https://dokarkiv.dev-fss-pub.nais.io
+  - name: JOARK_SCOPE
+    value: api://dev-fss.teamdokumenthandtering.dokarkiv-q1/.default
+  - name: EREG_BASE_URL
+    value: https://ereg-services-q1.dev-fss-pub.nais.io
+  - name: PDL_BASE_URL
+    value: https://pdl-api.dev-fss-pub.nais.io
+  - name: PDL_CLIENT_SCOPE
+    value: api://dev-fss.pdl.pdl-api/.default

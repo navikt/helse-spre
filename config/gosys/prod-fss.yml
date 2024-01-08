@@ -22,5 +22,7 @@ env:
     value: postgresql/prod-fss/
   - name: EREG_BASE_URL
     value: http://ereg-services.arbeidsforhold.svc.nais.local
+  - name: PDL_BASE_URL
+    value: http://pdl-api.pdl.svc.nais.local
   - name: PDL_CLIENT_SCOPE
     value: api://prod-fss.pdl.pdl-api/.default
