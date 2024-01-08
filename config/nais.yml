@@ -53,7 +53,7 @@ spec:
   accessPolicy:
     outbound:
       external:
-        {{ #each accessPolicy.external as |item| }}
+        {{# each accessPolicy.external as |item| }}
         - host: {{item}}
         {{/each}}
   {{/if}}
