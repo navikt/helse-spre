@@ -6,7 +6,7 @@ gcp:
   type: POSTGRES_15
   databaseName: spre-gosys
   envVarPrefix: DB
-  sqlInstanceTier: db-custom-1-3840
+  sqlInstanceTier: db-f1-micro
 accessPolicy:
   external:
     - dokarkiv.dev-fss-pub.nais.io
