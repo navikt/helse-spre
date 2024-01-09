@@ -1,17 +1,17 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val jvmTarget = "17"
+val jvmTarget = 21
 
 plugins {
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "1.9.22"
 }
 
-val gradlewVersion = "7.4.2"
+val gradlewVersion = "8.5"
 val junitJupiterVersion = "5.9.1"
 val rapidsAndRiversVersion = "2023093008351696055717.ffdec6aede3d"
 val ktorVersion = "2.3.4" // should be set to same value as rapids and rivers
-val mockkVersion = "1.12.0"
+val mockkVersion = "1.13.9"
 val wiremockVersion = "2.27.2"
 
 buildscript {
@@ -96,12 +96,10 @@ allprojects {
     }
 
     tasks {
-        withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = jvmTarget
-        }
-
-        named<KotlinCompile>("compileTestKotlin") {
-            kotlinOptions.jvmTarget = jvmTarget
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(jvmTarget)
+            }
         }
 
         withType<Wrapper> {
