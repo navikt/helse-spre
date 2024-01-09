@@ -27,7 +27,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21.x'
-          cache: 'gradle'
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
