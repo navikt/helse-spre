@@ -1,18 +1,16 @@
 package no.nav.helse.spre.gosys
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.header
-import io.ktor.client.request.preparePost
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import com.github.navikt.tbd_libs.azure.AzureTokenProvider
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments.keyValue
-import java.util.UUID
+import java.util.*
 
 class JoarkClient(
     private val baseUrl: String,
-    private val azureClient: AzureClient,
+    private val azureClient: AzureTokenProvider,
     private val joarkScope: String,
     private val httpClient: HttpClient
 ) {
@@ -20,7 +18,7 @@ class JoarkClient(
         return httpClient.preparePost("$baseUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
             System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
             header("Nav-Consumer-Token", hendelseId.toString())
-            header("Authorization", "Bearer ${azureClient.getToken(joarkScope).accessToken}")
+            bearerAuth(azureClient.bearerToken(joarkScope).token)
             contentType(ContentType.Application.Json)
             setBody(journalpostPayload)
         }

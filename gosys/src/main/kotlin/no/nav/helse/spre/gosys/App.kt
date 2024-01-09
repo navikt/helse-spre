@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.*
@@ -48,11 +49,7 @@ fun main() {
 fun launchApplication(
     environment: Map<String, String>
 ): RapidsConnection {
-    val azureClient = AzureClient(
-        tokenEndpoint = environment.getValue("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
-        clientId = environment.getValue("AZURE_APP_CLIENT_ID"),
-        clientSecret = environment.getValue("AZURE_APP_CLIENT_SECRET")
-    )
+    val azureClient = createAzureTokenClientFromEnvironment(environment)
     val httpClient = HttpClient {
 
         install(ContentNegotiation) {

@@ -4,8 +4,10 @@ val testcontainersPostgresqlVersion = "1.19.0"
 val jsonassertVersion = "1.5.0"
 val kotliqueryVersion = "1.9.0"
 val flywayCoreVersion = "9.22.2"
-val vaultJdbcVersion = "1.3.10"
+val postgresqlVersion = "42.6.0"
 val hikariCPVersion = "5.0.1"
+val tbdLibsVersion = "2024.01.09-20.20-d52bae29"
+
 val kotlinxSerializationJsonVersion = "1.6.0"
 
 plugins {
@@ -13,6 +15,7 @@ plugins {
 }
 
 dependencies {
+    implementation("com.github.navikt.tbd-libs:azure-token-client-default:$tbdLibsVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
@@ -22,7 +25,7 @@ dependencies {
     }
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationJsonVersion")
     implementation("com.zaxxer:HikariCP:$hikariCPVersion")
-    implementation("no.nav:vault-jdbc:$vaultJdbcVersion")
+    implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
@@ -30,4 +33,8 @@ dependencies {
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
+}
+
+repositories {
+    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
 }
