@@ -90,7 +90,7 @@ jobs:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
       - name: test and build
-        run: ./gradlew --info ${{ matrix.project }}::test ${{ matrix.project }}::build
+        run: ./gradlew ${{ matrix.project }}:build
       - name: Check app.jar existence
         id: app_jar
         uses: andstor/file-existence-action@v2
