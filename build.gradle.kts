@@ -1,5 +1,4 @@
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val jvmTarget = 21
 
@@ -8,15 +7,19 @@ plugins {
 }
 
 val gradlewVersion = "8.5"
-val junitJupiterVersion = "5.9.1"
-val rapidsAndRiversVersion = "2023093008351696055717.ffdec6aede3d"
-val ktorVersion = "2.3.4" // should be set to same value as rapids and rivers
+val junitJupiterVersion = "5.10.1"
+val rapidsAndRiversVersion = "2024010209171704183456.6d035b91ffb4"
+val ktorVersion = "2.3.7" // should be set to same value as rapids and rivers
 val mockkVersion = "1.13.9"
-val wiremockVersion = "2.27.2"
+val testcontainersVersion = "1.19.3"
+val hikariCPVersion = "5.1.0"
+val kotliqueryVersion = "1.9.0"
+val postgresqlVersion = "42.7.1"
+val flywayCoreVersion = "10.5.0"
 
 buildscript {
     repositories { mavenCentral() }
-    dependencies { "classpath"(group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.13.1") }
+    dependencies { "classpath"(group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.16.1") }
 }
 
 val mapper = ObjectMapper()
@@ -83,16 +86,25 @@ allprojects {
     dependencies {
         if (!erFellesmodul()) implementation(project(":felles"))
 
-        testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-        testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
+        testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
+        testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     repositories {
-        maven("https://packages.confluent.io/maven/")
-        maven("https://oss.sonatype.org")
-        maven("https://jitpack.io")
+        val githubPassword: String? by project
         mavenCentral()
+        /* ihht. https://github.com/navikt/utvikling/blob/main/docs/teknisk/Konsumere%20biblioteker%20fra%20Github%20Package%20Registry.md
+            så plasseres github-maven-repo (med autentisering) før nav-mirror slik at github actions kan anvende førstnevnte.
+            Det er fordi nav-mirroret kjører i Google Cloud og da ville man ellers fått unødvendige utgifter til datatrafikk mellom Google Cloud og GitHub
+         */
+        maven {
+            url = uri("https://maven.pkg.github.com/navikt/maven-release")
+            credentials {
+                username = "x-access-token"
+                password = githubPassword
+            }
+        }
+        maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
 
     tasks {
@@ -119,14 +131,12 @@ subprojects {
     ext {
         set("ktorVersion", ktorVersion)
         set("rapidsAndRiversVersion", rapidsAndRiversVersion)
-    }
-    dependencies {
-        testImplementation("io.mockk:mockk:$mockkVersion")
-        testImplementation("com.github.tomakehurst:wiremock:$wiremockVersion") {
-            exclude(group = "junit")
-            exclude("com.github.jknack.handlebars.java")
-        }
-        testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
+        set("mockkVersion", mockkVersion)
+        set("testcontainersVersion", testcontainersVersion)
+        set("hikariCPVersion", hikariCPVersion)
+        set("kotliqueryVersion", kotliqueryVersion)
+        set("postgresqlVersion", postgresqlVersion)
+        set("flywayCoreVersion", flywayCoreVersion)
     }
     tasks {
         if (!project.erFellesmodul()) {
@@ -150,7 +160,7 @@ subprojects {
 
                 doLast {
                     configurations.runtimeClasspath.get().forEach {
-                        val file = File("$buildDir/libs/${it.name}")
+                        val file = File("${layout.buildDirectory.get()}/libs/${it.name}")
                         if (!file.exists())
                             it.copyTo(file)
                     }

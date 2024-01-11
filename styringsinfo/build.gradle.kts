@@ -1,16 +1,18 @@
-val postgresqlVersion = "42.6.0"
-val kotliqueryVersion = "1.9.0"
-val hikariCPVersion = "5.0.1"
-val flywaycoreVersion = "9.22.2"
-val testcontainersVersion = "1.19.0"
+val testcontainersVersion: String by project
+val hikariCPVersion: String by project
+val postgresqlVersion: String by project
+val kotliqueryVersion: String by project
+val flywayCoreVersion: String by project
+
 val skyscreamerVersion = "1.5.1"
 
 dependencies {
     implementation("com.zaxxer:HikariCP:$hikariCPVersion")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
-    implementation("org.flywaydb:flyway-core:$flywaycoreVersion")
+    implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
+    implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
+
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("org.skyscreamer:jsonassert:$skyscreamerVersion")
 }

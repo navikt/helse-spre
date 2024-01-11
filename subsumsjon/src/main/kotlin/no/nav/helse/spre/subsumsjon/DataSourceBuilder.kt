@@ -3,6 +3,7 @@ package no.nav.helse.spre.subsumsjon
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
+import java.time.Duration
 
 internal class DataSourceBuilder(private val jdbcDatabaseUrl: String, private val username: String, private val password: String) {
 
@@ -12,18 +13,16 @@ internal class DataSourceBuilder(private val jdbcDatabaseUrl: String, private va
         username = this@DataSourceBuilder.username
         password = this@DataSourceBuilder.password
         maximumPoolSize = 4
-        minimumIdle = 2
-        idleTimeout = 10001
-        connectionTimeout = 1000
-        maxLifetime = 30001
-        initializationFailTimeout = 30000
+        initializationFailTimeout = Duration.ofMinutes(15).toMillis()
     }
 
-    internal fun migratedDataSource(): HikariDataSource = HikariDataSource(hikariConfig).apply {
-        Flyway.configure()
-            .dataSource(this)
-            .load()
-            .migrate()
+    internal fun migrate() {
+        HikariDataSource(hikariConfig).use {
+            Flyway.configure()
+                .dataSource(it)
+                .load()
+                .migrate()
+        }
     }
 
     internal fun datasource() = HikariDataSource(hikariConfig)

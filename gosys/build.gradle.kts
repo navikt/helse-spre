@@ -1,11 +1,12 @@
 val ktorVersion: String by project
+val mockkVersion: String by project
+val testcontainersVersion: String by project
+val hikariCPVersion: String by project
+val postgresqlVersion: String by project
+val kotliqueryVersion: String by project
+val flywayCoreVersion: String by project
 
-val testcontainersPostgresqlVersion = "1.19.0"
 val jsonassertVersion = "1.5.0"
-val kotliqueryVersion = "1.9.0"
-val flywayCoreVersion = "9.22.2"
-val postgresqlVersion = "42.6.0"
-val hikariCPVersion = "5.0.1"
 val tbdLibsVersion = "2024.01.09-20.20-d52bae29"
 
 val kotlinxSerializationJsonVersion = "1.6.0"
@@ -27,14 +28,12 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikariCPVersion")
     implementation("org.postgresql:postgresql:$postgresqlVersion")
     implementation("org.flywaydb:flyway-core:$flywayCoreVersion")
+    implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
+    testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("org.skyscreamer:jsonassert:$jsonassertVersion")
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("org.testcontainers:postgresql:$testcontainersPostgresqlVersion")
-}
-
-repositories {
-    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
 }

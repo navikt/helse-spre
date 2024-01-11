@@ -8,6 +8,7 @@ import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import org.testcontainers.containers.PostgreSQLContainer
+import java.time.Duration
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class AbstractDatabaseTest {
@@ -39,11 +40,7 @@ abstract class AbstractDatabaseTest {
                 username = postgres.username
                 password = postgres.password
                 maximumPoolSize = 5
-                minimumIdle = 1
-                idleTimeout = 500001
-                connectionTimeout = 10000
-                maxLifetime = 600001
-                initializationFailTimeout = 5000
+                initializationFailTimeout = Duration.ofMinutes(15).toMillis()
             })
 
         init {

@@ -19,19 +19,16 @@ internal class SykemeldingRiverTest {
 
     @BeforeAll
     fun setup() {
-        postgres = PostgreSQLContainer<Nothing>("postgres:13").apply {
+        postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {
             withLabel("app-navn", "spre-subsumsjon")
             withReuse(true)
             start()
         }
 
-        mappingDao = MappingDao(
-            DataSourceBuilder(
-                postgres.jdbcUrl,
-                postgres.username,
-                postgres.password
-            ).migratedDataSource()
-        )
+        val dataSourceBuilder = DataSourceBuilder(postgres.jdbcUrl, postgres.username, postgres.password)
+        dataSourceBuilder.migrate()
+
+        mappingDao = MappingDao(dataSourceBuilder.datasource())
 
         river = SykemeldingRiver(testRapid, mappingDao, idValidation)
 

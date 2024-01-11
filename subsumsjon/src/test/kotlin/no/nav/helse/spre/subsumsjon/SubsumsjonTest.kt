@@ -32,19 +32,16 @@ internal class SubsumsjonTest {
 
     @BeforeAll
     fun setup() {
-        postgres = PostgreSQLContainer<Nothing>("postgres:13").apply {
+        postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {
             withLabel("app-navn", "spre-subsumsjon")
             withReuse(true)
             start()
         }
 
-        mappingDao = MappingDao(
-            DataSourceBuilder(
-                postgres.jdbcUrl,
-                postgres.username,
-                postgres.password
-            ).migratedDataSource()
-        )
+        val dataSourceBuilder = DataSourceBuilder(postgres.jdbcUrl, postgres.username, postgres.password)
+        dataSourceBuilder.migrate()
+
+        mappingDao = MappingDao(dataSourceBuilder.datasource())
 
         sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao, IdValidation(emptyList()))
         søknadRiver = SøknadRiver(testRapid, mappingDao)
@@ -316,7 +313,7 @@ internal class SubsumsjonTest {
     "@event_name": "subsumsjon",
     "@opprettet": "2022-02-02T14:47:01.326499238",
     "subsumsjon": {
-      "tidsstempel": "2022-02-02T14:47:01.326499238",
+      "tidsstempel": "2022-02-02T14:47:01.326499238+01:00",
       "versjon": "1.0.0",
       "kilde": "spleis",
       "versjonAvKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",

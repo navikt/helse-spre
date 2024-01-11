@@ -10,11 +10,12 @@ import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.testcontainers.containers.PostgreSQLContainer
+import java.time.Duration
 
 object TestUtil {
     val dataSource: DataSource = dataSource()
     private fun dataSource(): DataSource {
-        val postgres = PostgreSQLContainer<Nothing>("postgres:13").apply {
+        val postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {
             withLabel("app-navn", "spre-saksbehandlingsstatistikk")
             withReuse(true)
             start()
@@ -24,12 +25,7 @@ object TestUtil {
                 jdbcUrl = postgres.jdbcUrl
                 username = postgres.username
                 password = postgres.password
-                maximumPoolSize = 3
-                minimumIdle = 1
-                idleTimeout = 10001
-                connectionTimeout = 1000
-                maxLifetime = 30001
-                initializationFailTimeout = 10000
+                initializationFailTimeout = Duration.ofMinutes(15).toMillis()
             })
 
         dataSource.apply {
