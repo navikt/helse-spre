@@ -19,15 +19,24 @@ class GenerasjonOpprettetDao(private val dataSource: DataSource) {
 
     private fun lagreGenerasjonOpprettet(generasjonOpprettet: GenerasjonOpprettet, tx: TransactionalSession) {
         @Language("PostgreSQL")
-        val query = """INSERT INTO generasjon_opprettet (fodselsnummer, aktorId, organisasjonsnummer, vedtaksperiodeId, generasjonsId, type, meldingsreferanseId, innsendt, registrert, avsender)
-            VALUES (:fodselsnummer, :aktorId, :organisasjonsnummer, :vedtaksperiodeId, :generasjonsId, :type, :meldingsreferanseId, :innsendt, :registrert, :avsender)
+        val query = """INSERT INTO generasjon_opprettet (aktørId, generasjonId, vedtaksperiodeId, type, avsender, meldingsreferanseId, innsendt, registrert, hendelseId, melding)
+            VALUES (:aktorId, :generasjonId, :vedtaksperiodeId, :type, :avsender, :meldingsreferanseId, :innsendt, :registrert, :hendelseId, CAST(:melding as json))
             ON CONFLICT DO NOTHING;""".trimIndent()
 
         tx.run(
             queryOf(
                 query,
                 mapOf(
-                        "fodselsnummer" to generasjonOpprettet.fødselsnummer,
+                    "aktorId" to generasjonOpprettet.aktørId,
+                    "generasjonId" to generasjonOpprettet.generasjonId,
+                    "vedtaksperiodeId" to generasjonOpprettet.vedtaksperiodeId,
+                    "type" to generasjonOpprettet.type,
+                    "avsender" to generasjonOpprettet.kilde.avsender,
+                    "meldingsreferanseId" to generasjonOpprettet.kilde.meldingsreferanseId,
+                    "innsendt" to generasjonOpprettet.kilde.innsendt,
+                    "registrert" to generasjonOpprettet.kilde.registrert,
+                    "hendelseId" to generasjonOpprettet.hendelseId,
+                    "melding" to generasjonOpprettet.melding,
                 )
             ).asUpdate
         )

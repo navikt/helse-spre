@@ -44,16 +44,16 @@ internal class GenerasjonOpprettetRiver(
 
 internal fun JsonMessage.toGenerasjonOpprettet(): GenerasjonOpprettet {
     return GenerasjonOpprettet(
-        fødselsnummer = this["fødselsnummer"].asText(),
         aktørId = this["aktørId"].asText(),
-        organisasjonsnummer = this["organisasjonsnummer"].asText(),
         vedtaksperiodeId = UUID.fromString(this["vedtaksperiodeId"].asText()),
         generasjonId = UUID.fromString(this["generasjonId"].asText()),
         type = this["type"].asText(),
+        hendelseId = UUID.fromString(this["@id"].asText()),
+        melding = this.toJson(),
         kilde = Kilde(
             meldingsreferanseId = UUID.fromString(this["kilde.meldingsreferanseId"].asText()),
             innsendt = this["kilde.innsendt"].asLocalDateTime(),
-            registert = this["kilde.registrert"].asLocalDateTime(),
+            registrert = this["kilde.registrert"].asLocalDateTime(),
             avsender = this["avsender"].asText()
         )
     )

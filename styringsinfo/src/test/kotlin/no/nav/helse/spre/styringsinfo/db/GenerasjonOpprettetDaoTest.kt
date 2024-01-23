@@ -25,16 +25,16 @@ class GenerasjonOpprettetDaoTest : AbstractDatabaseTest() {
     fun `lagre generasjonOpprettet`() {
         val generasjonId = UUID.randomUUID()
         val generasjonOpprettet = GenerasjonOpprettet(
-            fødselsnummer = "12345678910",
             aktørId = "123",
-            organisasjonsnummer = "123456789",
             vedtaksperiodeId = UUID.randomUUID(),
             generasjonId = generasjonId,
             type = "FØRSTEGANGSBEHANDLING",
+            hendelseId = UUID.randomUUID(),
+            melding = "{}",
             kilde = Kilde(
                 meldingsreferanseId = UUID.randomUUID(),
                 innsendt = LocalDateTime.now(),
-                registert = LocalDateTime.now(),
+                registrert = LocalDateTime.now(),
                 avsender = "SYKEMELDT"
             )
         )
@@ -51,21 +51,21 @@ class GenerasjonOpprettetDaoTest : AbstractDatabaseTest() {
         session.transaction { tx ->
             tx.run(
                 queryOf(
-                    """select fodselsnummer, aktorId, organisasjonsnummer, vedtaksperiodeId, generasjonsId, type, meldingsreferanseId, innsendt, registrert, avsender from generasjon_opprettet where generasjonId = :generasjonId""",
+                    """select aktørId, vedtaksperiodeId, generasjonId, type, meldingsreferanseId, innsendt, registrert, avsender, hendelseId, melding from generasjon_opprettet where generasjonId = :generasjonId""",
                     mapOf("generasjonId" to generasjonId)
                 )
                     .map { row ->
                         GenerasjonOpprettet(
-                            fødselsnummer = row.string("fodselsnummer"),
-                            aktørId = row.string("aktorId"),
-                            organisasjonsnummer = row.string("organisasjonsnummer"),
+                            aktørId = row.string("aktørId"),
                             vedtaksperiodeId = row.uuid("vedtaksperiodeId"),
                             generasjonId = row.uuid("generasjonId"),
                             type = row.string("type"),
+                            hendelseId = row.uuid("hendelseId"),
+                            melding = row.string("melding"),
                             kilde = Kilde(
                                 meldingsreferanseId = row.uuid("meldingsreferanseId"),
                                 innsendt = row.localDateTime("innsendt"),
-                                registert = row.localDateTime("registert"),
+                                registrert = row.localDateTime("registrert"),
                                 avsender = row.string("avsender")
                             )
                         )
