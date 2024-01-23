@@ -1,0 +1,60 @@
+package no.nav.helse.spre.styringsinfo
+
+import com.fasterxml.jackson.databind.JsonNode
+import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
+import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.asLocalDate
+import no.nav.helse.rapids_rivers.asLocalDateTime
+import no.nav.helse.spre.styringsinfo.db.GenerasjonOpprettetDao
+import no.nav.helse.spre.styringsinfo.domain.GenerasjonOpprettet
+import no.nav.helse.spre.styringsinfo.domain.Kilde
+import java.util.UUID
+
+internal class GenerasjonOpprettetRiver(
+    rapidsConnection: RapidsConnection,
+    private val generasjonOpprettetDao: GenerasjonOpprettetDao,
+) : River.PacketListener {
+
+    init {
+        River(rapidsConnection).apply {
+            validate {
+                it.demandValue("@event_name", "vedtak_fattet")
+                it.requireKey("@id", "hendelser")
+                it.require("fom", JsonNode::asLocalDate)
+                it.require("tom", JsonNode::asLocalDate)
+                it.require("vedtakFattetTidspunkt", JsonNode::asLocalDateTime)
+            }
+        }.register(this)
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        sikkerLogg.error("forstår ikke vedtak_fattet:\n${problems.toExtendedReport()}")
+    }
+
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val id = UUID.fromString(packet["@id"].asText())
+        log.info("Leser inn og lagrer melding $id")
+        val generasjonOpprettet = packet.toGenerasjonOpprettet()
+        generasjonOpprettetDao.lagre(generasjonOpprettet)
+    }
+}
+
+internal fun JsonMessage.toGenerasjonOpprettet(): GenerasjonOpprettet {
+    return GenerasjonOpprettet(
+        fødselsnummer = this["fødselsnummer"].asText(),
+        aktørId = this["aktørId"].asText(),
+        organisasjonsnummer = this["organisasjonsnummer"].asText(),
+        vedtaksperiodeId = UUID.fromString(this["vedtaksperiodeId"].asText()),
+        generasjonId = UUID.fromString(this["generasjonId"].asText()),
+        type = this["type"].asText(),
+        kilde = Kilde(
+            meldingsreferanseId = UUID.fromString(this["kilde.meldingsreferanseId"].asText()),
+            innsendt = this["kilde.innsendt"].asLocalDateTime(),
+            registert = this["kilde.registrert"].asLocalDateTime(),
+            avsender = this["avsender"].asText()
+        )
+    )
+}
