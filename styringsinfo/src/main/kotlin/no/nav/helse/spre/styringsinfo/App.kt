@@ -8,13 +8,8 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.spre.styringsinfo.db.*
 import no.nav.helse.spre.styringsinfo.db.DataSourceBuilder
-import no.nav.helse.spre.styringsinfo.db.SendtSøknadDao
-import no.nav.helse.spre.styringsinfo.db.SendtSøknadPatcher
-import no.nav.helse.spre.styringsinfo.db.VedtakFattetDao
-import no.nav.helse.spre.styringsinfo.db.VedtakFattetPatcher
-import no.nav.helse.spre.styringsinfo.db.VedtakForkastetDao
-import no.nav.helse.spre.styringsinfo.db.VedtakForkastetPatcher
 import no.nav.helse.spre.styringsinfo.domain.SendtSøknadPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakFattetPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakForkastetPatch
@@ -76,12 +71,14 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
     val sendtSøknadDao = SendtSøknadDao(dataSource)
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val vedtakForkastetDao = VedtakForkastetDao(dataSource)
+    val generasjonOpprettetDao = GenerasjonOpprettetDao(dataSource)
 
     return RapidApplication.create(environment).apply {
         SendtSøknadArbeidsgiverRiver(this, sendtSøknadDao)
         SendtSøknadNavRiver(this, sendtSøknadDao)
         VedtakFattetRiver(this, vedtakFattetDao)
         VedtakForkastetRiver(this, vedtakForkastetDao)
+        GenerasjonOpprettetRiver(this, generasjonOpprettetDao)
     }
 }
 
