@@ -10,7 +10,6 @@ data class GenerasjonOpprettet(
         val type: String,
         val kilde: Kilde,
         val hendelseId: UUID,
-        val melding: String
 )
 
 data class Kilde (

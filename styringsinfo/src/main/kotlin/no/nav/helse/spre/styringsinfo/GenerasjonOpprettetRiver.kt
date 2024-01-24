@@ -49,7 +49,6 @@ internal fun JsonMessage.toGenerasjonOpprettet(): GenerasjonOpprettet {
         generasjonId = UUID.fromString(this["generasjonId"].asText()),
         type = this["type"].asText(),
         hendelseId = UUID.fromString(this["@id"].asText()),
-        melding = this.toJson(),
         kilde = Kilde(
             meldingsreferanseId = UUID.fromString(this["kilde.meldingsreferanseId"].asText()),
             innsendt = this["kilde.innsendt"].asLocalDateTime(),

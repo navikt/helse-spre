@@ -9,7 +9,6 @@ CREATE TABLE generasjon_opprettet
     meldingsreferanseId UUID         NOT NULL,
     innsendt            timestamp    NOT NULL,
     registrert          timestamp    NOT NULL,
-    hendelseId          UUID         NOT NULL,
-    melding             JSON         NOT NULL
+    hendelseId          UUID         NOT NULL
 );
 

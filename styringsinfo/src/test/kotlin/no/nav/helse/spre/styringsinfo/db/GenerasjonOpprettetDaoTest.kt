@@ -30,7 +30,6 @@ class GenerasjonOpprettetDaoTest : AbstractDatabaseTest() {
             generasjonId = generasjonId,
             type = "FØRSTEGANGSBEHANDLING",
             hendelseId = UUID.randomUUID(),
-            melding = "{}",
             kilde = Kilde(
                 meldingsreferanseId = UUID.randomUUID(),
                 innsendt = LocalDateTime.now(),
@@ -51,7 +50,7 @@ class GenerasjonOpprettetDaoTest : AbstractDatabaseTest() {
         session.transaction { tx ->
             tx.run(
                 queryOf(
-                    """select aktørId, vedtaksperiodeId, generasjonId, type, meldingsreferanseId, innsendt, registrert, avsender, hendelseId, melding from generasjon_opprettet where generasjonId = :generasjonId""",
+                    """select aktørId, vedtaksperiodeId, generasjonId, type, meldingsreferanseId, innsendt, registrert, avsender, hendelseId from generasjon_opprettet where generasjonId = :generasjonId""",
                     mapOf("generasjonId" to generasjonId)
                 )
                     .map { row ->
@@ -61,7 +60,6 @@ class GenerasjonOpprettetDaoTest : AbstractDatabaseTest() {
                             generasjonId = row.uuid("generasjonId"),
                             type = row.string("type"),
                             hendelseId = row.uuid("hendelseId"),
-                            melding = row.string("melding"),
                             kilde = Kilde(
                                 meldingsreferanseId = row.uuid("meldingsreferanseId"),
                                 innsendt = row.localDateTime("innsendt"),

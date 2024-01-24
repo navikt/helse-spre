@@ -19,8 +19,8 @@ class GenerasjonOpprettetDao(private val dataSource: DataSource) {
 
     private fun lagreGenerasjonOpprettet(generasjonOpprettet: GenerasjonOpprettet, tx: TransactionalSession) {
         @Language("PostgreSQL")
-        val query = """INSERT INTO generasjon_opprettet (aktørId, generasjonId, vedtaksperiodeId, type, avsender, meldingsreferanseId, innsendt, registrert, hendelseId, melding)
-            VALUES (:aktorId, :generasjonId, :vedtaksperiodeId, :type, :avsender, :meldingsreferanseId, :innsendt, :registrert, :hendelseId, CAST(:melding as json))
+        val query = """INSERT INTO generasjon_opprettet (aktørId, generasjonId, vedtaksperiodeId, type, avsender, meldingsreferanseId, innsendt, registrert, hendelseId)
+            VALUES (:aktorId, :generasjonId, :vedtaksperiodeId, :type, :avsender, :meldingsreferanseId, :innsendt, :registrert, :hendelseId)
             ON CONFLICT DO NOTHING;""".trimIndent()
 
         tx.run(
@@ -36,7 +36,6 @@ class GenerasjonOpprettetDao(private val dataSource: DataSource) {
                     "innsendt" to generasjonOpprettet.kilde.innsendt,
                     "registrert" to generasjonOpprettet.kilde.registrert,
                     "hendelseId" to generasjonOpprettet.hendelseId,
-                    "melding" to generasjonOpprettet.melding,
                 )
             ).asUpdate
         )
