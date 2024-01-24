@@ -4,6 +4,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.domain.GenerasjonOpprettet
 import no.nav.helse.spre.styringsinfo.domain.Kilde
+import no.nav.helse.spre.styringsinfo.toOsloTid
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -32,8 +33,8 @@ class GenerasjonOpprettetDaoTest : AbstractDatabaseTest() {
             hendelseId = UUID.randomUUID(),
             kilde = Kilde(
                 meldingsreferanseId = UUID.randomUUID(),
-                innsendt = LocalDateTime.now(),
-                registrert = LocalDateTime.now(),
+                innsendt = LocalDateTime.parse("2023-06-01T00:00:00.0"),
+                registrert = LocalDateTime.parse("2023-06-01T00:00:00.0"),
                 avsender = "SYKEMELDT"
             )
         )
@@ -62,8 +63,8 @@ class GenerasjonOpprettetDaoTest : AbstractDatabaseTest() {
                             hendelseId = row.uuid("hendelseId"),
                             kilde = Kilde(
                                 meldingsreferanseId = row.uuid("meldingsreferanseId"),
-                                innsendt = row.localDateTime("innsendt"),
-                                registrert = row.localDateTime("registrert"),
+                                innsendt = row.zonedDateTime("innsendt").toOsloTid(),
+                                registrert = row.zonedDateTime("registrert").toOsloTid(),
                                 avsender = row.string("avsender")
                             )
                         )

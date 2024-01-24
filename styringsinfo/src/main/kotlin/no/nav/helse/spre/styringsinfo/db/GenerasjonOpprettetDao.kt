@@ -4,6 +4,7 @@ import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.domain.GenerasjonOpprettet
+import no.nav.helse.spre.styringsinfo.toOsloOffset
 import org.intellij.lang.annotations.Language
 import java.util.*
 import javax.sql.DataSource
@@ -33,8 +34,8 @@ class GenerasjonOpprettetDao(private val dataSource: DataSource) {
                     "type" to generasjonOpprettet.type,
                     "avsender" to generasjonOpprettet.kilde.avsender,
                     "meldingsreferanseId" to generasjonOpprettet.kilde.meldingsreferanseId,
-                    "innsendt" to generasjonOpprettet.kilde.innsendt,
-                    "registrert" to generasjonOpprettet.kilde.registrert,
+                    "innsendt" to generasjonOpprettet.kilde.innsendt.toOsloOffset(),
+                    "registrert" to generasjonOpprettet.kilde.registrert.toOsloOffset(),
                     "hendelseId" to generasjonOpprettet.hendelseId,
                 )
             ).asUpdate
