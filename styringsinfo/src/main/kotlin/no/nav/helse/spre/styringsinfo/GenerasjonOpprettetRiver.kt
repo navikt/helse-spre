@@ -21,17 +21,22 @@ internal class GenerasjonOpprettetRiver(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue("@event_name", "vedtak_fattet")
-                it.requireKey("@id", "hendelser")
-                it.require("fom", JsonNode::asLocalDate)
-                it.require("tom", JsonNode::asLocalDate)
-                it.require("vedtakFattetTidspunkt", JsonNode::asLocalDateTime)
+                it.demandValue("@event_name", "generasjon_opprettet")
+                it.requireKey("@id",
+                        "aktørId",
+                        "vedtaksperiodeId",
+                        "generasjonId",
+                        "type",
+                        "kilde.meldingsreferanseId",
+                        "kilde.avsender")
+                it.require("kilde.innsendt", JsonNode::asLocalDateTime)
+                it.require("kilde.registrert", JsonNode::asLocalDateTime)
             }
         }.register(this)
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        sikkerLogg.error("forstår ikke vedtak_fattet:\n${problems.toExtendedReport()}")
+        sikkerLogg.error("forstår ikke generasjon_opprettet:\n${problems.toExtendedReport()}")
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
@@ -53,7 +58,7 @@ internal fun JsonMessage.toGenerasjonOpprettet(): GenerasjonOpprettet {
             meldingsreferanseId = UUID.fromString(this["kilde.meldingsreferanseId"].asText()),
             innsendt = this["kilde.innsendt"].asLocalDateTime(),
             registrert = this["kilde.registrert"].asLocalDateTime(),
-            avsender = this["avsender"].asText()
+            avsender = this["kilde.avsender"].asText()
         )
     )
 }
