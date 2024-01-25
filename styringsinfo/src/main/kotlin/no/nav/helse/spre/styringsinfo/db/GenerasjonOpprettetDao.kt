@@ -20,7 +20,7 @@ class GenerasjonOpprettetDao(private val dataSource: DataSource) {
 
     private fun lagreGenerasjonOpprettet(generasjonOpprettet: GenerasjonOpprettet, tx: TransactionalSession) {
         @Language("PostgreSQL")
-        val query = """INSERT INTO generasjon_opprettet (aktørId, generasjonId, vedtaksperiodeId, type, avsender, meldingsreferanseId, innsendt, registrert, hendelseId)
+        val query = """INSERT INTO generasjon_opprettet (aktorId, generasjonId, vedtaksperiodeId, type, avsender, meldingsreferanseId, innsendt, registrert, hendelseId)
             VALUES (:aktorId, :generasjonId, :vedtaksperiodeId, :type, :avsender, :meldingsreferanseId, :innsendt, :registrert, :hendelseId)
             ON CONFLICT DO NOTHING;""".trimIndent()
 

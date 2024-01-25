@@ -51,12 +51,12 @@ class GenerasjonOpprettetDaoTest : AbstractDatabaseTest() {
         session.transaction { tx ->
             tx.run(
                 queryOf(
-                    """select aktørId, vedtaksperiodeId, generasjonId, type, meldingsreferanseId, innsendt, registrert, avsender, hendelseId from generasjon_opprettet where generasjonId = :generasjonId""",
+                    """select aktorId, vedtaksperiodeId, generasjonId, type, meldingsreferanseId, innsendt, registrert, avsender, hendelseId from generasjon_opprettet where generasjonId = :generasjonId""",
                     mapOf("generasjonId" to generasjonId)
                 )
                     .map { row ->
                         GenerasjonOpprettet(
-                            aktørId = row.string("aktørId"),
+                            aktørId = row.string("aktorId"),
                             vedtaksperiodeId = row.uuid("vedtaksperiodeId"),
                             generasjonId = row.uuid("generasjonId"),
                             type = row.string("type"),
