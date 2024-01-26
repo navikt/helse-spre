@@ -26,7 +26,8 @@ class AnnulleringRiver(
                     "ident",
                     "epost",
                     "personFagsystemId",
-                    "arbeidsgiverFagsystemId"
+                    "arbeidsgiverFagsystemId",
+                    "utbetalingId",
                 )
                 it.require("fom", JsonNode::asLocalDate)
                 it.require("tom", JsonNode::asLocalDate)

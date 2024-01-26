@@ -39,7 +39,8 @@ class AnnulleringMediator(
                         tittel = "Utbetaling annullert i ny løsning ${annulleringMessage.norskFom} - ${annulleringMessage.norskTom}",
                         dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdf))
                     )
-                )
+                ),
+                eksternReferanseId = annulleringMessage.utbetalingId.toString(),
             )
             joarkClient.opprettJournalpost(annulleringMessage.hendelseId, journalpostPayload).let { success ->
                 if (success) log.info("Annullering journalført for aktør: ${annulleringMessage.aktørId}")

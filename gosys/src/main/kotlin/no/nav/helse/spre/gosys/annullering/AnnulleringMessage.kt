@@ -11,6 +11,7 @@ import java.util.*
 
 class AnnulleringMessage private constructor(
     val hendelseId: UUID,
+    val utbetalingId: UUID,
     val fødselsnummer: String,
     val aktørId: String,
     private val fom: LocalDate,
@@ -28,6 +29,7 @@ class AnnulleringMessage private constructor(
 
     constructor(hendelseId: UUID, packet: JsonMessage) : this(
         hendelseId = hendelseId,
+        utbetalingId = UUID.fromString(packet["utbetalingId"].asText()),
         fødselsnummer = packet["fødselsnummer"].asText(),
         aktørId = packet["aktørId"].asText(),
         fom = packet["fom"].asLocalDate(),

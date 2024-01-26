@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 data class VedtakMessage(
-    val hendelseId: UUID,
+    val utbetalingId: UUID,
     val fødselsnummer: String,
     val aktørId: String,
     val type: Utbetalingtype,
@@ -41,7 +41,7 @@ data class VedtakMessage(
         skjæringstidspunkt: LocalDate,
         utbetaling: Utbetaling
     ) : this(
-        hendelseId = utbetaling.utbetalingId,
+        utbetalingId = utbetaling.utbetalingId,
         opprettet = utbetaling.opprettet,
         fødselsnummer = utbetaling.fødselsnummer,
         aktørId = utbetaling.aktørId,

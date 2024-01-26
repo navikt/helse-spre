@@ -23,7 +23,7 @@ class JoarkClient(
             setBody(journalpostPayload)
         }
             .execute {
-                if (it.status.value !in 200..300) {
+                if (it.status.value !in ((200..300) + 409)) {
                     val error = it.body<String>()
                     log.error("Feil fra Joark: {}", keyValue("response", error))
                     throw RuntimeException("Feil fra Joark: $error")
@@ -41,7 +41,8 @@ data class JournalpostPayload(
     val journalfoerendeEnhet: String = "9999",
     val bruker: Bruker,
     val sak: Sak = Sak(),
-    val dokumenter: List<Dokument>
+    val dokumenter: List<Dokument>,
+    val eksternReferanseId: String,
 ) {
     data class Bruker(
         val id: String,

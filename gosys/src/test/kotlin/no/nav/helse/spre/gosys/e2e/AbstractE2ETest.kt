@@ -188,7 +188,8 @@ internal abstract class AbstractE2ETest {
         tom: LocalDate = 31.januar,
         utbetalingstype: Utbetalingstype = UTBETALING,
         journalpostTittel: String = utbetalingstype.journaltittel,
-        dokumentTittel: String = "${utbetalingstype.dokumenttittel}, ${fom.formatted()} - ${tom.formatted()}"
+        dokumentTittel: String = "${utbetalingstype.dokumenttittel}, ${fom.formatted()} - ${tom.formatted()}",
+        eksternReferanseId: UUID = UUID.randomUUID(),
     ): JournalpostPayload {
         return JournalpostPayload(
             tittel = journalpostTittel,
@@ -214,7 +215,8 @@ internal abstract class AbstractE2ETest {
                         )
                     )
                 )
-            )
+            ),
+            eksternReferanseId = eksternReferanseId.toString(),
         )
     }
 

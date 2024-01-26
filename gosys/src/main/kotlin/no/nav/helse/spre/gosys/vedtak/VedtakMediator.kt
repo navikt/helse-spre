@@ -31,14 +31,14 @@ class VedtakMediator(
             val organisasjonsnavn = try {
                 eregClient.hentOrganisasjonsnavn(
                     vedtakMessage.organisasjonsnummer,
-                    vedtakMessage.hendelseId
+                    vedtakMessage.utbetalingId
                 ).navn
             } catch (e: Exception) {
                 log.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}, aktørId=${vedtakMessage.aktørId}")
                 ""
             }
             val navn = try {
-                pdlClient.hentPersonNavn(vedtakMessage.fødselsnummer, vedtakMessage.hendelseId) ?: ""
+                pdlClient.hentPersonNavn(vedtakMessage.fødselsnummer, vedtakMessage.utbetalingId) ?: ""
             } catch (e: Exception) {
                 log.error("Feil ved henting av navn for ${vedtakMessage.aktørId}")
                 sikkerLogg.error("Feil ved henting av navn for ${vedtakMessage.aktørId}", e)
@@ -55,9 +55,10 @@ class VedtakMediator(
                         tittel = dokumentTittel(vedtakMessage),
                         dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdf))
                     )
-                )
+                ),
+                eksternReferanseId = vedtakMessage.utbetalingId.toString(),
             )
-            joarkClient.opprettJournalpost(vedtakMessage.hendelseId, journalpostPayload).let { success ->
+            joarkClient.opprettJournalpost(vedtakMessage.utbetalingId, journalpostPayload).let { success ->
                 if (success) log.info("Vedtak journalført for aktør: ${vedtakMessage.aktørId}")
                 else log.warn("Feil oppstod under journalføring av vedtak")
             }

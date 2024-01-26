@@ -36,14 +36,15 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_utbetalt`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
+
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId
+            utbetalingId = utbetalingId,
         )
         sendUtbetaling(
-            utbetalingId = utbetalingId
+            utbetalingId = utbetalingId,
         )
-        assertJournalpost()
+        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
         assertVedtakPdf(expectedPdfPayloadV2(arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver")))
     }
 
@@ -52,6 +53,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_utbetalt for brukerutbetaling`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
+
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId
@@ -60,7 +62,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             utbetalingId = utbetalingId,
             vedtaksperiodeIder = listOf(vedtaksperiodeId)
         )
-        assertJournalpost()
+        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
 
         val linjer = listOf(
             Linje(
@@ -119,7 +121,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             )
         )
 
-        assertJournalpost()
+        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
         assertVedtakPdf(
             expectedPdfPayloadV2(
                 linjer = expectedLinjer,
@@ -145,7 +147,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     + arbeidsdager(1.februar, 7.februar)
                     + utbetalingsdager(8.februar, 18.februar)
         )
-        assertJournalpost()
+        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
 
         val expectedLinjer = listOf(
             Linje(
@@ -202,7 +204,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             vedtaksperiodeIder = listOf(vedtaksperiodeId),
             sykdomstidslinje = fridager(1.januar, 31.januar)
         )
-        assertJournalpost()
+        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
         assertVedtakPdf(
             expectedPdfPayloadV2(
                 linjer = emptyList(),
@@ -228,7 +230,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             utbetalingId = utbetalingId,
             sykdomstidslinje = fridager(1.januar, 31.januar)
         )
-        assertJournalpost()
+        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
         assertVedtakPdf(
             expectedPdfPayloadV2(
                 totaltTilUtbetaling = 0,
@@ -253,7 +255,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
 
         assertEquals(1, capturedJoarkRequests.size)
-        assertJournalpost()
+        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
         assertVedtakPdf(expectedPdfPayloadV2(arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver")))
     }
 
@@ -283,7 +285,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             vedtaksperiodeId = vedtaksperiodeId
         )
         assertEquals(1, capturedJoarkRequests.size)
-        assertJournalpost()
+        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
         assertVedtakPdf(expectedPdfPayloadV2(arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver")))
     }
 
@@ -329,7 +331,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             vedtaksperiodeId = vedtaksperiodeId,
             sykdomstidslinje = sykdomstidslinje
         )
-        assertJournalpost(expectedJournalpost(1.januar, 22.januar))
+        assertJournalpost(expectedJournalpost(fom = 1.januar, tom = 22.januar, eksternReferanseId = utbetalingId))
 
         assertVedtakPdf(
             expectedPdfPayloadV2(
@@ -381,7 +383,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertJournalpost(
             expected = expectedJournalpost(
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
-                dokumentTittel = "Sykepenger revurdert i ny løsning, 01.01.2018 - 17.01.2018"
+                dokumentTittel = "Sykepenger revurdert i ny løsning, 01.01.2018 - 17.01.2018",
+                eksternReferanseId = utbetalingId,
             )
         )
         assertVedtakPdf(
@@ -430,7 +433,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             sykdomstidslinje = arbeidsdager(1.januar) + sykdomstidslinje
         )
 
-        assertJournalpost(expectedJournalpost(2.januar, 31.januar))
+        assertJournalpost(expectedJournalpost(fom = 2.januar, tom = 31.januar, eksternReferanseId = utbetalingId))
 
 
         assertVedtakPdf(expectedPdfPayloadV2(
@@ -559,7 +562,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
                 dokumentTittel = "Sykepenger revurdert i ny løsning, 06.11.2021 - 19.11.2021",
                 fom = 6.november(2021),
-                tom = 19.november(2021)
+                tom = 19.november(2021),
+                eksternReferanseId = utbetalingId
             )
         )
         assertVedtakPdf(
@@ -622,7 +626,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertJournalpost(
             expectedJournalpost(
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
-                dokumentTittel = "Sykepenger revurdert i ny løsning, 04.06.2023 - 05.06.2023"
+                dokumentTittel = "Sykepenger revurdert i ny løsning, 04.06.2023 - 05.06.2023",
+                eksternReferanseId = utbetalingId,
             )
         )
 
@@ -660,7 +665,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
                 dokumentTittel = "Sykepenger revurdert i ny løsning, 06.11.2021 - 19.11.2021",
                 fom = 6.november(2021),
-                tom = 19.november(2021)
+                tom = 19.november(2021),
+                eksternReferanseId = utbetalingId,
             )
         )
         assertVedtakPdf(

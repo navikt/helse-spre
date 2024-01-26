@@ -26,7 +26,8 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
     fun `journalfører en annullering`() {
         runBlocking {
             val hendelseId = UUID.randomUUID()
-            testRapid.sendTestMessage(annullering(hendelseId))
+            val utbetalingId = UUID.randomUUID()
+            testRapid.sendTestMessage(annullering(id = hendelseId, utbetalingId = utbetalingId))
             val joarkRequest = capturedJoarkRequests.single()
             val joarkPayload =
                 requireNotNull(objectMapper.readValue(joarkRequest.body.toByteArray(), JournalpostPayload::class.java))
@@ -34,7 +35,7 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
             assertEquals("Bearer 6B70C162-8AAB-4B56-944D-7F092423FE4B", joarkRequest.headers["Authorization"])
             assertEquals(hendelseId.toString(), joarkRequest.headers["Nav-Consumer-Token"])
             assertEquals("application/json", joarkRequest.body.contentType.toString())
-            assertEquals(expectedJournalpost(), joarkPayload)
+            assertEquals(expectedJournalpost(utbetalingId), joarkPayload)
 
             val pdfRequest = capturedPdfRequests.single()
             val pdfPayload =
@@ -95,11 +96,12 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
     }
 
     @Language("JSON")
-    private fun annullering(id: UUID = UUID.randomUUID()) = """
+    private fun annullering(id: UUID = UUID.randomUUID(), utbetalingId: UUID = UUID.randomUUID()) = """
         {
             "@event_name": "utbetaling_annullert",
             "@opprettet": "2020-05-04T11:26:47.088455",
             "@id": "$id",
+            "utbetalingId": "$utbetalingId",
             "fødselsnummer": "fnr",
             "aktørId": "aktørid",
             "organisasjonsnummer": "123456789",
@@ -119,6 +121,7 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
             "@event_name": "utbetaling_annullert",
             "@opprettet": "2020-05-04T11:26:47.088455",
             "@id": "$id",
+            "utbetalingId": "${UUID.randomUUID()}",
             "fødselsnummer": "fnr",
             "aktørId": "aktørid",
             "organisasjonsnummer": "123456789",
@@ -132,7 +135,7 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
         }
     """
 
-    private fun expectedJournalpost(): JournalpostPayload {
+    private fun expectedJournalpost(eksternReferanseId: UUID = UUID.randomUUID()): JournalpostPayload {
         return JournalpostPayload(
             tittel = "Annullering av vedtak om sykepenger",
             journalpostType = "NOTAT",
@@ -157,7 +160,8 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
                         )
                     )
                 )
-            )
+            ),
+            eksternReferanseId = eksternReferanseId.toString(),
         )
     }
 }

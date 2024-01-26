@@ -1,7 +1,10 @@
 package no.nav.helse.spre.gosys.feriepenger
 
 import kotlinx.coroutines.runBlocking
-import no.nav.helse.spre.gosys.*
+import no.nav.helse.spre.gosys.JoarkClient
+import no.nav.helse.spre.gosys.JournalpostPayload
+import no.nav.helse.spre.gosys.PdfClient
+import no.nav.helse.spre.gosys.log
 import java.time.format.DateTimeFormatter
 
 class FeriepengerMediator(
@@ -36,7 +39,8 @@ class FeriepengerMediator(
                         }",
                         dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdf))
                     )
-                )
+                ),
+                eksternReferanseId = feriepenger.hendelseId.toString(),
             )
             if (joarkClient.opprettJournalpost(feriepenger.hendelseId, journalpostPayload)) {
                 log.info("Feriepenger journalført for aktør: ${feriepenger.aktørId}")
