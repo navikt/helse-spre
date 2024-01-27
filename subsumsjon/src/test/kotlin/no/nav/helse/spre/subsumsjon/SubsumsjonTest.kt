@@ -155,45 +155,6 @@ internal class SubsumsjonTest {
     }
 
     @Test
-    fun `spesialsak trenger ikke dokumentsporing til IM`() {
-        val sykmeldingId = UUID.randomUUID()
-        val søknadId = UUID.randomUUID()
-        val inntektsmeldingId = UUID.randomUUID()
-
-        val sykmeldingDokumentId = UUID.randomUUID()
-        val søknadDokumentId = UUID.randomUUID()
-        val inntektsmeldingDokumentId = UUID.randomUUID()
-
-        val vedtaksperiode = UUID.fromString("000da442-06bf-4cc0-99ac-310ac68317c1")
-
-        mappingDao.lagre(
-            hendelseId = sykmeldingId,
-            dokumentId = sykmeldingDokumentId,
-            dokumentIdType = DokumentIdType.Sykmelding,
-            hendelseNavn = "ny_søknad",
-            produsert = LocalDateTime.now()
-        )
-        mappingDao.lagre(
-            hendelseId = søknadId,
-            dokumentId = søknadDokumentId,
-            dokumentIdType = DokumentIdType.Søknad,
-            hendelseNavn = "sendt_søknad_nav",
-            produsert = LocalDateTime.of(2020, 1, 1, 12, 0)
-        )
-
-        assertDoesNotThrow {
-            testRapid.sendTestMessage(
-                testSubsumsjon(
-                    sykmeldingIder = emptyList(),
-                    søknadIder = listOf(søknadId),
-                    inntektsmeldingIder = listOf(inntektsmeldingId),
-                    vedtaksperiodeIder = listOf(vedtaksperiode)
-                )
-            )
-        }
-    }
-
-    @Test
     fun `godta at vi ikke har sykmeldingId for gamle søknader`() {
         val sykmeldingId = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
@@ -305,8 +266,7 @@ internal class SubsumsjonTest {
     private fun testSubsumsjon(
         sykmeldingIder: List<UUID>,
         søknadIder: List<UUID>,
-        inntektsmeldingIder: List<UUID>,
-        vedtaksperiodeIder: List<UUID> = emptyList()
+        inntektsmeldingIder: List<UUID>
     ) = """
   {
     "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
@@ -319,10 +279,10 @@ internal class SubsumsjonTest {
       "versjonAvKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",
       "fodselsnummer": "02126721911",
       "sporing": {
+        "vedtaksperiode": ["8fe5da85-d00b-4570-afaa-3a3e9403240e"],
         "sykmelding": ${objectMapper.writeValueAsString(sykmeldingIder)},
         "soknad":${objectMapper.writeValueAsString(søknadIder)},
         "inntektsmelding": ${objectMapper.writeValueAsString(inntektsmeldingIder)},
-        "vedtaksperiode": ${objectMapper.writeValueAsString(vedtaksperiodeIder)},
         "organisasjonsnummer":["947064649"]
       },
       "lovverk": "folketrygdloven",

@@ -33,7 +33,6 @@ internal class SubsumsjonRiver(
             validate { it.interestedIn("subsumsjon.sporing.sykmelding") }
             validate { it.interestedIn("subsumsjon.sporing.soknad") }
             validate { it.interestedIn("subsumsjon.sporing.inntektsmelding") }
-            validate { it.interestedIn("subsumsjon.sporing.vedtaksperiode") }
         }.register(this)
     }
 
@@ -66,8 +65,7 @@ internal class SubsumsjonRiver(
         val sykmeldingIder = mapper.hentSykmeldingIder(internSykmeldingIder) +
                 mapper.hentSykmeldingIder(internSøknadIderEtterDato)
         val søknadIder = mapper.hentSøknadIder(internSøknadIder)
-        val vedtaksperiodeIder = packet["subsumsjon.sporing.vedtaksperiode"].toUUIDs()
-        val inntektsmeldingIder = mapper.hentInntektsmeldingIder(internInntektsmeldingIder, vedtaksperiodeIder)
+        val inntektsmeldingIder = mapper.hentInntektsmeldingIder(internInntektsmeldingIder)
 
         log.info("Mapper subsumsjons sporing sykmelding: $internSykmeldingIder til $sykmeldingIder søknad: $internSøknadIder til $søknadIder " +
                 "inntektsmelding: $internInntektsmeldingIder til $inntektsmeldingIder")

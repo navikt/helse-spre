@@ -30,8 +30,8 @@ class Mapper(
         return ider
     }
 
-    fun hentInntektsmeldingIder(hendelseIder: List<UUID>, vedtaksperiodeIder: List<UUID>): List<UUID> {
-        val ider = hendelseIder.mapNotNull { mappingDao.hentInntektsmeldingId(it) ?: if (Spesialsak.trengerIkkeSporingTilInntektsmelding(vedtaksperiodeIder)) null else håndterMissingId(it, "inntektsmelding")}
+    fun hentInntektsmeldingIder(hendelseIder: List<UUID>): List<UUID> {
+        val ider = hendelseIder.map { mappingDao.hentInntektsmeldingId(it) ?: håndterMissingId(it, "inntektsmelding") }
         inntektsmeldingIder.addAll(ider)
         return ider
     }
