@@ -27,7 +27,6 @@ internal class TeamSakTest {
         val innsendt = LocalDateTime.now()
         val registrert = innsendt.plusDays(1)
 
-        val blob = jacksonObjectMapper().createObjectNode()
         val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
             blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert)
 
@@ -53,7 +52,6 @@ internal class TeamSakTest {
         val innsendt = LocalDateTime.now()
         val registrert = innsendt.plusDays(1)
 
-        val blob = jacksonObjectMapper().createObjectNode()
         val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
             blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert)
 
@@ -79,7 +77,6 @@ internal class TeamSakTest {
         val innsendt = LocalDateTime.now()
         val registrert = innsendt.plusDays(1)
 
-        val blob = jacksonObjectMapper().createObjectNode()
         val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
             blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert)
 
@@ -96,8 +93,45 @@ internal class TeamSakTest {
         assertEquals(Behandling.BehandlingStatus.BehandlesIInfotrygd, behandling.behandlingStatus)
     }
 
+    @Test
+    fun `en omgjøring av auu`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val generasjonId = UUID.randomUUID()
+        val aktørId = "1234"
+        val innsendt = LocalDateTime.now()
+        val registrert = innsendt.plusDays(1)
+
+        val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
+            blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert)
+
+        val avsluttetUtenVedtak = AvsluttetUtenVedtak(UUID.randomUUID(), LocalDateTime.now(), blob, generasjonId)
+
+        val behandlingId = generasjonId.behandlingId
+
+        assertNull(behandlingDao.hent(behandlingId))
+        generasjonOpprettet.håndter(behandlingDao)
+        var behandling = checkNotNull(behandlingDao.hent(behandlingId))
+        assertEquals(Behandling.BehandlingStatus.KomplettFraBruker, behandling.behandlingStatus)
+        assertNull(behandling.relatertBehandlingId)
+
+        avsluttetUtenVedtak.håndter(behandlingDao)
+        behandling = checkNotNull(behandlingDao.hent(behandlingId))
+        assertEquals(Behandling.BehandlingStatus.AvsluttetUtenVedtak, behandling.behandlingStatus)
+        assertNull(behandling.relatertBehandlingId)
+
+        val generasjonId2 = UUID.randomUUID()
+        val generasjonOpprettet2 = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
+            blob, vedtaksperiodeId, generasjonId2, aktørId, innsendt, registrert)
+        generasjonOpprettet2.håndter(behandlingDao)
+
+        val behandlingId2 = generasjonId2.behandlingId
+        val behandling2 = checkNotNull(behandlingDao.hent(behandlingId2))
+        assertEquals(Behandling.BehandlingStatus.KomplettFraBruker, behandling2.behandlingStatus)
+        assertEquals(behandlingId, behandling2.relatertBehandlingId)
+    }
 
    internal companion object {
+       val blob = jacksonObjectMapper().createObjectNode()
        internal val UUID.behandlingId get() = BehandlingId(this)
        internal class InMemoryBehandlingDao: BehandlingDao {
            private val behandlinger = mutableListOf<Behandling>()
