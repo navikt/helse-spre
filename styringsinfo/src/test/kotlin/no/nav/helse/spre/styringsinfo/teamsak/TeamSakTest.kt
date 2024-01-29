@@ -5,7 +5,8 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetUtenVedtak
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetMedVedtak
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonForkastet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -28,14 +29,14 @@ class TeamSakTest {
         val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
             blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert)
 
-        val vedtakFattet = VedtakFattet(UUID.randomUUID(), LocalDateTime.now(), blob, generasjonId)
+        val avsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), LocalDateTime.now(), blob, generasjonId)
 
         assertNull(behandlingDao.hent(generasjonId))
         generasjonOpprettet.håndter(behandlingDao)
         var behandling = checkNotNull(behandlingDao.hent(generasjonId))
         assertEquals(Behandling.BehandlingStatus.KomplettFraBruker, behandling.behandlingStatus)
 
-        vedtakFattet.håndter(behandlingDao)
+        avsluttetMedVedtak.håndter(behandlingDao)
         behandling = checkNotNull(behandlingDao.hent(generasjonId))
         assertEquals(Behandling.BehandlingStatus.AvsluttetMedVedtak, behandling.behandlingStatus)
     }
@@ -64,6 +65,29 @@ class TeamSakTest {
         assertEquals(Behandling.BehandlingStatus.AvsluttetUtenVedtak, behandling.behandlingStatus)
     }
 
+    @Test
+    fun `start og slutt for forkastet periode`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val generasjonId = UUID.randomUUID()
+        val aktørId = "1234"
+        val innsendt = LocalDateTime.now()
+        val registrert = innsendt.plusDays(1)
+
+        val blob = jacksonObjectMapper().createObjectNode()
+        val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
+            blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert)
+
+        val generasjonForkastet = GenerasjonForkastet(UUID.randomUUID(), LocalDateTime.now(), blob, generasjonId)
+
+        assertNull(behandlingDao.hent(generasjonId))
+        generasjonOpprettet.håndter(behandlingDao)
+        var behandling = checkNotNull(behandlingDao.hent(generasjonId))
+        assertEquals(Behandling.BehandlingStatus.KomplettFraBruker, behandling.behandlingStatus)
+
+        generasjonForkastet.håndter(behandlingDao)
+        behandling = checkNotNull(behandlingDao.hent(generasjonId))
+        assertEquals(Behandling.BehandlingStatus.BehandlesIInfotrygd, behandling.behandlingStatus)
+    }
 
 
    internal companion object {

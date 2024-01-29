@@ -17,6 +17,7 @@ internal data class Behandling(
         KomplettFraBruker,
         AvsluttetUtenVedtak,
         AvsluttetMedVedtak,
+        BehandlesIInfotrygd
     }
 
     private val utenMagiskeTimestamps get() = copy(funksjonellTid = LocalDateTime.MIN, tekniskTid = LocalDateTime.MIN)
