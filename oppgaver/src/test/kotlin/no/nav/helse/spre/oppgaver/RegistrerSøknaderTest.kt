@@ -30,6 +30,16 @@ class RegistrerSøknaderTest {
     }
 
     @Test
+    fun `dytter arbeidsgiversøknader inn i db`() {
+        val hendelseId = UUID.randomUUID()
+        testRapid.sendTestMessage(sendtArbeidsgiversøknad(hendelseId))
+
+        val oppgave = oppgaveDAO.finnOppgave(hendelseId, observer)
+        assertNotNull(oppgave)
+        assertEquals(DokumentType.Søknad, oppgave!!.dokumentType)
+    }
+
+    @Test
     fun `dytter arbeidsledigsøknader inn i db`() {
         val hendelseId = UUID.randomUUID()
         testRapid.sendTestMessage(sendtSøknadArbeidsledig(hendelseId))
@@ -71,10 +81,12 @@ fun sendtSøknadArbeidsledig(
 
 fun sendtArbeidsgiversøknad(
     hendelseId: UUID,
-    dokumentId: UUID = UUID.randomUUID()
+    dokumentId: UUID = UUID.randomUUID(),
+    fnr: String = "12345678910"
 ): String =
     """{
             "@event_name": "sendt_søknad_arbeidsgiver",
+            "fnr": "$fnr",
             "@id": "$hendelseId",
             "id": "$dokumentId"
         }"""

@@ -8,7 +8,7 @@ class RegistrerSøknader(rapidsConnection: RapidsConnection, private val oppgave
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandAny("@event_name", listOf("sendt_søknad_nav", "sendt_søknad_frilans", "sendt_søknad_selvstendig", "sendt_søknad_arbeidsledig")) }
+            validate { it.demandAny("@event_name", listOf("sendt_søknad_nav", "sendt_søknad_arbeidsgiver", "sendt_søknad_frilans", "sendt_søknad_selvstendig", "sendt_søknad_arbeidsledig")) }
             validate { it.requireKey("@id") }
             validate { it.requireKey("id") }
             validate { it.requireKey("fnr") }

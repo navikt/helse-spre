@@ -443,7 +443,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `ignorerer avslutting av AG-søknad`() {
+    fun `Håndterer AG-søknad som vanlig søknad`() {
         val søknadArbeidsgiverHendelseId = UUID.randomUUID()
         val søknadArbeidsgiverDokumentId = UUID.randomUUID()
 
@@ -453,7 +453,9 @@ class EndToEndTest {
             tilstand = "AVSLUTTET_UTEN_UTBETALING"
         )
 
-        assertTrue(publiserteOppgaver.isEmpty())
+        assertEquals(1, publiserteOppgaver.size)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver.single().oppdateringstype)
+        assertEquals(søknadArbeidsgiverDokumentId, publiserteOppgaver.single().dokumentId)
     }
 
     @Test
