@@ -475,11 +475,12 @@ class EndToEndTest {
         )
 
         publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        publiserteOppgaver[1].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[1].assertInnhold(Ferdigbehandlet, inntektsmeldingDokumentId, Inntektsmelding)
         publiserteOppgaver[2].assertInnhold(Ferdigbehandlet, søknadDokumentId, Søknad)
 
         assertEquals(3, publiserteOppgaver.size)
-        assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_ferdigbehandlet", inntektsmeldingHendelseId).size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingHendelseId).size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadHendelseId).size)
     }
 
@@ -513,7 +514,7 @@ class EndToEndTest {
 
         publiserteOppgaver[0].assertInnhold(Utsett, søknadDokumentId, Søknad)
         publiserteOppgaver[1].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
-        publiserteOppgaver[2].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
+        publiserteOppgaver[2].assertInnhold(Ferdigbehandlet, inntektsmeldingDokumentId, Inntektsmelding)
         publiserteOppgaver[3].assertInnhold(Utsett, søknadDokumentId2, Søknad)
         publiserteOppgaver[4].assertInnhold(Opprett, søknadDokumentId2, Søknad)
         publiserteOppgaver[5].assertInnhold(Opprett, inntektsmeldingDokumentId, Inntektsmelding)
@@ -688,12 +689,12 @@ class EndToEndTest {
         )
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
-        assertEquals(2, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingId).size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", inntektsmeldingId).size)
         assertEquals(4, publiserteOppgaver.size)
         assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
         assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
         assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
-        assertEquals(Utsett, publiserteOppgaver[3].oppdateringstype)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[3].oppdateringstype)
     }
 
     @Test
@@ -755,7 +756,7 @@ class EndToEndTest {
         assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
         assertEquals(Ferdigbehandlet, publiserteOppgaver[1].oppdateringstype)
         assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
-        assertEquals(Utsett, publiserteOppgaver[3].oppdateringstype)
+        assertEquals(Ferdigbehandlet, publiserteOppgaver[3].oppdateringstype)
         assertEquals(Opprett, publiserteOppgaver[4].oppdateringstype)
         assertEquals(Utsett, publiserteOppgaver[5].oppdateringstype)
         assertEquals(Opprett, publiserteOppgaver[6].oppdateringstype)

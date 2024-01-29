@@ -195,7 +195,7 @@ class Oppgave(
 
         object KortInntektsmeldingFerdigbehandlet: Tilstand() {
             override fun entering(oppgave: Oppgave, forrigeTilstand: Tilstand) {
-                oppgave.observer.kortInntektsmeldingFerdigbehandlet(oppgave.hendelseId, oppgave.dokumentId)
+                oppgave.observer.ferdigbehandletInntektsmelding(oppgave.hendelseId, oppgave.dokumentId)
             }
 
             override fun håndterLagOppgave(oppgave: Oppgave) {
