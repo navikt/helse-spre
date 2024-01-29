@@ -93,19 +93,15 @@ class TeamSakTest {
    internal companion object {
        internal class InMemoryBehandlingDao: BehandlingDao {
            private val behandlinger = mutableListOf<Behandling>()
-
-
            override fun initialiser(behandlingId: UUID): Behandling.Builder? {
                val siste = hent(behandlingId) ?: return null
                return Behandling.Builder(siste)
            }
-
            override fun lagre(behandling: Behandling) {
                behandlinger.add(behandling)
            }
-
            override fun hent(behandlingId: UUID) = behandlinger.lastOrNull { it.behandlingId == behandlingId }
-
+           override fun forrigeBehandlingId(saksId: UUID) = behandlinger.lastOrNull { it.sakId == saksId }?.behandlingId
        }
    }
 }

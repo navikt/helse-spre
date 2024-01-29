@@ -22,6 +22,7 @@ internal class GenerasjonOpprettet(
         val behandling = Behandling(
             sakId = vedtaksperiodeId,
             behandlingId = generasjonId,
+            relatertBehandlingId = behandlingDao.forrigeBehandlingId(vedtaksperiodeId),
             aktørId = aktørId,
             mottattTid = innsendt,
             registrertTid = registrert,

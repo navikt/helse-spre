@@ -6,6 +6,7 @@ import java.util.UUID
 internal data class Behandling(
     internal val sakId: UUID,
     internal val behandlingId: UUID,
+    internal val relatertBehandlingId: UUID?,
     internal val aktørId: String,
     internal val mottattTid: LocalDateTime,          // Tidspunktet da behandlingen oppstår (eks. søknad mottas). Dette er starten på beregning av saksbehandlingstid.
     internal val registrertTid: LocalDateTime,       // Tidspunkt da behandlingen første gang ble registrert i fagsystemet. Ved digitale søknader bør denne være tilnærmet lik mottattTid.
@@ -34,6 +35,7 @@ internal data class Behandling(
             val ny = Behandling(
                 sakId = forrige.sakId,
                 behandlingId = forrige.behandlingId,
+                relatertBehandlingId = forrige.relatertBehandlingId,
                 aktørId = forrige.aktørId,
                 mottattTid = forrige.mottattTid,
                 registrertTid = forrige.registrertTid,
