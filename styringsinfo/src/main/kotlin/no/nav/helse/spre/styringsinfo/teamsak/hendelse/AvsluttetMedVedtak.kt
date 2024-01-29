@@ -3,6 +3,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import java.time.LocalDateTime
 import java.util.*
 
@@ -15,7 +16,7 @@ internal class AvsluttetMedVedtak(
     override val type = "avsluttet_med_vedtak"
 
     override fun håndter(behandlingDao: BehandlingDao) {
-        val builder = behandlingDao.initialiser(generasjonId) ?: return // Avsluttet med vedtak for noe vi ikke har fått generasjon opprettet for
+        val builder = behandlingDao.initialiser(BehandlingId(generasjonId)) ?: return // Avsluttet med vedtak for noe vi ikke har fått generasjon opprettet for
         val ny = builder
             .behandlingStatus(Behandling.BehandlingStatus.AvsluttetMedVedtak)
             .funksjonellTid(opprettet)

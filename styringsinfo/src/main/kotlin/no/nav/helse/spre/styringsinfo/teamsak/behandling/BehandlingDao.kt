@@ -1,10 +1,8 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
-import java.util.UUID
-
 internal interface BehandlingDao {
-    fun initialiser(behandlingId: UUID): Behandling.Builder?
+    fun initialiser(behandlingId: BehandlingId): Behandling.Builder?
     fun lagre(behandling: Behandling)
-    fun hent(behandlingId: UUID): Behandling?
-    fun forrigeBehandlingId(saksId: UUID): UUID?
+    fun hent(behandlingId: BehandlingId): Behandling?
+    fun forrigeBehandlingId(sakId: SakId): BehandlingId?
 }

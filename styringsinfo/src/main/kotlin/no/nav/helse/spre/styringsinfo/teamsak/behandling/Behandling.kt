@@ -2,11 +2,13 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
 import java.time.LocalDateTime
 import java.util.UUID
+internal data class SakId(val id: UUID)
+internal data class BehandlingId(val id: UUID)
 
 internal data class Behandling(
-    internal val sakId: UUID,
-    internal val behandlingId: UUID,
-    internal val relatertBehandlingId: UUID?,
+    internal val sakId: SakId,
+    internal val behandlingId: BehandlingId,
+    internal val relatertBehandlingId: BehandlingId?,
     internal val aktørId: String,
     internal val mottattTid: LocalDateTime,          // Tidspunktet da behandlingen oppstår (eks. søknad mottas). Dette er starten på beregning av saksbehandlingstid.
     internal val registrertTid: LocalDateTime,       // Tidspunkt da behandlingen første gang ble registrert i fagsystemet. Ved digitale søknader bør denne være tilnærmet lik mottattTid.
