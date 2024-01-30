@@ -16,7 +16,8 @@ internal class GenerasjonOpprettet(
     private val generasjonId: UUID,
     private val aktørId: String,
     private val innsendt: LocalDateTime,
-    private val registrert: LocalDateTime
+    private val registrert: LocalDateTime,
+    private val behandlingType: Behandling.BehandlingType,
 ) : Hendelse {
     override val type = "generasjon_opprettet"
 
@@ -31,7 +32,8 @@ internal class GenerasjonOpprettet(
             registrertTid = registrert,
             funksjonellTid = registrert,
             tekniskTid = LocalDateTime.now(),
-            behandlingStatus = Behandling.BehandlingStatus.KomplettFraBruker
+            behandlingStatus = Behandling.BehandlingStatus.KomplettFraBruker,
+            behandlingType = behandlingType,
         )
         behandlingDao.lagre(behandling)
     }

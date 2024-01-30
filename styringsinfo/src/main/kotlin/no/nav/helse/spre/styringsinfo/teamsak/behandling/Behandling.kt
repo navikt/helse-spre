@@ -3,14 +3,20 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 import java.time.LocalDateTime
 import java.time.LocalDateTime.MIN
 import java.util.UUID
+
 internal data class SakId(val id: UUID) {
     override fun toString() = "$id"
 }
+
 internal data class BehandlingId(val id: UUID) {
     override fun toString() = "$id"
 }
+
 internal class Versjon private constructor(val versjon: String) {
-    init { check(versjon.matches("\\d\\.\\d\\.\\d".toRegex())) { "Ugyldig versjon $versjon" } }
+    init {
+        check(versjon.matches("\\d\\.\\d\\.\\d".toRegex())) { "Ugyldig versjon $versjon" }
+    }
+
     override fun equals(other: Any?) = other is Versjon && this.versjon == other.versjon
     override fun hashCode() = versjon.hashCode()
     override fun toString() = versjon
@@ -29,13 +35,21 @@ internal data class Behandling(
     internal val funksjonellTid: LocalDateTime,      // Tidspunkt for siste endring på behandlingen. Ved første melding vil denne være lik registrertTid.
     internal val tekniskTid: LocalDateTime,          // Tidspunktet da fagsystemet legger hendelsen på grensesnittet/topicen.
     internal val behandlingStatus: BehandlingStatus,
+    internal val behandlingType: BehandlingType,
     internal val versjon: Versjon = NåværendeVersjon
-){
+) {
     internal enum class BehandlingStatus {
         KomplettFraBruker,
         AvsluttetUtenVedtak,
         AvsluttetMedVedtak,
         BehandlesIInfotrygd
+    }
+
+    internal enum class BehandlingType {
+        Førstegangsbehandling,
+        Omgjøring,
+        Revurdering,
+        TilInfotrygd
     }
 
     private fun funksjoneltLik(other: Behandling): Boolean {
@@ -44,13 +58,15 @@ internal data class Behandling(
 
     private companion object {
         val Versjonløs = Versjon.of("0.0.0")
-        val NåværendeVersjon = Versjon.of("0.0.1")
+        val NåværendeVersjon = Versjon.of("0.0.2")
     }
 
     class Builder(private val forrige: Behandling) {
         private lateinit var funksjonellTid: LocalDateTime // Denne _må_ alltid settes
 
         private var behandlingStatus: BehandlingStatus? = null
+
+        private var behandlingType: BehandlingType? = null
 
         internal fun funksjonellTid(funksjonellTid: LocalDateTime) = apply { this.funksjonellTid = funksjonellTid }
         internal fun behandlingStatus(behandlingStatus: BehandlingStatus) = apply { this.behandlingStatus = behandlingStatus }
@@ -65,7 +81,8 @@ internal data class Behandling(
                 registrertTid = forrige.registrertTid,
                 funksjonellTid = funksjonellTid,
                 tekniskTid = LocalDateTime.now(),
-                behandlingStatus = behandlingStatus ?: forrige.behandlingStatus
+                behandlingStatus = behandlingStatus ?: forrige.behandlingStatus,
+                behandlingType = behandlingType ?: forrige.behandlingType,
             )
             if (ny.funksjoneltLik(forrige)) return null // Ikke noe ny info
             return ny
