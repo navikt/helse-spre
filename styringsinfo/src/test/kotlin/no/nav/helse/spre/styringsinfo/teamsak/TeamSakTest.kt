@@ -132,20 +132,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     }
 
    internal companion object {
-       val blob = jacksonObjectMapper().createObjectNode()
+       private val blob = jacksonObjectMapper().createObjectNode()
        internal val UUID.behandlingId get() = BehandlingId(this)
-       internal class InMemoryBehandlingDao: BehandlingDao {
-           private val behandlinger = mutableListOf<Behandling>()
-           override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? {
-               val siste = hent(behandlingId) ?: return null
-               return Behandling.Builder(siste)
-           }
-           override fun lagre(behandling: Behandling) {
-               behandlinger.add(behandling)
-           }
-           override fun hent(behandlingId: BehandlingId) = behandlinger.lastOrNull { it.behandlingId == behandlingId }
-           override fun forrigeBehandlingId(sakId: SakId) = behandlinger.lastOrNull { it.sakId == sakId }?.behandlingId
-       }
 
        internal class PostgresBehandlingDao(private val dataSource: DataSource): BehandlingDao {
            override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? {
@@ -206,7 +194,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
            override fun forrigeBehandlingId(sakId: SakId): BehandlingId? {
                val sql = """
-                   select behandlingId from behandling where sakId='${sakId}' order by funksjonellTid desc, tekniskTid desc limit 1
+                   select behandlingId from behandling where sakId='${sakId}' order by funksjonellTid, tekniskTid desc limit 1
                """
                return sessionOf(dataSource).use { session ->
                    session.run(
