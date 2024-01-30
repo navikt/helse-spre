@@ -3,12 +3,17 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 import java.time.LocalDateTime
 import java.time.LocalDateTime.MIN
 import java.util.UUID
-internal data class SakId(val id: UUID)
-internal data class BehandlingId(val id: UUID)
+internal data class SakId(val id: UUID) {
+    override fun toString() = "$id"
+}
+internal data class BehandlingId(val id: UUID) {
+    override fun toString() = "$id"
+}
 internal class Versjon private constructor(val versjon: String) {
     init { check(versjon.matches("\\d\\.\\d\\.\\d".toRegex())) { "Ugyldig versjon $versjon" } }
     override fun equals(other: Any?) = other is Versjon && this.versjon == other.versjon
     override fun hashCode() = versjon.hashCode()
+    override fun toString() = versjon
     internal companion object {
         internal fun of(versjon: String) = Versjon(versjon)
     }

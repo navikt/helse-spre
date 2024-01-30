@@ -1,10 +1,10 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
+import kotliquery.queryOf
+import kotliquery.sessionOf
+import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetUtenVedtak
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetMedVedtak
@@ -14,10 +14,11 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
+import javax.sql.DataSource
 
-internal class TeamSakTest {
+internal class TeamSakTest: AbstractDatabaseTest() {
 
-    private val behandlingDao: BehandlingDao = InMemoryBehandlingDao()
+    private val behandlingDao: BehandlingDao = PostgresBehandlingDao(dataSource)
 
     @Test
     fun `start og slutt for vedtak`() {
@@ -144,6 +145,81 @@ internal class TeamSakTest {
            }
            override fun hent(behandlingId: BehandlingId) = behandlinger.lastOrNull { it.behandlingId == behandlingId }
            override fun forrigeBehandlingId(sakId: SakId) = behandlinger.lastOrNull { it.sakId == sakId }?.behandlingId
+       }
+
+       internal class PostgresBehandlingDao(private val dataSource: DataSource): BehandlingDao {
+           override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? {
+               return hent(behandlingId)?.let { Behandling.Builder(it) }
+           }
+
+           override fun lagre(behandling: Behandling) {
+               val sql = """
+                   insert into behandling(sakId, behandlingId, funksjonellTid, tekniskTid, versjon, data) 
+                   values(:sakId, :behandlingId, :funksjonellTid, :tekniskTid, :versjon, :data::jsonb)
+               """
+
+               val data = jacksonObjectMapper().createObjectNode().apply {
+                   put("aktørId", behandling.aktørId)
+                   put("mottattTid", "${behandling.mottattTid}")
+                   put("registrertTid", "${behandling.registrertTid}")
+                   put("behandlingStatus", behandling.behandlingStatus.name)
+                   behandling.relatertBehandlingId?.let { put("relatertBehandlingId", "$it") }
+               }.toString()
+
+               sessionOf(dataSource).use { session ->
+                   session.run(
+                       queryOf(sql, mapOf(
+                           "sakId" to behandling.sakId.id,
+                           "behandlingId" to behandling.behandlingId.id,
+                           "funksjonellTid" to behandling.funksjonellTid,
+                           "tekniskTid" to behandling.tekniskTid,
+                           "versjon" to behandling.versjon.toString(),
+                           "data" to data
+                       )).asUpdate
+                   )
+               }
+           }
+
+           override fun hent(behandlingId: BehandlingId): Behandling? {
+               val sql = """
+                   select * from behandling where behandlingId='${behandlingId}' --order by funksjonellTid desc, tekniskTid desc limit 1
+               """
+               val behandlinger =  sessionOf(dataSource).use { session ->
+                   session.run(
+                       queryOf(sql).map { row ->
+                           val data = objectMapper.readTree(row.string("data"))
+                           Behandling(
+                               sakId = SakId(row.uuid("sakId")),
+                               behandlingId = BehandlingId(row.uuid("behandlingId")),
+                               funksjonellTid = row.localDateTime("funksjonellTid"),
+                               tekniskTid = row.localDateTime("tekniskTid"),
+                               versjon = Versjon.of(row.string("versjon")),
+                               relatertBehandlingId = data.path("relatertBehandlingId").takeIf { it.isTextual }?.let { BehandlingId(UUID.fromString(it.asText())) },
+                               aktørId = data.path("aktørId").asText(),
+                               mottattTid = LocalDateTime.parse(data.path("mottattTid").asText()),
+                               registrertTid = LocalDateTime.parse(data.path("registrertTid").asText()),
+                               behandlingStatus = Behandling.BehandlingStatus.valueOf(data.path("behandlingStatus").asText())
+                           )
+                       }.asList)
+               }
+               return behandlinger.maxByOrNull { it.tekniskTid } // TODO: Skjønne seg på hvorfor den order by-saken ikke gjorde susen. Bruke asSingle istedenfor asList 🤔
+           }
+
+           override fun forrigeBehandlingId(sakId: SakId): BehandlingId? {
+               val sql = """
+                   select behandlingId from behandling where sakId='${sakId}' order by funksjonellTid desc, tekniskTid desc limit 1
+               """
+               return sessionOf(dataSource).use { session ->
+                   session.run(
+                       queryOf(sql).map { row ->
+                           BehandlingId(row.uuid("behandlingId"))
+                       }.asSingle)
+               }
+           }
+
+           private companion object {
+               private val objectMapper = jacksonObjectMapper()
+           }
        }
    }
 }
