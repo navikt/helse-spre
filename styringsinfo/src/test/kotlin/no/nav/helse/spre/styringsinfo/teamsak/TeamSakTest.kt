@@ -13,12 +13,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
+import java.time.Month
 import java.util.*
 import javax.sql.DataSource
 
 internal class TeamSakTest: AbstractDatabaseTest() {
 
-    private val behandlingDao: BehandlingDao = PostgresBehandlingDao(dataSource)
+    private val behandlingDao: PostgresBehandlingDao = PostgresBehandlingDao(dataSource)
 
     @Test
     fun `start og slutt for vedtak`() {
@@ -131,6 +132,50 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(behandlingId, behandling2.relatertBehandlingId)
     }
 
+    @Test
+    fun `lage litt eksempeldata til team sak`() {
+        val day_zero = LocalDateTime.of(2024, Month.FEBRUARY, 28, 13, 0)
+        behandlingDao.ryddOpp()
+        /*
+        case: to vedtaksperioder, forlengelsen får én generasjon
+
+        Bruker får sykmelding og sender søknad for januar. Arbeidsgiver sender inn inntektsmelding. Perioden utbetales.
+        Bruker får sykmelding og sender søknad for februar. Perioden utbetales.
+        Bruker sender korrigerende søknad med noen feriedager i februar. Perioden revurderes og utbetales.
+
+        */
+        val aktørId = "1234"
+
+        // generasjon opprettet med vedtak - januar
+        val vedtaksperiodeJanuar = UUID.randomUUID()
+        val generasjonJanuar = UUID.randomUUID()
+        val januarSøknadInnsendt = day_zero
+        val januarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusHours(1),
+            blob, vedtaksperiodeJanuar, generasjonJanuar, aktørId, januarSøknadInnsendt, januarSøknadInnsendt)
+        januarGenerasjonOpprettet.håndter(behandlingDao)
+        val januarAvsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), day_zero.plusHours(2), blob, generasjonJanuar)
+        januarAvsluttetMedVedtak.håndter(behandlingDao)
+
+        // generasjon opprettet med vedtak - februar
+        val vedtaksperiodeFebruar = UUID.randomUUID()
+        val førsteGenerasjonFebruar = UUID.randomUUID()
+        val februarSøknadInnsendt = day_zero.plusWeeks(4)
+        val februarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusWeeks(4).plusHours(1),
+            blob, vedtaksperiodeFebruar, førsteGenerasjonFebruar, aktørId, februarSøknadInnsendt, februarSøknadInnsendt)
+        februarGenerasjonOpprettet.håndter(behandlingDao)
+        val februarAvsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), day_zero.plusWeeks(4).plusHours(2), blob, førsteGenerasjonFebruar)
+        februarAvsluttetMedVedtak.håndter(behandlingDao)
+
+        // generasjon opprettet med vedtak - februar igjen?
+        val andreGenerasjonFebruar = UUID.randomUUID()
+        val februarKorrigerendeSøknadInnsendt = day_zero.plusWeeks(4).plusHours(3)
+        val andreFebruarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusWeeks(4).plusHours(3),
+            blob, vedtaksperiodeFebruar, andreGenerasjonFebruar, aktørId, februarKorrigerendeSøknadInnsendt, februarKorrigerendeSøknadInnsendt)
+        andreFebruarGenerasjonOpprettet.håndter(behandlingDao)
+        val andreFebruarAvsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), day_zero.plusWeeks(4).plusHours(4), blob, andreGenerasjonFebruar)
+        andreFebruarAvsluttetMedVedtak.håndter(behandlingDao)
+    }
+
    internal companion object {
        private val blob = jacksonObjectMapper().createObjectNode()
        internal val UUID.behandlingId get() = BehandlingId(this)
@@ -138,6 +183,15 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        internal class PostgresBehandlingDao(private val dataSource: DataSource): BehandlingDao {
            override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? {
                return hent(behandlingId)?.let { Behandling.Builder(it) }
+           }
+
+           fun ryddOpp() {
+               val sql ="""
+                   truncate table behandling;
+               """.trimIndent()
+               sessionOf(dataSource).use { session ->
+                   session.run(queryOf(sql).asExecute)
+               }
            }
 
            override fun lagre(behandling: Behandling) {
