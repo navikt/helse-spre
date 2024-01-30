@@ -182,9 +182,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
            override fun hent(behandlingId: BehandlingId): Behandling? {
                val sql = """
-                   select * from behandling where behandlingId='${behandlingId}' --order by funksjonellTid desc, tekniskTid desc limit 1
+                   select * from behandling where behandlingId='${behandlingId}' order by funksjonellTid, tekniskTid desc limit 1
                """
-               val behandlinger =  sessionOf(dataSource).use { session ->
+               return sessionOf(dataSource).use { session ->
                    session.run(
                        queryOf(sql).map { row ->
                            val data = objectMapper.readTree(row.string("data"))
@@ -200,9 +200,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
                                registrertTid = LocalDateTime.parse(data.path("registrertTid").asText()),
                                behandlingStatus = Behandling.BehandlingStatus.valueOf(data.path("behandlingStatus").asText())
                            )
-                       }.asList)
+                       }.asSingle)
                }
-               return behandlinger.maxByOrNull { it.tekniskTid } // TODO: Skjønne seg på hvorfor den order by-saken ikke gjorde susen. Bruke asSingle istedenfor asList 🤔
            }
 
            override fun forrigeBehandlingId(sakId: SakId): BehandlingId? {
