@@ -96,6 +96,35 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     }
 
     @Test
+    fun `en annullering`() {
+        val day_zero = LocalDateTime.of(2024, Month.FEBRUARY, 28, 13, 0)
+        behandlingDao.ryddOpp()
+        val aktørId = "1234"
+
+        val vedtaksperiodeJanuar = UUID.randomUUID()
+        val generasjonJanuar = UUID.randomUUID()
+        val januarSøknadInnsendt = day_zero
+        val januarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusHours(1), blob, vedtaksperiodeJanuar, generasjonJanuar, aktørId, januarSøknadInnsendt, januarSøknadInnsendt, Behandling.Behandlingstype.Førstegangsbehandling)
+        januarGenerasjonOpprettet.håndter(behandlingDao)
+        val januarAvsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), day_zero.plusHours(2), blob, generasjonJanuar)
+        januarAvsluttetMedVedtak.håndter(behandlingDao)
+        var behandling = checkNotNull(behandlingDao.hent(generasjonJanuar.behandlingId))
+        assertEquals(Behandling.Behandlingstatus.KomplettFraBruker, behandling.behandlingstatus)
+        assertEquals(Behandling.Behandlingstype.Førstegangsbehandling, behandling.behandlingstype)
+
+        val forkastetGenerasjon = UUID.randomUUID()
+        val januarAnnullertGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusHours(1), blob, vedtaksperiodeJanuar, forkastetGenerasjon, aktørId, januarSøknadInnsendt, januarSøknadInnsendt, Behandling.Behandlingstype.TilInfotrygd)
+        januarAnnullertGenerasjonOpprettet.håndter(behandlingDao)
+        behandling = checkNotNull(behandlingDao.hent(forkastetGenerasjon.behandlingId))
+        assertEquals(Behandling.Behandlingstatus.BehandlesIInfotrygd, behandling.behandlingstatus)
+        assertEquals(Behandling.Behandlingstype.TilInfotrygd, behandling.behandlingstype)
+
+        val generasjonForkastet = GenerasjonForkastet(UUID.randomUUID(), day_zero.plusHours(2), blob, forkastetGenerasjon)
+        generasjonForkastet.håndter(behandlingDao)
+        assertEquals(behandling, behandlingDao.hent(forkastetGenerasjon.behandlingId)) // samme behandling som tidligere
+    }
+
+    @Test
     fun `en omgjøring av auu`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val generasjonId = UUID.randomUUID()
@@ -135,7 +164,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `case 1 lage litt eksempeldata til team sak`() {
-        val day_zero = LocalDateTime.of(2024, Month.FEBRUARY, 28, 13, 0)
+        val day_zero = LocalDateTime.of(2024, Month.JANUARY, 31, 13, 0)
         behandlingDao.ryddOpp()
         /*
         Scenario 1: en vedtaksperioder
