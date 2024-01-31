@@ -265,6 +265,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val forkastetGenerasjon = UUID.randomUUID()
         val januarAnnullertGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusHours(1), blob, vedtaksperiodeJanuar, forkastetGenerasjon, aktørId, januarSøknadInnsendt, januarSøknadInnsendt, Behandling.Behandlingstype.TilInfotrygd)
         januarAnnullertGenerasjonOpprettet.håndter(behandlingDao)
+
+        val generasjonForkastet = GenerasjonForkastet(UUID.randomUUID(), day_zero.plusHours(2), blob, forkastetGenerasjon)
+        generasjonForkastet.håndter(behandlingDao)
     }
 
    internal companion object {
