@@ -30,7 +30,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val registrert = innsendt.plusDays(1)
 
         val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
-            blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert, Behandling.BehandlingType.Førstegangsbehandling)
+            blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert, Behandling.Behandlingstype.Førstegangsbehandling)
 
         val avsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), LocalDateTime.now(), blob, generasjonId)
 
@@ -39,11 +39,11 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertNull(behandlingDao.hent(behandlingId))
         generasjonOpprettet.håndter(behandlingDao)
         var behandling = checkNotNull(behandlingDao.hent(behandlingId))
-        assertEquals(Behandling.BehandlingStatus.KomplettFraBruker, behandling.behandlingStatus)
+        assertEquals(Behandling.Behandlingstatus.KomplettFraBruker, behandling.behandlingstatus)
 
         avsluttetMedVedtak.håndter(behandlingDao)
         behandling = checkNotNull(behandlingDao.hent(behandlingId))
-        assertEquals(Behandling.BehandlingStatus.AvsluttetMedVedtak, behandling.behandlingStatus)
+        assertEquals(Behandling.Behandlingstatus.AvsluttetMedVedtak, behandling.behandlingstatus)
     }
 
     @Test
@@ -55,7 +55,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val registrert = innsendt.plusDays(1)
 
         val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
-            blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert, Behandling.BehandlingType.Førstegangsbehandling)
+            blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert, Behandling.Behandlingstype.Førstegangsbehandling)
 
         val avsluttetUtenVedtak = AvsluttetUtenVedtak(UUID.randomUUID(), LocalDateTime.now(), blob, generasjonId)
 
@@ -64,11 +64,11 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertNull(behandlingDao.hent(behandlingId))
         generasjonOpprettet.håndter(behandlingDao)
         var behandling = checkNotNull(behandlingDao.hent(behandlingId))
-        assertEquals(Behandling.BehandlingStatus.KomplettFraBruker, behandling.behandlingStatus)
+        assertEquals(Behandling.Behandlingstatus.KomplettFraBruker, behandling.behandlingstatus)
 
         avsluttetUtenVedtak.håndter(behandlingDao)
         behandling = checkNotNull(behandlingDao.hent(behandlingId))
-        assertEquals(Behandling.BehandlingStatus.AvsluttetUtenVedtak, behandling.behandlingStatus)
+        assertEquals(Behandling.Behandlingstatus.AvsluttetUtenVedtak, behandling.behandlingstatus)
     }
 
     @Test
@@ -80,7 +80,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val registrert = innsendt.plusDays(1)
 
         val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
-            blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert, Behandling.BehandlingType.Førstegangsbehandling)
+            blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert, Behandling.Behandlingstype.Førstegangsbehandling)
 
         val generasjonForkastet = GenerasjonForkastet(UUID.randomUUID(), LocalDateTime.now(), blob, generasjonId)
         val behandlingId = generasjonId.behandlingId
@@ -88,11 +88,11 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertNull(behandlingDao.hent(behandlingId))
         generasjonOpprettet.håndter(behandlingDao)
         var behandling = checkNotNull(behandlingDao.hent(behandlingId))
-        assertEquals(Behandling.BehandlingStatus.KomplettFraBruker, behandling.behandlingStatus)
+        assertEquals(Behandling.Behandlingstatus.KomplettFraBruker, behandling.behandlingstatus)
 
         generasjonForkastet.håndter(behandlingDao)
         behandling = checkNotNull(behandlingDao.hent(behandlingId))
-        assertEquals(Behandling.BehandlingStatus.BehandlesIInfotrygd, behandling.behandlingStatus)
+        assertEquals(Behandling.Behandlingstatus.BehandlesIInfotrygd, behandling.behandlingstatus)
     }
 
     @Test
@@ -104,7 +104,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val registrert = innsendt.plusDays(1)
 
         val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
-            blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert, Behandling.BehandlingType.Førstegangsbehandling)
+            blob, vedtaksperiodeId, generasjonId, aktørId, innsendt, registrert, Behandling.Behandlingstype.Førstegangsbehandling)
 
         val avsluttetUtenVedtak = AvsluttetUtenVedtak(UUID.randomUUID(), LocalDateTime.now(), blob, generasjonId)
 
@@ -113,46 +113,69 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertNull(behandlingDao.hent(behandlingId))
         generasjonOpprettet.håndter(behandlingDao)
         var behandling = checkNotNull(behandlingDao.hent(behandlingId))
-        assertEquals(Behandling.BehandlingStatus.KomplettFraBruker, behandling.behandlingStatus)
+        assertEquals(Behandling.Behandlingstatus.KomplettFraBruker, behandling.behandlingstatus)
         assertNull(behandling.relatertBehandlingId)
 
         avsluttetUtenVedtak.håndter(behandlingDao)
         behandling = checkNotNull(behandlingDao.hent(behandlingId))
-        assertEquals(Behandling.BehandlingStatus.AvsluttetUtenVedtak, behandling.behandlingStatus)
+        assertEquals(Behandling.Behandlingstatus.AvsluttetUtenVedtak, behandling.behandlingstatus)
         assertNull(behandling.relatertBehandlingId)
 
         val generasjonId2 = UUID.randomUUID()
         val generasjonOpprettet2 = GenerasjonOpprettet(UUID.randomUUID(), LocalDateTime.now(),
-            blob, vedtaksperiodeId, generasjonId2, aktørId, innsendt, registrert, Behandling.BehandlingType.Omgjøring)
+            blob, vedtaksperiodeId, generasjonId2, aktørId, innsendt, registrert, Behandling.Behandlingstype.Omgjøring)
         generasjonOpprettet2.håndter(behandlingDao)
 
         val behandlingId2 = generasjonId2.behandlingId
         val behandling2 = checkNotNull(behandlingDao.hent(behandlingId2))
-        assertEquals(Behandling.BehandlingStatus.KomplettFraBruker, behandling2.behandlingStatus)
-        assertEquals(Behandling.BehandlingType.Omgjøring, behandling2.behandlingType)
+        assertEquals(Behandling.Behandlingstatus.KomplettFraBruker, behandling2.behandlingstatus)
+        assertEquals(Behandling.Behandlingstype.Omgjøring, behandling2.behandlingstype)
         assertEquals(behandlingId, behandling2.relatertBehandlingId)
     }
 
     @Test
-    fun `lage litt eksempeldata til team sak`() {
+    fun `case 1 lage litt eksempeldata til team sak`() {
         val day_zero = LocalDateTime.of(2024, Month.FEBRUARY, 28, 13, 0)
         behandlingDao.ryddOpp()
         /*
-        case: to vedtaksperioder, forlengelsen får én generasjon
+        Scenario 1: en vedtaksperioder
 
         Bruker får sykmelding og sender søknad for januar. Arbeidsgiver sender inn inntektsmelding. Perioden utbetales.
-        Bruker får sykmelding og sender søknad for februar. Perioden utbetales.
-        Bruker sender korrigerende søknad med noen feriedager i februar. Perioden revurderes og utbetales.
 
         */
-        val aktørId = "1234"
+        val aktørId = "Scenario 1"
 
         // generasjon opprettet med vedtak - januar
         val vedtaksperiodeJanuar = UUID.randomUUID()
         val generasjonJanuar = UUID.randomUUID()
         val januarSøknadInnsendt = day_zero
         val januarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusHours(1),
-            blob, vedtaksperiodeJanuar, generasjonJanuar, aktørId, januarSøknadInnsendt, januarSøknadInnsendt, Behandling.BehandlingType.Førstegangsbehandling)
+            blob, vedtaksperiodeJanuar, generasjonJanuar, aktørId, januarSøknadInnsendt, januarSøknadInnsendt, Behandling.Behandlingstype.Førstegangsbehandling)
+        januarGenerasjonOpprettet.håndter(behandlingDao)
+        val januarAvsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), day_zero.plusHours(2), blob, generasjonJanuar)
+        januarAvsluttetMedVedtak.håndter(behandlingDao)
+    }
+
+    @Test
+    fun `case 2 lage litt eksempeldata til team sak`() {
+        val day_zero = LocalDateTime.of(2024, Month.FEBRUARY, 28, 13, 0)
+        behandlingDao.ryddOpp()
+        /*
+        Scenario 2: to vedtaksperioder, forlengelsen får én generasjon
+
+        Bruker får sykmelding og sender søknad for januar. Arbeidsgiver sender inn inntektsmelding. Perioden utbetales.
+        Bruker får sykmelding og sender søknad for februar. Perioden utbetales.
+        Bruker sender korrigerende søknad med noen feriedager i februar. Perioden revurderes og utbetales.
+
+        */
+        val aktørId = "Scenario 2"
+
+        // generasjon opprettet med vedtak - januar
+        val vedtaksperiodeJanuar = UUID.randomUUID()
+        val generasjonJanuar = UUID.randomUUID()
+        val januarSøknadInnsendt = day_zero
+        val januarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusHours(1),
+            blob, vedtaksperiodeJanuar, generasjonJanuar, aktørId, januarSøknadInnsendt, januarSøknadInnsendt, Behandling.Behandlingstype.Førstegangsbehandling)
         januarGenerasjonOpprettet.håndter(behandlingDao)
         val januarAvsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), day_zero.plusHours(2), blob, generasjonJanuar)
         januarAvsluttetMedVedtak.håndter(behandlingDao)
@@ -162,7 +185,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val førsteGenerasjonFebruar = UUID.randomUUID()
         val februarSøknadInnsendt = day_zero.plusWeeks(4)
         val februarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusWeeks(4).plusHours(1),
-            blob, vedtaksperiodeFebruar, førsteGenerasjonFebruar, aktørId, februarSøknadInnsendt, februarSøknadInnsendt, Behandling.BehandlingType.Førstegangsbehandling)
+            blob, vedtaksperiodeFebruar, førsteGenerasjonFebruar, aktørId, februarSøknadInnsendt, februarSøknadInnsendt, Behandling.Behandlingstype.Førstegangsbehandling)
         februarGenerasjonOpprettet.håndter(behandlingDao)
         val februarAvsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), day_zero.plusWeeks(4).plusHours(2), blob, førsteGenerasjonFebruar)
         februarAvsluttetMedVedtak.håndter(behandlingDao)
@@ -171,10 +194,77 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val andreGenerasjonFebruar = UUID.randomUUID()
         val februarKorrigerendeSøknadInnsendt = day_zero.plusWeeks(4).plusHours(3)
         val andreFebruarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusWeeks(4).plusHours(3),
-            blob, vedtaksperiodeFebruar, andreGenerasjonFebruar, aktørId, februarKorrigerendeSøknadInnsendt, februarKorrigerendeSøknadInnsendt, Behandling.BehandlingType.Revurdering)
+            blob, vedtaksperiodeFebruar, andreGenerasjonFebruar, aktørId, februarKorrigerendeSøknadInnsendt, februarKorrigerendeSøknadInnsendt, Behandling.Behandlingstype.Revurdering)
         andreFebruarGenerasjonOpprettet.håndter(behandlingDao)
         val andreFebruarAvsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), day_zero.plusWeeks(4).plusHours(4), blob, andreGenerasjonFebruar)
         andreFebruarAvsluttetMedVedtak.håndter(behandlingDao)
+    }
+
+    @Test
+    fun `case 3 en enkel auu`() {
+        val day_zero = LocalDateTime.of(2024, Month.FEBRUARY, 28, 13, 0)
+        behandlingDao.ryddOpp()
+        // scenario 3: En enkel AUU
+
+        // Bruker sender søknad som er helt innenfor arbeidsgiverperioden.
+        val aktørId = "Scenario 3"
+
+        // generasjon opprettet med vedtak - januar
+        val vedtaksperiodeJanuar = UUID.randomUUID()
+        val generasjonJanuar = UUID.randomUUID()
+        val januarSøknadInnsendt = day_zero
+        val januarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusHours(1),
+            blob, vedtaksperiodeJanuar, generasjonJanuar, aktørId, januarSøknadInnsendt, januarSøknadInnsendt, Behandling.Behandlingstype.Førstegangsbehandling)
+        januarGenerasjonOpprettet.håndter(behandlingDao)
+        val januarAvsluttetUtenVedtak = AvsluttetUtenVedtak(UUID.randomUUID(), day_zero.plusHours(2), blob, generasjonJanuar)
+        januarAvsluttetUtenVedtak.håndter(behandlingDao)
+    }
+
+    @Test
+    fun `case 4 en forkastet periode`() {
+        val day_zero = LocalDateTime.of(2024, Month.FEBRUARY, 28, 13, 0)
+        behandlingDao.ryddOpp()
+        // scenario 4: En enkel forkasting
+
+        // Bruker sender søknad som inneholder detaljer vi ikke støtter i vedtaksløsningen enda.
+        // Arbeidsgiver sender inntektsmelding.
+        // Saken forkastes og løses i Infotrygd
+        val aktørId = "Scenario 4"
+
+        // generasjon opprettet med vedtak - januar
+        val vedtaksperiodeJanuar = UUID.randomUUID()
+        val generasjonJanuar = UUID.randomUUID()
+        val januarSøknadInnsendt = day_zero
+        val januarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusHours(1),
+            blob, vedtaksperiodeJanuar, generasjonJanuar, aktørId, januarSøknadInnsendt, januarSøknadInnsendt, Behandling.Behandlingstype.Førstegangsbehandling)
+        januarGenerasjonOpprettet.håndter(behandlingDao)
+        val generasjonForkastet = GenerasjonForkastet(UUID.randomUUID(), day_zero.plusHours(2), blob, generasjonJanuar)
+        generasjonForkastet.håndter(behandlingDao)
+    }
+
+    @Test
+    fun `case 5 en annullert periode`() {
+        val day_zero = LocalDateTime.of(2024, Month.FEBRUARY, 28, 13, 0)
+        behandlingDao.ryddOpp()
+        // scenario 5: En enkel forkasting
+
+        // Bruker sender søknad.
+        // Arbeidsgiver sender inntektsmelding. Vedtaksperioden utbetales
+        // Ny inntektsmelding betyr at saken ikke kan håndteres av ny vedtaksløsning livevel og saksbehandler annullerer
+        val aktørId = "Scenario 5"
+
+        // generasjon opprettet med vedtak - januar
+        val vedtaksperiodeJanuar = UUID.randomUUID()
+        val generasjonJanuar = UUID.randomUUID()
+        val januarSøknadInnsendt = day_zero
+        val januarGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusHours(1), blob, vedtaksperiodeJanuar, generasjonJanuar, aktørId, januarSøknadInnsendt, januarSøknadInnsendt, Behandling.Behandlingstype.Førstegangsbehandling)
+        januarGenerasjonOpprettet.håndter(behandlingDao)
+        val januarAvsluttetMedVedtak = AvsluttetMedVedtak(UUID.randomUUID(), day_zero.plusHours(2), blob, generasjonJanuar)
+        januarAvsluttetMedVedtak.håndter(behandlingDao)
+
+        val forkastetGenerasjon = UUID.randomUUID()
+        val januarAnnullertGenerasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), day_zero.plusHours(1), blob, vedtaksperiodeJanuar, forkastetGenerasjon, aktørId, januarSøknadInnsendt, januarSøknadInnsendt, Behandling.Behandlingstype.TilInfotrygd)
+        januarAnnullertGenerasjonOpprettet.håndter(behandlingDao)
     }
 
    internal companion object {
@@ -205,8 +295,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
                    put("aktørId", behandling.aktørId)
                    put("mottattTid", "${behandling.mottattTid}")
                    put("registrertTid", "${behandling.registrertTid}")
-                   put("behandlingStatus", behandling.behandlingStatus.name)
-                   put("behandlingType", behandling.behandlingType.name)
+                   put("behandlingStatus", behandling.behandlingstatus.name)
+                   put("behandlingType", behandling.behandlingstype.name)
                    behandling.relatertBehandlingId?.let { put("relatertBehandlingId", "$it") }
                }.toString()
 
@@ -242,8 +332,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
                                aktørId = data.path("aktørId").asText(),
                                mottattTid = LocalDateTime.parse(data.path("mottattTid").asText()),
                                registrertTid = LocalDateTime.parse(data.path("registrertTid").asText()),
-                               behandlingStatus = Behandling.BehandlingStatus.valueOf(data.path("behandlingStatus").asText()),
-                               behandlingType = Behandling.BehandlingType.valueOf(data.path("behandlingType").asText())
+                               behandlingstatus = Behandling.Behandlingstatus.valueOf(data.path("behandlingStatus").asText()),
+                               behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingType").asText())
                            )
                        }.asSingle)
                }

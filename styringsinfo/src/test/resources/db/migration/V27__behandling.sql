@@ -5,4 +5,7 @@ create table behandling(
     tekniskTid      TIMESTAMP NOT NULL,
     versjon         VARCHAR NOT NULL,
     data            JSONB NOT NULL
-)
+);
+
+comment on column behandling.versjon is 'Versjon av data-kolonnen.';
+comment on column behandling.data is 'En blob for aa unngaa problemer med datastream.';

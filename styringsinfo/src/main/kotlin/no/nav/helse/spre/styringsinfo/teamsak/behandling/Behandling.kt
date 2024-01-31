@@ -34,18 +34,18 @@ internal data class Behandling(
     internal val registrertTid: LocalDateTime,       // Tidspunkt da behandlingen første gang ble registrert i fagsystemet. Ved digitale søknader bør denne være tilnærmet lik mottattTid.
     internal val funksjonellTid: LocalDateTime,      // Tidspunkt for siste endring på behandlingen. Ved første melding vil denne være lik registrertTid.
     internal val tekniskTid: LocalDateTime,          // Tidspunktet da fagsystemet legger hendelsen på grensesnittet/topicen.
-    internal val behandlingStatus: BehandlingStatus,
-    internal val behandlingType: BehandlingType,
+    internal val behandlingstatus: Behandlingstatus,
+    internal val behandlingstype: Behandlingstype,
     internal val versjon: Versjon = NåværendeVersjon
 ) {
-    internal enum class BehandlingStatus {
+    internal enum class Behandlingstatus {
         KomplettFraBruker,
         AvsluttetUtenVedtak,
         AvsluttetMedVedtak,
         BehandlesIInfotrygd
     }
 
-    internal enum class BehandlingType {
+    internal enum class Behandlingstype {
         Førstegangsbehandling,
         Omgjøring,
         Revurdering,
@@ -64,12 +64,12 @@ internal data class Behandling(
     class Builder(private val forrige: Behandling) {
         private lateinit var funksjonellTid: LocalDateTime // Denne _må_ alltid settes
 
-        private var behandlingStatus: BehandlingStatus? = null
+        private var behandlingStatus: Behandlingstatus? = null
 
-        private var behandlingType: BehandlingType? = null
+        private var behandlingType: Behandlingstype? = null
 
         internal fun funksjonellTid(funksjonellTid: LocalDateTime) = apply { this.funksjonellTid = funksjonellTid }
-        internal fun behandlingStatus(behandlingStatus: BehandlingStatus) = apply { this.behandlingStatus = behandlingStatus }
+        internal fun behandlingStatus(behandlingStatus: Behandlingstatus) = apply { this.behandlingStatus = behandlingStatus }
 
         internal fun build(): Behandling? {
             val ny = Behandling(
@@ -81,8 +81,8 @@ internal data class Behandling(
                 registrertTid = forrige.registrertTid,
                 funksjonellTid = funksjonellTid,
                 tekniskTid = LocalDateTime.now(),
-                behandlingStatus = behandlingStatus ?: forrige.behandlingStatus,
-                behandlingType = behandlingType ?: forrige.behandlingType,
+                behandlingstatus = behandlingStatus ?: forrige.behandlingstatus,
+                behandlingstype = behandlingType ?: forrige.behandlingstype,
             )
             if (ny.funksjoneltLik(forrige)) return null // Ikke noe ny info
             return ny

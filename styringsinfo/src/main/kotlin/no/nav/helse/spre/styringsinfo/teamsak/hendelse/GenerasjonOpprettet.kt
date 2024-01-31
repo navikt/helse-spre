@@ -17,7 +17,7 @@ internal class GenerasjonOpprettet(
     private val aktørId: String,
     private val innsendt: LocalDateTime,
     private val registrert: LocalDateTime,
-    private val behandlingType: Behandling.BehandlingType,
+    private val behandlingType: Behandling.Behandlingstype,
 ) : Hendelse {
     override val type = "generasjon_opprettet"
 
@@ -32,9 +32,14 @@ internal class GenerasjonOpprettet(
             registrertTid = registrert,
             funksjonellTid = registrert,
             tekniskTid = LocalDateTime.now(),
-            behandlingStatus = Behandling.BehandlingStatus.KomplettFraBruker,
-            behandlingType = behandlingType,
+            behandlingstatus = bestemBehandlingstatus(),
+            behandlingstype = behandlingType,
         )
         behandlingDao.lagre(behandling)
     }
+
+    private fun bestemBehandlingstatus() =
+        if (behandlingType == Behandling.Behandlingstype.TilInfotrygd) Behandling.Behandlingstatus.BehandlesIInfotrygd else Behandling.Behandlingstatus.KomplettFraBruker
+
+
 }
