@@ -18,7 +18,8 @@ internal class AvsluttetMedVedtak(
     override fun håndter(behandlingDao: BehandlingDao) {
         val builder = behandlingDao.initialiser(BehandlingId(generasjonId)) ?: return // Avsluttet med vedtak for noe vi ikke har fått generasjon opprettet for
         val ny = builder
-            .behandlingStatus(Behandling.Behandlingstatus.AvsluttetMedVedtak)
+            .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
+            .behandlingsresultat(Behandling.Behandlingsresultat.Vedtatt)
             .funksjonellTid(opprettet)
             .build()
             ?: return // Ikke noe endring

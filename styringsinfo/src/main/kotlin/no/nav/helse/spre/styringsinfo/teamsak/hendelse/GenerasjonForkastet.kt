@@ -18,7 +18,8 @@ internal class GenerasjonForkastet(
     override fun håndter(behandlingDao: BehandlingDao) {
         val builder = behandlingDao.initialiser(BehandlingId(generasjonId)) ?: return
         val ny = builder
-            .behandlingStatus(Behandling.Behandlingstatus.BehandlesIInfotrygd)
+            .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
+            .behandlingsresultat(Behandling.Behandlingsresultat.Avbrutt)
             .funksjonellTid(opprettet)
             .build()
             ?: return

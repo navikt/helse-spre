@@ -36,20 +36,33 @@ internal data class Behandling(
     internal val tekniskTid: LocalDateTime,          // Tidspunktet da fagsystemet legger hendelsen på grensesnittet/topicen.
     internal val behandlingstatus: Behandlingstatus,
     internal val behandlingstype: Behandlingstype,
+    internal val behandlingsresultat: Behandlingsresultat?,
+    internal val behandlingskilde: Behandlingskilde,
     internal val versjon: Versjon = NåværendeVersjon
 ) {
     internal enum class Behandlingstatus {
-        KomplettFraBruker,
-        AvsluttetUtenVedtak,
-        AvsluttetMedVedtak,
-        BehandlesIInfotrygd
+        Registrert,
+        Avsluttet
     }
 
     internal enum class Behandlingstype {
         Førstegangsbehandling,
         Omgjøring,
         Revurdering,
-        TilInfotrygd
+        TilInfotrygd // TODO: Drep mig
+    }
+    
+    internal enum class Behandlingsresultat {
+        Vedtatt, // Per nå har vi ikke nok info til å utlede innvilget/delvisInnvilget/avslag, så alt sendes som ☂️-betegnelsen Vedtatt
+        Henlagt,
+        Avbrutt
+    }
+
+    internal enum class Behandlingskilde {
+        Sykmeldt,
+        Arbeidsgiver,
+        Saksbehandler,
+        System
     }
 
     private fun funksjoneltLik(other: Behandling): Boolean {
@@ -64,12 +77,16 @@ internal data class Behandling(
     class Builder(private val forrige: Behandling) {
         private lateinit var funksjonellTid: LocalDateTime // Denne _må_ alltid settes
 
-        private var behandlingStatus: Behandlingstatus? = null
-
-        private var behandlingType: Behandlingstype? = null
+        private var behandlingstatus: Behandlingstatus? = null
+        private var behandlingtype: Behandlingstype? = null
+        private var behandlingsresultat: Behandlingsresultat? = null
+        private var behandlingskilde: Behandlingskilde? = null
 
         internal fun funksjonellTid(funksjonellTid: LocalDateTime) = apply { this.funksjonellTid = funksjonellTid }
-        internal fun behandlingStatus(behandlingStatus: Behandlingstatus) = apply { this.behandlingStatus = behandlingStatus }
+        internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply { this.behandlingstatus = behandlingstatus }
+        internal fun behandlingtype(behandlingtype: Behandlingstype) = apply { this.behandlingtype = behandlingtype }
+        internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
+        internal fun behandlingskilde(behandlingskilde: Behandlingskilde) = apply { this.behandlingskilde = behandlingskilde }
 
         internal fun build(): Behandling? {
             val ny = Behandling(
@@ -81,8 +98,10 @@ internal data class Behandling(
                 registrertTid = forrige.registrertTid,
                 funksjonellTid = funksjonellTid,
                 tekniskTid = LocalDateTime.now(),
-                behandlingstatus = behandlingStatus ?: forrige.behandlingstatus,
-                behandlingstype = behandlingType ?: forrige.behandlingstype,
+                behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
+                behandlingstype = behandlingtype ?: forrige.behandlingstype,
+                behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
+                behandlingskilde = behandlingskilde ?: forrige.behandlingskilde
             )
             if (ny.funksjoneltLik(forrige)) return null // Ikke noe ny info
             return ny

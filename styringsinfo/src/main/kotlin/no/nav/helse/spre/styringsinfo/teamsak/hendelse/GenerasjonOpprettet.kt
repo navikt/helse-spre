@@ -32,14 +32,11 @@ internal class GenerasjonOpprettet(
             registrertTid = registrert,
             funksjonellTid = registrert,
             tekniskTid = LocalDateTime.now(),
-            behandlingstatus = bestemBehandlingstatus(),
+            behandlingstatus = Behandling.Behandlingstatus.Registrert,
             behandlingstype = behandlingType,
+            behandlingskilde = Behandling.Behandlingskilde.Sykmeldt, // TODO
+            behandlingsresultat = null
         )
         behandlingDao.lagre(behandling)
     }
-
-    private fun bestemBehandlingstatus() =
-        if (behandlingType == Behandling.Behandlingstype.TilInfotrygd) Behandling.Behandlingstatus.BehandlesIInfotrygd else Behandling.Behandlingstatus.KomplettFraBruker
-
-
 }
