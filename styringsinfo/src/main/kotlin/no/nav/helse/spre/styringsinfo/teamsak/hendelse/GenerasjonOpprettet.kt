@@ -15,9 +15,8 @@ internal class GenerasjonOpprettet(
     private val vedtaksperiodeId: UUID,
     private val generasjonId: UUID,
     private val aktørId: String,
-    private val innsendt: LocalDateTime,
-    private val registrert: LocalDateTime,
-    private val behandlingType: Behandling.Behandlingstype,
+    private val generasjonkilde: Generasjonkilde,
+    private val generasjonstype: Generasjonstype
 ) : Hendelse {
     override val type = "generasjon_opprettet"
 
@@ -28,15 +27,35 @@ internal class GenerasjonOpprettet(
             behandlingId = BehandlingId(generasjonId),
             relatertBehandlingId = behandlingDao.forrigeBehandlingId(sakId),
             aktørId = aktørId,
-            mottattTid = innsendt,
-            registrertTid = registrert,
-            funksjonellTid = registrert,
+            mottattTid = generasjonkilde.innsendt,
+            registrertTid = generasjonkilde.registrert,
+            funksjonellTid = generasjonkilde.registrert,
             tekniskTid = LocalDateTime.now(),
             behandlingstatus = Behandling.Behandlingstatus.Registrert,
-            behandlingstype = behandlingType,
-            behandlingskilde = Behandling.Behandlingskilde.Sykmeldt, // TODO
-            behandlingsresultat = null
+            behandlingstype = generasjonstype.behandlingstype,
+            behandlingskilde = generasjonkilde.avsender.behandlingskilde
         )
         behandlingDao.lagre(behandling)
+    }
+
+    internal class Generasjonkilde(internal val innsendt: LocalDateTime, internal val registrert: LocalDateTime, internal val avsender: Avsender)
+    internal class Avsender(val verdi: String)
+    internal class Generasjonstype(val verdi: String)
+
+    private companion object {
+        private val Avsender.behandlingskilde get() = when (verdi) {
+            "SYKMELDT" -> Behandling.Behandlingskilde.Sykmeldt
+            "ARBEIDSGIVER" -> Behandling.Behandlingskilde.Arbeidsgiver
+            "SAKSBEHANDLER" -> Behandling.Behandlingskilde.Saksbehandler
+            "SYSTEM" -> Behandling.Behandlingskilde.System
+            else -> throw IllegalStateException("Kjenner ikke til kildeavsender $verdi")
+        }
+
+        private val Generasjonstype.behandlingstype get() = when (verdi) {
+            "Førstegangsbehandling", "TilInfotrygd" -> Behandling.Behandlingstype.Førstegangsbehandling
+            "Omgjøring" -> Behandling.Behandlingstype.Omgjøring
+            "Revurdering" -> Behandling.Behandlingstype.Revurdering
+            else -> throw IllegalStateException("Kjenner ikke til generasjontype $verdi")
+        }
     }
 }

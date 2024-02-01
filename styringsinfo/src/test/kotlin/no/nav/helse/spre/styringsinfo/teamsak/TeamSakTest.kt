@@ -5,7 +5,6 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.*
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetUtenVedtak
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetMedVedtak
@@ -101,7 +100,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         januarAvsluttetMedVedtak.håndter(behandlingDao)
         behandling = checkNotNull(behandlingDao.hent(januarBehandlingId))
         assertEquals(Behandling.Behandlingstatus.Avsluttet, behandling.behandlingstatus)
-        assertEquals(Førstegangsbehandling, behandling.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.Førstegangsbehandling, behandling.behandlingstype)
 
         val (forkastetBehandlingId, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(TilInfotrygd)
 
@@ -111,7 +110,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         // TODO: Sjekk med David hvordan dette blir nå
         assertEquals(Behandling.Behandlingstatus.Registrert, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
-        assertEquals(Behandling.Behandlingstype.TilInfotrygd, behandling.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.Førstegangsbehandling, behandling.behandlingstype)
         val generasjonForkastet = generasjonForkastet(forkastetBehandlingId)
         generasjonForkastet.håndter(behandlingDao)
     }
@@ -262,11 +261,29 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
        private val objectMapper = jacksonObjectMapper()
        private val blob = objectMapper.createObjectNode()
-       internal fun generasjonOpprettet(behandlingstype: Behandling.Behandlingstype, sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()), aktørId: String = "1234"): Triple<BehandlingId, GenerasjonOpprettet, SakId> {
+
+       private val Sykmeldt = GenerasjonOpprettet.Avsender("SYKMELDT")
+       private val Arbeidsgiver = GenerasjonOpprettet.Avsender("ARBEIDSGIVER")
+       private val Saksbehandler = GenerasjonOpprettet.Avsender("SAKSBEHANDLER")
+       private val System = GenerasjonOpprettet.Avsender("SYSTEM")
+
+       private val Førstegangsbehandling = GenerasjonOpprettet.Generasjonstype("Førstegangsbehandling")
+       private val TilInfotrygd = GenerasjonOpprettet.Generasjonstype("TilInfotrygd")
+       private val Omgjøring = GenerasjonOpprettet.Generasjonstype("Omgjøring")
+       private val Revurdering = GenerasjonOpprettet.Generasjonstype("Revurdering")
+
+       internal fun generasjonOpprettet(
+           generasjonstype: GenerasjonOpprettet.Generasjonstype,
+           sakId: SakId = SakId(UUID.randomUUID()),
+           behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()),
+           aktørId: String = "1234",
+           avsender: GenerasjonOpprettet.Avsender = Sykmeldt
+       ): Triple<BehandlingId, GenerasjonOpprettet, SakId> {
            val innsendt = nesteTidspunkt
            val registret = nesteTidspunkt
            val opprettet = nesteTidspunkt
-           val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, innsendt, registret, behandlingstype)
+           val generasjonkilde = GenerasjonOpprettet.Generasjonkilde(innsendt, registret, avsender)
+           val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, generasjonkilde, generasjonstype)
            return Triple(behandlingId, generasjonOpprettet, sakId)
        }
        internal fun avsluttetMedVedtak(behandlingId: BehandlingId) = AvsluttetMedVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)

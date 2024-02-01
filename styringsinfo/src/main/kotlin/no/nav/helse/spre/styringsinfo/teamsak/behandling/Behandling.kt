@@ -36,7 +36,7 @@ internal data class Behandling(
     internal val tekniskTid: LocalDateTime,          // Tidspunktet da fagsystemet legger hendelsen på grensesnittet/topicen.
     internal val behandlingstatus: Behandlingstatus,
     internal val behandlingstype: Behandlingstype,
-    internal val behandlingsresultat: Behandlingsresultat?,
+    internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
     internal val versjon: Versjon = NåværendeVersjon
 ) {
@@ -48,8 +48,7 @@ internal data class Behandling(
     internal enum class Behandlingstype {
         Førstegangsbehandling,
         Omgjøring,
-        Revurdering,
-        TilInfotrygd // TODO: Drep mig
+        Revurdering
     }
     
     internal enum class Behandlingsresultat {
