@@ -144,107 +144,6 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(behandlingId, behandling2.relatertBehandlingId)
     }
 
-    @Test
-    fun `case 1 lage litt eksempeldata til team sak`() {
-        /*
-        Scenario 1: en vedtaksperioder
-
-        Bruker får sykmelding og sender søknad for januar. Arbeidsgiver sender inn inntektsmelding. Perioden utbetales.
-
-        */
-
-        // generasjon opprettet med vedtak - januar
-
-        val (behandlingId, januarGenerasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling, aktørId = "Scenario 1")
-        januarGenerasjonOpprettet.håndter(behandlingDao)
-        val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingId)
-        januarAvsluttetMedVedtak.håndter(behandlingDao)
-    }
-
-    @Test
-    fun `case 2 lage litt eksempeldata til team sak`() {
-        /*
-        Scenario 2: to vedtaksperioder, forlengelsen får én generasjon
-
-        Bruker får sykmelding og sender søknad for januar. Arbeidsgiver sender inn inntektsmelding. Perioden utbetales.
-        Bruker får sykmelding og sender søknad for februar. Perioden utbetales.
-        Bruker sender korrigerende søknad med noen feriedager i februar. Perioden revurderes og utbetales.
-
-        */
-        // generasjon opprettet med vedtak - januar
-        val (behandlingIdJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling, aktørId = "Scenario 2")
-        januarGenerasjonOpprettet.håndter(behandlingDao)
-
-        val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingIdJanuar)
-        januarAvsluttetMedVedtak.håndter(behandlingDao)
-
-        // generasjon opprettet med vedtak - februar
-        val (behandlingIdFebruar, februarGenerasjonOpprettet, sakIdFebruar) = generasjonOpprettet(Førstegangsbehandling, aktørId = "Scenario 2")
-        februarGenerasjonOpprettet.håndter(behandlingDao)
-
-        val februarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingIdFebruar)
-        februarAvsluttetMedVedtak.håndter(behandlingDao)
-
-        // generasjon opprettet med vedtak - februar igjen?
-        val (andreGenerasjonFebruar, andreFebruarGenerasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling, aktørId = "Scenario 2", sakId = sakIdFebruar)
-        andreFebruarGenerasjonOpprettet.håndter(behandlingDao)
-
-        val andreFebruarAvsluttetMedVedtak = avsluttetMedVedtak(andreGenerasjonFebruar)
-        andreFebruarAvsluttetMedVedtak.håndter(behandlingDao)
-    }
-
-    @Test
-    fun `case 3 en enkel auu`() {
-        // scenario 3: En enkel AUU
-
-        // Bruker sender søknad som er helt innenfor arbeidsgiverperioden.
-
-        // generasjon opprettet med vedtak - januar
-        val (generasjonJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling, aktørId = "Scenario 3")
-        januarGenerasjonOpprettet.håndter(behandlingDao)
-
-        val januarAvsluttetUtenVedtak = avsluttetUtenVedtak(generasjonJanuar)
-        januarAvsluttetUtenVedtak.håndter(behandlingDao)
-    }
-
-    @Test
-    fun `case 4 en forkastet periode`() {
-        // scenario 4: En enkel forkasting
-
-        // Bruker sender søknad som inneholder detaljer vi ikke støtter i vedtaksløsningen enda.
-        // Arbeidsgiver sender inntektsmelding.
-        // Saken forkastes og løses i Infotrygd
-
-        // generasjon opprettet med vedtak - januar
-        val (generasjonJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling, aktørId = "Scenario 4")
-        januarGenerasjonOpprettet.håndter(behandlingDao)
-
-        val generasjonForkastet = generasjonForkastet(generasjonJanuar)
-        generasjonForkastet.håndter(behandlingDao)
-    }
-
-    @Test
-    fun `case 5 en annullert periode`() {
-        // scenario 5: En enkel forkasting
-
-        // Bruker sender søknad.
-        // Arbeidsgiver sender inntektsmelding. Vedtaksperioden utbetales
-        // Ny inntektsmelding betyr at saken ikke kan håndteres av ny vedtaksløsning livevel og saksbehandler annullerer
-
-        // generasjon opprettet med vedtak - januar
-        val (generasjonJanuar, januarGenerasjonOpprettet, sakId) = generasjonOpprettet(Førstegangsbehandling, aktørId = "Scenario 5")
-        januarGenerasjonOpprettet.håndter(behandlingDao)
-
-        val januarAvsluttetMedVedtak = avsluttetMedVedtak(generasjonJanuar)
-        januarAvsluttetMedVedtak.håndter(behandlingDao)
-
-        val (forkastetGenerasjon, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(TilInfotrygd, aktørId = "Scenario 5", sakId = sakId)
-        januarAnnullertGenerasjonOpprettet.håndter(behandlingDao)
-
-        val generasjonForkastet = generasjonForkastet(forkastetGenerasjon)
-        generasjonForkastet.håndter(behandlingDao)
-    }
-
     @BeforeEach
     fun beforeEach() {
         sessionOf(dataSource).use { session ->
@@ -269,15 +168,15 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        private val objectMapper = jacksonObjectMapper()
        private val blob = objectMapper.createObjectNode()
 
-       private val Sykmeldt = GenerasjonOpprettet.Avsender("SYKMELDT")
-       private val Arbeidsgiver = GenerasjonOpprettet.Avsender("ARBEIDSGIVER")
-       private val Saksbehandler = GenerasjonOpprettet.Avsender("SAKSBEHANDLER")
-       private val System = GenerasjonOpprettet.Avsender("SYSTEM")
+       internal val Sykmeldt = GenerasjonOpprettet.Avsender("SYKMELDT")
+       internal val Arbeidsgiver = GenerasjonOpprettet.Avsender("ARBEIDSGIVER")
+       internal val Saksbehandler = GenerasjonOpprettet.Avsender("SAKSBEHANDLER")
+       internal val System = GenerasjonOpprettet.Avsender("SYSTEM")
 
-       private val Førstegangsbehandling = GenerasjonOpprettet.Generasjonstype("Førstegangsbehandling")
-       private val TilInfotrygd = GenerasjonOpprettet.Generasjonstype("TilInfotrygd")
-       private val Omgjøring = GenerasjonOpprettet.Generasjonstype("Omgjøring")
-       private val Revurdering = GenerasjonOpprettet.Generasjonstype("Revurdering")
+       internal val Førstegangsbehandling = GenerasjonOpprettet.Generasjonstype("Førstegangsbehandling")
+       internal val TilInfotrygd = GenerasjonOpprettet.Generasjonstype("TilInfotrygd")
+       internal val Omgjøring = GenerasjonOpprettet.Generasjonstype("Omgjøring")
+       internal val Revurdering = GenerasjonOpprettet.Generasjonstype("Revurdering")
 
        internal fun generasjonOpprettet(
            generasjonstype: GenerasjonOpprettet.Generasjonstype,
