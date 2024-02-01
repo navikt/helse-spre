@@ -20,7 +20,23 @@ import javax.sql.DataSource
 
 internal class TeamSakTest: AbstractDatabaseTest() {
 
-    private val behandlingDao: PostgresBehandlingDao = PostgresBehandlingDao(dataSource)
+    private val behandlingDao: BehandlingDao = PostgresBehandlingDao(dataSource)
+
+    @Test
+    fun `funksjonell lik behandling`() {
+        val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling)
+
+        assertEquals(0, behandlingId.rader)
+        generasjonOpprettet.håndter(behandlingDao)
+        assertEquals(1, behandlingId.rader)
+
+        val avsluttetMedVedtak = avsluttetMedVedtak(behandlingId)
+        avsluttetMedVedtak.håndter(behandlingDao)
+        assertEquals(2, behandlingId.rader)
+
+        avsluttetMedVedtak.håndter(behandlingDao)
+        assertEquals(2, behandlingId.rader)
+    }
 
     @Test
     fun `start og slutt for vedtak`() {
@@ -230,8 +246,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @BeforeEach
     fun beforeEach() {
-        behandlingDao.ryddOpp()
+        sessionOf(dataSource).use { session ->
+            session.run(queryOf("truncate table behandling;").asExecute)
+        }
     }
+
+    private val BehandlingId.rader get() =  sessionOf(dataSource).use { session ->
+        session.run(queryOf("select count(1) from behandling where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
+    } ?: 0
 
    internal companion object {
        private val nå = LocalDateTime.now()
@@ -240,8 +262,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
        private val objectMapper = jacksonObjectMapper()
        private val blob = objectMapper.createObjectNode()
-       internal fun generasjonOpprettet(behandlingstype: Behandling.Behandlingstype, sakId: SakId = SakId(UUID.randomUUID()), aktørId: String = "1234"): Triple<BehandlingId, GenerasjonOpprettet, SakId> {
-           val behandlingId = BehandlingId(UUID.randomUUID())
+       internal fun generasjonOpprettet(behandlingstype: Behandling.Behandlingstype, sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()), aktørId: String = "1234"): Triple<BehandlingId, GenerasjonOpprettet, SakId> {
            val innsendt = nesteTidspunkt
            val registret = nesteTidspunkt
            val opprettet = nesteTidspunkt
@@ -255,15 +276,6 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        internal class PostgresBehandlingDao(private val dataSource: DataSource): BehandlingDao {
            override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? {
                return hent(behandlingId)?.let { Behandling.Builder(it) }
-           }
-
-           fun ryddOpp() {
-               val sql ="""
-                   truncate table behandling;
-               """.trimIndent()
-               sessionOf(dataSource).use { session ->
-                   session.run(queryOf(sql).asExecute)
-               }
            }
 
            override fun lagre(behandling: Behandling) {
