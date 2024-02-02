@@ -8,6 +8,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetUte
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonForkastet
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -134,7 +135,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
         val (forkastetGenerasjon, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(
             TeamSakTest.TilInfotrygd,
             aktørId = "Scenario 5",
-            sakId = sakId
+            sakId = sakId,
+            avsender = GenerasjonOpprettet.Avsender("SAKSBEHANDLER")
         )
         januarAnnullertGenerasjonOpprettet.håndter(behandlingDao)
 
