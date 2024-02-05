@@ -32,7 +32,7 @@ internal class HendelseRiver(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         opprett(packet).håndter(behandlingDao)
         packet.structuredArguments.let {
-            sikkerLogg.info("Håndterte $eventName. ${it.joinToString { "{}" }}\n\t${packet.toJson()}", it)
+            sikkerLogg.info("Håndterte $eventName. ${it.joinToString { "{}" }}\n\t${packet.toJson()}", *it.toTypedArray())
         }
     }
 
