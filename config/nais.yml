@@ -27,6 +27,9 @@ spec:
   readiness:
     path: isready
     initialDelay: {{#if readinessInitialDelay }}{{ readinessInitialDelay }}{{else}}5{{/if}}
+  preStopHook:
+    http:
+      path: /stop
   resources:
     limits:
       memory: 1024Mi
