@@ -13,6 +13,14 @@ import no.nav.helse.spre.styringsinfo.db.DataSourceBuilder
 import no.nav.helse.spre.styringsinfo.domain.SendtSøknadPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakFattetPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakForkastetPatch
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetMedVedtak
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetUtenVedtak
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -73,12 +81,23 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
     val vedtakForkastetDao = VedtakForkastetDao(dataSource)
     val generasjonOpprettetDao = GenerasjonOpprettetDao(dataSource)
 
+    val tulleBehandlingDao: BehandlingDao = object: BehandlingDao {
+        override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? = null
+        override fun lagre(behandling: Behandling) {}
+        override fun hent(behandlingId: BehandlingId) = null
+        override fun forrigeBehandlingId(sakId: SakId) = null
+    }
+
     return RapidApplication.create(environment).apply {
         SendtSøknadArbeidsgiverRiver(this, sendtSøknadDao)
         SendtSøknadNavRiver(this, sendtSøknadDao)
         VedtakFattetRiver(this, vedtakFattetDao)
         VedtakForkastetRiver(this, vedtakForkastetDao)
         GenerasjonOpprettetRiver(this, generasjonOpprettetDao)
+        GenerasjonOpprettet.river(this, tulleBehandlingDao)
+        AvsluttetMedVedtak.river(this, tulleBehandlingDao)
+        AvsluttetUtenVedtak.river(this, tulleBehandlingDao)
+        GenerasjonForkastet.river(this, tulleBehandlingDao)
     }
 }
 
