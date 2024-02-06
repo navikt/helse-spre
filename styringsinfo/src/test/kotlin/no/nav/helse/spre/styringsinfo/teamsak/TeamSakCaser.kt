@@ -3,6 +3,8 @@ package no.nav.helse.spre.styringsinfo.teamsak
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
+import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.Førstegangsbehandling
+import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.TilInfotrygd
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetMedVedtak
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetUtenVedtak
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonForkastet
@@ -14,7 +16,7 @@ import org.junit.jupiter.api.Test
 
 class TeamSakCaser : AbstractDatabaseTest() {
 
-    private val behandlingDao: BehandlingDao = TeamSakTest.Companion.PostgresBehandlingDao(dataSource)
+    private val behandlingDao: BehandlingDao = PostgresBehandlingDao(dataSource)
 
     @Test
     fun `case 1 lage litt eksempeldata til team sak`() {
@@ -28,7 +30,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
         // generasjon opprettet med vedtak - januar
 
         val (behandlingId, januarGenerasjonOpprettet) = generasjonOpprettet(
-            TeamSakTest.Førstegangsbehandling,
+            Førstegangsbehandling,
             aktørId = "Scenario 1"
         )
         januarGenerasjonOpprettet.håndter(behandlingDao)
@@ -48,7 +50,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
         */
         // generasjon opprettet med vedtak - januar
         val (behandlingIdJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(
-            TeamSakTest.Førstegangsbehandling,
+            Førstegangsbehandling,
             aktørId = "Scenario 2"
         )
         januarGenerasjonOpprettet.håndter(behandlingDao)
@@ -58,7 +60,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - februar
         val (behandlingIdFebruar, februarGenerasjonOpprettet, sakIdFebruar) = generasjonOpprettet(
-            TeamSakTest.Førstegangsbehandling,
+            Førstegangsbehandling,
             aktørId = "Scenario 2"
         )
         februarGenerasjonOpprettet.håndter(behandlingDao)
@@ -68,7 +70,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - februar igjen?
         val (andreGenerasjonFebruar, andreFebruarGenerasjonOpprettet) = generasjonOpprettet(
-            TeamSakTest.Revurdering,
+            Førstegangsbehandling,
             aktørId = "Scenario 2",
             sakId = sakIdFebruar
         )
@@ -86,7 +88,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - januar
         val (generasjonJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(
-            TeamSakTest.Førstegangsbehandling,
+            Førstegangsbehandling,
             aktørId = "Scenario 3"
         )
         januarGenerasjonOpprettet.håndter(behandlingDao)
@@ -105,7 +107,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - januar
         val (generasjonJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(
-            TeamSakTest.Førstegangsbehandling,
+            Førstegangsbehandling,
             aktørId = "Scenario 4"
         )
         januarGenerasjonOpprettet.håndter(behandlingDao)
@@ -124,7 +126,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - januar
         val (generasjonJanuar, januarGenerasjonOpprettet, sakId) = generasjonOpprettet(
-            TeamSakTest.Førstegangsbehandling,
+            Førstegangsbehandling,
             aktørId = "Scenario 5"
         )
         januarGenerasjonOpprettet.håndter(behandlingDao)
@@ -133,7 +135,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
         januarAvsluttetMedVedtak.håndter(behandlingDao)
 
         val (forkastetGenerasjon, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(
-            TeamSakTest.TilInfotrygd,
+            TilInfotrygd,
             aktørId = "Scenario 5",
             sakId = sakId,
             avsender = GenerasjonOpprettet.Avsender("SAKSBEHANDLER")
