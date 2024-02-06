@@ -40,8 +40,8 @@ spec:
       cpu: 250m
       memory: 128Mi
   replicas:
-    min: {{#if minReplicas }}{{ minReplicas }}{{else}}1{{/if}}
-    max: {{#if maxReplicas }}{{ maxReplicas }}{{else}}1{{/if}}
+    min: 2
+    max: {{#if maxReplicas }}{{ maxReplicas }}{{else}}4{{/if}}
     cpuThresholdPercentage: 75
   {{#if kafkaPool}}
   kafka:

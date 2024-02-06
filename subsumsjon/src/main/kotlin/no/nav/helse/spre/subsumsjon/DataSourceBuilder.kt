@@ -20,6 +20,7 @@ internal class DataSourceBuilder(private val jdbcDatabaseUrl: String, private va
         HikariDataSource(hikariConfig).use {
             Flyway.configure()
                 .dataSource(it)
+                .lockRetryCount(-1)
                 .load()
                 .migrate()
         }

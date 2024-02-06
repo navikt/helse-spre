@@ -21,6 +21,7 @@ internal class DataSourceBuilder(private val dbConfig: Environment.DB) {
     fun getMigratedDataSource(): HikariDataSource = HikariDataSource(hikariConfig).apply {
         Flyway.configure()
             .dataSource(this)
+            .lockRetryCount(-1)
             .load()
             .migrate()
     }

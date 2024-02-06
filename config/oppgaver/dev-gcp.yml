@@ -1,4 +1,3 @@
-strategy: Recreate
 kafkaPool: nav-dev
 gcp:
   type: POSTGRES_14
