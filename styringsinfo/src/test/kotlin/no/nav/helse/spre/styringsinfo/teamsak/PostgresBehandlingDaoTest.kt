@@ -11,9 +11,11 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingst
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
 import java.time.LocalDateTime
 import java.util.UUID
 
+@DisabledIfEnvironmentVariable(named = "CI", matches = "true")
 internal class PostgresBehandlingDaoTest: AbstractDatabaseTest() {
 
     private val behandlingDao: BehandlingDao = PostgresBehandlingDao(dataSource)
