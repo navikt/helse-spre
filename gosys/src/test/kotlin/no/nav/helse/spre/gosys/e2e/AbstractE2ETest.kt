@@ -22,6 +22,7 @@ import no.nav.helse.spre.gosys.pdl.pdlResponse
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
+import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.testhelpers.*
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
@@ -158,7 +159,13 @@ internal abstract class AbstractE2ETest {
         ikkeUtbetalteDager: List<VedtakPdfPayloadV2.IkkeUtbetalteDager> = emptyList(),
         maksdato: LocalDate = LocalDate.of(2021, 7, 15),
         godkjentAv: String = "Automatisk behandlet",
-        dagerIgjen: Int = 31
+        dagerIgjen: Int = 31,
+        skjæringstidspunkt: LocalDate = fom,
+        avviksprosent: Double = 20.0,
+        arbeidsgivere: List<ArbeidsgiverData> = listOf(
+            ArbeidsgiverData(organisasjonsnummer = "123456789", omregnetÅrsinntekt = 565260.0, innrapportertÅrsinntekt = 500000.0, skjønnsfastsatt = 565260.0)
+        ),
+        begrunnelser: Map<String, String>? = null,
     ) =
         VedtakPdfPayloadV2(
             fødselsnummer = "12345678910",
@@ -180,7 +187,11 @@ internal abstract class AbstractE2ETest {
             grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
             sumTotalBeløp = linjer.sumOf { it.totalbeløp },
             organisasjonsnavn = "PENGELØS SPAREBANK",
-            navn = "Molefonken Ert"
+            navn = "Molefonken Ert",
+            skjæringstidspunkt = skjæringstidspunkt,
+            avviksprosent = avviksprosent,
+            arbeidsgivere = arbeidsgivere,
+            begrunnelser = begrunnelser,
         )
 
     protected fun expectedJournalpost(
@@ -259,7 +270,25 @@ internal abstract class AbstractE2ETest {
     "inntekt": 47105.0,
     "aktørId": "123",
     "organisasjonsnummer": "123456789",
-    "system_read_count": 0
+    "system_read_count": 0,
+    "sykepengegrunnlagsfakta": {
+      "omregnetÅrsinntekt": 565260.0,
+      "fastsatt": "EtterSkjønn",
+      "innrapportertÅrsinntekt": 500000.0,
+      "avviksprosent": 20.0,
+      "seksG": 711720.0,
+      "tags": ["6GBegrenset"],
+      "skjønnsfastsettingtype": "OMREGNET_ÅRSINNTEKT",
+      "skjønnsfastsatt": 565260.0,
+      "arbeidsgivere": [
+        {
+          "arbeidsgiver": "123456789",
+          "omregnetÅrsinntekt": 565260.0,
+          "innrapportertÅrsinntekt": 500000.0,
+          "skjønnsfastsatt": 565260.0
+        }
+      ]
+    }
 }"""
 
     @Language("json")

@@ -1,5 +1,6 @@
 package no.nav.helse.spre.gosys.vedtak
 
+import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 import java.time.LocalDate
 
 data class VedtakPdfPayloadV2(
@@ -22,7 +23,11 @@ data class VedtakPdfPayloadV2(
     val sykepengegrunnlag: Double,
     val grunnlagForSykepengegrunnlag: Map<String, Double>,
     val navn: String,
-    val organisasjonsnavn: String
+    val organisasjonsnavn: String,
+    val skjæringstidspunkt: LocalDate,
+    val avviksprosent: Double?,
+    val arbeidsgivere: List<ArbeidsgiverData>?,
+    val begrunnelser: Map<String, String>?,
 ) {
     data class Oppdrag(
         val fagsystemId: String
