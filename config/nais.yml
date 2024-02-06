@@ -20,6 +20,9 @@ spec:
   {{#if strategy}}
   strategy:
     type: {{strategy}}
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
   {{/if}}
   liveness:
     path: isalive
