@@ -43,8 +43,8 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
 
     private fun TransactionalSession.lagre(behandling: Behandling, siste: Boolean) {
         val sql = """
-            insert into behandling(sakId, behandlingId, funksjonellTid, tekniskTid, versjon, data, siste) 
-            values(:sakId, :behandlingId, :funksjonellTid, :tekniskTid, :versjon, :data::jsonb, :siste)
+            insert into behandling(sakId, behandlingId, funksjonellTid, versjon, data, siste) 
+            values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste)
         """
 
         val data = objectMapper.createObjectNode().apply {
@@ -62,7 +62,6 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             "sakId" to behandling.sakId.id,
             "behandlingId" to behandling.behandlingId.id,
             "funksjonellTid" to behandling.funksjonellTid,
-            "tekniskTid" to behandling.tekniskTid,
             "versjon" to behandling.versjon.toString(),
             "siste" to siste,
             "data" to data
@@ -83,7 +82,6 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
                     sakId = SakId(row.uuid("sakId")),
                     behandlingId = BehandlingId(row.uuid("behandlingId")),
                     funksjonellTid = row.localDateTime("funksjonellTid"),
-                    tekniskTid = row.localDateTime("tekniskTid"),
                     versjon = Versjon.of(row.string("versjon")),
                     relatertBehandlingId = data.path("relatertBehandlingId").uuidOrNull?.let { BehandlingId(it) },
                     aktørId = data.path("aktørId").asText(),

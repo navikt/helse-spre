@@ -35,7 +35,6 @@ internal class GenerasjonOpprettet(
             mottattTid = generasjonkilde.innsendt,
             registrertTid = generasjonkilde.registrert,
             funksjonellTid = generasjonkilde.registrert,
-            tekniskTid = LocalDateTime.now(),
             behandlingstatus = Behandling.Behandlingstatus.Registrert,
             behandlingstype = generasjonstype.behandlingstype,
             behandlingskilde = generasjonkilde.avsender.behandlingskilde

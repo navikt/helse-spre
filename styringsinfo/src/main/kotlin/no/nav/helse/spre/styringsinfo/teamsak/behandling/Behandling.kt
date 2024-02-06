@@ -33,7 +33,6 @@ internal data class Behandling(
     internal val mottattTid: LocalDateTime,          // Tidspunktet da behandlingen oppstår (eks. søknad mottas). Dette er starten på beregning av saksbehandlingstid.
     internal val registrertTid: LocalDateTime,       // Tidspunkt da behandlingen første gang ble registrert i fagsystemet. Ved digitale søknader bør denne være tilnærmet lik mottattTid.
     internal val funksjonellTid: LocalDateTime,      // Tidspunkt for siste endring på behandlingen. Ved første melding vil denne være lik registrertTid.
-    internal val tekniskTid: LocalDateTime,          // Tidspunktet da fagsystemet legger hendelsen på grensesnittet/topicen.
     internal val behandlingstatus: Behandlingstatus,
     internal val behandlingstype: Behandlingstype,
     internal val behandlingsresultat: Behandlingsresultat? = null,
@@ -65,7 +64,7 @@ internal data class Behandling(
     }
 
     internal fun funksjoneltLik(other: Behandling): Boolean {
-        return copy(funksjonellTid = MIN, tekniskTid = MIN, versjon = Versjonløs) == other.copy(funksjonellTid = MIN, tekniskTid = MIN, versjon = Versjonløs)
+        return copy(funksjonellTid = MIN, versjon = Versjonløs) == other.copy(funksjonellTid = MIN, versjon = Versjonløs)
     }
 
     private companion object {
@@ -95,7 +94,6 @@ internal data class Behandling(
             mottattTid = forrige.mottattTid,
             registrertTid = forrige.registrertTid,
             funksjonellTid = funksjonellTid,
-            tekniskTid = LocalDateTime.now(),
             behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
             behandlingstype = behandlingtype ?: forrige.behandlingstype,
             behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
