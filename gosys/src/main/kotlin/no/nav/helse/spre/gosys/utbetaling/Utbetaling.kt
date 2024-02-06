@@ -60,8 +60,6 @@ data class Utbetaling(
                 vedtaksperiode.sykepengegrunnlag,
                 vedtaksperiode.grunnlagForSykepengegrunnlag,
                 vedtaksperiode.skjæringstidspunkt,
-                vedtaksperiode.sykepengegrunnlagsfakta,
-                vedtaksperiode.begrunnelser,
                 this
             )
         }

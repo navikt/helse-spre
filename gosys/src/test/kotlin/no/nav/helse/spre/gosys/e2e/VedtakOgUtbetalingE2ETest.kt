@@ -633,7 +633,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
         assertVedtakPdf(
             expectedPdfPayloadV2(
-                skjæringstidspunkt = 1.juni(2023),
                 fom = 4.juni(2023),
                 tom = 5.juni(2023),
                 totaltTilUtbetaling = 0,

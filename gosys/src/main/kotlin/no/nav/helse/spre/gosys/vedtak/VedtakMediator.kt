@@ -4,8 +4,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.*
 import no.nav.helse.spre.gosys.pdl.PdlClient
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
-import no.nav.helse.spre.gosys.vedtakFattet.Begrunnelse
-import no.nav.helse.spre.gosys.vedtakFattet.SykepengegrunnlagsfaktaData
 import java.time.LocalDate
 
 class VedtakMediator(
@@ -20,12 +18,10 @@ class VedtakMediator(
         sykepengegrunnlag: Double,
         grunnlagForSykepengegrunnlag: Map<String, Double>,
         skjæringstidspunkt: LocalDate,
-        sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
-        begrunnelser: List<Begrunnelse>?,
-        utbetaling: Utbetaling,
+        utbetaling: Utbetaling
     ) {
         val (søknadsperiodeFom, søknadsperiodeTom) = utbetaling.søknadsperiode(fom to tom)
-        val vedtak = VedtakMessage(søknadsperiodeFom, søknadsperiodeTom, sykepengegrunnlag, grunnlagForSykepengegrunnlag, skjæringstidspunkt, utbetaling, sykepengegrunnlagsfakta, begrunnelser)
+        val vedtak = VedtakMessage(søknadsperiodeFom, søknadsperiodeTom, sykepengegrunnlag, grunnlagForSykepengegrunnlag, skjæringstidspunkt, utbetaling)
         opprettSammenslåttVedtak(vedtak)
     }
 

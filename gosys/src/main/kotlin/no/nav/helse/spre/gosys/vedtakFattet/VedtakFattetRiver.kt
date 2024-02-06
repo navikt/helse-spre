@@ -33,15 +33,13 @@ internal class VedtakFattetRiver(
                     "hendelser",
                     "sykepengegrunnlag",
                     "inntekt",
-                    "grunnlagForSykepengegrunnlagPerArbeidsgiver",
-                    "sykepengegrunnlagsfakta",
+                    "grunnlagForSykepengegrunnlagPerArbeidsgiver"
                 )
                 message.require("fom", JsonNode::asLocalDate)
                 message.require("tom", JsonNode::asLocalDate)
                 message.require("skjæringstidspunkt", JsonNode::asLocalDate)
                 message.require("@opprettet", JsonNode::asLocalDateTime)
                 message.interestedIn("utbetalingId") { id -> UUID.fromString(id.asText()) }
-                message.interestedIn("begrunnelser")
             }
         }.register(this)
     }

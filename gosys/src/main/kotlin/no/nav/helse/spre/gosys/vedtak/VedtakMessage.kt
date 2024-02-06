@@ -5,8 +5,6 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Oppdrag
-import no.nav.helse.spre.gosys.vedtakFattet.Begrunnelse
-import no.nav.helse.spre.gosys.vedtakFattet.SykepengegrunnlagsfaktaData
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -17,7 +15,6 @@ data class VedtakMessage(
     val fødselsnummer: String,
     val aktørId: String,
     val type: Utbetalingtype,
-    private val skjæringstidspunkt: LocalDate,
     private val opprettet: LocalDateTime,
     private val fom: LocalDate,
     private val tom: LocalDate,
@@ -30,9 +27,7 @@ data class VedtakMessage(
     private val sykepengegrunnlag: Double,
     private val grunnlagForSykepengegrunnlag: Map<String, Double>,
     private val utbetaling: Utbetaling,
-    private val sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
-    private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>,
-    private val begrunnelser: List<Begrunnelse>?,
+    private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>
 ) {
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
@@ -44,15 +39,12 @@ data class VedtakMessage(
         sykepengegrunnlag: Double,
         grunnlagForSykepengegrunnlag: Map<String, Double>,
         skjæringstidspunkt: LocalDate,
-        utbetaling: Utbetaling,
-        sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
-        begrunnelser: List<Begrunnelse>?,
+        utbetaling: Utbetaling
     ) : this(
         utbetalingId = utbetaling.utbetalingId,
         opprettet = utbetaling.opprettet,
         fødselsnummer = utbetaling.fødselsnummer,
         aktørId = utbetaling.aktørId,
-        skjæringstidspunkt = skjæringstidspunkt,
         type = utbetaling.type,
         fom = fom,
         tom = tom,
@@ -72,9 +64,7 @@ data class VedtakMessage(
                     type = dag.type,
                     begrunnelser = dag.begrunnelser
                 )
-            },
-        sykepengegrunnlagsfakta = sykepengegrunnlagsfakta,
-        begrunnelser = begrunnelser,
+            }
     )
 
     internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
@@ -118,18 +108,7 @@ data class VedtakMessage(
                 )
             },
         navn = navn,
-        organisasjonsnavn = organisasjonsnavn,
-        skjæringstidspunkt = skjæringstidspunkt,
-        avviksprosent = sykepengegrunnlagsfakta.avviksprosent,
-        arbeidsgivere = sykepengegrunnlagsfakta.arbeidsgivere,
-        begrunnelser = begrunnelser?.associate {
-            when (it.type) {
-                "SkjønnsfastsattSykepengegrunnlagMal" -> "begrunnelseFraMal" to it.begrunnelse
-                "SkjønnsfastsattSykepengegrunnlagFritekst" -> "begrunnelseFraFritekst" to it.begrunnelse
-                "SkjønnsfastsattSykepengegrunnlagKonklusjon" -> "begrunnelseFraKonklusjon" to it.begrunnelse
-                else -> error("Ukjent begrunnelsetype: ${it.type}")
-            }
-        }
+        organisasjonsnavn = organisasjonsnavn
     )
 
     private fun personOppdrag() =
