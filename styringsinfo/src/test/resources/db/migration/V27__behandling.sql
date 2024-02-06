@@ -1,4 +1,5 @@
 create table behandling(
+    sekvensnummer   SERIAL PRIMARY KEY,
     sakId           UUID NOT NULL,
     behandlingId    UUID NOT NULL,
     funksjonellTid  TIMESTAMP NOT NULL,

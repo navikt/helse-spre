@@ -68,7 +68,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - februar igjen?
         val (andreGenerasjonFebruar, andreFebruarGenerasjonOpprettet) = generasjonOpprettet(
-            TeamSakTest.Førstegangsbehandling,
+            TeamSakTest.Revurdering,
             aktørId = "Scenario 2",
             sakId = sakIdFebruar
         )
