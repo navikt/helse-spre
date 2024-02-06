@@ -12,6 +12,7 @@ import java.util.*
 
 internal class HendelseRiver(
     private val eventName: String,
+    private val valider: (packet: JsonMessage) -> Unit = {},
     private val opprett: (packet: JsonMessage) -> Hendelse,
     rapidsConnection: RapidsConnection,
     private val behandlingDao: BehandlingDao): River.PacketListener {
@@ -20,11 +21,9 @@ internal class HendelseRiver(
         River(rapidsConnection).apply {
             validate {
                 it.demandValue("@event_name", eventName)
-                it.requireKey("aktørId")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
                 it.require("@id") { generasjonId -> UUID.fromString(generasjonId.asText()) }
-                it.require("generasjonId") { generasjonId -> UUID.fromString(generasjonId.asText()) }
-                it.interestedIn("vedtaksperiodeId") { generasjonId -> UUID.fromString(generasjonId.asText()) }
+                valider(it)
             }
         }.register(this)
     }
@@ -51,5 +50,7 @@ internal class HendelseRiver(
         internal val JsonMessage.vedtaksperiodeId get() = UUID.fromString(this["vedtaksperiodeId"].asText())
         internal val JsonMessage.generasjonId get() = UUID.fromString(this["generasjonId"].asText())
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
+        internal fun JsonMessage.requireGenerasjonId() = require("generasjonId") { generasjonId -> UUID.fromString(generasjonId.asText()) }
+        internal fun JsonMessage.requireVedtaksperiodeId() = require("vedtaksperiodeId") { vedtaksperiodeId -> UUID.fromString(vedtaksperiodeId.asText()) }
     }
 }

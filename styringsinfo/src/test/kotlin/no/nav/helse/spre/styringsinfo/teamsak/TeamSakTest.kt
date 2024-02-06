@@ -35,14 +35,16 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for vedtak`() {
-        val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling)
+        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Førstegangsbehandling)
         assertNull(behandlingDao.hent(behandlingId))
         var behandling = generasjonOpprettet.håndter(behandlingDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.Registrert, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
-        val avsluttetMedVedtak = avsluttetMedVedtak(behandlingId)
-        behandling = avsluttetMedVedtak.håndter(behandlingDao, behandlingId)
+        behandling = vedtaksperiodeEndret(sakId).håndter(behandlingDao, behandlingId)
+        assertEquals(Behandling.Behandlingstatus.AvventerGodkjenning, behandling.behandlingstatus)
+
+        behandling = avsluttetMedVedtak(behandlingId).håndter(behandlingDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.Avsluttet, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingsresultat.Vedtatt, behandling.behandlingsresultat)
     }
@@ -202,5 +204,6 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        internal fun avsluttetMedVedtak(behandlingId: BehandlingId) = AvsluttetMedVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun generasjonForkastet(sakId: SakId) = GenerasjonForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
+       internal fun vedtaksperiodeEndret(sakId: SakId) = VedtaksperiodeEndret(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
    }
 }

@@ -99,6 +99,7 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
         AvsluttetMedVedtak.river(this, tulleBehandlingDao)
         AvsluttetUtenVedtak.river(this, tulleBehandlingDao)
         GenerasjonForkastet.river(this, tulleBehandlingDao)
+        VedtaksperiodeEndret.river(this, tulleBehandlingDao)
     }
 }
 

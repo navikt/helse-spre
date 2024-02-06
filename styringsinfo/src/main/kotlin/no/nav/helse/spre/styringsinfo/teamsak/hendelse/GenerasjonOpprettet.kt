@@ -10,6 +10,9 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.b
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.generasjonId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireGenerasjonId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import java.time.LocalDateTime
 import java.util.*
 
@@ -62,29 +65,31 @@ internal class GenerasjonOpprettet(
             else -> throw IllegalStateException("Kjenner ikke til generasjontype $verdi")
         }
 
-        private val eventName = "generasjon_opprettet"
+        private const val eventName = "generasjon_opprettet"
 
         internal fun river(rapidsConnection: RapidsConnection, behandlingDao: BehandlingDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             behandlingDao = behandlingDao,
-            opprett = { packet ->
-                packet.interestedIn("kilde.registrert", "kilde.innsendt", "kilde.avsender", "type")
-                GenerasjonOpprettet(
-                    id = packet.hendelseId,
-                    blob = packet.blob,
-                    opprettet = packet.opprettet,
-                    generasjonId = packet.generasjonId,
-                    vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText()),
-                    aktørId = packet["aktørId"].asText(),
-                    generasjonkilde = Generasjonkilde(
-                        innsendt = LocalDateTime.parse(packet["kilde.innsendt"].asText()),
-                        registrert = LocalDateTime.parse(packet["kilde.registrert"].asText()),
-                        avsender = Avsender(packet["kilde.avsender"].asText())
-                    ),
-                    generasjonstype = Generasjonstype(packet["type"].asText())
-                )
-            }
+            valider = { packet ->
+                packet.requireVedtaksperiodeId()
+                packet.requireGenerasjonId()
+                packet.requireKey("aktørId", "kilde.registrert", "kilde.innsendt", "kilde.avsender", "type")
+            },
+            opprett = { packet -> GenerasjonOpprettet(
+                id = packet.hendelseId,
+                blob = packet.blob,
+                opprettet = packet.opprettet,
+                generasjonId = packet.generasjonId,
+                vedtaksperiodeId = packet.vedtaksperiodeId,
+                aktørId = packet["aktørId"].asText(),
+                generasjonkilde = Generasjonkilde(
+                    innsendt = LocalDateTime.parse(packet["kilde.innsendt"].asText()),
+                    registrert = LocalDateTime.parse(packet["kilde.registrert"].asText()),
+                    avsender = Avsender(packet["kilde.avsender"].asText())
+                ),
+                generasjonstype = Generasjonstype(packet["type"].asText())
+            )}
         )
     }
 }

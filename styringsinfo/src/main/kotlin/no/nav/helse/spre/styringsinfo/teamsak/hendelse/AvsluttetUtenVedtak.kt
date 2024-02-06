@@ -9,6 +9,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.b
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.generasjonId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireGenerasjonId
 import java.time.LocalDateTime
 import java.util.*
 
@@ -31,12 +32,13 @@ internal class AvsluttetUtenVedtak(
     }
 
     internal companion object {
-        private val eventName = "avsluttet_uten_vedtak"
+        private const val eventName = "avsluttet_uten_vedtak"
 
         internal fun river(rapidsConnection: RapidsConnection, behandlingDao: BehandlingDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             behandlingDao = behandlingDao,
+            valider = { packet -> packet.requireGenerasjonId() },
             opprett = { packet -> AvsluttetUtenVedtak(
                 id = packet.hendelseId,
                 blob = packet.blob,
