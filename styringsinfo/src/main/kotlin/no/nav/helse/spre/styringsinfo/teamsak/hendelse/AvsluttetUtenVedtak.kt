@@ -27,7 +27,6 @@ internal class AvsluttetUtenVedtak(
             .behandlingsresultat(Behandling.Behandlingsresultat.Henlagt)
             .funksjonellTid(opprettet)
             .build()
-            ?: return // Ikke noe endring
         behandlingDao.lagre(ny)
     }
 

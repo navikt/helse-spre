@@ -27,7 +27,6 @@ internal class GenerasjonForkastet(
             .behandlingsresultat(Behandling.Behandlingsresultat.Avbrutt)
             .funksjonellTid(opprettet)
             .build()
-            ?: return
         behandlingDao.lagre(ny)
     }
 

@@ -27,7 +27,6 @@ internal class AvsluttetMedVedtak(
             .behandlingsresultat(Behandling.Behandlingsresultat.Vedtatt)
             .funksjonellTid(opprettet)
             .build()
-            ?: return // Ikke noe endring
         behandlingDao.lagre(ny)
     }
 

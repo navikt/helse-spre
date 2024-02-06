@@ -5,6 +5,7 @@ create table behandling(
     funksjonellTid  TIMESTAMP NOT NULL,
     tekniskTid      TIMESTAMP NOT NULL,
     versjon         VARCHAR NOT NULL,
+    siste           BOOLEAN,
     data            JSONB NOT NULL
 );
 

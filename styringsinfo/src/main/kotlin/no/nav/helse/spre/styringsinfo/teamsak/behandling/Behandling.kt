@@ -64,7 +64,7 @@ internal data class Behandling(
         System
     }
 
-    private fun funksjoneltLik(other: Behandling): Boolean {
+    internal fun funksjoneltLik(other: Behandling): Boolean {
         return copy(funksjonellTid = MIN, tekniskTid = MIN, versjon = Versjonløs) == other.copy(funksjonellTid = MIN, tekniskTid = MIN, versjon = Versjonløs)
     }
 
@@ -87,23 +87,19 @@ internal data class Behandling(
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun behandlingskilde(behandlingskilde: Behandlingskilde) = apply { this.behandlingskilde = behandlingskilde }
 
-        internal fun build(): Behandling? {
-            val ny = Behandling(
-                sakId = forrige.sakId,
-                behandlingId = forrige.behandlingId,
-                relatertBehandlingId = forrige.relatertBehandlingId,
-                aktørId = forrige.aktørId,
-                mottattTid = forrige.mottattTid,
-                registrertTid = forrige.registrertTid,
-                funksjonellTid = funksjonellTid,
-                tekniskTid = LocalDateTime.now(),
-                behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
-                behandlingstype = behandlingtype ?: forrige.behandlingstype,
-                behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
-                behandlingskilde = behandlingskilde ?: forrige.behandlingskilde
-            )
-            if (ny.funksjoneltLik(forrige)) return null // Ikke noe ny info
-            return ny
-        }
+        internal fun build() = Behandling(
+            sakId = forrige.sakId,
+            behandlingId = forrige.behandlingId,
+            relatertBehandlingId = forrige.relatertBehandlingId,
+            aktørId = forrige.aktørId,
+            mottattTid = forrige.mottattTid,
+            registrertTid = forrige.registrertTid,
+            funksjonellTid = funksjonellTid,
+            tekniskTid = LocalDateTime.now(),
+            behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
+            behandlingstype = behandlingtype ?: forrige.behandlingstype,
+            behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
+            behandlingskilde = behandlingskilde ?: forrige.behandlingskilde
+        )
     }
 }
