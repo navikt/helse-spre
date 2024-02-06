@@ -60,9 +60,7 @@ data class VedtakFattetData(
             fom = packet["fom"].asLocalDate(),
             tom = packet["tom"].asLocalDate(),
             skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),
-            utbetalingId = packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let {
-                UUID.fromString(it.asText())
-            },
+            utbetalingId = packet["utbetalingId"]?.let { UUID.fromString(it.asText()) },
             sykepengegrunnlagsfakta = sykepengegrunnlagsfakta(json = packet["sykepengegrunnlagsfakta"]),
             begrunnelser = packet["begrunnelser"]?.let { begrunnelser(json = it) }
         )
@@ -82,20 +80,18 @@ data class VedtakFattetData(
         private fun sykepengegrunnlagsfakta(json: JsonNode): SykepengegrunnlagsfaktaData = SykepengegrunnlagsfaktaData(
             omregnetÅrsinntekt = json["omregnetÅrsinntekt"].asDouble(),
             fastsatt = json["fastsatt"].asText(),
-            innrapportertÅrsinntekt = json["innrapportertÅrsinntekt"].takeUnless { it.isMissingOrNull() }
-                ?.asDouble(),
-            avviksprosent = json["avviksprosent"].takeUnless { it.isMissingOrNull() }?.asDouble(),
-            seksG = json["innrapportertÅrsinntekt"].takeUnless { it.isMissingOrNull() }?.asDouble(),
-            tags = json["tags"].takeUnless { it.isMissingOrNull() }?.map { it.asText() },
-            skjønnsfastsettingtype = json["skjønnsfastsettingtype"].takeUnless { it.isMissingOrNull() }
-                ?.let { enumValueOf<Skjønnsfastsettingstype>(it.asText()) },
-            skjønnsfastsatt = json["skjønnsfastsatt"].takeUnless { it.isMissingOrNull() }?.asDouble(),
-            arbeidsgivere = json["arbeidsgivere"].takeUnless { it.isMissingOrNull() }?.map { arbeidsgiver ->
+            innrapportertÅrsinntekt = json["innrapportertÅrsinntekt"]?.asDouble(),
+            avviksprosent = json["avviksprosent"]?.asDouble(),
+            seksG = json["innrapportertÅrsinntekt"]?.asDouble(),
+            tags = json["tags"]?.map { it.asText() },
+            skjønnsfastsettingtype = json["skjønnsfastsettingtype"]?.let { enumValueOf<Skjønnsfastsettingstype>(it.asText()) },
+            skjønnsfastsatt = json["skjønnsfastsatt"]?.asDouble(),
+            arbeidsgivere = json["arbeidsgivere"]?.map { arbeidsgiver ->
                 ArbeidsgiverData(
                     organisasjonsnummer = arbeidsgiver["arbeidsgiver"].asText(),
                     omregnetÅrsinntekt = arbeidsgiver["omregnetÅrsinntekt"].asDouble(),
                     innrapportertÅrsinntekt = arbeidsgiver["innrapportertÅrsinntekt"].asDouble(),
-                    skjønnsfastsatt = arbeidsgiver["skjønnsfastsatt"].takeUnless { it.isMissingOrNull() }?.asDouble()
+                    skjønnsfastsatt = arbeidsgiver["skjønnsfastsatt"]?.asDouble()
                 )
             },
         )
