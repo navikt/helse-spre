@@ -40,7 +40,7 @@ internal class HendelseRiver(
             ?.let { keyValue(key.removePrefix("@"), it.asText()) } }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        sikkerLogg.error("Forsto ikke $eventName:\n\t${problems.toExtendedReport()}")
+        //sikkerLogg.error("Forsto ikke $eventName:\n\t${problems.toExtendedReport()}")
     }
 
     internal companion object {
