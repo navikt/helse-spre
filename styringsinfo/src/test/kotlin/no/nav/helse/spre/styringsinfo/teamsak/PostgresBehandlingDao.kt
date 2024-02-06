@@ -25,7 +25,7 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
     override fun lagre(behandling: Behandling) {
         val behandlingId = behandling.behandlingId
 
-        sessionOf(dataSource).use { it.transaction { tx ->
+        sessionOf(dataSource, strict = true).use { it.transaction { tx ->
             val sisteBehandling = tx.hent(behandlingId)
             if (sisteBehandling?.funksjoneltLik(behandling) == true) return@use
             val nySiste = when {
@@ -74,7 +74,7 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
         )).asUpdate) == 1) { "Forventet at en rad skulle legges til" }
     }
 
-    override fun hent(behandlingId: BehandlingId) = sessionOf(dataSource).use { session -> session.hent(behandlingId) }
+    override fun hent(behandlingId: BehandlingId) = sessionOf(dataSource, strict = true).use { session -> session.hent(behandlingId) }
 
     private fun Session.hent(behandlingId: BehandlingId): Behandling? {
         val sql = """
@@ -103,7 +103,7 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
 
     override fun forrigeBehandlingId(sakId: SakId): BehandlingId? {
         val sql = """
-            select behandlingId from behandling where sakId='${sakId}' order by funksjonellTid, tekniskTid desc limit 1
+            select behandlingId from behandling where sakId='${sakId}' and siste=true order by sekvensnummer desc limit 1
         """
         return sessionOf(dataSource).use { session ->
             session.run(
