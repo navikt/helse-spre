@@ -25,6 +25,7 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             val nySiste = when {
                 sisteBehandling == null -> true // Første rad på denne behandlingen
                 behandling.funksjonellTid > sisteBehandling.funksjonellTid -> true // Ny informasjon på behandlingen
+                behandling.funksjonellTid == sisteBehandling.funksjonellTid -> true // Korrigerer siste rad
                 else -> false // Korrigerer en tidligere rad
             }
 
