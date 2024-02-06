@@ -28,7 +28,7 @@ internal class GenerasjonOpprettet(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingDao: BehandlingDao) {
+    override fun håndter(behandlingDao: BehandlingDao): Boolean {
         val sakId = SakId(vedtaksperiodeId)
         val behandling = Behandling(
             sakId = sakId,
@@ -43,6 +43,7 @@ internal class GenerasjonOpprettet(
             behandlingskilde = generasjonkilde.avsender.behandlingskilde
         )
         behandlingDao.lagre(behandling)
+        return true
     }
 
     internal class Generasjonkilde(internal val innsendt: LocalDateTime, internal val registrert: LocalDateTime, internal val avsender: Avsender)

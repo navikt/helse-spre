@@ -5,7 +5,7 @@ create table behandling(
     funksjonellTid  TIMESTAMP NOT NULL,
     tekniskTid      TIMESTAMP NOT NULL DEFAULT (now() AT TIME ZONE 'Europe/Oslo'),
     versjon         VARCHAR NOT NULL,
-    siste           BOOLEAN,
+    siste           BOOLEAN NOT NULL,
     data            JSONB NOT NULL
 );
 

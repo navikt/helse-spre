@@ -21,8 +21,9 @@ internal class GenerasjonForkastet(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingDao: BehandlingDao) {
-        behandlingDao.initialiser(SakId(vedtaksperiodeId)).forEach { builder ->
+    override fun håndter(behandlingDao: BehandlingDao): Boolean {
+        val builders = behandlingDao.initialiser(SakId(vedtaksperiodeId)).takeUnless { it.isEmpty() } ?: return false
+        builders.forEach { builder ->
             val ny = builder
                 .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
                 .behandlingsresultat(Behandling.Behandlingsresultat.Avbrutt)
@@ -30,6 +31,7 @@ internal class GenerasjonForkastet(
                 .build()
             behandlingDao.lagre(ny)
         }
+        return true
     }
 
     internal companion object {

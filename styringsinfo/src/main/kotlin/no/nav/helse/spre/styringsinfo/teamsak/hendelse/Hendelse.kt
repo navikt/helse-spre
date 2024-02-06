@@ -10,5 +10,5 @@ internal interface Hendelse {
     val opprettet: LocalDateTime
     val type: String
     val blob: JsonNode
-    fun håndter(behandlingDao: BehandlingDao)
+    fun håndter(behandlingDao: BehandlingDao): Boolean
 }

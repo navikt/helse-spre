@@ -21,14 +21,15 @@ internal class VedtaksperiodeEndret(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingDao: BehandlingDao) {
-        val generasjonId = behandlingDao.forrigeBehandlingId(SakId(vedtaksperiodeId)) ?: return
-        val builder = behandlingDao.initialiser(generasjonId) ?: return
+    override fun håndter(behandlingDao: BehandlingDao): Boolean {
+        val generasjonId = behandlingDao.forrigeBehandlingId(SakId(vedtaksperiodeId)) ?: return false
+        val builder = behandlingDao.initialiser(generasjonId) ?: return false
         val ny = builder
             .behandlingstatus(AvventerGodkjenning)
             .funksjonellTid(opprettet)
             .build()
         behandlingDao.lagre(ny)
+        return true
     }
 
     internal companion object {

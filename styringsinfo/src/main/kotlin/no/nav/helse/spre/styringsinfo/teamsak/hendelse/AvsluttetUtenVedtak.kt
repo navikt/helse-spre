@@ -21,14 +21,15 @@ internal class AvsluttetUtenVedtak(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingDao: BehandlingDao) {
-        val builder = behandlingDao.initialiser(BehandlingId(generasjonId)) ?: return // Avsluttet uten vedtak for noe vi ikke har fått generasjon opprettet for
+    override fun håndter(behandlingDao: BehandlingDao): Boolean {
+        val builder = behandlingDao.initialiser(BehandlingId(generasjonId)) ?: return false
         val ny = builder
             .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
             .behandlingsresultat(Behandling.Behandlingsresultat.Henlagt)
             .funksjonellTid(opprettet)
             .build()
         behandlingDao.lagre(ny)
+        return true
     }
 
     internal companion object {
