@@ -83,6 +83,7 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
 
     val tulleBehandlingDao: BehandlingDao = object: BehandlingDao {
         override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? = null
+        override fun initialiser(sakId: SakId) = emptyList<Behandling.Builder>()
         override fun lagre(behandling: Behandling) {}
         override fun hent(behandlingId: BehandlingId) = null
         override fun forrigeBehandlingId(sakId: SakId) = null

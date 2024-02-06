@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.generasjonId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
@@ -16,18 +16,19 @@ internal class GenerasjonForkastet(
     override val id: UUID,
     override val opprettet: LocalDateTime,
     override val blob: JsonNode,
-    private val generasjonId: UUID
+    private val vedtaksperiodeId: UUID
 ) : Hendelse {
     override val type = eventName
 
     override fun håndter(behandlingDao: BehandlingDao) {
-        val builder = behandlingDao.initialiser(BehandlingId(generasjonId)) ?: return
-        val ny = builder
-            .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
-            .behandlingsresultat(Behandling.Behandlingsresultat.Avbrutt)
-            .funksjonellTid(opprettet)
-            .build()
-        behandlingDao.lagre(ny)
+        behandlingDao.initialiser(SakId(vedtaksperiodeId)).forEach { builder ->
+            val ny = builder
+                .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
+                .behandlingsresultat(Behandling.Behandlingsresultat.Avbrutt)
+                .funksjonellTid(opprettet)
+                .build()
+            behandlingDao.lagre(ny)
+        }
     }
 
     internal companion object {
@@ -41,7 +42,7 @@ internal class GenerasjonForkastet(
                 id = packet.hendelseId,
                 blob = packet.blob,
                 opprettet = packet.opprettet,
-                generasjonId = packet.generasjonId
+                vedtaksperiodeId = packet.generasjonId
             )}
         )
     }

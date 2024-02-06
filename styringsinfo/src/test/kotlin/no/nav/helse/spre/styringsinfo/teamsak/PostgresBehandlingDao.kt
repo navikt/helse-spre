@@ -2,10 +2,7 @@ package no.nav.helse.spre.styringsinfo.teamsak
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import kotliquery.Session
-import kotliquery.TransactionalSession
-import kotliquery.queryOf
-import kotliquery.sessionOf
+import kotliquery.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
@@ -15,6 +12,15 @@ import javax.sql.DataSource
 internal class PostgresBehandlingDao(private val dataSource: DataSource): BehandlingDao {
     override fun initialiser(behandlingId: BehandlingId) =
         hent(behandlingId)?.let { Behandling.Builder(it) }
+
+    override fun initialiser(sakId: SakId): List<Behandling.Builder> {
+        val sql = """
+            select * from behandling where sakId='${sakId}' and siste=true
+        """
+        return sessionOf(dataSource).use { session ->
+            session.run(queryOf(sql).map { it.behandling }.asList)
+        }.map { Behandling.Builder(it) }
+    }
 
     override fun lagre(behandling: Behandling) {
         val behandlingId = behandling.behandlingId
@@ -32,7 +38,6 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             if (nySiste) tx.markerGamle(behandlingId)
             tx.lagre(behandling, nySiste)
         }}
-
     }
 
     private fun TransactionalSession.markerGamle(behandlingId: BehandlingId) {
@@ -75,25 +80,25 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
         val sql = """
             select * from behandling where behandlingId='${behandlingId}' and siste=true
         """
+        return run(queryOf(sql).map { it.behandling }.asSingle)
+    }
 
-        return run(
-            queryOf(sql).map { row ->
-                val data = objectMapper.readTree(row.string("data"))
-                Behandling(
-                    sakId = SakId(row.uuid("sakId")),
-                    behandlingId = BehandlingId(row.uuid("behandlingId")),
-                    funksjonellTid = row.localDateTime("funksjonellTid"),
-                    versjon = Versjon.of(row.string("versjon")),
-                    relatertBehandlingId = data.path("relatertBehandlingId").uuidOrNull?.let { BehandlingId(it) },
-                    aktørId = data.path("aktørId").asText(),
-                    mottattTid = LocalDateTime.parse(data.path("mottattTid").asText()),
-                    registrertTid = LocalDateTime.parse(data.path("registrertTid").asText()),
-                    behandlingstatus = Behandling.Behandlingstatus.valueOf(data.path("behandlingstatus").asText()),
-                    behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingtype").asText()),
-                    behandlingsresultat = data.path("behandlingsresultat").textOrNull?.let { Behandling.Behandlingsresultat.valueOf(it) },
-                    behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText())
-                )
-            }.asSingle)
+    private val Row.behandling get(): Behandling {
+        val data = objectMapper.readTree(string("data"))
+        return Behandling(
+            sakId = SakId(uuid("sakId")),
+            behandlingId = BehandlingId(uuid("behandlingId")),
+            funksjonellTid = localDateTime("funksjonellTid"),
+            versjon = Versjon.of(string("versjon")),
+            relatertBehandlingId = data.path("relatertBehandlingId").uuidOrNull?.let { BehandlingId(it) },
+            aktørId = data.path("aktørId").asText(),
+            mottattTid = LocalDateTime.parse(data.path("mottattTid").asText()),
+            registrertTid = LocalDateTime.parse(data.path("registrertTid").asText()),
+            behandlingstatus = Behandling.Behandlingstatus.valueOf(data.path("behandlingstatus").asText()),
+            behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingtype").asText()),
+            behandlingsresultat = data.path("behandlingsresultat").textOrNull?.let { Behandling.Behandlingsresultat.valueOf(it) },
+            behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText())
+        )
     }
 
     override fun forrigeBehandlingId(sakId: SakId): BehandlingId? {

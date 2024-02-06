@@ -106,13 +106,13 @@ class TeamSakCaser : AbstractDatabaseTest() {
         // Saken forkastes og løses i Infotrygd
 
         // generasjon opprettet med vedtak - januar
-        val (generasjonJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(
+        val (_, januarGenerasjonOpprettet, sakId) = generasjonOpprettet(
             Førstegangsbehandling,
             aktørId = "Scenario 4"
         )
         januarGenerasjonOpprettet.håndter(behandlingDao)
 
-        val generasjonForkastet = generasjonForkastet(generasjonJanuar)
+        val generasjonForkastet = generasjonForkastet(sakId)
         generasjonForkastet.håndter(behandlingDao)
     }
 
@@ -134,7 +134,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
         val januarAvsluttetMedVedtak = avsluttetMedVedtak(generasjonJanuar)
         januarAvsluttetMedVedtak.håndter(behandlingDao)
 
-        val (forkastetGenerasjon, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(
+        val (_, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(
             TilInfotrygd,
             aktørId = "Scenario 5",
             sakId = sakId,
@@ -142,7 +142,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
         )
         januarAnnullertGenerasjonOpprettet.håndter(behandlingDao)
 
-        val generasjonForkastet = generasjonForkastet(forkastetGenerasjon)
+        val generasjonForkastet = generasjonForkastet(sakId)
         generasjonForkastet.håndter(behandlingDao)
     }
 
