@@ -36,7 +36,7 @@ class GenerasjonOpprettetDao(private val dataSource: DataSource) {
                     "meldingsreferanseId" to generasjonOpprettet.kilde.meldingsreferanseId,
                     "innsendt" to generasjonOpprettet.kilde.innsendt.toOsloOffset(),
                     "registrert" to generasjonOpprettet.kilde.registrert.toOsloOffset(),
-                    "hendelseId" to generasjonOpprettet.hendelseId,
+                    "hendelseId" to generasjonOpprettet.hendelseId
                 )
             ).asUpdate
         )

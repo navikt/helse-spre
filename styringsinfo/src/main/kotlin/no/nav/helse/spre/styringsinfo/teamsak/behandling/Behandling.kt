@@ -1,5 +1,7 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Manuell
 import java.time.LocalDateTime
 import java.time.LocalDateTime.MIN
 import java.util.UUID
@@ -64,9 +66,15 @@ internal data class Behandling(
         System
     }
 
+    internal enum class Behandlingsmetode {
+        Manuell, Automatisk
+    }
+
     internal fun funksjoneltLik(other: Behandling): Boolean {
         return copy(funksjonellTid = MIN, versjon = Versjonløs) == other.copy(funksjonellTid = MIN, versjon = Versjonløs)
     }
+
+    fun utledBehandlingsmetode(): Behandlingsmetode = if (behandlingskilde == Behandlingskilde.Saksbehandler) Manuell else Automatisk
 
     private companion object {
         val Versjonløs = Versjon.of("0.0.0")

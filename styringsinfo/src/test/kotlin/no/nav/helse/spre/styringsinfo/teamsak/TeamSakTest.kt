@@ -91,8 +91,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(Behandling.Behandlingstatus.Avsluttet, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.Førstegangsbehandling, utbetaltBehandling.behandlingstype)
         assertEquals(Behandling.Behandlingsresultat.Vedtatt, utbetaltBehandling.behandlingsresultat)
+        assertEquals(Behandling.Behandlingsmetode.Automatisk, utbetaltBehandling.utledBehandlingsmetode())
 
-        val (annulleringBehandlingId, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(TilInfotrygd, januarSakId, avsender = GenerasjonOpprettet.Avsender("SAKSBEHANDLER"))
+        val (annulleringBehandlingId, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)
         var annullertBehandling = januarAnnullertGenerasjonOpprettet.håndter(behandlingDao, annulleringBehandlingId)
         assertEquals(Behandling.Behandlingstatus.Registrert, annullertBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.Førstegangsbehandling, annullertBehandling.behandlingstype)
@@ -111,6 +112,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
             assertEquals(Behandling.Behandlingstype.Førstegangsbehandling, it.behandlingstype)
             assertEquals(Behandling.Behandlingsresultat.Avbrutt, it.behandlingsresultat)
         }
+
+        assertEquals(Behandling.Behandlingsmetode.Manuell, annullertBehandling.utledBehandlingsmetode())
     }
 
     @Test
@@ -144,7 +147,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(Behandling.Behandlingsresultat.Henlagt, behandling.behandlingsresultat)
         assertNull(behandling.relatertBehandlingId)
 
-        val (behandlingId2, generasjonOpprettet2) = generasjonOpprettet(Omgjøring, sakId, avsender = GenerasjonOpprettet.Avsender("ARBEIDSGIVER"))
+        val (behandlingId2, generasjonOpprettet2) = generasjonOpprettet(Omgjøring, sakId, avsender = Arbeidsgiver)
         val behandling2 = generasjonOpprettet2.håndter(behandlingDao, behandlingId2)
 
         assertEquals(Behandling.Behandlingstatus.Registrert, behandling2.behandlingstatus)
