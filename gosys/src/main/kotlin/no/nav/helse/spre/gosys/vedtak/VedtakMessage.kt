@@ -6,6 +6,7 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Oppdrag
 import no.nav.helse.spre.gosys.vedtakFattet.Begrunnelse
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
 import no.nav.helse.spre.gosys.vedtakFattet.SykepengegrunnlagsfaktaData
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -121,7 +122,12 @@ data class VedtakMessage(
         organisasjonsnavn = organisasjonsnavn,
         skjæringstidspunkt = skjæringstidspunkt,
         avviksprosent = sykepengegrunnlagsfakta.avviksprosent,
-        skjønnsfastsettingtype = sykepengegrunnlagsfakta.skjønnsfastsettingtype,
+        skjønnsfastsettingtype = when (sykepengegrunnlagsfakta.skjønnsfastsettingtype) {
+            OMREGNET_ÅRSINNTEKT -> "Omregnet årsinntekt"
+            RAPPORTERT_ÅRSINNTEKT -> "Rapportert årsinntekt"
+            ANNET -> "Annet"
+            else -> null
+        },
         arbeidsgivere = sykepengegrunnlagsfakta.arbeidsgivere,
         begrunnelser = begrunnelser?.associate {
             when (it.type) {

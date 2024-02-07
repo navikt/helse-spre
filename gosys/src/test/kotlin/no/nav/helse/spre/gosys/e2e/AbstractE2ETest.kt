@@ -24,7 +24,7 @@ import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
-import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.OMREGNET_ÅRSINNTEKT
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.testhelpers.*
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
@@ -193,7 +193,12 @@ internal abstract class AbstractE2ETest {
             navn = "Molefonken Ert",
             skjæringstidspunkt = skjæringstidspunkt,
             avviksprosent = avviksprosent,
-            skjønnsfastsettingtype = skjønnsfastsettingtype,
+            skjønnsfastsettingtype = when (skjønnsfastsettingtype) {
+                OMREGNET_ÅRSINNTEKT -> "Omregnet årsinntekt"
+                RAPPORTERT_ÅRSINNTEKT -> "Rapportert årsinntekt"
+                ANNET -> "Annet"
+                else -> null
+            },
             arbeidsgivere = arbeidsgivere,
             begrunnelser = begrunnelser,
         )
