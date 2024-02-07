@@ -29,7 +29,8 @@ internal class HendelseRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        if (!opprett(packet).håndter(behandlingDao)) return
+        //if (!opprett(packet).håndter(behandlingDao)) return
+        opprett(packet).håndter(behandlingDao)
         packet.structuredArguments.let {
             sikkerLogg.info("Håndterte $eventName. ${it.joinToString { "{}" }}\n\t${packet.toJson()}", *it.toTypedArray())
         }
