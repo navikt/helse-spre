@@ -40,7 +40,7 @@ internal class VedtaksperiodeEndret(
             rapidsConnection = rapidsConnection,
             behandlingDao = behandlingDao,
             valider = { packet ->
-                packet.require("gjeldendeTilstand") { check(it.asText().startsWith("AVVENTER_GODKJENNING")) }
+                packet.demand("gjeldendeTilstand") { check(it.asText().startsWith("AVVENTER_GODKJENNING")) }
                 packet.requireVedtaksperiodeId()
             },
             opprett = { packet -> VedtaksperiodeEndret(

@@ -22,7 +22,7 @@ internal class HendelseRiver(
             validate {
                 it.demandValue("@event_name", eventName)
                 it.require("@opprettet", JsonNode::asLocalDateTime)
-                it.require("@id") { generasjonId -> UUID.fromString(generasjonId.asText()) }
+                it.require("@id") { id -> UUID.fromString(id.asText()) }
                 valider(it)
             }
         }.register(this)
@@ -40,7 +40,7 @@ internal class HendelseRiver(
             ?.let { keyValue(key.removePrefix("@"), it.asText()) } }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        //sikkerLogg.error("Forsto ikke $eventName:\n\t${problems.toExtendedReport()}")
+        sikkerLogg.error("Forsto ikke $eventName:\n\t${problems.toExtendedReport()}")
     }
 
     internal companion object {
