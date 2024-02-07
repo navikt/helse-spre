@@ -23,6 +23,7 @@ internal class HendelseRiver(
                 it.demandValue("@event_name", eventName)
                 it.require("@opprettet", JsonNode::asLocalDateTime)
                 it.require("@id") { id -> UUID.fromString(id.asText()) }
+                it.interestedIn("aktørId")
                 valider(it)
             }
         }.register(this)
