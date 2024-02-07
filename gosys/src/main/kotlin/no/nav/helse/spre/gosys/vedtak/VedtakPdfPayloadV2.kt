@@ -1,6 +1,7 @@
 package no.nav.helse.spre.gosys.vedtak
 
 import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
 import java.time.LocalDate
 
 data class VedtakPdfPayloadV2(
@@ -26,6 +27,7 @@ data class VedtakPdfPayloadV2(
     val organisasjonsnavn: String,
     val skjæringstidspunkt: LocalDate,
     val avviksprosent: Double?,
+    val skjønnsfastsettingtype: Skjønnsfastsettingtype?,
     val arbeidsgivere: List<ArbeidsgiverData>?,
     val begrunnelser: Map<String, String>?,
 ) {

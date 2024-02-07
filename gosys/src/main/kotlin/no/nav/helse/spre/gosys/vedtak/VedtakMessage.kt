@@ -121,6 +121,7 @@ data class VedtakMessage(
         organisasjonsnavn = organisasjonsnavn,
         skjæringstidspunkt = skjæringstidspunkt,
         avviksprosent = sykepengegrunnlagsfakta.avviksprosent,
+        skjønnsfastsettingtype = sykepengegrunnlagsfakta.skjønnsfastsettingtype,
         arbeidsgivere = sykepengegrunnlagsfakta.arbeidsgivere,
         begrunnelser = begrunnelser?.associate {
             when (it.type) {

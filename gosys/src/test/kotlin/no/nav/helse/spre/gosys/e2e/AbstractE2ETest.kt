@@ -23,6 +23,8 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.OMREGNET_ÅRSINNTEKT
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.testhelpers.*
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
@@ -162,6 +164,7 @@ internal abstract class AbstractE2ETest {
         dagerIgjen: Int = 31,
         skjæringstidspunkt: LocalDate = fom,
         avviksprosent: Double = 20.0,
+        skjønnsfastsettingtype: Skjønnsfastsettingtype = OMREGNET_ÅRSINNTEKT,
         arbeidsgivere: List<ArbeidsgiverData> = listOf(
             ArbeidsgiverData(organisasjonsnummer = "123456789", omregnetÅrsinntekt = 565260.0, innrapportertÅrsinntekt = 500000.0, skjønnsfastsatt = 565260.0)
         ),
@@ -190,6 +193,7 @@ internal abstract class AbstractE2ETest {
             navn = "Molefonken Ert",
             skjæringstidspunkt = skjæringstidspunkt,
             avviksprosent = avviksprosent,
+            skjønnsfastsettingtype = skjønnsfastsettingtype,
             arbeidsgivere = arbeidsgivere,
             begrunnelser = begrunnelser,
         )

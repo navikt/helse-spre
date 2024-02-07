@@ -84,7 +84,7 @@ data class VedtakFattetData(
             avviksprosent = json["avviksprosent"]?.asDouble(),
             seksG = json["innrapportertÅrsinntekt"]?.asDouble(),
             tags = json["tags"]?.map { it.asText() },
-            skjønnsfastsettingtype = json["skjønnsfastsettingtype"]?.let { enumValueOf<Skjønnsfastsettingstype>(it.asText()) },
+            skjønnsfastsettingtype = json["skjønnsfastsettingtype"]?.let { enumValueOf<Skjønnsfastsettingtype>(it.asText()) },
             skjønnsfastsatt = json["skjønnsfastsatt"]?.asDouble(),
             arbeidsgivere = json["arbeidsgivere"]?.map { arbeidsgiver ->
                 ArbeidsgiverData(
@@ -116,7 +116,7 @@ data class SykepengegrunnlagsfaktaData(
     val avviksprosent: Double?,
     val seksG: Double?,
     val tags: List<String>?,
-    val skjønnsfastsettingtype: Skjønnsfastsettingstype?,
+    val skjønnsfastsettingtype: Skjønnsfastsettingtype?,
     val skjønnsfastsatt: Double?,
     val arbeidsgivere: List<ArbeidsgiverData>?,
 )
@@ -128,7 +128,7 @@ data class ArbeidsgiverData(
     val skjønnsfastsatt: Double?,
 )
 
-enum class Skjønnsfastsettingstype {
+enum class Skjønnsfastsettingtype {
     OMREGNET_ÅRSINNTEKT,
     RAPPORTERT_ÅRSINNTEKT,
     ANNET,
