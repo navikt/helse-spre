@@ -14,19 +14,6 @@ internal data class BehandlingId(val id: UUID) {
     override fun toString() = "$id"
 }
 
-internal class Versjon private constructor(val versjon: String) {
-    init {
-        check(versjon.matches("\\d\\.\\d\\.\\d".toRegex())) { "Ugyldig versjon $versjon" }
-    }
-
-    override fun equals(other: Any?) = other is Versjon && this.versjon == other.versjon
-    override fun hashCode() = versjon.hashCode()
-    override fun toString() = versjon
-    internal companion object {
-        internal fun of(versjon: String) = Versjon(versjon)
-    }
-}
-
 internal data class Behandling(
     internal val sakId: SakId,
     internal val behandlingId: BehandlingId,
@@ -78,7 +65,7 @@ internal data class Behandling(
 
     private companion object {
         val Versjonløs = Versjon.of("0.0.0")
-        val NåværendeVersjon = Versjon.of("0.0.2")
+        val NåværendeVersjon = Versjon.of("0.0.1")
     }
 
     class Builder(private val forrige: Behandling) {

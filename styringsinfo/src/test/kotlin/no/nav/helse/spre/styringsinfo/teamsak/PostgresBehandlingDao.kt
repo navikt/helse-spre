@@ -1,6 +1,7 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
@@ -61,9 +62,11 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             put("behandlingtype", behandling.behandlingstype.name)
             put("behandlingskilde", behandling.behandlingskilde.name)
             put("behandlingsmetode", behandling.utledBehandlingsmetode().name)
-            behandling.relatertBehandlingId?.let { put("relatertBehandlingId", "$it") }
-            behandling.behandlingsresultat?.let { put("behandlingsresultat", it.name) }
-        }.toString()
+            putString("relatertBehandlingId", behandling.relatertBehandlingId?.toString())
+            putString("behandlingsresultat", behandling.behandlingsresultat?.name)
+        }
+
+        behandling.versjon.valider(data.felter)
 
         check(run(queryOf(sql, mapOf(
             "sakId" to behandling.sakId.id,
@@ -71,7 +74,7 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             "funksjonellTid" to behandling.funksjonellTid,
             "versjon" to behandling.versjon.toString(),
             "siste" to siste,
-            "data" to data
+            "data" to data.toString()
         )).asUpdate) == 1) { "Forventet at en rad skulle legges til" }
     }
 
@@ -118,5 +121,10 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
         private val objectMapper = jacksonObjectMapper()
         private val JsonNode.textOrNull get() = takeIf { it.isTextual }?.asText()
         private val JsonNode.uuidOrNull get() = textOrNull?.let { UUID.fromString(it) }
+        private fun ObjectNode.putString(fieldName: String, value: String?) {
+            if (value == null) putNull(fieldName)
+            else put(fieldName, value)
+        }
+        private val ObjectNode.felter get() = fieldNames().asSequence().toSet()
     }
 }
