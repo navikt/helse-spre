@@ -1,5 +1,7 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Manuell
 import java.time.LocalDateTime
 import java.time.LocalDateTime.MIN
 import java.util.UUID
@@ -20,14 +22,13 @@ internal data class Behandling(
     internal val mottattTid: LocalDateTime,          // Tidspunktet da behandlingen oppstår (eks. søknad mottas). Dette er starten på beregning av saksbehandlingstid.
     internal val registrertTid: LocalDateTime,       // Tidspunkt da behandlingen første gang ble registrert i fagsystemet. Ved digitale søknader bør denne være tilnærmet lik mottattTid.
     internal val funksjonellTid: LocalDateTime,      // Tidspunkt for siste endring på behandlingen. Ved første melding vil denne være lik registrertTid.
-    internal val behandlingsstatus: Behandlingsstatus,
+    internal val behandlingstatus: Behandlingstatus,
     internal val behandlingstype: Behandlingstype,
-    internal val behandlingsmetode: Behandlingsmetode,
     internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
     internal val versjon: Versjon = NåværendeVersjon
 ) {
-    internal enum class Behandlingsstatus {
+    internal enum class Behandlingstatus {
         Registrert,
         AvventerGodkjenning,
         Avsluttet
@@ -53,14 +54,14 @@ internal data class Behandling(
     }
 
     internal enum class Behandlingsmetode {
-        Manuell,
-        Automatisk
+        Manuell, Automatisk
     }
 
     internal fun funksjoneltLik(other: Behandling): Boolean {
         return copy(funksjonellTid = MIN, versjon = Versjonløs) == other.copy(funksjonellTid = MIN, versjon = Versjonløs)
     }
 
+    fun utledBehandlingsmetode(): Behandlingsmetode = if (behandlingskilde == Behandlingskilde.Saksbehandler) Manuell else Automatisk
 
     private companion object {
         val Versjonløs = Versjon.of("0.0.0")
@@ -68,20 +69,20 @@ internal data class Behandling(
     }
 
     class Builder(private val forrige: Behandling) {
+        private lateinit var funksjonellTid: LocalDateTime // Denne _må_ alltid settes
+
+        private var behandlingstatus: Behandlingstatus? = null
         private var behandlingtype: Behandlingstype? = null
         private var behandlingsresultat: Behandlingsresultat? = null
         private var behandlingskilde: Behandlingskilde? = null
 
+        internal fun funksjonellTid(funksjonellTid: LocalDateTime) = apply { this.funksjonellTid = funksjonellTid }
+        internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply { this.behandlingstatus = behandlingstatus }
         internal fun behandlingtype(behandlingtype: Behandlingstype) = apply { this.behandlingtype = behandlingtype }
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun behandlingskilde(behandlingskilde: Behandlingskilde) = apply { this.behandlingskilde = behandlingskilde }
 
-        // Verdiene inn i build er verdier hvor vi _ikke_ skal beholde samme verdi
-        internal fun build(
-            funksjonellTid: LocalDateTime,
-            behandlingsstatus: Behandlingsstatus,
-            behandlingsmetode: Behandlingsmetode
-        ) = Behandling(
+        internal fun build() = Behandling(
             sakId = forrige.sakId,
             behandlingId = forrige.behandlingId,
             relatertBehandlingId = forrige.relatertBehandlingId,
@@ -89,8 +90,7 @@ internal data class Behandling(
             mottattTid = forrige.mottattTid,
             registrertTid = forrige.registrertTid,
             funksjonellTid = funksjonellTid,
-            behandlingsstatus = behandlingsstatus,
-            behandlingsmetode = behandlingsmetode,
+            behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
             behandlingstype = behandlingtype ?: forrige.behandlingstype,
             behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
             behandlingskilde = behandlingskilde ?: forrige.behandlingskilde

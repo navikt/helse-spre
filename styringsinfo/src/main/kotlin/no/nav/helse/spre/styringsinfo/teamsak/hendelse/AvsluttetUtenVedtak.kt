@@ -2,9 +2,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.Henlagt
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsstatus.Avsluttet
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
@@ -26,12 +24,10 @@ internal class AvsluttetUtenVedtak(
     override fun håndter(behandlingDao: BehandlingDao): Boolean {
         val builder = behandlingDao.initialiser(BehandlingId(generasjonId)) ?: return false
         val ny = builder
-            .behandlingsresultat(Henlagt)
-            .build(
-                funksjonellTid = opprettet,
-                behandlingsstatus = Avsluttet,
-                behandlingsmetode = Automatisk
-            )
+            .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
+            .behandlingsresultat(Behandling.Behandlingsresultat.Henlagt)
+            .funksjonellTid(opprettet)
+            .build()
         behandlingDao.lagre(ny)
         return true
     }

@@ -38,16 +38,13 @@ internal class GenerasjonOpprettet(
             mottattTid = generasjonkilde.innsendt,
             registrertTid = generasjonkilde.registrert,
             funksjonellTid = generasjonkilde.registrert,
-            behandlingsstatus = Behandling.Behandlingsstatus.Registrert,
+            behandlingstatus = Behandling.Behandlingstatus.Registrert,
             behandlingstype = generasjonstype.behandlingstype,
-            behandlingskilde = generasjonkilde.avsender.behandlingskilde,
-            behandlingsmetode = generasjonkilde.avsender.behandlingskilde.utledBehandlingsmetode
+            behandlingskilde = generasjonkilde.avsender.behandlingskilde
         )
         behandlingDao.lagre(behandling)
         return true
     }
-    private val Behandling.Behandlingskilde.utledBehandlingsmetode get() =
-        if (this == Behandling.Behandlingskilde.Saksbehandler) Behandling.Behandlingsmetode.Manuell else Behandling.Behandlingsmetode.Automatisk
 
     internal class Generasjonkilde(internal val innsendt: LocalDateTime, internal val registrert: LocalDateTime, internal val avsender: Avsender)
     internal class Avsender(val verdi: String)
