@@ -38,7 +38,7 @@ internal class Vedtaksperiodedetaljer(
         } ?: return false
 
         if (ikkeHensyntatteDetaljer.isNotEmpty()) {
-            sikkerLogg.warn("Det er ${ikkeHensyntatteDetaljer.size} vedtaksperiodedetaljer som ikke håndteres for {}", keyValue("behandlingId", behandlingId.toString()))
+            sikkerLogg.warn("Det er ${ikkeHensyntatteDetaljer.size} vedtaksperiodedetaljer som ikke håndteres for {}:\n\t$ikkeHensyntatteDetaljer", keyValue("behandlingId", behandlingId.toString()))
         }
 
         val builder = behandlingDao.initialiser(behandlingId) ?: return false
