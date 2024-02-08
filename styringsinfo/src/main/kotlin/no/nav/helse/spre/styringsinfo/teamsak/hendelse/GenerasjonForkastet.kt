@@ -2,7 +2,9 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Manuell
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.Avbrutt
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsstatus.Avsluttet
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
@@ -25,10 +27,12 @@ internal class GenerasjonForkastet(
         val builders = behandlingDao.initialiser(SakId(vedtaksperiodeId)).takeUnless { it.isEmpty() } ?: return false
         builders.forEach { builder ->
             val ny = builder
-                .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
-                .behandlingsresultat(Behandling.Behandlingsresultat.Avbrutt)
-                .funksjonellTid(opprettet)
-                .build()
+                .behandlingsresultat(Avbrutt)
+                .build(
+                    funksjonellTid = opprettet,
+                    behandlingsstatus = Avsluttet,
+                    behandlingsmetode = Manuell // TODO: Hmm, ja si det.. dette er jo ikke alltid rett..
+                )
             behandlingDao.lagre(ny)
         }
         return true

@@ -5,8 +5,9 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.*
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.Henlagt
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.Registrert
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsstatus.Registrert
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.Førstegangsbehandling
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -85,8 +86,9 @@ internal class PostgresBehandlingDaoTest: AbstractDatabaseTest() {
         mottattTid = LocalDateTime.now(),
         registrertTid = LocalDateTime.now(),
         funksjonellTid = LocalDateTime.now(),
-        behandlingstatus =  Registrert,
+        behandlingsstatus =  Registrert,
         behandlingskilde = System,
-        behandlingstype = Førstegangsbehandling
+        behandlingstype = Førstegangsbehandling,
+        behandlingsmetode = Automatisk
     )
 }

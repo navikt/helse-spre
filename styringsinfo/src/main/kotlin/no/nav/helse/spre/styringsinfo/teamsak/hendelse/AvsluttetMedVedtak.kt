@@ -2,7 +2,9 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.Vedtatt
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsstatus.Avsluttet
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
@@ -24,10 +26,12 @@ internal class AvsluttetMedVedtak(
     override fun håndter(behandlingDao: BehandlingDao): Boolean {
         val builder = behandlingDao.initialiser(BehandlingId(generasjonId)) ?: return false
         val ny = builder
-            .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
-            .behandlingsresultat(Behandling.Behandlingsresultat.Vedtatt)
-            .funksjonellTid(opprettet)
-            .build()
+            .behandlingsresultat(Vedtatt)
+            .build(
+                funksjonellTid = opprettet,
+                behandlingsstatus = Avsluttet,
+                behandlingsmetode = Automatisk // TODO: Tja, dette vet vi jo egentlig ikke.. Vi må kanskje bytte ut AvsluttetMedVedtak -> VedtaksperiodeGodkjent
+            )
         behandlingDao.lagre(ny)
         return true
     }

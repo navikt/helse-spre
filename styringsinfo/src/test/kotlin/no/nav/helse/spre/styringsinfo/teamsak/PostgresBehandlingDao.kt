@@ -58,10 +58,10 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             put("aktørId", behandling.aktørId)
             put("mottattTid", "${behandling.mottattTid}")
             put("registrertTid", "${behandling.registrertTid}")
-            put("behandlingstatus", behandling.behandlingstatus.name)
+            put("behandlingstatus", behandling.behandlingsstatus.name)
             put("behandlingtype", behandling.behandlingstype.name)
             put("behandlingskilde", behandling.behandlingskilde.name)
-            put("behandlingsmetode", behandling.utledBehandlingsmetode().name)
+            put("behandlingsmetode", behandling.behandlingsmetode.name)
             putString("relatertBehandlingId", behandling.relatertBehandlingId?.toString())
             putString("behandlingsresultat", behandling.behandlingsresultat?.name)
         }
@@ -98,10 +98,11 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             aktørId = data.path("aktørId").asText(),
             mottattTid = LocalDateTime.parse(data.path("mottattTid").asText()),
             registrertTid = LocalDateTime.parse(data.path("registrertTid").asText()),
-            behandlingstatus = Behandling.Behandlingstatus.valueOf(data.path("behandlingstatus").asText()),
+            behandlingsstatus = Behandling.Behandlingsstatus.valueOf(data.path("behandlingstatus").asText()),
             behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingtype").asText()),
             behandlingsresultat = data.path("behandlingsresultat").textOrNull?.let { Behandling.Behandlingsresultat.valueOf(it) },
-            behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText())
+            behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText()),
+            behandlingsmetode = Behandling.Behandlingsmetode.valueOf(data.path("behandlingsmetode").asText())
         )
     }
 
