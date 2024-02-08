@@ -2,7 +2,6 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 
 internal class VersjonTest {
@@ -17,24 +16,32 @@ internal class VersjonTest {
     }
 
     @Test
-    fun `Validerer om felter legges til eller fjernes`() {
-        val førsteVersjon = Versjon.of("0.0.1")
-        val førsteVersjonFelter = setOf("aktørId", "mottattTid", "registrertTid", "behandlingstatus", "behandlingtype", "behandlingskilde", "behandlingsmetode", "relatertBehandlingId", "behandlingsresultat")
-        assertDoesNotThrow { førsteVersjon.valider(førsteVersjonFelter) }
-
-        assertEquals(
-            "Ettersom feltene [aktørId, mottattTid, registrertTid, behandlingstatus, behandlingtype, behandlingskilde, behandlingsmetode, relatertBehandlingId, behandlingsresultat] er fjernet burde versjon bumpes fra 0.0.1 til 1.0.0",
-            assertThrows<IllegalStateException> { førsteVersjon.valider(emptySet()) }.message
+    fun `sammenligne versjoner`() {
+        val versjoner = listOf(
+            Versjon.of("0.0.1"),
+            Versjon.of("0.1.0"),
+            Versjon.of("1.0.0"),
+            Versjon.of("2.0.0")
         )
-
-        assertEquals(
-            "Ettersom feltene [aktørId, mottattTid, behandlingtype, behandlingskilde, behandlingsmetode, relatertBehandlingId, behandlingsresultat] er fjernet burde versjon bumpes fra 0.0.1 til 1.0.0",
-            assertThrows<IllegalStateException> { førsteVersjon.valider(setOf("registrertTid", "behandlingstatus")) }.message
-        )
-
-        assertEquals(
-            "Ettersom feltene [noeNytt] er lagt til burde versjon bumpes fra 0.0.1 til 0.1.0",
-            assertThrows<IllegalStateException> { førsteVersjon.valider(førsteVersjonFelter + "noeNytt") }.message
-        )
+        assertEquals(Versjon.of("2.0.0"), versjoner.max())
+        assertEquals(Versjon.of("0.0.1"), versjoner.min())
     }
+
+    @Test
+    fun `Evaluerer versjon ut i fra felter`() {
+        assertEquals(Versjon.of("0.0.1"), Versjon.of(initielleFelter))
+        assertEquals(Versjon.of("0.1.0"), Versjon.of(initielleFelter + "eksempelverdi_1" + "eksempelverdi_2"))
+        assertEquals(Versjon.of("1.0.0"), Versjon.of(initielleFelter + "eksempelverdi_1"))
+        assertEquals(Versjon.of("2.0.0"), Versjon.of(initielleFelter + "eksempelverdi_3"))
+    }
+
+    @Test
+    fun `Feiler om versjon for felter ikke er definert`() {
+        val initielleFelter = setOf("aktørId", "mottattTid", "registrertTid", "behandlingstatus", "behandlingtype", "behandlingskilde", "behandlingsmetode", "relatertBehandlingId", "behandlingsresultat")
+        assertThrows<IllegalStateException> { Versjon.of(initielleFelter - "aktørId") }
+        assertThrows<IllegalStateException> { Versjon.of(initielleFelter + "finnesIkke") }
+        assertThrows<IllegalStateException> { Versjon.of(initielleFelter + "finnesIkke" - "aktørId") }
+    }
+
+    private val initielleFelter = setOf("aktørId", "mottattTid", "registrertTid", "behandlingstatus", "behandlingtype", "behandlingskilde", "behandlingsmetode", "relatertBehandlingId", "behandlingsresultat")
 }

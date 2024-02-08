@@ -25,8 +25,7 @@ internal data class Behandling(
     internal val behandlingstatus: Behandlingstatus,
     internal val behandlingstype: Behandlingstype,
     internal val behandlingsresultat: Behandlingsresultat? = null,
-    internal val behandlingskilde: Behandlingskilde,
-    internal val versjon: Versjon = NåværendeVersjon
+    internal val behandlingskilde: Behandlingskilde
 ) {
     internal enum class Behandlingstatus {
         Registrert,
@@ -58,15 +57,10 @@ internal data class Behandling(
     }
 
     internal fun funksjoneltLik(other: Behandling): Boolean {
-        return copy(funksjonellTid = MIN, versjon = Versjonløs) == other.copy(funksjonellTid = MIN, versjon = Versjonløs)
+        return copy(funksjonellTid = MIN) == other.copy(funksjonellTid = MIN)
     }
 
     fun utledBehandlingsmetode(): Behandlingsmetode = if (behandlingskilde == Behandlingskilde.Saksbehandler) Manuell else Automatisk
-
-    private companion object {
-        val Versjonløs = Versjon.of("0.0.0")
-        val NåværendeVersjon = Versjon.of("0.0.1")
-    }
 
     class Builder(private val forrige: Behandling) {
 

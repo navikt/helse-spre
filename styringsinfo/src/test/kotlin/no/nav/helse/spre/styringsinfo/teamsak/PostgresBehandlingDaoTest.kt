@@ -61,8 +61,6 @@ internal class PostgresBehandlingDaoTest: AbstractDatabaseTest() {
         assertEquals(1, behandlingId.rader)
         behandlingDao.lagre(behandling)
         behandlingDao.lagre(behandling.copy(funksjonellTid = LocalDateTime.now()))
-        behandlingDao.lagre(behandling.copy(versjon = Versjon.of("9.9.9")))
-        behandlingDao.lagre(behandling.copy(funksjonellTid = LocalDateTime.now(), versjon = Versjon.of("9.9.9")))
         assertEquals(1, behandlingId.rader)
     }
 

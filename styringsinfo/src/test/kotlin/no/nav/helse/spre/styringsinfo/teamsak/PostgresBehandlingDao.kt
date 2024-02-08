@@ -66,13 +66,13 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             putString("behandlingsresultat", behandling.behandlingsresultat?.name)
         }
 
-        behandling.versjon.valider(data.felter)
+        val versjon = Versjon.of(data.felter)
 
         check(run(queryOf(sql, mapOf(
             "sakId" to behandling.sakId.id,
             "behandlingId" to behandling.behandlingId.id,
             "funksjonellTid" to behandling.funksjonellTid,
-            "versjon" to behandling.versjon.toString(),
+            "versjon" to versjon.toString(),
             "siste" to siste,
             "data" to data.toString()
         )).asUpdate) == 1) { "Forventet at en rad skulle legges til" }
@@ -93,7 +93,6 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             sakId = SakId(uuid("sakId")),
             behandlingId = BehandlingId(uuid("behandlingId")),
             funksjonellTid = localDateTime("funksjonellTid"),
-            versjon = Versjon.of(string("versjon")),
             relatertBehandlingId = data.path("relatertBehandlingId").uuidOrNull?.let { BehandlingId(it) },
             aktørId = data.path("aktørId").asText(),
             mottattTid = LocalDateTime.parse(data.path("mottattTid").asText()),
