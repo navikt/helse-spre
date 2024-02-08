@@ -26,8 +26,7 @@ internal class AvsluttetUtenVedtak(
         val ny = builder
             .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
             .behandlingsresultat(Behandling.Behandlingsresultat.Henlagt)
-            .funksjonellTid(opprettet)
-            .build()
+            .build(opprettet)
         behandlingDao.lagre(ny)
         return true
     }

@@ -26,8 +26,7 @@ internal class AvsluttetMedVedtak(
         val ny = builder
             .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
             .behandlingsresultat(Behandling.Behandlingsresultat.Vedtatt)
-            .funksjonellTid(opprettet)
-            .build()
+            .build(opprettet)
         behandlingDao.lagre(ny)
         return true
     }

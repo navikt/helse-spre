@@ -69,20 +69,18 @@ internal data class Behandling(
     }
 
     class Builder(private val forrige: Behandling) {
-        private lateinit var funksjonellTid: LocalDateTime // Denne _må_ alltid settes
 
         private var behandlingstatus: Behandlingstatus? = null
         private var behandlingtype: Behandlingstype? = null
         private var behandlingsresultat: Behandlingsresultat? = null
         private var behandlingskilde: Behandlingskilde? = null
 
-        internal fun funksjonellTid(funksjonellTid: LocalDateTime) = apply { this.funksjonellTid = funksjonellTid }
         internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply { this.behandlingstatus = behandlingstatus }
         internal fun behandlingtype(behandlingtype: Behandlingstype) = apply { this.behandlingtype = behandlingtype }
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun behandlingskilde(behandlingskilde: Behandlingskilde) = apply { this.behandlingskilde = behandlingskilde }
 
-        internal fun build() = Behandling(
+        internal fun build(funksjonellTid: LocalDateTime) = Behandling(
             sakId = forrige.sakId,
             behandlingId = forrige.behandlingId,
             relatertBehandlingId = forrige.relatertBehandlingId,

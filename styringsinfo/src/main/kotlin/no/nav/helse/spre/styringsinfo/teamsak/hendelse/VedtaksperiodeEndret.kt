@@ -26,8 +26,7 @@ internal class VedtaksperiodeEndret(
         val builder = behandlingDao.initialiser(generasjonId) ?: return false
         val ny = builder
             .behandlingstatus(AvventerGodkjenning)
-            .funksjonellTid(opprettet)
-            .build()
+            .build(opprettet)
         behandlingDao.lagre(ny)
         return true
     }

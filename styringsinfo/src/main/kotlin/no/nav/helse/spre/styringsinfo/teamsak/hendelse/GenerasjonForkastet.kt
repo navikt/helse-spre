@@ -27,8 +27,7 @@ internal class GenerasjonForkastet(
             val ny = builder
                 .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
                 .behandlingsresultat(Behandling.Behandlingsresultat.Avbrutt)
-                .funksjonellTid(opprettet)
-                .build()
+                .build(opprettet)
             behandlingDao.lagre(ny)
         }
         return true
