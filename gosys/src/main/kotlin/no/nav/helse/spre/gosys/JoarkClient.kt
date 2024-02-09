@@ -3,10 +3,13 @@ package no.nav.helse.spre.gosys
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import java.util.*
+import javax.net.ssl.SSLHandshakeException
 
 class JoarkClient(
     private val baseUrl: String,
@@ -22,13 +25,17 @@ class JoarkClient(
             contentType(ContentType.Application.Json)
             setBody(journalpostPayload)
         }
-            .executeRetry {
+            .executeRetry(avbryt = { it::class !in forsøkPåNy }) {
                 if (it.status.value !in ((200..300) + 409)) {
                     val error = it.body<String>()
                     log.error("Feil fra Joark: {}", keyValue("response", error))
-                    throw RuntimeException("Feil fra Joark: $error")
+                    throw JoarkClientException("Feil fra Joark: $error")
                 } else true
             }
+    }
+    internal companion object {
+        internal class JoarkClientException(feil: String): RuntimeException(feil)
+        private val forsøkPåNy = setOf(ClosedReceiveChannelException::class, SSLHandshakeException::class, HttpRequestTimeoutException::class, JoarkClientException::class)
     }
 }
 

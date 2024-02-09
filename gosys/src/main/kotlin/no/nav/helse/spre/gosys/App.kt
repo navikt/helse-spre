@@ -110,4 +110,6 @@ internal fun RapidsConnection.settOppRivers(
     UtbetalingUtenUtbetalingRiver(this, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
 }
 
-internal suspend fun<T> HttpStatement.executeRetry(block: suspend (response: HttpResponse) -> T) = retry { execute { block(it) } }
+
+internal suspend fun<T> HttpStatement.executeRetry(avbryt: (throwable: Throwable) -> Boolean = { false }, block: suspend (response: HttpResponse) -> T) =
+    retry(avbryt = avbryt) { execute { block(it) } }
