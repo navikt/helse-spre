@@ -3,6 +3,10 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.Saksbehandler
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Manuell
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.Registrert
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
@@ -30,6 +34,8 @@ internal class GenerasjonOpprettet(
 
     override fun håndter(behandlingDao: BehandlingDao): Boolean {
         val sakId = SakId(vedtaksperiodeId)
+        val behandlingskilde = generasjonkilde.avsender.behandlingskilde
+
         val behandling = Behandling(
             sakId = sakId,
             behandlingId = BehandlingId(generasjonId),
@@ -38,9 +44,10 @@ internal class GenerasjonOpprettet(
             mottattTid = generasjonkilde.innsendt,
             registrertTid = generasjonkilde.registrert,
             funksjonellTid = generasjonkilde.registrert,
-            behandlingstatus = Behandling.Behandlingstatus.Registrert,
+            behandlingstatus = Registrert,
             behandlingstype = generasjonstype.behandlingstype,
-            behandlingskilde = generasjonkilde.avsender.behandlingskilde
+            behandlingskilde = behandlingskilde,
+            behandlingsmetode = if (behandlingskilde == Saksbehandler) Manuell else Automatisk
         )
         behandlingDao.lagre(behandling)
         return true
@@ -54,7 +61,7 @@ internal class GenerasjonOpprettet(
         private val Avsender.behandlingskilde get() = when (verdi) {
             "SYKMELDT" -> Behandling.Behandlingskilde.Sykmeldt
             "ARBEIDSGIVER" -> Behandling.Behandlingskilde.Arbeidsgiver
-            "SAKSBEHANDLER" -> Behandling.Behandlingskilde.Saksbehandler
+            "SAKSBEHANDLER" -> Saksbehandler
             "SYSTEM" -> Behandling.Behandlingskilde.System
             else -> throw IllegalStateException("Kjenner ikke til kildeavsender $verdi")
         }

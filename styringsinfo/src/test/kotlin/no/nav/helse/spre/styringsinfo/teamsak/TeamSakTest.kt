@@ -85,13 +85,15 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(Behandling.Behandlingstatus.Registrert, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.Førstegangsbehandling, utbetaltBehandling.behandlingstype)
         assertNull(utbetaltBehandling.behandlingsresultat)
+        assertEquals(utbetaltBehandling.behandlingsmetode, Behandling.Behandlingsmetode.Automatisk)
+
 
         val januarAvsluttetMedVedtak = avsluttetMedVedtak(januarBehandlingId)
         utbetaltBehandling = januarAvsluttetMedVedtak.håndter(behandlingDao, januarBehandlingId)
         assertEquals(Behandling.Behandlingstatus.Avsluttet, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.Førstegangsbehandling, utbetaltBehandling.behandlingstype)
         assertEquals(Behandling.Behandlingsresultat.Vedtatt, utbetaltBehandling.behandlingsresultat)
-        assertEquals(Behandling.Behandlingsmetode.Automatisk, utbetaltBehandling.utledBehandlingsmetode())
+        assertNull(utbetaltBehandling.behandlingsmetode)
 
         val (annulleringBehandlingId, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)
         var annullertBehandling = januarAnnullertGenerasjonOpprettet.håndter(behandlingDao, annulleringBehandlingId)
@@ -113,7 +115,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
             assertEquals(Behandling.Behandlingsresultat.Avbrutt, it.behandlingsresultat)
         }
 
-        assertEquals(Behandling.Behandlingsmetode.Manuell, annullertBehandling.utledBehandlingsmetode())
+        assertNull(utbetaltBehandling.behandlingsmetode)
     }
 
     @Test

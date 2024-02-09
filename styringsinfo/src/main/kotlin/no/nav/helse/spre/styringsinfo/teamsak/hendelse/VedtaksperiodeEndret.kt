@@ -2,6 +2,8 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AvventerGodkjenning
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
@@ -26,6 +28,7 @@ internal class VedtaksperiodeEndret(
         val builder = behandlingDao.initialiser(generasjonId) ?: return false
         val ny = builder
             .behandlingstatus(AvventerGodkjenning)
+            .behandlingsmetode(Automatisk)
             .build(opprettet)
         behandlingDao.lagre(ny)
         return true

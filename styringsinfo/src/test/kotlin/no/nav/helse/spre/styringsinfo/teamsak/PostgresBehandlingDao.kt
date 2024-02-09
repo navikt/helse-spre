@@ -61,7 +61,7 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             put("behandlingstatus", behandling.behandlingstatus.name)
             put("behandlingtype", behandling.behandlingstype.name)
             put("behandlingskilde", behandling.behandlingskilde.name)
-            put("behandlingsmetode", behandling.utledBehandlingsmetode().name)
+            putString("behandlingsmetode", behandling.behandlingsmetode?.name)
             putString("relatertBehandlingId", behandling.relatertBehandlingId?.toString())
             putString("behandlingsresultat", behandling.behandlingsresultat?.name)
         }
@@ -100,7 +100,8 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
             behandlingstatus = Behandling.Behandlingstatus.valueOf(data.path("behandlingstatus").asText()),
             behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingtype").asText()),
             behandlingsresultat = data.path("behandlingsresultat").textOrNull?.let { Behandling.Behandlingsresultat.valueOf(it) },
-            behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText())
+            behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText()),
+            behandlingsmetode = data.path("behandlingsmetode").textOrNull?.let { Behandling.Behandlingsmetode.valueOf(it) }
         )
     }
 

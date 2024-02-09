@@ -1,7 +1,5 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Manuell
 import java.time.LocalDateTime
 import java.time.LocalDateTime.MIN
 import java.util.UUID
@@ -25,7 +23,8 @@ internal data class Behandling(
     internal val behandlingstatus: Behandlingstatus,
     internal val behandlingstype: Behandlingstype,
     internal val behandlingsresultat: Behandlingsresultat? = null,
-    internal val behandlingskilde: Behandlingskilde
+    internal val behandlingskilde: Behandlingskilde,
+    internal val behandlingsmetode: Behandlingsmetode?
 ) {
     internal enum class Behandlingstatus {
         Registrert,
@@ -53,14 +52,13 @@ internal data class Behandling(
     }
 
     internal enum class Behandlingsmetode {
-        Manuell, Automatisk
+        Manuell,
+        Automatisk
     }
 
     internal fun funksjoneltLik(other: Behandling): Boolean {
         return copy(funksjonellTid = MIN) == other.copy(funksjonellTid = MIN)
     }
-
-    fun utledBehandlingsmetode(): Behandlingsmetode = if (behandlingskilde == Behandlingskilde.Saksbehandler) Manuell else Automatisk
 
     class Builder(private val forrige: Behandling) {
 
@@ -68,11 +66,13 @@ internal data class Behandling(
         private var behandlingtype: Behandlingstype? = null
         private var behandlingsresultat: Behandlingsresultat? = null
         private var behandlingskilde: Behandlingskilde? = null
+        private var behandlingsmetode: Behandlingsmetode? = null
 
         internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply { this.behandlingstatus = behandlingstatus }
         internal fun behandlingtype(behandlingtype: Behandlingstype) = apply { this.behandlingtype = behandlingtype }
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun behandlingskilde(behandlingskilde: Behandlingskilde) = apply { this.behandlingskilde = behandlingskilde }
+        internal fun behandlingsmetode(behandlingsmetode: Behandlingsmetode) = apply { this.behandlingsmetode = behandlingsmetode }
 
         internal fun build(funksjonellTid: LocalDateTime) = Behandling(
             sakId = forrige.sakId,
@@ -82,6 +82,7 @@ internal data class Behandling(
             mottattTid = forrige.mottattTid,
             registrertTid = forrige.registrertTid,
             funksjonellTid = funksjonellTid,
+            behandlingsmetode = behandlingsmetode,
             behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
             behandlingstype = behandlingtype ?: forrige.behandlingstype,
             behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
