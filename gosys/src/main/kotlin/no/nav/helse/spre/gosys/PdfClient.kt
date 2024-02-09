@@ -23,9 +23,10 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
         hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/feriepenger", feriepenger)
 
     private suspend fun hentPdf(url: String, input: Any) =
-        httpClient.post(url) {
-        contentType(Json)
-        setBody(input)
-    }.body<ByteArray>() .let(encoder::encodeToString)
-        .also { if (it.isNullOrBlank()) error("Fikk tom pdf") }
+        httpClient.preparePost(url) {
+            contentType(Json)
+            setBody(input)
+        }.executeRetry { response ->
+            response.body<ByteArray>().let(encoder::encodeToString).also { if (it.isNullOrBlank()) error("Fikk tom pdf") }
+        }
 }

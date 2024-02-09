@@ -22,14 +22,13 @@ class JoarkClient(
             contentType(ContentType.Application.Json)
             setBody(journalpostPayload)
         }
-            .execute {
+            .executeRetry {
                 if (it.status.value !in ((200..300) + 409)) {
                     val error = it.body<String>()
                     log.error("Feil fra Joark: {}", keyValue("response", error))
                     throw RuntimeException("Feil fra Joark: $error")
                 } else true
             }
-
     }
 }
 

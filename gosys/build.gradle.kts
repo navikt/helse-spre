@@ -7,7 +7,7 @@ val kotliqueryVersion: String by project
 val flywayCoreVersion: String by project
 
 val jsonassertVersion = "1.5.0"
-val tbdLibsVersion = "2024.01.09-20.20-d52bae29"
+val tbdLibsVersion = "2024.02.09-10.44-24d5802f"
 
 val kotlinxSerializationJsonVersion = "1.6.0"
 
@@ -17,6 +17,7 @@ plugins {
 
 dependencies {
     implementation("com.github.navikt.tbd-libs:azure-token-client-default:$tbdLibsVersion")
+    implementation("com.github.navikt.tbd-libs:retry:$tbdLibsVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")

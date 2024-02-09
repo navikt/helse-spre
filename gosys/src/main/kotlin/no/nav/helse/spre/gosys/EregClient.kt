@@ -29,14 +29,11 @@ class EregClient(
                 System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
                 header("Nav-Call-Id", callId)
                 accept(ContentType.Application.Json)
-            }
-                .execute { it.bodyAsText() }
+            }.executeRetry { response ->
+                response.bodyAsText()
                 .let<String, JsonNode>(objectMapper::readValue)
-                .let { response ->
-                    EregResponse(
-                        navn = trekkUtNavn(response),
-                    )
-                }
+                .let { jsonResponse -> EregResponse(navn = trekkUtNavn(jsonResponse))}
+            }
         } catch (exception: RuntimeException) {
             log.error("Feil ved henting av organiasasjonsnavn. Sjekk sikker logg for detaljer")
             sikkerLogg.error("Feil ved henting av organiasasjonsnavn orgnummer=$organisasjonsnummer", exception)

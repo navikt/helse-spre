@@ -6,6 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments
+import no.nav.helse.spre.gosys.executeRetry
 import no.nav.helse.spre.gosys.sikkerLogg
 import java.util.*
 
@@ -30,7 +31,8 @@ class PdlClient(
         )
 
         sikkerLogg.info("Henter navn på person: $fødselsnummer, {}", StructuredArguments.kv("Nav-Call-Id", hendelseId.toString()))
-        val response: HttpResponse = httpClient.post(Url("$baseUrl/graphql")) {
+
+        return httpClient.preparePost(Url("$baseUrl/graphql")) {
             header("TEMA", "SYK")
             bearerAuth(azureClient.bearerToken(scope).token)
             header("Content-Type", "application/json")
@@ -38,18 +40,17 @@ class PdlClient(
             header("behandlingsnummer", "B139")
             header("Nav-Call-Id", hendelseId.toString())
             setBody(payload)
-        }
-
-        response.status.let {
-            if (!it.isSuccess()) {
-                sikkerLogg.error("Feil henting av navn fra PDL. ResponseCode=$it, Body=${response.bodyAsText()}")
-                throw RuntimeException("error (responseCode=$it) from PDL")
+        }.executeRetry { response ->
+            response.status.let {
+                if (!it.isSuccess()) {
+                    sikkerLogg.error("Feil henting av navn fra PDL. ResponseCode=$it, Body=${response.bodyAsText()}")
+                    throw RuntimeException("error (responseCode=$it) from PDL")
+                }
             }
+            val parsetRespons: PdlResponse<PdlHentPerson> = response.body()
+            håndterErrors(parsetRespons)
+            parsetRespons.data?.hentPerson?.navn?.firstOrNull()?.tilVisning()
         }
-
-        val parsetRespons: PdlResponse<PdlHentPerson> = response.body()
-        håndterErrors(parsetRespons)
-        return parsetRespons.data?.hentPerson?.navn?.firstOrNull()?.tilVisning()
     }
 
     private fun håndterErrors(response: PdlResponse<PdlHentPerson>) {
