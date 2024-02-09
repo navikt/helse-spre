@@ -1,17 +1,21 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.collections.List
+import java.lang.System.getenv
 
 internal class TeamSakTest: AbstractDatabaseTest() {
 
@@ -165,9 +169,28 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         }
     }
 
+    @AfterEach
+    fun afterEach() {
+        if (getenv("CI") == "true") return
+        alleRader.printTabell()
+    }
+
     private val BehandlingId.rader get() =  sessionOf(dataSource).use { session ->
         session.run(queryOf("select count(1) from behandling where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
     } ?: 0
+
+    private val alleRader get() = sessionOf(dataSource).use { session ->
+        session.run(queryOf("select * from behandling").map { row ->
+            (objectMapper.readTree(row.string("data")) as ObjectNode).apply {
+                put("sekvensnummer", row.long("sekvensnummer"))
+                put("sakId", row.uuid("sakId").toString())
+                put("behandlingId", row.uuid("behandlingId").toString())
+                put("funksjonellTid", row.localDateTime("funksjonellTid").toString())
+                put("tekniskTid", row.localDateTime("tekniskTid").toString())
+                put("versjon", row.string("versjon"))
+            }
+        }.asList)
+    }
 
     private fun Hendelse.håndter(behandlingDao: BehandlingDao, behandlingId: BehandlingId): Behandling {
         håndter(behandlingDao)
@@ -191,6 +214,20 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        internal val TilInfotrygd = GenerasjonOpprettet.Generasjonstype("TilInfotrygd")
        internal val Omgjøring = GenerasjonOpprettet.Generasjonstype("Omgjøring")
        internal val Revurdering = GenerasjonOpprettet.Generasjonstype("Revurdering")
+
+
+        private val String.printbar get() = take(25).padEnd(25, ' ') + "   "
+        private fun List<ObjectNode>.printTabell() {
+            println()
+            println("********** Kul tabell til Team Sak **********")
+            first().fieldNames().forEach { print(it.printbar) }
+            println()
+            forEach {
+                it.fields().forEach { (_,verdi) -> print(verdi.asText().printbar) }
+                println()
+            }
+            println()
+        }
 
        internal fun generasjonOpprettet(
            generasjonstype: GenerasjonOpprettet.Generasjonstype,
