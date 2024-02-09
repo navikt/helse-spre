@@ -95,7 +95,7 @@ jobs:
         run: ./gradlew ${{ matrix.project }}:build
       - name: Check app.jar existence
         id: app_jar
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         with:
           files: "${{ matrix.project }}/build/libs/app.jar"
       - name: build docker image
@@ -128,7 +128,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Check for vars yml
         id: vars_file
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         with:
           files: "${{ env.VARS }}"
       - name: deploy
