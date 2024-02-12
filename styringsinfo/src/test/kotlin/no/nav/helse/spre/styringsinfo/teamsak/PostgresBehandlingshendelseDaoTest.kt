@@ -19,6 +19,8 @@ import java.util.UUID
 @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
 internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
 
+    private val hendelseId = UUID.randomUUID()
+
     private val behandlingshendelseDao: BehandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
 
     @Test
@@ -26,10 +28,10 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
         val behandling = nyBehandling(behandlingId)
-        behandlingshendelseDao.lagre(behandling)
+        behandlingshendelseDao.lagre(behandling, hendelseId)
         assertEquals(1, behandlingId.rader)
         val korrigertKilde = behandling.copy(behandlingskilde = Saksbehandler)
-        behandlingshendelseDao.lagre(korrigertKilde)
+        behandlingshendelseDao.lagre(korrigertKilde, hendelseId)
         assertEquals(2, behandlingId.rader)
         assertEquals(Saksbehandler, behandlingshendelseDao.hent(behandlingId)!!.behandlingskilde)
     }
@@ -39,14 +41,14 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
         val behandling = nyBehandling(behandlingId)
-        behandlingshendelseDao.lagre(behandling)
+        behandlingshendelseDao.lagre(behandling, hendelseId)
         assertEquals(1, behandlingId.rader)
         val nyInfo = behandling.copy(behandlingsresultat = Henlagt, funksjonellTid = LocalDateTime.now())
-        behandlingshendelseDao.lagre(nyInfo)
+        behandlingshendelseDao.lagre(nyInfo, hendelseId)
         assertEquals(2, behandlingId.rader)
         assertEquals(Henlagt, behandlingshendelseDao.hent(behandlingId)!!.behandlingsresultat)
         val korrigererFørste = behandling.copy(behandlingskilde = Arbeidsgiver)
-        behandlingshendelseDao.lagre(korrigererFørste)
+        behandlingshendelseDao.lagre(korrigererFørste, hendelseId)
         assertEquals(3, behandlingId.rader)
         // Ettersom vi korrigerer en tidligere rad er det ikke det den siste vi bygger videre på for nye meldinger.
         assertEquals(Henlagt, behandlingshendelseDao.hent(behandlingId)!!.behandlingsresultat)
@@ -58,17 +60,23 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
         val behandling = nyBehandling(behandlingId)
-        behandlingshendelseDao.lagre(behandling)
+        behandlingshendelseDao.lagre(behandling, hendelseId)
         assertEquals(1, behandlingId.rader)
-        behandlingshendelseDao.lagre(behandling)
-        behandlingshendelseDao.lagre(behandling.copy(funksjonellTid = LocalDateTime.now()))
+        behandlingshendelseDao.lagre(behandling, hendelseId)
+        behandlingshendelseDao.lagre(behandling.copy(funksjonellTid = LocalDateTime.now()), hendelseId)
         assertEquals(1, behandlingId.rader)
     }
 
     @BeforeEach
     fun beforeEach() {
         sessionOf(dataSource).use { session ->
-            session.run(queryOf("truncate table behandlingshendelse;").asExecute)
+            session.run(queryOf("truncate table behandlingshendelse cascade;").asExecute)
+        }
+        sessionOf(dataSource).use { session ->
+            session.run(queryOf(
+                "insert into hendelse(id, opprettet, type, data) values (:id, NOW(), 'abc', '{}'::jsonb) on conflict do nothing;",
+                mapOf("id" to hendelseId)
+            ).asExecute)
         }
     }
 

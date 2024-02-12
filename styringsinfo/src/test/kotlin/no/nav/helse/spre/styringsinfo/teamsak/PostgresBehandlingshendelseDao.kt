@@ -23,7 +23,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         }.map { Behandling.Builder(it) }
     }
 
-    override fun lagre(behandling: Behandling) {
+    override fun lagre(behandling: Behandling, hendelseId: UUID) {
         val behandlingId = behandling.behandlingId
 
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
@@ -37,7 +37,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             }
 
             if (nySiste) tx.markerGamle(behandlingId)
-            tx.lagre(behandling, nySiste)
+            tx.lagre(behandling, nySiste, hendelseId)
         }}
     }
 
@@ -48,10 +48,10 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         execute(queryOf(markerGamle))
     }
 
-    private fun TransactionalSession.lagre(behandling: Behandling, siste: Boolean) {
+    private fun TransactionalSession.lagre(behandling: Behandling, siste: Boolean, hendelseId: UUID) {
         val sql = """
-            insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste) 
-            values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste)
+            insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste, hendelseId) 
+            values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste, :hendelseId)
         """
 
         val data = objectMapper.createObjectNode().apply {
@@ -74,7 +74,8 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             "funksjonellTid" to behandling.funksjonellTid,
             "versjon" to versjon.toString(),
             "siste" to siste,
-            "data" to data.toString()
+            "data" to data.toString(),
+            "hendelseId" to hendelseId
         )).asUpdate) == 1) { "Forventet at en rad skulle legges til" }
     }
 

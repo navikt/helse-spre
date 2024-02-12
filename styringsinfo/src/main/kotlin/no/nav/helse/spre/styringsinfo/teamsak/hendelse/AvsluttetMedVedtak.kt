@@ -16,32 +16,34 @@ import java.util.*
 internal class AvsluttetMedVedtak(
     override val id: UUID,
     override val opprettet: LocalDateTime,
-    override val blob: JsonNode,
+    override val data: JsonNode,
     private val generasjonId: UUID
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+    override fun håndter(hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+        hendelseDao.lagre(this)
         val builder = behandlingshendelseDao.initialiser(BehandlingId(generasjonId)) ?: return false
         val ny = builder
             .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
             .behandlingsresultat(Behandling.Behandlingsresultat.Vedtatt)
             .build(opprettet)
-        behandlingshendelseDao.lagre(ny)
+        behandlingshendelseDao.lagre(ny, this.id)
         return true
     }
 
     internal companion object {
         private const val eventName = "avsluttet_med_vedtak"
 
-        internal fun river(rapidsConnection: RapidsConnection, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
+        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
+            hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet -> packet.requireGenerasjonId() },
             opprett = { packet -> AvsluttetMedVedtak(
                 id = packet.hendelseId,
-                blob = packet.blob,
+                data = packet.blob,
                 opprettet = packet.opprettet,
                 generasjonId = packet.generasjonId
             )}

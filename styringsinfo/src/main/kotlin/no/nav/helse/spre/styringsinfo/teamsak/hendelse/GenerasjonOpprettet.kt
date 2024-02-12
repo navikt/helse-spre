@@ -23,7 +23,7 @@ import java.util.*
 internal class GenerasjonOpprettet(
     override val id: UUID,
     override val opprettet: LocalDateTime,
-    override val blob: JsonNode,
+    override val data: JsonNode,
     private val vedtaksperiodeId: UUID,
     private val generasjonId: UUID,
     private val aktørId: String,
@@ -32,7 +32,9 @@ internal class GenerasjonOpprettet(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+    override fun håndter(hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+        hendelseDao.lagre(this)
+
         val sakId = SakId(vedtaksperiodeId)
         val behandlingskilde = generasjonkilde.avsender.behandlingskilde
 
@@ -49,7 +51,7 @@ internal class GenerasjonOpprettet(
             behandlingskilde = behandlingskilde,
             behandlingsmetode = if (behandlingskilde == Saksbehandler) Manuell else Automatisk
         )
-        behandlingshendelseDao.lagre(behandling)
+        behandlingshendelseDao.lagre(behandling, this.id)
         return true
     }
 
@@ -75,9 +77,10 @@ internal class GenerasjonOpprettet(
 
         private const val eventName = "generasjon_opprettet"
 
-        internal fun river(rapidsConnection: RapidsConnection, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
+        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
+            hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
                 packet.requireVedtaksperiodeId()
@@ -86,7 +89,7 @@ internal class GenerasjonOpprettet(
             },
             opprett = { packet -> GenerasjonOpprettet(
                 id = packet.hendelseId,
-                blob = packet.blob,
+                data = packet.blob,
                 opprettet = packet.opprettet,
                 generasjonId = packet.generasjonId,
                 vedtaksperiodeId = packet.vedtaksperiodeId,

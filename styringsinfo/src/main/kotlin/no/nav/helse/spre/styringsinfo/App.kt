@@ -9,24 +9,21 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.db.*
-import no.nav.helse.spre.styringsinfo.db.DataSourceBuilder
 import no.nav.helse.spre.styringsinfo.domain.SendtSøknadPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakFattetPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakForkastetPatch
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetMedVedtak
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetUtenVedtak
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.util.*
 import kotlin.concurrent.thread
 
 internal val log: Logger = LoggerFactory.getLogger("sprestyringsinfo")
@@ -81,10 +78,14 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
     val vedtakForkastetDao = VedtakForkastetDao(dataSource)
     val generasjonOpprettetDao = GenerasjonOpprettetDao(dataSource)
 
+    val tulleHendelseDao: HendelseDao = object: HendelseDao {
+        override fun lagre(hendelse: Hendelse) {}
+    }
+
     val tulleBehandlingshendelseDao: BehandlingshendelseDao = object: BehandlingshendelseDao {
         override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? = null
         override fun initialiser(sakId: SakId) = emptyList<Behandling.Builder>()
-        override fun lagre(behandling: Behandling) {}
+        override fun lagre(behandling: Behandling, hendelseId: UUID) {}
         override fun hent(behandlingId: BehandlingId) = null
         override fun forrigeBehandlingId(sakId: SakId) = null
     }
@@ -95,11 +96,11 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
         VedtakFattetRiver(this, vedtakFattetDao)
         VedtakForkastetRiver(this, vedtakForkastetDao)
         GenerasjonOpprettetRiver(this, generasjonOpprettetDao)
-        GenerasjonOpprettet.river(this, tulleBehandlingshendelseDao)
-        AvsluttetMedVedtak.river(this, tulleBehandlingshendelseDao)
-        AvsluttetUtenVedtak.river(this, tulleBehandlingshendelseDao)
-        GenerasjonForkastet.river(this, tulleBehandlingshendelseDao)
-        VedtaksperiodeEndret.river(this, tulleBehandlingshendelseDao)
+        GenerasjonOpprettet.river(this, tulleHendelseDao, tulleBehandlingshendelseDao)
+        AvsluttetMedVedtak.river(this, tulleHendelseDao, tulleBehandlingshendelseDao)
+        AvsluttetUtenVedtak.river(this, tulleHendelseDao, tulleBehandlingshendelseDao)
+        GenerasjonForkastet.river(this, tulleHendelseDao, tulleBehandlingshendelseDao)
+        VedtaksperiodeEndret.river(this, tulleHendelseDao, tulleBehandlingshendelseDao)
     }
 }
 

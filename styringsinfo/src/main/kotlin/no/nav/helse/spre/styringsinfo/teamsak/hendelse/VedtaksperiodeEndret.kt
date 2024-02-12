@@ -17,28 +17,30 @@ import java.util.*
 internal class VedtaksperiodeEndret(
     override val id: UUID,
     override val opprettet: LocalDateTime,
-    override val blob: JsonNode,
+    override val data: JsonNode,
     private val vedtaksperiodeId: UUID
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+    override fun håndter(hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+        hendelseDao.lagre(this)
         val generasjonId = behandlingshendelseDao.forrigeBehandlingId(SakId(vedtaksperiodeId)) ?: return false
         val builder = behandlingshendelseDao.initialiser(generasjonId) ?: return false
         val ny = builder
             .behandlingstatus(AvventerGodkjenning)
             .behandlingsmetode(Automatisk)
             .build(opprettet)
-        behandlingshendelseDao.lagre(ny)
+        behandlingshendelseDao.lagre(ny, this.id)
         return true
     }
 
     internal companion object {
         private const val eventName = "vedtaksperiode_endret"
 
-        internal fun river(rapidsConnection: RapidsConnection, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
+        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
+            hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
                 packet.demand("gjeldendeTilstand") { check(it.asText().startsWith("AVVENTER_GODKJENNING")) }
@@ -46,7 +48,7 @@ internal class VedtaksperiodeEndret(
             },
             opprett = { packet -> VedtaksperiodeEndret(
                 id = packet.hendelseId,
-                blob = packet.blob,
+                data = packet.blob,
                 opprettet = packet.opprettet,
                 vedtaksperiodeId = packet.vedtaksperiodeId
             )}

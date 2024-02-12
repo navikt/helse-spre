@@ -16,19 +16,20 @@ import java.util.*
 internal class GenerasjonForkastet(
     override val id: UUID,
     override val opprettet: LocalDateTime,
-    override val blob: JsonNode,
+    override val data: JsonNode,
     private val vedtaksperiodeId: UUID
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+    override fun håndter(hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+        hendelseDao.lagre(this)
         val builders = behandlingshendelseDao.initialiser(SakId(vedtaksperiodeId)).takeUnless { it.isEmpty() } ?: return false
         builders.forEach { builder ->
             val ny = builder
                 .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
                 .behandlingsresultat(Behandling.Behandlingsresultat.Avbrutt)
                 .build(opprettet)
-            behandlingshendelseDao.lagre(ny)
+            behandlingshendelseDao.lagre(ny, this.id)
         }
         return true
     }
@@ -36,14 +37,15 @@ internal class GenerasjonForkastet(
     internal companion object {
         private const val eventName = "generasjon_forkastet"
 
-        internal fun river(rapidsConnection: RapidsConnection, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
+        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
+            hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet -> packet.requireVedtaksperiodeId() },
             opprett = { packet -> GenerasjonForkastet(
                 id = packet.hendelseId,
-                blob = packet.blob,
+                data = packet.blob,
                 opprettet = packet.opprettet,
                 vedtaksperiodeId = packet.vedtaksperiodeId
             )}

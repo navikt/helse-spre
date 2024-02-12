@@ -19,6 +19,7 @@ import java.lang.System.getenv
 
 internal class TeamSakTest: AbstractDatabaseTest() {
 
+    private val hendelseDao: HendelseDao = PostgresHendelseDao(dataSource)
     private val behandlingshendelseDao: BehandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
 
     @Test
@@ -26,14 +27,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling)
 
         assertEquals(0, behandlingId.rader)
-        generasjonOpprettet.håndter(behandlingshendelseDao)
+        generasjonOpprettet.håndter(hendelseDao, behandlingshendelseDao)
         assertEquals(1, behandlingId.rader)
 
         val avsluttetMedVedtak = avsluttetMedVedtak(behandlingId)
-        avsluttetMedVedtak.håndter(behandlingshendelseDao)
+        avsluttetMedVedtak.håndter(hendelseDao, behandlingshendelseDao)
         assertEquals(2, behandlingId.rader)
 
-        avsluttetMedVedtak.håndter(behandlingshendelseDao)
+        avsluttetMedVedtak.håndter(hendelseDao, behandlingshendelseDao)
         assertEquals(2, behandlingId.rader)
     }
 
@@ -193,7 +194,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     }
 
     private fun Hendelse.håndter(behandlingshendelseDao: BehandlingshendelseDao, behandlingId: BehandlingId): Behandling {
-        håndter(behandlingshendelseDao)
+        håndter(hendelseDao, behandlingshendelseDao)
         return checkNotNull(behandlingshendelseDao.hent(behandlingId)) { "Fant ikke behandling $behandlingId" }
     }
 

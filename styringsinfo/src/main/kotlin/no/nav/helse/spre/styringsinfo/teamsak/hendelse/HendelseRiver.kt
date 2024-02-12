@@ -15,6 +15,7 @@ internal class HendelseRiver(
     private val valider: (packet: JsonMessage) -> Unit = {},
     private val opprett: (packet: JsonMessage) -> Hendelse,
     rapidsConnection: RapidsConnection,
+    private val hendelseDao: HendelseDao,
     private val behandlingshendelseDao: BehandlingshendelseDao): River.PacketListener {
 
     init {
@@ -30,8 +31,7 @@ internal class HendelseRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        //if (!opprett(packet).håndter(behandlingDao)) return
-        opprett(packet).håndter(behandlingshendelseDao)
+        opprett(packet).håndter(hendelseDao, behandlingshendelseDao)
         packet.structuredArguments.let {
             sikkerLogg.info("Håndterte $eventName. ${it.joinToString { "{}" }}\n\t${packet.toJson()}", *it.toTypedArray())
         }
