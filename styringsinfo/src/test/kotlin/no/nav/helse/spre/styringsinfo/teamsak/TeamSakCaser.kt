@@ -10,8 +10,10 @@ import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetUte
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonForkastet
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 

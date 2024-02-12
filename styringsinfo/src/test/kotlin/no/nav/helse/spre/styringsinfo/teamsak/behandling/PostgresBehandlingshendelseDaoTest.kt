@@ -1,9 +1,8 @@
-package no.nav.helse.spre.styringsinfo.teamsak
+package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Manuell
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.Henlagt

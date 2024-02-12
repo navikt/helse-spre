@@ -1,9 +1,7 @@
-package no.nav.helse.spre.styringsinfo.teamsak
+package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import javax.sql.DataSource
 
 internal class PostgresHendelseDao(private val dataSource: DataSource): HendelseDao {

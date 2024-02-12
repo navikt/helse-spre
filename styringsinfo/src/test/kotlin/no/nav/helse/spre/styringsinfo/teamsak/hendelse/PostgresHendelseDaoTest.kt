@@ -6,7 +6,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
-import no.nav.helse.spre.styringsinfo.teamsak.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -15,7 +14,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-internal class HendelseDaoTest: AbstractDatabaseTest() {
+internal class PostgresHendelseDaoTest: AbstractDatabaseTest() {
 
     private val hendelseDao = PostgresHendelseDao(dataSource)
 

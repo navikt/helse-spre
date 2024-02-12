@@ -1,4 +1,4 @@
-package no.nav.helse.spre.styringsinfo.teamsak
+package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
