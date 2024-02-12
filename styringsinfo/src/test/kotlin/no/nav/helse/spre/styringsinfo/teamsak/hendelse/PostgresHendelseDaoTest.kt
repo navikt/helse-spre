@@ -46,7 +46,7 @@ private class Testhendelse(override val id: UUID) : Hendelse {
     override val type: String = "TULLETYPE"
     override val data: JsonNode = jacksonObjectMapper().createObjectNode()
 
-    override fun håndter(hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         TODO("Not yet implemented")
     }
 

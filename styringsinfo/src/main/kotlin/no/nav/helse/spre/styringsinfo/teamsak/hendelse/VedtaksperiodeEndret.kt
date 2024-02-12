@@ -12,7 +12,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 internal class VedtaksperiodeEndret(
     override val id: UUID,
@@ -22,8 +22,7 @@ internal class VedtaksperiodeEndret(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        hendelseDao.lagre(this)
+    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val generasjonId = behandlingshendelseDao.forrigeBehandlingId(SakId(vedtaksperiodeId)) ?: return false
         val builder = behandlingshendelseDao.initialiser(generasjonId) ?: return false
         val ny = builder

@@ -18,7 +18,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.r
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 internal class GenerasjonOpprettet(
     override val id: UUID,
@@ -32,9 +32,7 @@ internal class GenerasjonOpprettet(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        hendelseDao.lagre(this)
-
+    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val sakId = SakId(vedtaksperiodeId)
         val behandlingskilde = generasjonkilde.avsender.behandlingskilde
 

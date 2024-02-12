@@ -27,14 +27,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling)
 
         assertEquals(0, behandlingId.rader)
-        generasjonOpprettet.håndter(hendelseDao, behandlingshendelseDao)
+        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(1, behandlingId.rader)
 
         val avsluttetMedVedtak = avsluttetMedVedtak(behandlingId)
-        avsluttetMedVedtak.håndter(hendelseDao, behandlingshendelseDao)
+        avsluttetMedVedtak.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(2, behandlingId.rader)
 
-        avsluttetMedVedtak.håndter(hendelseDao, behandlingshendelseDao)
+        avsluttetMedVedtak.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(2, behandlingId.rader)
     }
 
@@ -194,7 +194,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     }
 
     private fun Hendelse.håndter(behandlingshendelseDao: BehandlingshendelseDao, behandlingId: BehandlingId): Behandling {
-        håndter(hendelseDao, behandlingshendelseDao)
+        hendelseDao.lagre(this)
+        håndter(behandlingshendelseDao)
         return checkNotNull(behandlingshendelseDao.hent(behandlingId)) { "Fant ikke behandling $behandlingId" }
     }
 

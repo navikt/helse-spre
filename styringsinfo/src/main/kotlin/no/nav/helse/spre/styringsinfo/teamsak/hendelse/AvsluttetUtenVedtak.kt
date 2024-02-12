@@ -11,7 +11,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.h
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireGenerasjonId
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 internal class AvsluttetUtenVedtak(
     override val id: UUID,
@@ -21,8 +21,7 @@ internal class AvsluttetUtenVedtak(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        hendelseDao.lagre(this)
+    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builder = behandlingshendelseDao.initialiser(BehandlingId(generasjonId)) ?: return false
         val ny = builder
             .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)

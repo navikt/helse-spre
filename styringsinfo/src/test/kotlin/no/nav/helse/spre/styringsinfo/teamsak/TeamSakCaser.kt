@@ -12,6 +12,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonOp
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import org.junit.jupiter.api.BeforeEach
@@ -37,9 +38,9 @@ class TeamSakCaser : AbstractDatabaseTest() {
             Førstegangsbehandling,
             aktørId = "Scenario 1"
         )
-        januarGenerasjonOpprettet.håndter(hendelseDao, behandlingshendelseDao)
+        januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
         val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingId)
-        januarAvsluttetMedVedtak.håndter(hendelseDao, behandlingshendelseDao)
+        januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
     }
 
     @Test
@@ -57,20 +58,20 @@ class TeamSakCaser : AbstractDatabaseTest() {
             Førstegangsbehandling,
             aktørId = "Scenario 2"
         )
-        januarGenerasjonOpprettet.håndter(hendelseDao, behandlingshendelseDao)
+        januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
         val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingIdJanuar)
-        januarAvsluttetMedVedtak.håndter(hendelseDao, behandlingshendelseDao)
+        januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
 
         // generasjon opprettet med vedtak - februar
         val (behandlingIdFebruar, februarGenerasjonOpprettet, sakIdFebruar) = generasjonOpprettet(
             Førstegangsbehandling,
             aktørId = "Scenario 2"
         )
-        februarGenerasjonOpprettet.håndter(hendelseDao, behandlingshendelseDao)
+        februarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
         val februarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingIdFebruar)
-        februarAvsluttetMedVedtak.håndter(hendelseDao, behandlingshendelseDao)
+        februarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
 
         // generasjon opprettet med vedtak - februar igjen?
         val (andreGenerasjonFebruar, andreFebruarGenerasjonOpprettet) = generasjonOpprettet(
@@ -78,10 +79,10 @@ class TeamSakCaser : AbstractDatabaseTest() {
             aktørId = "Scenario 2",
             sakId = sakIdFebruar
         )
-        andreFebruarGenerasjonOpprettet.håndter(hendelseDao, behandlingshendelseDao)
+        andreFebruarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
         val andreFebruarAvsluttetMedVedtak = avsluttetMedVedtak(andreGenerasjonFebruar)
-        andreFebruarAvsluttetMedVedtak.håndter(hendelseDao, behandlingshendelseDao)
+        andreFebruarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
     }
 
     @Test
@@ -95,10 +96,10 @@ class TeamSakCaser : AbstractDatabaseTest() {
             Førstegangsbehandling,
             aktørId = "Scenario 3"
         )
-        januarGenerasjonOpprettet.håndter(hendelseDao, behandlingshendelseDao)
+        januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
         val januarAvsluttetUtenVedtak = avsluttetUtenVedtak(generasjonJanuar)
-        januarAvsluttetUtenVedtak.håndter(hendelseDao, behandlingshendelseDao)
+        januarAvsluttetUtenVedtak.lagreOgHåndter(behandlingshendelseDao)
     }
 
     @Test
@@ -114,10 +115,10 @@ class TeamSakCaser : AbstractDatabaseTest() {
             Førstegangsbehandling,
             aktørId = "Scenario 4"
         )
-        januarGenerasjonOpprettet.håndter(hendelseDao, behandlingshendelseDao)
+        januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
         val generasjonForkastet = generasjonForkastet(sakId)
-        generasjonForkastet.håndter(hendelseDao, behandlingshendelseDao)
+        generasjonForkastet.lagreOgHåndter(behandlingshendelseDao)
     }
 
     @Test
@@ -133,10 +134,10 @@ class TeamSakCaser : AbstractDatabaseTest() {
             Førstegangsbehandling,
             aktørId = "Scenario 5"
         )
-        januarGenerasjonOpprettet.håndter(hendelseDao, behandlingshendelseDao)
+        januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
         val januarAvsluttetMedVedtak = avsluttetMedVedtak(generasjonJanuar)
-        januarAvsluttetMedVedtak.håndter(hendelseDao, behandlingshendelseDao)
+        januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
 
         val (_, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(
             TilInfotrygd,
@@ -144,10 +145,15 @@ class TeamSakCaser : AbstractDatabaseTest() {
             sakId = sakId,
             avsender = GenerasjonOpprettet.Avsender("SAKSBEHANDLER")
         )
-        januarAnnullertGenerasjonOpprettet.håndter(hendelseDao, behandlingshendelseDao)
+        januarAnnullertGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
         val generasjonForkastet = generasjonForkastet(sakId)
-        generasjonForkastet.håndter(hendelseDao, behandlingshendelseDao)
+        generasjonForkastet.lagreOgHåndter(behandlingshendelseDao)
+    }
+
+    private fun Hendelse.lagreOgHåndter(behandlingshendelseDao: BehandlingshendelseDao) {
+        hendelseDao.lagre(this)
+        håndter(behandlingshendelseDao)
     }
 
     @BeforeEach

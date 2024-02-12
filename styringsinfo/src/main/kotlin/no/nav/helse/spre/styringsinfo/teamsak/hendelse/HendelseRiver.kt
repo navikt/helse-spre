@@ -8,7 +8,7 @@ import no.nav.helse.rapids_rivers.*
 import no.nav.helse.spre.styringsinfo.sikkerLogg
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 internal class HendelseRiver(
     private val eventName: String,
@@ -31,7 +31,9 @@ internal class HendelseRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        opprett(packet).håndter(hendelseDao, behandlingshendelseDao)
+        val hendelse = opprett(packet)
+        hendelseDao.lagre(hendelse)
+        hendelse.håndter(behandlingshendelseDao)
         packet.structuredArguments.let {
             sikkerLogg.info("Håndterte $eventName. ${it.joinToString { "{}" }}\n\t${packet.toJson()}", *it.toTypedArray())
         }

@@ -11,7 +11,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 internal class GenerasjonForkastet(
     override val id: UUID,
@@ -21,8 +21,7 @@ internal class GenerasjonForkastet(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        hendelseDao.lagre(this)
+    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builders = behandlingshendelseDao.initialiser(SakId(vedtaksperiodeId)).takeUnless { it.isEmpty() } ?: return false
         builders.forEach { builder ->
             val ny = builder
