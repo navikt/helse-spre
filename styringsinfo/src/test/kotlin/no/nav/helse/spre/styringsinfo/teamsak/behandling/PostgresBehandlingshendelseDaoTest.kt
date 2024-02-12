@@ -8,6 +8,9 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsm
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.Henlagt
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.Registrert
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.Førstegangsbehandling
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -19,8 +22,10 @@ import java.util.UUID
 internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
 
     private val hendelseId = UUID.randomUUID()
+    private val testehendelse = Testhendelse(hendelseId)
 
     private val behandlingshendelseDao: BehandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
+    private val hendelseDao: HendelseDao = PostgresHendelseDao(dataSource)
 
     @Test
     fun `korrigerer feilsendt opplysning på siste rad`() {
@@ -71,15 +76,10 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         sessionOf(dataSource).use { session ->
             session.run(queryOf("truncate table behandlingshendelse cascade;").asExecute)
         }
-        sessionOf(dataSource).use { session ->
-            session.run(queryOf(
-                "insert into hendelse(id, opprettet, type, data) values (:id, NOW(), 'abc', '{}'::jsonb) on conflict do nothing;",
-                mapOf("id" to hendelseId)
-            ).asExecute)
-        }
+        hendelseDao.lagre(testehendelse)
     }
 
-    private val BehandlingId.rader get() =  sessionOf(dataSource).use { session ->
+    private val BehandlingId.rader get() = sessionOf(dataSource).use { session ->
         session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
     } ?: 0
 
