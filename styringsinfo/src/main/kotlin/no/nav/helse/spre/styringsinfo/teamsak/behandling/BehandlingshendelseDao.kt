@@ -1,6 +1,6 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
-internal interface BehandlingDao {
+internal interface BehandlingshendelseDao {
     fun initialiser(behandlingId: BehandlingId): Behandling.Builder?
     fun initialiser(sakId: SakId): List<Behandling.Builder>
     fun lagre(behandling: Behandling)

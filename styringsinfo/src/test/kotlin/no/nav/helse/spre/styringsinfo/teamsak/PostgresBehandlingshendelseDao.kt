@@ -10,13 +10,13 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.sql.DataSource
 
-internal class PostgresBehandlingDao(private val dataSource: DataSource): BehandlingDao {
+internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource): BehandlingshendelseDao {
     override fun initialiser(behandlingId: BehandlingId) =
         hent(behandlingId)?.let { Behandling.Builder(it) }
 
     override fun initialiser(sakId: SakId): List<Behandling.Builder> {
         val sql = """
-            select * from behandling where sakId='${sakId}' and siste=true
+            select * from behandlingshendelse where sakId='${sakId}' and siste=true
         """
         return sessionOf(dataSource).use { session ->
             session.run(queryOf(sql).map { it.behandling }.asList)
@@ -43,14 +43,14 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
 
     private fun TransactionalSession.markerGamle(behandlingId: BehandlingId) {
         @Language("PostgreSQL") val markerGamle = """
-            update behandling set siste=false where behandlingId='${behandlingId}'
+            update behandlingshendelse set siste=false where behandlingId='${behandlingId}'
         """
         execute(queryOf(markerGamle))
     }
 
     private fun TransactionalSession.lagre(behandling: Behandling, siste: Boolean) {
         val sql = """
-            insert into behandling(sakId, behandlingId, funksjonellTid, versjon, data, siste) 
+            insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste) 
             values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste)
         """
 
@@ -82,7 +82,7 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
 
     private fun Session.hent(behandlingId: BehandlingId): Behandling? {
         val sql = """
-            select * from behandling where behandlingId='${behandlingId}' and siste=true
+            select * from behandlingshendelse where behandlingId='${behandlingId}' and siste=true
         """
         return run(queryOf(sql).map { it.behandling }.asSingle)
     }
@@ -107,7 +107,7 @@ internal class PostgresBehandlingDao(private val dataSource: DataSource): Behand
 
     override fun forrigeBehandlingId(sakId: SakId): BehandlingId? {
         val sql = """
-            select behandlingId from behandling where sakId='${sakId}' and siste=true order by sekvensnummer desc limit 1
+            select behandlingId from behandlingshendelse where sakId='${sakId}' and siste=true order by sekvensnummer desc limit 1
         """
         return sessionOf(dataSource).use { session ->
             session.run(

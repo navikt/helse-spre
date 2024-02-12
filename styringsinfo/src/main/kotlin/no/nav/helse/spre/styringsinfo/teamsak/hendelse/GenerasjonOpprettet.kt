@@ -7,7 +7,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Manuell
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.Registrert
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
@@ -32,14 +32,14 @@ internal class GenerasjonOpprettet(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingDao: BehandlingDao): Boolean {
+    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val sakId = SakId(vedtaksperiodeId)
         val behandlingskilde = generasjonkilde.avsender.behandlingskilde
 
         val behandling = Behandling(
             sakId = sakId,
             behandlingId = BehandlingId(generasjonId),
-            relatertBehandlingId = behandlingDao.forrigeBehandlingId(sakId),
+            relatertBehandlingId = behandlingshendelseDao.forrigeBehandlingId(sakId),
             aktørId = aktørId,
             mottattTid = generasjonkilde.innsendt,
             registrertTid = generasjonkilde.registrert,
@@ -49,7 +49,7 @@ internal class GenerasjonOpprettet(
             behandlingskilde = behandlingskilde,
             behandlingsmetode = if (behandlingskilde == Saksbehandler) Manuell else Automatisk
         )
-        behandlingDao.lagre(behandling)
+        behandlingshendelseDao.lagre(behandling)
         return true
     }
 
@@ -75,10 +75,10 @@ internal class GenerasjonOpprettet(
 
         private const val eventName = "generasjon_opprettet"
 
-        internal fun river(rapidsConnection: RapidsConnection, behandlingDao: BehandlingDao) = HendelseRiver(
+        internal fun river(rapidsConnection: RapidsConnection, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
-            behandlingDao = behandlingDao,
+            behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
                 packet.requireVedtaksperiodeId()
                 packet.requireGenerasjonId()

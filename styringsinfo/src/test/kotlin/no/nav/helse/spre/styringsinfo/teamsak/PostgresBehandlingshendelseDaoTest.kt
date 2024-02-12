@@ -17,21 +17,21 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
-internal class PostgresBehandlingDaoTest: AbstractDatabaseTest() {
+internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
 
-    private val behandlingDao: BehandlingDao = PostgresBehandlingDao(dataSource)
+    private val behandlingshendelseDao: BehandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
 
     @Test
     fun `korrigerer feilsendt opplysning på siste rad`() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
         val behandling = nyBehandling(behandlingId)
-        behandlingDao.lagre(behandling)
+        behandlingshendelseDao.lagre(behandling)
         assertEquals(1, behandlingId.rader)
         val korrigertKilde = behandling.copy(behandlingskilde = Saksbehandler)
-        behandlingDao.lagre(korrigertKilde)
+        behandlingshendelseDao.lagre(korrigertKilde)
         assertEquals(2, behandlingId.rader)
-        assertEquals(Saksbehandler, behandlingDao.hent(behandlingId)!!.behandlingskilde)
+        assertEquals(Saksbehandler, behandlingshendelseDao.hent(behandlingId)!!.behandlingskilde)
     }
 
     @Test
@@ -39,18 +39,18 @@ internal class PostgresBehandlingDaoTest: AbstractDatabaseTest() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
         val behandling = nyBehandling(behandlingId)
-        behandlingDao.lagre(behandling)
+        behandlingshendelseDao.lagre(behandling)
         assertEquals(1, behandlingId.rader)
         val nyInfo = behandling.copy(behandlingsresultat = Henlagt, funksjonellTid = LocalDateTime.now())
-        behandlingDao.lagre(nyInfo)
+        behandlingshendelseDao.lagre(nyInfo)
         assertEquals(2, behandlingId.rader)
-        assertEquals(Henlagt, behandlingDao.hent(behandlingId)!!.behandlingsresultat)
+        assertEquals(Henlagt, behandlingshendelseDao.hent(behandlingId)!!.behandlingsresultat)
         val korrigererFørste = behandling.copy(behandlingskilde = Arbeidsgiver)
-        behandlingDao.lagre(korrigererFørste)
+        behandlingshendelseDao.lagre(korrigererFørste)
         assertEquals(3, behandlingId.rader)
         // Ettersom vi korrigerer en tidligere rad er det ikke det den siste vi bygger videre på for nye meldinger.
-        assertEquals(Henlagt, behandlingDao.hent(behandlingId)!!.behandlingsresultat)
-        assertEquals(System, behandlingDao.hent(behandlingId)!!.behandlingskilde)
+        assertEquals(Henlagt, behandlingshendelseDao.hent(behandlingId)!!.behandlingsresultat)
+        assertEquals(System, behandlingshendelseDao.hent(behandlingId)!!.behandlingskilde)
     }
 
     @Test
@@ -58,22 +58,22 @@ internal class PostgresBehandlingDaoTest: AbstractDatabaseTest() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
         val behandling = nyBehandling(behandlingId)
-        behandlingDao.lagre(behandling)
+        behandlingshendelseDao.lagre(behandling)
         assertEquals(1, behandlingId.rader)
-        behandlingDao.lagre(behandling)
-        behandlingDao.lagre(behandling.copy(funksjonellTid = LocalDateTime.now()))
+        behandlingshendelseDao.lagre(behandling)
+        behandlingshendelseDao.lagre(behandling.copy(funksjonellTid = LocalDateTime.now()))
         assertEquals(1, behandlingId.rader)
     }
 
     @BeforeEach
     fun beforeEach() {
         sessionOf(dataSource).use { session ->
-            session.run(queryOf("truncate table behandling;").asExecute)
+            session.run(queryOf("truncate table behandlingshendelse;").asExecute)
         }
     }
 
     private val BehandlingId.rader get() =  sessionOf(dataSource).use { session ->
-        session.run(queryOf("select count(1) from behandling where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
+        session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
     } ?: 0
 
     private fun nyBehandling(behandlingId: BehandlingId) = Behandling(

@@ -3,7 +3,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.generasjonId
@@ -21,24 +21,24 @@ internal class AvsluttetUtenVedtak(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingDao: BehandlingDao): Boolean {
-        val builder = behandlingDao.initialiser(BehandlingId(generasjonId)) ?: return false
+    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+        val builder = behandlingshendelseDao.initialiser(BehandlingId(generasjonId)) ?: return false
         val ny = builder
             .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
             .behandlingsresultat(Behandling.Behandlingsresultat.Henlagt)
             .behandlingsmetode(Behandling.Behandlingsmetode.Automatisk)
             .build(opprettet)
-        behandlingDao.lagre(ny)
+        behandlingshendelseDao.lagre(ny)
         return true
     }
 
     internal companion object {
         private const val eventName = "avsluttet_uten_vedtak"
 
-        internal fun river(rapidsConnection: RapidsConnection, behandlingDao: BehandlingDao) = HendelseRiver(
+        internal fun river(rapidsConnection: RapidsConnection, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
-            behandlingDao = behandlingDao,
+            behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet -> packet.requireGenerasjonId() },
             opprett = { packet -> AvsluttetUtenVedtak(
                 id = packet.hendelseId,

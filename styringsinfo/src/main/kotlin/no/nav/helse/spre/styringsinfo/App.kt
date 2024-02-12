@@ -14,7 +14,7 @@ import no.nav.helse.spre.styringsinfo.domain.SendtSøknadPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakFattetPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakForkastetPatch
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
@@ -81,7 +81,7 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
     val vedtakForkastetDao = VedtakForkastetDao(dataSource)
     val generasjonOpprettetDao = GenerasjonOpprettetDao(dataSource)
 
-    val tulleBehandlingDao: BehandlingDao = object: BehandlingDao {
+    val tulleBehandlingshendelseDao: BehandlingshendelseDao = object: BehandlingshendelseDao {
         override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? = null
         override fun initialiser(sakId: SakId) = emptyList<Behandling.Builder>()
         override fun lagre(behandling: Behandling) {}
@@ -95,11 +95,11 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
         VedtakFattetRiver(this, vedtakFattetDao)
         VedtakForkastetRiver(this, vedtakForkastetDao)
         GenerasjonOpprettetRiver(this, generasjonOpprettetDao)
-        GenerasjonOpprettet.river(this, tulleBehandlingDao)
-        AvsluttetMedVedtak.river(this, tulleBehandlingDao)
-        AvsluttetUtenVedtak.river(this, tulleBehandlingDao)
-        GenerasjonForkastet.river(this, tulleBehandlingDao)
-        VedtaksperiodeEndret.river(this, tulleBehandlingDao)
+        GenerasjonOpprettet.river(this, tulleBehandlingshendelseDao)
+        AvsluttetMedVedtak.river(this, tulleBehandlingshendelseDao)
+        AvsluttetUtenVedtak.river(this, tulleBehandlingshendelseDao)
+        GenerasjonForkastet.river(this, tulleBehandlingshendelseDao)
+        VedtaksperiodeEndret.river(this, tulleBehandlingshendelseDao)
     }
 }
 

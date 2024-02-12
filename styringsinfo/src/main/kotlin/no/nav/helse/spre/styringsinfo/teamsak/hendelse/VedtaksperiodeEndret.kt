@@ -2,10 +2,9 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AvventerGodkjenning
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingDao
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
@@ -23,24 +22,24 @@ internal class VedtaksperiodeEndret(
 ) : Hendelse {
     override val type = eventName
 
-    override fun håndter(behandlingDao: BehandlingDao): Boolean {
-        val generasjonId = behandlingDao.forrigeBehandlingId(SakId(vedtaksperiodeId)) ?: return false
-        val builder = behandlingDao.initialiser(generasjonId) ?: return false
+    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+        val generasjonId = behandlingshendelseDao.forrigeBehandlingId(SakId(vedtaksperiodeId)) ?: return false
+        val builder = behandlingshendelseDao.initialiser(generasjonId) ?: return false
         val ny = builder
             .behandlingstatus(AvventerGodkjenning)
             .behandlingsmetode(Automatisk)
             .build(opprettet)
-        behandlingDao.lagre(ny)
+        behandlingshendelseDao.lagre(ny)
         return true
     }
 
     internal companion object {
         private const val eventName = "vedtaksperiode_endret"
 
-        internal fun river(rapidsConnection: RapidsConnection, behandlingDao: BehandlingDao) = HendelseRiver(
+        internal fun river(rapidsConnection: RapidsConnection, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
-            behandlingDao = behandlingDao,
+            behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
                 packet.demand("gjeldendeTilstand") { check(it.asText().startsWith("AVVENTER_GODKJENNING")) }
                 packet.requireVedtaksperiodeId()
