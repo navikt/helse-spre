@@ -1,3 +1,9 @@
+create table hendelse(
+   id           UUID PRIMARY KEY,
+   opprettet    TIMESTAMP(6) NOT NULL,
+   type         VARCHAR NOT NULL,
+   data         JSONB NOT NULL
+);
 create table behandlingshendelse(
     sekvensnummer   SERIAL PRIMARY KEY,
     sakId           UUID NOT NULL,
@@ -6,7 +12,8 @@ create table behandlingshendelse(
     tekniskTid      TIMESTAMP(6) NOT NULL DEFAULT (now() AT TIME ZONE 'Europe/Oslo'),
     versjon         VARCHAR NOT NULL,
     siste           BOOLEAN NOT NULL,
-    data            JSONB NOT NULL
+    data            JSONB NOT NULL,
+    hendelseId      UUID NOT NULL REFERENCES hendelse(id)
 );
 
 comment on column behandlingshendelse.versjon is 'Versjon av data-kolonnen.';

@@ -16,7 +16,7 @@ import java.util.*
 internal class AvsluttetUtenVedtak(
     override val id: UUID,
     override val opprettet: LocalDateTime,
-    override val blob: JsonNode,
+    override val data: JsonNode,
     private val generasjonId: UUID
 ) : Hendelse {
     override val type = eventName
@@ -42,7 +42,7 @@ internal class AvsluttetUtenVedtak(
             valider = { packet -> packet.requireGenerasjonId() },
             opprett = { packet -> AvsluttetUtenVedtak(
                 id = packet.hendelseId,
-                blob = packet.blob,
+                data = packet.blob,
                 opprettet = packet.opprettet,
                 generasjonId = packet.generasjonId
             )}

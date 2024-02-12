@@ -23,7 +23,7 @@ import java.util.*
 internal class GenerasjonOpprettet(
     override val id: UUID,
     override val opprettet: LocalDateTime,
-    override val blob: JsonNode,
+    override val data: JsonNode,
     private val vedtaksperiodeId: UUID,
     private val generasjonId: UUID,
     private val aktørId: String,
@@ -86,7 +86,7 @@ internal class GenerasjonOpprettet(
             },
             opprett = { packet -> GenerasjonOpprettet(
                 id = packet.hendelseId,
-                blob = packet.blob,
+                data = packet.blob,
                 opprettet = packet.opprettet,
                 generasjonId = packet.generasjonId,
                 vedtaksperiodeId = packet.vedtaksperiodeId,

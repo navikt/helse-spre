@@ -17,7 +17,7 @@ import java.util.*
 internal class VedtaksperiodeEndret(
     override val id: UUID,
     override val opprettet: LocalDateTime,
-    override val blob: JsonNode,
+    override val data: JsonNode,
     private val vedtaksperiodeId: UUID
 ) : Hendelse {
     override val type = eventName
@@ -46,7 +46,7 @@ internal class VedtaksperiodeEndret(
             },
             opprett = { packet -> VedtaksperiodeEndret(
                 id = packet.hendelseId,
-                blob = packet.blob,
+                data = packet.blob,
                 opprettet = packet.opprettet,
                 vedtaksperiodeId = packet.vedtaksperiodeId
             )}

@@ -9,6 +9,6 @@ internal interface Hendelse {
     val id: UUID
     val opprettet: LocalDateTime
     val type: String
-    val blob: JsonNode
+    val data: JsonNode
     fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean
 }
