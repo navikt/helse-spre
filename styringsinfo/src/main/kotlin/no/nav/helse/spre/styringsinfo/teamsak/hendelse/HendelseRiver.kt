@@ -33,7 +33,7 @@ internal class HendelseRiver(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val hendelse = opprett(packet)
         hendelseDao.lagre(hendelse)
-        hendelse.håndter(behandlingshendelseDao)
+        if (!hendelse.håndter(behandlingshendelseDao)) return // Logger kun hendelser som ble håndtert som en behandlingshendelse
         packet.structuredArguments.let {
             sikkerLogg.info("Håndterte $eventName. ${it.joinToString { "{}" }}\n\t${packet.toJson()}", *it.toTypedArray())
         }

@@ -13,10 +13,6 @@ import no.nav.helse.spre.styringsinfo.domain.SendtSøknadPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakFattetPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakForkastetPatch
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -24,7 +20,6 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.*
 import kotlin.concurrent.thread
 
 internal val log: Logger = LoggerFactory.getLogger("sprestyringsinfo")
@@ -79,22 +74,8 @@ fun launchApplication(dataSource: HikariDataSource, environment: Map<String, Str
     val vedtakForkastetDao = VedtakForkastetDao(dataSource)
     val generasjonOpprettetDao = GenerasjonOpprettetDao(dataSource)
 
-    val tulleHendelseDao: HendelseDao = object: HendelseDao {
-        override fun lagre(hendelse: Hendelse) {}
-    }
-
-    val tulleBehandlingshendelseDao: BehandlingshendelseDao = object: BehandlingshendelseDao {
-        override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? = null
-        override fun initialiser(sakId: SakId) = emptyList<Behandling.Builder>()
-        override fun lagre(behandling: Behandling, hendelseId: UUID) {}
-        override fun hent(behandlingId: BehandlingId) = null
-        override fun forrigeBehandlingId(sakId: SakId) = null
-    }
-
-    val dev = environment["NAIS_CLUSTER_NAME"]?.lowercase() == "dev-gcp"
-
-    val hendelseDao = if (dev) PostgresHendelseDao(dataSource) else tulleHendelseDao
-    val behandlingshendelseDao = if (dev) PostgresBehandlingshendelseDao(dataSource) else tulleBehandlingshendelseDao
+    val hendelseDao = PostgresHendelseDao(dataSource)
+    val behandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
 
     return RapidApplication.create(environment).apply {
         SendtSøknadArbeidsgiverRiver(this, sendtSøknadDao)
