@@ -98,12 +98,17 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             aktørId = data.path("aktørId").asText(),
             mottattTid = LocalDateTime.parse(data.path("mottattTid").asText()),
             registrertTid = LocalDateTime.parse(data.path("registrertTid").asText()),
-            behandlingstatus = Behandling.Behandlingstatus.valueOf(data.path("behandlingstatus").asText()),
-            behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingtype").asText()),
-            behandlingsresultat = data.path("behandlingsresultat").textOrNull?.let { Behandling.Behandlingsresultat.valueOf(it) },
-            behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText()),
-            behandlingsmetode = data.path("behandlingsmetode").textOrNull?.let { Behandling.Behandlingsmetode.valueOf(it) }
+            behandlingstatus = data.path("behandlingstatus").asText().behandlingstatus(),
+            behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingtype").asText().uppercase()),
+            behandlingsresultat = data.path("behandlingsresultat").textOrNull?.let { Behandling.Behandlingsresultat.valueOf(it.uppercase()) },
+            behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText().uppercase()),
+            behandlingsmetode = data.path("behandlingsmetode").textOrNull?.let { Behandling.Behandlingsmetode.valueOf(it.uppercase()) }
         )
+    }
+
+    private fun String.behandlingstatus() = when(this) {
+        "AvventerGodkjenning" -> Behandling.Behandlingstatus.AVVENTER_GODKJENNING
+        else -> Behandling.Behandlingstatus.valueOf(this.uppercase())
     }
 
     override fun forrigeBehandlingId(sakId: SakId): BehandlingId? {
