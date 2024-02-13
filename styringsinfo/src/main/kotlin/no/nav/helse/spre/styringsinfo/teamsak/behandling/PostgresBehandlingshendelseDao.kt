@@ -88,6 +88,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         return run(queryOf(sql).map { it.behandling }.asSingle)
     }
 
+    // TODO: fjerne uppercase-logikk når gamle enumsverdier i Pascal-case er migrert bort
     private val Row.behandling get(): Behandling {
         val data = objectMapper.readTree(string("data"))
         return Behandling(
