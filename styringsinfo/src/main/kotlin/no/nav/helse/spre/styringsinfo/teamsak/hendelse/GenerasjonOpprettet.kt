@@ -43,7 +43,7 @@ internal class GenerasjonOpprettet(
             aktørId = aktørId,
             mottattTid = generasjonkilde.innsendt,
             registrertTid = generasjonkilde.registrert,
-            funksjonellTid = generasjonkilde.registrert,
+            funksjonellTid = opprettet,
             behandlingstatus = REGISTRERT,
             behandlingstype = generasjonstype.behandlingstype,
             behandlingskilde = behandlingskilde,
