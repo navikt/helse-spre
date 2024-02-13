@@ -12,6 +12,7 @@ import no.nav.helse.spre.styringsinfo.db.*
 import no.nav.helse.spre.styringsinfo.domain.SendtSøknadPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakFattetPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakForkastetPatch
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
@@ -72,7 +73,7 @@ fun main() {
     rapidsConnection.start()
 }
 
-fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<String, String>): RapidsConnection {
+fun launchApplication(dataSource: HikariDataSource, environment: Map<String, String>): RapidsConnection {
     val sendtSøknadDao = SendtSøknadDao(dataSource)
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val vedtakForkastetDao = VedtakForkastetDao(dataSource)
@@ -90,17 +91,22 @@ fun launchApplication(dataSource: HikariDataSource, environment: MutableMap<Stri
         override fun forrigeBehandlingId(sakId: SakId) = null
     }
 
+    val dev = environment["NAIS_CLUSTER_NAME"]?.lowercase() == "dev-gcp"
+
+    val hendelseDao = if (dev) PostgresHendelseDao(dataSource) else tulleHendelseDao
+    val behandlingshendelseDao = if (dev) PostgresBehandlingshendelseDao(dataSource) else tulleBehandlingshendelseDao
+
     return RapidApplication.create(environment).apply {
         SendtSøknadArbeidsgiverRiver(this, sendtSøknadDao)
         SendtSøknadNavRiver(this, sendtSøknadDao)
         VedtakFattetRiver(this, vedtakFattetDao)
         VedtakForkastetRiver(this, vedtakForkastetDao)
         GenerasjonOpprettetRiver(this, generasjonOpprettetDao)
-        GenerasjonOpprettet.river(this, tulleHendelseDao, tulleBehandlingshendelseDao)
-        AvsluttetMedVedtak.river(this, tulleHendelseDao, tulleBehandlingshendelseDao)
-        AvsluttetUtenVedtak.river(this, tulleHendelseDao, tulleBehandlingshendelseDao)
-        GenerasjonForkastet.river(this, tulleHendelseDao, tulleBehandlingshendelseDao)
-        VedtaksperiodeEndret.river(this, tulleHendelseDao, tulleBehandlingshendelseDao)
+        GenerasjonOpprettet.river(this, hendelseDao, behandlingshendelseDao)
+        AvsluttetMedVedtak.river(this, hendelseDao, behandlingshendelseDao)
+        AvsluttetUtenVedtak.river(this, hendelseDao, behandlingshendelseDao)
+        GenerasjonForkastet.river(this, hendelseDao, behandlingshendelseDao)
+        VedtaksperiodeEndret.river(this, hendelseDao, behandlingshendelseDao)
     }
 }
 
