@@ -3,11 +3,13 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.*
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Manuell
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.Henlagt
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.Registrert
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.Førstegangsbehandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.ARBEIDSGIVER
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SAKSBEHANDLER
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SYSTEM
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.MANUELL
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.HENLAGT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
@@ -34,10 +36,10 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val behandling = nyBehandling(behandlingId)
         behandlingshendelseDao.lagre(behandling, hendelseId)
         assertEquals(1, behandlingId.rader)
-        val korrigertKilde = behandling.copy(behandlingskilde = Saksbehandler)
+        val korrigertKilde = behandling.copy(behandlingskilde = SAKSBEHANDLER)
         behandlingshendelseDao.lagre(korrigertKilde, hendelseId)
         assertEquals(2, behandlingId.rader)
-        assertEquals(Saksbehandler, behandlingshendelseDao.hent(behandlingId)!!.behandlingskilde)
+        assertEquals(SAKSBEHANDLER, behandlingshendelseDao.hent(behandlingId)!!.behandlingskilde)
     }
 
     @Test
@@ -47,16 +49,16 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val behandling = nyBehandling(behandlingId)
         behandlingshendelseDao.lagre(behandling, hendelseId)
         assertEquals(1, behandlingId.rader)
-        val nyInfo = behandling.copy(behandlingsresultat = Henlagt, funksjonellTid = LocalDateTime.now())
+        val nyInfo = behandling.copy(behandlingsresultat = HENLAGT, funksjonellTid = LocalDateTime.now())
         behandlingshendelseDao.lagre(nyInfo, hendelseId)
         assertEquals(2, behandlingId.rader)
-        assertEquals(Henlagt, behandlingshendelseDao.hent(behandlingId)!!.behandlingsresultat)
-        val korrigererFørste = behandling.copy(behandlingskilde = Arbeidsgiver)
+        assertEquals(HENLAGT, behandlingshendelseDao.hent(behandlingId)!!.behandlingsresultat)
+        val korrigererFørste = behandling.copy(behandlingskilde = ARBEIDSGIVER)
         behandlingshendelseDao.lagre(korrigererFørste, hendelseId)
         assertEquals(3, behandlingId.rader)
         // Ettersom vi korrigerer en tidligere rad er det ikke det den siste vi bygger videre på for nye meldinger.
-        assertEquals(Henlagt, behandlingshendelseDao.hent(behandlingId)!!.behandlingsresultat)
-        assertEquals(System, behandlingshendelseDao.hent(behandlingId)!!.behandlingskilde)
+        assertEquals(HENLAGT, behandlingshendelseDao.hent(behandlingId)!!.behandlingsresultat)
+        assertEquals(SYSTEM, behandlingshendelseDao.hent(behandlingId)!!.behandlingskilde)
     }
 
     @Test
@@ -91,9 +93,9 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         mottattTid = LocalDateTime.now(),
         registrertTid = LocalDateTime.now(),
         funksjonellTid = LocalDateTime.now(),
-        behandlingstatus =  Registrert,
-        behandlingskilde = System,
-        behandlingstype = Førstegangsbehandling,
-        behandlingsmetode = Manuell
+        behandlingstatus =  REGISTRERT,
+        behandlingskilde = SYSTEM,
+        behandlingstype = FØRSTEGANGSBEHANDLING,
+        behandlingsmetode = MANUELL
     )
 }

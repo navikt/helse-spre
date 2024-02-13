@@ -3,12 +3,12 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.Saksbehandler
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Automatisk
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.Manuell
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.Registrert
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SAKSBEHANDLER
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.MANUELL
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.generasjonId
@@ -44,10 +44,10 @@ internal class GenerasjonOpprettet(
             mottattTid = generasjonkilde.innsendt,
             registrertTid = generasjonkilde.registrert,
             funksjonellTid = generasjonkilde.registrert,
-            behandlingstatus = Registrert,
+            behandlingstatus = REGISTRERT,
             behandlingstype = generasjonstype.behandlingstype,
             behandlingskilde = behandlingskilde,
-            behandlingsmetode = if (behandlingskilde == Saksbehandler) Manuell else Automatisk
+            behandlingsmetode = if (behandlingskilde == SAKSBEHANDLER) MANUELL else AUTOMATISK
         )
         behandlingshendelseDao.lagre(behandling, this.id)
         return true
@@ -59,17 +59,17 @@ internal class GenerasjonOpprettet(
 
     internal companion object {
         private val Avsender.behandlingskilde get() = when (verdi) {
-            "SYKMELDT" -> Behandling.Behandlingskilde.Sykmeldt
-            "ARBEIDSGIVER" -> Behandling.Behandlingskilde.Arbeidsgiver
-            "SAKSBEHANDLER" -> Saksbehandler
-            "SYSTEM" -> Behandling.Behandlingskilde.System
+            "SYKMELDT" -> Behandling.Behandlingskilde.SYKMELDT
+            "ARBEIDSGIVER" -> Behandling.Behandlingskilde.ARBEIDSGIVER
+            "SAKSBEHANDLER" -> SAKSBEHANDLER
+            "SYSTEM" -> Behandling.Behandlingskilde.SYSTEM
             else -> throw IllegalStateException("Kjenner ikke til kildeavsender $verdi")
         }
 
         private val Generasjonstype.behandlingstype get() = when (verdi) {
-            "Førstegangsbehandling", "TilInfotrygd" -> Behandling.Behandlingstype.Førstegangsbehandling
-            "Omgjøring" -> Behandling.Behandlingstype.Omgjøring
-            "Revurdering" -> Behandling.Behandlingstype.Revurdering
+            "Førstegangsbehandling", "TilInfotrygd" -> Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING
+            "Omgjøring" -> Behandling.Behandlingstype.OMGJØRING
+            "Revurdering" -> Behandling.Behandlingstype.REVURDERING
             else -> throw IllegalStateException("Kjenner ikke til generasjontype $verdi")
         }
 

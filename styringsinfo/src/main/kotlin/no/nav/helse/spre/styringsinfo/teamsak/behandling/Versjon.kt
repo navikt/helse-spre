@@ -16,7 +16,7 @@ internal class Versjon private constructor(
 
 
     internal companion object {
-        private val initiellVersjon = of("0.0.1")
+        private val initiellVersjon = of("0.0.2")
         private val initielleFelter = setOf("aktørId", "mottattTid", "registrertTid", "behandlingstatus", "behandlingtype", "behandlingskilde", "behandlingsmetode", "relatertBehandlingId", "behandlingsresultat")
 
         private fun nesteVersjon(forrigeVersjon: Versjon, forrigeFelter: Set<String>, felter: Set<String>): Pair<Set<String>, Versjon> {

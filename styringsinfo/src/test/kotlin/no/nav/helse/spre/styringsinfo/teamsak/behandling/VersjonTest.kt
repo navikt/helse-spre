@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 internal class VersjonTest {
-
     @Test
     fun `kan ikke lag ugyldige versjoner`() {
         assertEquals("Ugyldig versjon tull", assertThrows<IllegalStateException> { Versjon.of("tull") }.message)
@@ -29,7 +28,7 @@ internal class VersjonTest {
 
     @Test
     fun `Evaluerer versjon ut i fra felter`() {
-        assertEquals(Versjon.of("0.0.1"), Versjon.of(initielleFelter))
+        assertEquals(Versjon.of("0.0.2"), Versjon.of(initielleFelter))
         assertEquals(Versjon.of("0.1.0"), Versjon.of(initielleFelter + "eksempelverdi_1" + "eksempelverdi_2"))
         assertEquals(Versjon.of("1.0.0"), Versjon.of(initielleFelter + "eksempelverdi_1"))
         assertEquals(Versjon.of("2.0.0"), Versjon.of(initielleFelter + "eksempelverdi_3"))

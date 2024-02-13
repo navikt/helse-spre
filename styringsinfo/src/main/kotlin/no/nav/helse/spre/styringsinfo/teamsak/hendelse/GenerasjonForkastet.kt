@@ -25,8 +25,8 @@ internal class GenerasjonForkastet(
         val builders = behandlingshendelseDao.initialiser(SakId(vedtaksperiodeId)).takeUnless { it.isEmpty() } ?: return false
         builders.forEach { builder ->
             val ny = builder
-                .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
-                .behandlingsresultat(Behandling.Behandlingsresultat.Avbrutt)
+                .behandlingstatus(Behandling.Behandlingstatus.AVSLUTTET)
+                .behandlingsresultat(Behandling.Behandlingsresultat.AVBRUTT)
                 .build(opprettet)
             behandlingshendelseDao.lagre(ny, this.id)
         }

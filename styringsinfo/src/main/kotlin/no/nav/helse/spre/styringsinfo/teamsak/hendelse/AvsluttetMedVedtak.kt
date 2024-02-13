@@ -3,8 +3,8 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.generasjonId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
@@ -24,8 +24,8 @@ internal class AvsluttetMedVedtak(
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builder = behandlingshendelseDao.initialiser(BehandlingId(generasjonId)) ?: return false
         val ny = builder
-            .behandlingstatus(Behandling.Behandlingstatus.Avsluttet)
-            .behandlingsresultat(Behandling.Behandlingsresultat.Vedtatt)
+            .behandlingstatus(Behandling.Behandlingstatus.AVSLUTTET)
+            .behandlingsresultat(Behandling.Behandlingsresultat.VEDTATT)
             .build(opprettet)
         behandlingshendelseDao.lagre(ny, this.id)
         return true

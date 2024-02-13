@@ -27,33 +27,33 @@ internal data class Behandling(
     internal val behandlingsmetode: Behandlingsmetode?
 ) {
     internal enum class Behandlingstatus {
-        Registrert,
-        AvventerGodkjenning,
-        Avsluttet
+        REGISTRERT,
+        AVVENTER_GODKJENNING,
+        AVSLUTTET
     }
 
     internal enum class Behandlingstype {
-        Førstegangsbehandling,
-        Omgjøring,
-        Revurdering
+        FØRSTEGANGSBEHANDLING,
+        OMGJØRING,
+        REVURDERING
     }
     
     internal enum class Behandlingsresultat {
-        Vedtatt, // Per nå har vi ikke nok info til å utlede innvilget/delvisInnvilget/avslag, så alt sendes som ☂️-betegnelsen Vedtatt
-        Henlagt,
-        Avbrutt
+        VEDTATT, // Per nå har vi ikke nok info til å utlede innvilget/delvisInnvilget/avslag, så alt sendes som ☂️-betegnelsen Vedtatt
+        HENLAGT,
+        AVBRUTT
     }
 
     internal enum class Behandlingskilde {
-        Sykmeldt,
-        Arbeidsgiver,
-        Saksbehandler,
-        System
+        SYKMELDT,
+        ARBEIDSGIVER,
+        SAKSBEHANDLER,
+        SYSTEM
     }
 
     internal enum class Behandlingsmetode {
-        Manuell,
-        Automatisk
+        MANUELL,
+        AUTOMATISK
     }
 
     internal fun funksjoneltLik(other: Behandling): Boolean {
