@@ -13,6 +13,14 @@ import java.time.Duration
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class AbstractDatabaseTest {
 
+    init {
+        Flyway.configure()
+            .dataSource(dataSource)
+            .failOnMissingLocations(true)
+            .load()
+            .migrate()
+    }
+
     @BeforeAll
     fun truncateAllTheTings() {
         sessionOf(dataSource).use { session ->
@@ -43,14 +51,6 @@ abstract class AbstractDatabaseTest {
                 maximumPoolSize = 5
                 initializationFailTimeout = Duration.ofMinutes(15).toMillis()
             })
-
-        init {
-            Flyway.configure()
-                .dataSource(dataSource)
-                .failOnMissingLocations(true)
-                .load()
-                .migrate()
-        }
     }
 }
 
