@@ -7,7 +7,7 @@ import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.sql.ResultSet
 
-internal class V28__uppercase_enum_verdier: BaseJavaMigration() {
+internal class V29__uppercase_enum_verdier: BaseJavaMigration() {
     private companion object {
         private val objectMapper = jacksonObjectMapper()
     }
@@ -15,10 +15,10 @@ internal class V28__uppercase_enum_verdier: BaseJavaMigration() {
         val statement = context.connection.createStatement()
         val batchStatement = context.connection.createStatement()
         val query = """
-            select * from behandlingshendelse where versjon='0.0.1'; 
-        """.trimIndent()
+            select * from behandlingshendelse where versjon='0.0.1' and er_korrigert=false; 
+        """
         val nyVersjon = "0.0.2"
-        statement.executeQuery(query).let {
+        statement.executeQuery(query).use {
             while (it.next()) {
                 val interessanteFelter = it.toBehandlingshendelseRad()
                 interessanteFelter.oppdaterFeltFor("behandlingstatus")
@@ -28,20 +28,19 @@ internal class V28__uppercase_enum_verdier: BaseJavaMigration() {
                 interessanteFelter.oppdaterFeltFor("behandlingtype")
 
                 val insert = """
-                    insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste, hendelseId)
-                    select sakId, behandlingId, funksjonellTid, '$nyVersjon', '${interessanteFelter.data}'::jsonb, siste, hendelseId 
+                    insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste, hendelseId, er_korrigert)
+                    select sakId, behandlingId, funksjonellTid, '$nyVersjon', '${interessanteFelter.data}'::jsonb, siste, hendelseId, false 
                     from behandlingshendelse 
                     where sekvensnummer=${interessanteFelter.sekvensnummer};
-                """.trimIndent()
+                """
 
                 val update = """
-                    update behandlingshendelse set siste=false where sekvensnummer=${interessanteFelter.sekvensnummer};
-                """.trimIndent()
+                    update behandlingshendelse set siste=false, er_korrigert=true where sekvensnummer=${interessanteFelter.sekvensnummer};
+                """
 
                 batchStatement.addBatch(insert)
                 batchStatement.addBatch(update)
             }
-            it.close()
         }
         batchStatement.executeBatch()
 

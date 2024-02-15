@@ -50,8 +50,8 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
 
     private fun TransactionalSession.lagre(behandling: Behandling, siste: Boolean, hendelseId: UUID) {
         val sql = """
-            insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste, hendelseId) 
-            values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste, :hendelseId)
+            insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste, hendelseId, er_korrigert) 
+            values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste, :hendelseId, false)
         """
 
         val data = objectMapper.createObjectNode().apply {
