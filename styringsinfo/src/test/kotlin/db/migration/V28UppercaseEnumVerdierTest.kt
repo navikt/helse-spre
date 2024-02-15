@@ -144,17 +144,19 @@ internal class V28UppercaseEnumVerdierTest {
     }
 
     private fun alleBehandlingshendelser(behandlingId: UUID) = sessionOf(dataSource).use { session -> session.run(queryOf("select * from behandlingshendelse where behandlingId='$behandlingId' sort by tektniskTid").map { row ->
+        val data = objectMapper.readTree(row.string("data"))
         SpennendeFelter(
             sekvensnummer = row.long("sekvensnummer"),
-            behandlingsmetode = row.string("behandlingsmetode"),
-            behandlingstype = row.string("behandlingstype"),
-            behandlingsresultat = row.string("behandlingsresultat"),
-            behandlingstatus = row.string("behandlingstatus"),
-            behandlingskilde = row.string("behandlingskilde"),
             funksjonellTid = row.localDateTime("funksjonellTid"),
             tekniskTid = row.localDateTime("tekniskTid"),
             siste = row.boolean("siste"),
-            versjon = row.string("versjon")
+            versjon = row.string("versjon"),
+            // Felter som ligger inne i "data"-bloben
+            behandlingsmetode = data.path("behandlingsmetode").asText(),
+            behandlingstype = data.path("behandlingtype").asText(), // TODO: Deilig at vi har lagret det som "behandlingtype" (uten s) - det kan vi vurdere å migrere
+            behandlingsresultat = data.path("behandlingsresultat").asText(),
+            behandlingstatus = data.path("behandlingstatus").asText(),
+            behandlingskilde = data.path("behandlingskilde").asText()
         )
     }.asList)}
 
