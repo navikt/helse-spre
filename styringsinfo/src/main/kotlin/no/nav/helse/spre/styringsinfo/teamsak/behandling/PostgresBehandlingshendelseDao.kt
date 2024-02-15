@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.*
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.sql.DataSource
 
@@ -56,8 +56,8 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
 
         val data = objectMapper.createObjectNode().apply {
             put("aktørId", behandling.aktørId)
-            put("mottattTid", "${behandling.mottattTid}")
-            put("registrertTid", "${behandling.registrertTid}")
+            put("mottattTid", "${behandling.mottattTid.truncatedTo(ChronoUnit.MICROS)}")
+            put("registrertTid", "${behandling.registrertTid.truncatedTo(ChronoUnit.MICROS)}")
             put("behandlingstatus", behandling.behandlingstatus.name)
             put("behandlingtype", behandling.behandlingstype.name)
             put("behandlingskilde", behandling.behandlingskilde.name)

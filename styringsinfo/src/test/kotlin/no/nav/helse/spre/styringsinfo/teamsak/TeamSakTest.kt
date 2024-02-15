@@ -65,6 +65,18 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     }
 
     @Test
+    fun `presisjon på tidsstempler truncates til 6 desimaler i databasen`() {
+        val tidspunkt = LocalDateTime.parse("2024-02-13T15:29:54.123123123")
+        val (behandlingId, generasjonOpprettet, _) = generasjonOpprettet(Førstegangsbehandling, tidspunkt = tidspunkt)
+        var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+
+        fun LocalDateTime.antallDesimaler() = if (this.toString().contains(".")) this.toString().split(".").last().length else 0
+        assertEquals(6, behandling.funksjonellTid.antallDesimaler())
+        assertEquals(6, behandling.mottattTid.antallDesimaler())
+        assertEquals(6, behandling.registrertTid.antallDesimaler())
+    }
+
+    @Test
     fun `start og slutt for auu`() {
         val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling)
         assertNull(behandlingshendelseDao.hent(behandlingId))
@@ -246,11 +258,12 @@ internal class TeamSakTest: AbstractDatabaseTest() {
            sakId: SakId = SakId(UUID.randomUUID()),
            behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()),
            aktørId: String = "1234",
-           avsender: GenerasjonOpprettet.Avsender = Sykmeldt
+           avsender: GenerasjonOpprettet.Avsender = Sykmeldt,
+           tidspunkt: LocalDateTime = nesteTidspunkt
        ): Triple<BehandlingId, GenerasjonOpprettet, SakId> {
-           val innsendt = nesteTidspunkt
-           val registret = nesteTidspunkt
-           val opprettet = nesteTidspunkt
+           val innsendt = tidspunkt
+           val registret = tidspunkt
+           val opprettet = tidspunkt
            val generasjonkilde = GenerasjonOpprettet.Generasjonkilde(innsendt, registret, avsender)
            val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, generasjonkilde, generasjonstype)
            return Triple(behandlingId, generasjonOpprettet, sakId)
