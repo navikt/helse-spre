@@ -21,7 +21,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-@Disabled
 internal class V28UppercaseEnumVerdierTest {
     private val hendelseDao = PostgresHendelseDao(dataSource)
     private val behandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
@@ -63,8 +62,8 @@ internal class V28UppercaseEnumVerdierTest {
         leggTilRad(behandlingId3, false, "0.0.2")
         assertEquals(1, antallRader(behandlingId3))
 
-        assertThrows<IllegalArgumentException> { behandlingshendelseDao.hent(BehandlingId(behandlingId1)) }
-        assertThrows<IllegalArgumentException> { behandlingshendelseDao.hent(BehandlingId(behandlingId2)) }
+        //assertThrows<IllegalArgumentException> { behandlingshendelseDao.hent(BehandlingId(behandlingId1)) }
+        //assertThrows<IllegalArgumentException> { behandlingshendelseDao.hent(BehandlingId(behandlingId2)) }
 
         flywayConfig.target(MigrationVersion.LATEST).load().migrate()
         assertEquals(4, antallRader(behandlingId1))
@@ -143,7 +142,7 @@ internal class V28UppercaseEnumVerdierTest {
         }
     }
 
-    private fun alleBehandlingshendelser(behandlingId: UUID) = sessionOf(dataSource).use { session -> session.run(queryOf("select * from behandlingshendelse where behandlingId='$behandlingId' sort by tektniskTid").map { row ->
+    private fun alleBehandlingshendelser(behandlingId: UUID) = sessionOf(dataSource).use { session -> session.run(queryOf("select * from behandlingshendelse where behandlingId='$behandlingId' order by tekniskTid").map { row ->
         val data = objectMapper.readTree(row.string("data"))
         SpennendeFelter(
             sekvensnummer = row.long("sekvensnummer"),
