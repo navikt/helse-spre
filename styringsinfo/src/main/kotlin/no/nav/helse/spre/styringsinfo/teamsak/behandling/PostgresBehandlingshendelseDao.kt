@@ -6,7 +6,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.*
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.sql.DataSource
 
@@ -56,8 +56,8 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
 
         val data = objectMapper.createObjectNode().apply {
             put("aktørId", behandling.aktørId)
-            put("mottattTid", "${behandling.mottattTid.truncatedTo(ChronoUnit.MICROS)}")
-            put("registrertTid", "${behandling.registrertTid.truncatedTo(ChronoUnit.MICROS)}")
+            put("mottattTid", behandling.mottattTid.format(formatter))
+            put("registrertTid", behandling.registrertTid.format(formatter))
             put("behandlingstatus", behandling.behandlingstatus.name)
             put("behandlingtype", behandling.behandlingstype.name)
             put("behandlingskilde", behandling.behandlingskilde.name)
@@ -126,6 +126,9 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
 
     private companion object {
         private val objectMapper = jacksonObjectMapper()
+
+        val formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS") // timestamps lagres med 6 desimaler i db
+
         private val JsonNode.textOrNull get() = takeIf { it.isTextual }?.asText()
         private val JsonNode.uuidOrNull get() = textOrNull?.let { UUID.fromString(it) }
         private fun ObjectNode.putString(fieldName: String, value: String?) {

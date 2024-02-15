@@ -65,15 +65,27 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     }
 
     @Test
-    fun `presisjon på tidsstempler truncates til 6 desimaler i databasen`() {
+    fun `presisjon på tidsstempler truncates ned til 6 desimaler i databasen`() {
         val tidspunkt = LocalDateTime.parse("2024-02-13T15:29:54.123123123")
         val (behandlingId, generasjonOpprettet, _) = generasjonOpprettet(Førstegangsbehandling, tidspunkt = tidspunkt)
-        var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
-        fun LocalDateTime.antallDesimaler() = if (this.toString().contains(".")) this.toString().split(".").last().length else 0
-        assertEquals(6, behandling.funksjonellTid.antallDesimaler())
-        assertEquals(6, behandling.mottattTid.antallDesimaler())
-        assertEquals(6, behandling.registrertTid.antallDesimaler())
+        fun String.antallDesimaler() = if (this.contains(".")) this.split(".").last().length else 0
+        assertEquals(6, funksjonellTid!!.antallDesimaler())
+        assertEquals(6, mottattTid!!.antallDesimaler())
+        assertEquals(6, registrertTid!!.antallDesimaler())
+    }
+
+    @Test
+    fun `presisjon på tidsstempler justeres opp til 6 desimaler i databasen`() {
+        val tidspunkt = LocalDateTime.parse("2024-02-13T15:29")
+        val (behandlingId, generasjonOpprettet, _) = generasjonOpprettet(Førstegangsbehandling, tidspunkt = tidspunkt)
+        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+
+        fun String.antallDesimaler() = if (this.contains(".")) this.split(".").last().length else 0
+        assertEquals(6, funksjonellTid!!.antallDesimaler())
+        assertEquals(6, mottattTid!!.antallDesimaler())
+        assertEquals(6, registrertTid!!.antallDesimaler())
     }
 
     @Test
@@ -215,6 +227,24 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         }.asList)
     }
 
+    private val mottattTid get() = sessionOf(dataSource).use { session ->
+        session.run(queryOf("select data->>'mottattTid' from behandlingshendelse LIMIT 1").map { row ->
+            row.string(1)
+        }.asSingle)
+    }
+
+    private val registrertTid get() = sessionOf(dataSource).use { session ->
+        session.run(queryOf("select data->>'registrertTid' from behandlingshendelse LIMIT 1").map { row ->
+            row.string(1)
+        }.asSingle)
+    }
+
+    private val funksjonellTid get() = sessionOf(dataSource).use { session ->
+        session.run(queryOf("select funksjonellTid from behandlingshendelse LIMIT 1").map { row ->
+            row.string(1)
+        }.asSingle)
+    }
+
     private fun Hendelse.håndter(behandlingshendelseDao: BehandlingshendelseDao, behandlingId: BehandlingId): Behandling {
         hendelseDao.lagre(this)
         håndter(behandlingshendelseDao)
@@ -262,9 +292,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
            tidspunkt: LocalDateTime = nesteTidspunkt
        ): Triple<BehandlingId, GenerasjonOpprettet, SakId> {
            val innsendt = tidspunkt
-           val registret = tidspunkt
-           val opprettet = tidspunkt
-           val generasjonkilde = GenerasjonOpprettet.Generasjonkilde(innsendt, registret, avsender)
+           val registrert = tidspunkt
+           val opprettet = nesteTidspunkt
+           val generasjonkilde = GenerasjonOpprettet.Generasjonkilde(innsendt, registrert, avsender)
            val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, generasjonkilde, generasjonstype)
            return Triple(behandlingId, generasjonOpprettet, sakId)
        }
