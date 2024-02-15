@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -60,8 +61,8 @@ internal class V29UppercaseEnumVerdierTest {
         val behandling2SisteSekvensnummer = leggTilRad(behandlingId2, true)
         assertEquals(3, antallRader(behandlingId2))
 
-        //assertThrows<IllegalArgumentException> { behandlingshendelseDao.hent(BehandlingId(behandlingId1)) }
-        //assertThrows<IllegalArgumentException> { behandlingshendelseDao.hent(BehandlingId(behandlingId2)) }
+        assertThrows<IllegalArgumentException> { behandlingshendelseDao.hent(BehandlingId(behandlingId1)) }
+        assertThrows<IllegalArgumentException> { behandlingshendelseDao.hent(BehandlingId(behandlingId2)) }
 
         flywayConfig.target(MigrationVersion.fromVersion("29")).load().migrate()
         assertEquals(4, antallRader(behandlingId1))
