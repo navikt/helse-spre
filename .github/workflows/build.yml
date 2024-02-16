@@ -133,9 +133,9 @@ jobs:
           files: "${{ env.VARS }}"
       - name: deploy
         if: steps.vars_file.outputs.files_exists == 'true'
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          CLUSTER: ${{ matrix.cluster }}
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: ${{ matrix.cluster }}
           VAR: team=${{ needs.generate_vars.outputs.team }},app=${{ matrix.project }},git_sha=${{ github.sha }}
 
