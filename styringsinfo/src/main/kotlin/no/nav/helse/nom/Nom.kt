@@ -40,7 +40,7 @@ internal fun JsonNode.enhet(gyldigPåDato: LocalDate): String? {
             enhet = it["orgEnhet"]["remedyEnhetId"].asText()
         )
     }
-    val kandidater = tilknytninger.filter { it.gyldigFom < gyldigPåDato && (it.gyldigTom == null || it.gyldigTom > gyldigPåDato)}
+    val kandidater = tilknytninger.filter { it.gyldigFom <= gyldigPåDato && (it.gyldigTom == null || it.gyldigTom >= gyldigPåDato)}
     val sortert = kandidater.sortedWith { a, _ ->
         when {
             a.orgEnhetsType == "NAV_ARBEID_OG_YTELSER" -> -1

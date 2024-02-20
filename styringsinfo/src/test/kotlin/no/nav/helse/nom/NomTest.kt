@@ -35,6 +35,19 @@ class NomTest {
         assertEquals("4200", actual)
     }
 
+    @Test
+    fun `parser enhet når det er første dag i jobben`() {
+        val dato = LocalDate.of(2020, 10, 26)
+        val actual = objectMapper.readTree(personMedEnEnhet).enhet(dato)
+        assertEquals("1350", actual)
+    }
+
+    @Test
+    fun `parser enhet når det er siste dag i jobben`() {
+        val dato = LocalDate.of(2022, 11, 27)
+        val actual = objectMapper.readTree(personMedEnEnhet).enhet(dato)
+        assertEquals("1350", actual)
+    }
 
 
     @Language("JSON")
@@ -50,7 +63,7 @@ class NomTest {
                   "orgEnhet": {
                     "id": "ab666a",
                     "navn": "OI utvikling 1",
-                    "remedyEnhetId": "6550",
+                    "remedyEnhetId": "1350",
                     "orgEnhetsType": "DIREKTORAT"
                   }
                 },
