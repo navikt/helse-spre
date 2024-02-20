@@ -9,3 +9,14 @@ gcp:
   envVarPrefix: DATABASE
   datastream: true
   sqlInstanceTier: db-f1-micro
+azure:
+  enabled: true
+accessPolicy:
+  outbound:
+    - application: nom-api
+      namespace: nom
+env:
+  - name: NOM_API_BASE_URL
+    value: http://nom-api.nom.svc.cluster.local
+  - name: NOM_API_OAUTH_SCOPE
+    value: api://dev-gcp.nom.nom-api/.default
