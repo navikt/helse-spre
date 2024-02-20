@@ -8,13 +8,15 @@ internal data class SakId(val id: UUID) {
     override fun toString() = "$id"
 }
 
+internal fun UUID.asSakId() = SakId(this)
+
 internal data class BehandlingId(val id: UUID) {
     override fun toString() = "$id"
 }
 
 internal data class Behandling(
-    internal val sakId: SakId,
-    internal val behandlingId: BehandlingId,
+    internal val sakId: SakId,                       // SakId er team sak-terminologi for vedtaksperiodeId
+    internal val behandlingId: BehandlingId,         // behandlingId er team sak-terminologi for generasjonId
     internal val relatertBehandlingId: BehandlingId?,
     internal val aktørId: String,
     internal val mottattTid: LocalDateTime,          // Tidspunktet da behandlingen oppstår (eks. søknad mottas). Dette er starten på beregning av saksbehandlingstid.
@@ -24,7 +26,9 @@ internal data class Behandling(
     internal val behandlingstype: Behandlingstype,
     internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
-    internal val behandlingsmetode: Behandlingsmetode?
+    internal val behandlingsmetode: Behandlingsmetode?,
+    internal val saksbehandlerEnhet: String? = null,
+    internal val beslutterEnhet: String? = null,
 ) {
     internal enum class Behandlingstatus {
         REGISTRERT,
@@ -67,12 +71,16 @@ internal data class Behandling(
         private var behandlingsresultat: Behandlingsresultat? = null
         private var behandlingskilde: Behandlingskilde? = null
         private var behandlingsmetode: Behandlingsmetode? = null
+        private var saksbehandlerEnhet: String? = null
+        private var beslutterEnhet: String? = null
 
         internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply { this.behandlingstatus = behandlingstatus }
         internal fun behandlingtype(behandlingtype: Behandlingstype) = apply { this.behandlingtype = behandlingtype }
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun behandlingskilde(behandlingskilde: Behandlingskilde) = apply { this.behandlingskilde = behandlingskilde }
         internal fun behandlingsmetode(behandlingsmetode: Behandlingsmetode) = apply { this.behandlingsmetode = behandlingsmetode }
+        internal fun saksbehandlerEnhet(saksbehandlerEnhet: String?) = apply { this.saksbehandlerEnhet = saksbehandlerEnhet }
+        internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
 
         internal fun build(funksjonellTid: LocalDateTime) = Behandling(
             sakId = forrige.sakId,
@@ -86,7 +94,9 @@ internal data class Behandling(
             behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
             behandlingstype = behandlingtype ?: forrige.behandlingstype,
             behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
-            behandlingskilde = behandlingskilde ?: forrige.behandlingskilde
+            behandlingskilde = behandlingskilde ?: forrige.behandlingskilde,
+            saksbehandlerEnhet = saksbehandlerEnhet,
+            beslutterEnhet = beslutterEnhet,
         )
     }
 }

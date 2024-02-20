@@ -18,6 +18,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeEndret
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeGodkjent
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -62,6 +63,26 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         behandling = avsluttetMedVedtak(behandlingId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingsresultat.VEDTATT, behandling.behandlingsresultat)
+    }
+    @Test
+    fun `start og slutt for godkjent vedtak`() {
+        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Førstegangsbehandling)
+        assertNull(behandlingshendelseDao.hent(behandlingId))
+        var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
+        assertNull(behandling.behandlingsresultat)
+
+        behandling = vedtaksperiodeEndret(sakId).håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(Behandling.Behandlingstatus.AVVENTER_GODKJENNING, behandling.behandlingstatus)
+        assertEquals(Behandling.Behandlingsmetode.AUTOMATISK, behandling.behandlingsmetode)
+
+        behandling = vedtaksperiodeGodkjent(sakId).håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(Behandling.Behandlingsmetode.MANUELL, behandling.behandlingsmetode)
+
+        behandling = avsluttetMedVedtak(behandlingId).håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
+        assertEquals(Behandling.Behandlingsresultat.VEDTATT, behandling.behandlingsresultat)
+        assertNull(behandling.behandlingsmetode)
     }
 
     @Test
@@ -302,5 +323,6 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun generasjonForkastet(sakId: SakId) = GenerasjonForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeEndret(sakId: SakId) = VedtaksperiodeEndret(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
+       internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeGodkjent(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, "SB123", "SB456", false)
    }
 }

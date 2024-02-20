@@ -24,7 +24,14 @@ internal class HendelseRiver(
                 it.demandValue("@event_name", eventName)
                 it.require("@opprettet", JsonNode::asLocalDateTime)
                 it.require("@id") { id -> UUID.fromString(id.asText()) }
-                it.interestedIn("aktørId", "vedtaksperiodeId", "generasjonId")
+                it.interestedIn(
+                    "aktørId",
+                    "vedtaksperiodeId",
+                    "generasjonId",
+                    "saksbehandlerIdent",
+                    "beslutterIdent",
+                    "automatiskBehandling"
+                )
                 valider(it)
             }
         }.register(this)
@@ -53,8 +60,13 @@ internal class HendelseRiver(
         internal val JsonMessage.opprettet get() = LocalDateTime.parse(this["@opprettet"].asText())
         internal val JsonMessage.vedtaksperiodeId get() = UUID.fromString(this["vedtaksperiodeId"].asText())
         internal val JsonMessage.generasjonId get() = UUID.fromString(this["generasjonId"].asText())
+        internal val JsonMessage.saksbehandlerIdent get() = this["saksbehandlerIdent"].asText()
+        internal val JsonMessage.beslutterIdent get() = this["beslutterIdent"].asText()
+        internal val JsonMessage.automatiskBehandling get() = this["automatiskBehandling"].asBoolean()
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
         internal fun JsonMessage.requireGenerasjonId() = require("generasjonId") { generasjonId -> UUID.fromString(generasjonId.asText()) }
         internal fun JsonMessage.requireVedtaksperiodeId() = require("vedtaksperiodeId") { vedtaksperiodeId -> UUID.fromString(vedtaksperiodeId.asText()) }
+        internal fun JsonMessage.requireSaksbehandlerIdent() = require("saksbehandlerIdent") { saksbehandlerIdent -> saksbehandlerIdent.asText() }
+        internal fun JsonMessage.requireAutomatiskBehandling() = require("automatiskBehandling") { automatiskBehandling -> automatiskBehandling.asBoolean() }
     }
 }

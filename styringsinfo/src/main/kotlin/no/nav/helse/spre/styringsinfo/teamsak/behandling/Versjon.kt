@@ -25,11 +25,7 @@ internal class Versjon private constructor(
             return felter to forrigeVersjon.minorUpdate
         }
 
-        private val versjoner = listOf(
-            { forrigeFelter: Set<String>, forrigeVersjon: Versjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter + "eksempelverdi_1" + "eksempelverdi_2") },
-            { forrigeFelter: Set<String>, forrigeVersjon: Versjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter - "eksempelverdi_2") },
-            { forrigeFelter: Set<String>, forrigeVersjon: Versjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter - "eksempelverdi_1" + "eksempelverdi_3") }
-        )
+        private val versjoner = listOf { forrigeFelter: Set<String>, forrigeVersjon: Versjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter + "saksbehandlerEnhet" + "beslutterEnhet") }
 
         private val genererteVersjoner = versjoner.fold(listOf(initielleFelter to initiellVersjon)) { versjoner, genererNesteVersjon ->
             val (forrigeFelter, forrigeVersjon) = versjoner.last()

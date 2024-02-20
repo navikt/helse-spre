@@ -64,6 +64,8 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             putString("behandlingsmetode", behandling.behandlingsmetode?.name)
             putString("relatertBehandlingId", behandling.relatertBehandlingId?.toString())
             putString("behandlingsresultat", behandling.behandlingsresultat?.name)
+            putString("saksbehandlerEnhet", behandling.saksbehandlerEnhet)
+            putString("beslutterEnhet", behandling.beslutterEnhet)
         }
 
         val versjon = Versjon.of(data.felter)
