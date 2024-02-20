@@ -1,59 +1,119 @@
 package no.nav.helse.nom
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ArrayNode
+import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asOptionalLocalDate
+import no.nav.helse.spre.styringsinfo.objectMapper
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.time.LocalDate
 
 typealias Saksbehandler = String
 typealias Enhet = String
 
-private const val dollar = '$'
-class Nom {
-    fun enhet(ident: Saksbehandler, gyldigPåDato: LocalDate): Enhet = "Dette er ikke en ekte enhet"
+class Nom(private val baseUrl: String, private val scope: String, private val azureClient: AzureTokenProvider) {
 
-        private val finnEnhetQuery: String = """
-        query enhet(`$dollar`navIdent: String!) {
-          ressurs(where: {navident: `$dollar`navIdent}) {
-              navident
-              orgTilknytning {
-                  gyldigFom
-                  gyldigTom
-                  orgEnhet {
-                      id
-                      navn
-                      remedyEnhetId
-                      orgEnhetsType
-                  }
-              }
-          }
+    companion object {
+        private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
+        private const val dollar = '$'
+
+        internal fun JsonNode.enhet(gyldigPåDato: LocalDate): String? {
+            val tilknytninger = this["data"]["ressurs"]["orgTilknytning"].map {
+                Tilknytning(
+                    gyldigFom = it["gyldigFom"].asLocalDate(),
+                    gyldigTom = it["gyldigTom"].asOptionalLocalDate(),
+                    orgEnhetsType = it["orgEnhet"]["orgEnhetsType"].asText(),
+                    enhet = it["orgEnhet"]["remedyEnhetId"].asText()
+                )
+            }
+            val kandidater = tilknytninger.filter { it.gyldigFom <= gyldigPåDato && (it.gyldigTom == null || it.gyldigTom >= gyldigPåDato)}
+            val sortert = kandidater.sortedWith { a, _ ->
+                when {
+                    a.orgEnhetsType == "NAV_ARBEID_OG_YTELSER" -> -1
+                    else -> 0
+                }
+            }
+            return sortert.firstOrNull()?.enhet
         }
-""".trimIndent()
 
-}
-internal fun JsonNode.enhet(gyldigPåDato: LocalDate): String? {
-    val tilknytninger = this["data"]["ressurs"]["orgTilknytning"].map {
-        Tilknytning(
-            gyldigFom = it["gyldigFom"].asLocalDate(),
-            gyldigTom = it["gyldigTom"].asOptionalLocalDate(),
-            orgEnhetsType = it["orgEnhet"]["orgEnhetsType"].asText(),
-            enhet = it["orgEnhet"]["remedyEnhetId"].asText()
+        data class Tilknytning(
+            val gyldigFom: LocalDate,
+            val gyldigTom: LocalDate?,
+            val orgEnhetsType: String,
+            val enhet: String
         )
     }
-    val kandidater = tilknytninger.filter { it.gyldigFom <= gyldigPåDato && (it.gyldigTom == null || it.gyldigTom >= gyldigPåDato)}
-    val sortert = kandidater.sortedWith { a, _ ->
-        when {
-            a.orgEnhetsType == "NAV_ARBEID_OG_YTELSER" -> -1
-            else -> 0
-        }
-    }
-    return sortert.firstOrNull()?.enhet
-}
+    internal fun hentEnhet(ident: Saksbehandler, gyldigPåDato: LocalDate, hendelseId: String): Enhet? {
+        val accessToken = azureClient.bearerToken(scope).token
 
-data class Tilknytning(
-    val gyldigFom: LocalDate,
-    val gyldigTom: LocalDate?,
-    val orgEnhetsType: String,
-    val enhet: String
-)
+        val body =
+            objectMapper.writeValueAsString(
+                NomQuery(query = finnEnhetQuery.onOneLine(), variables = Variables(ident))
+            )
+
+        val request = HttpRequest.newBuilder(URI.create("$baseUrl/graphql"))
+            .header("Authorization", "Bearer $accessToken")
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .header("Nav-Call-Id", hendelseId)
+            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .build()
+
+        val newHttpClient = HttpClient.newHttpClient()
+        val responseHandler = HttpResponse.BodyHandlers.ofString()
+        val response = newHttpClient.send(request, responseHandler)
+
+        if (response.statusCode() != 200) {
+            throw RuntimeException("error (responseCode=${response.statusCode()}) from NOM")
+        }
+        val responseBody = objectMapper.readTree(response.body())
+        if (responseBody.containsErrors()) {
+            throw RuntimeException("errors from NOM: ${responseBody["errors"].errorMsgs()}")
+        }
+        sikkerLogg.info("Svar fra NOM på saksbehandlerident $ident for hendelseId $hendelseId :\n $responseBody")
+        return responseBody.enhet(gyldigPåDato = gyldigPåDato)
+    }
+
+    private data class NomQuery(
+        val query: String,
+        val variables: Variables
+    )
+
+    private data class Variables(
+        val ident: String
+    )
+
+    private fun String.onOneLine() = this.replace("\n", " ")
+    private fun JsonNode.containsErrors() = this.has("errors")
+    private fun JsonNode.errorMsgs() = with (this as ArrayNode) {
+        val errorMsgs = this.map { it["message"]?.asText() ?: "unknown error" }
+        val extensions = this.map { it["extensions"]?.get("details")?.asText() ?: "extension details unknown" }
+        "$errorMsgs -- $extensions"
+    }
+
+    private val finnEnhetQuery: String = """
+    query enhet(`$dollar`navIdent: String!) {
+      ressurs(where: {navident: `$dollar`navIdent}) {
+          navident
+          orgTilknytning {
+              gyldigFom
+              gyldigTom
+              orgEnhet {
+                  id
+                  navn
+                  remedyEnhetId
+                  orgEnhetsType
+              }
+          }
+      }
+    }
+    """.trimIndent()
+
+}
 

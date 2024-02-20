@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.zaxxer.hikari.HikariDataSource
+import no.nav.helse.nom.Nom
+import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.db.*
@@ -47,6 +49,14 @@ fun main() {
     val vedtakFattetPatcher = VedtakFattetPatcher(VedtakFattetDao(dataSource))
     val vedtakForkastetPatcher = VedtakForkastetPatcher(VedtakForkastetDao(dataSource))
     dataSourceBuilder.migrate()
+
+    val azureClient = createAzureTokenClientFromEnvironment()
+
+    val nomClient = Nom(
+        baseUrl = environment.getValue("NOM_API_BASE_URL"),
+        scope = environment.getValue("NOM_API_OAUTH_SCOPE"),
+        azureClient = azureClient
+    )
 
     thread {
         sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = SendtSøknadPatch.values().last().ordinal))

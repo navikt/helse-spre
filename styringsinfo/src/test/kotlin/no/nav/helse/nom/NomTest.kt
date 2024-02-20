@@ -1,5 +1,6 @@
 package no.nav.helse.nom
 
+import no.nav.helse.nom.Nom.Companion.enhet
 import no.nav.helse.spre.styringsinfo.objectMapper
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.*
