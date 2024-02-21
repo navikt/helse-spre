@@ -8,6 +8,7 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.nom.Nom
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
+import no.nav.helse.nom.MidlertidigNOMRiver
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.db.*
@@ -74,11 +75,11 @@ fun main() {
         ))
     }
 
-    val rapidsConnection = launchApplication(dataSource, environment)
+    val rapidsConnection = launchApplication(dataSource, environment, nomClient)
     rapidsConnection.start()
 }
 
-fun launchApplication(dataSource: HikariDataSource, environment: Map<String, String>): RapidsConnection {
+fun launchApplication(dataSource: HikariDataSource, environment: Map<String, String>, nom: Nom): RapidsConnection {
     val sendtSøknadDao = SendtSøknadDao(dataSource)
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val vedtakForkastetDao = VedtakForkastetDao(dataSource)
@@ -98,6 +99,7 @@ fun launchApplication(dataSource: HikariDataSource, environment: Map<String, Str
         AvsluttetUtenVedtak.river(this, hendelseDao, behandlingshendelseDao)
         GenerasjonForkastet.river(this, hendelseDao, behandlingshendelseDao)
         VedtaksperiodeEndret.river(this, hendelseDao, behandlingshendelseDao)
+        MidlertidigNOMRiver(this, nom)
     }
 }
 
