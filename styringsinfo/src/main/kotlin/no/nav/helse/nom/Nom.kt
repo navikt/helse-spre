@@ -6,8 +6,6 @@ import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asOptionalLocalDate
 import no.nav.helse.spre.styringsinfo.objectMapper
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -20,7 +18,6 @@ typealias Enhet = String
 class Nom(private val baseUrl: String, private val scope: String, private val azureClient: AzureTokenProvider) {
 
     companion object {
-        private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
         private const val dollar = '$'
 
         internal fun JsonNode.enhet(gyldigPåDato: LocalDate): String? {
@@ -57,7 +54,6 @@ class Nom(private val baseUrl: String, private val scope: String, private val az
                 NomQuery(query = finnEnhetQuery.onOneLine(), variables = Variables(ident))
             )
 
-        sikkerLogg.info("Sender denne graphql-spørringen:\n$body\n")
         val request = HttpRequest.newBuilder(URI.create("$baseUrl/graphql"))
             .header("Authorization", "Bearer $accessToken")
             .header("Content-Type", "application/json")
@@ -77,7 +73,6 @@ class Nom(private val baseUrl: String, private val scope: String, private val az
         if (responseBody.containsErrors()) {
             throw RuntimeException("errors from NOM: ${responseBody["errors"].errorMsgs()}")
         }
-        sikkerLogg.info("Svar fra NOM på saksbehandlerident $ident for hendelseId $hendelseId :\n $responseBody")
         return responseBody.enhet(gyldigPåDato = gyldigPåDato)
     }
 
