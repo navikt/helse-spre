@@ -17,7 +17,7 @@ accessPolicy:
   outbound:
     - application: nom-api
       namespace: nom
-      cluster: dev-gcp
+      cluster: prod-gcp
 env:
   - name: NOM_API_BASE_URL
     value: http://nom-api.nom.svc.cluster.local
