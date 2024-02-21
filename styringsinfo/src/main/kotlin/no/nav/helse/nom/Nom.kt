@@ -99,8 +99,8 @@ class Nom(private val baseUrl: String, private val scope: String, private val az
     }
 
     private val finnEnhetQuery: String = """
-    query enhet(`$dollar`navIdent: String!) {
-      ressurs(where: {navident: `$dollar`navIdent}) {
+    query enhet(${dollar}navIdent: String!) {
+      ressurs(where: {navident: ${dollar}navIdent}) {
           navident
           orgTilknytning {
               gyldigFom
