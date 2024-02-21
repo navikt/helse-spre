@@ -57,6 +57,7 @@ class Nom(private val baseUrl: String, private val scope: String, private val az
                 NomQuery(query = finnEnhetQuery.onOneLine(), variables = Variables(ident))
             )
 
+        sikkerLogg.info("Sender denne graphql-spørringen:\n$body\n")
         val request = HttpRequest.newBuilder(URI.create("$baseUrl/graphql"))
             .header("Authorization", "Bearer $accessToken")
             .header("Content-Type", "application/json")
