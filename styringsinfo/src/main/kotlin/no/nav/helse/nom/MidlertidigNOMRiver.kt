@@ -21,6 +21,7 @@ internal class MidlertidigNOMRiver (
         }.register(this)
     }
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        sikkerLogg.info("Prøver å test NOM")
         val ident = packet["testIdent"].asText()
         try {
             sikkerLogg.info("Prøver å finne enhet for ident $ident")
