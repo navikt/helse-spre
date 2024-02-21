@@ -27,10 +27,7 @@ internal class HendelseRiver(
                 it.interestedIn(
                     "aktørId",
                     "vedtaksperiodeId",
-                    "generasjonId",
-                    "saksbehandlerIdent",
-                    "beslutterIdent",
-                    "automatiskBehandling"
+                    "generasjonId"
                 )
                 valider(it)
             }
@@ -66,7 +63,6 @@ internal class HendelseRiver(
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
         internal fun JsonMessage.requireGenerasjonId() = require("generasjonId") { generasjonId -> UUID.fromString(generasjonId.asText()) }
         internal fun JsonMessage.requireVedtaksperiodeId() = require("vedtaksperiodeId") { vedtaksperiodeId -> UUID.fromString(vedtaksperiodeId.asText()) }
-        internal fun JsonMessage.requireSaksbehandlerIdent() = require("saksbehandlerIdent") { saksbehandlerIdent -> saksbehandlerIdent.asText() }
-        internal fun JsonMessage.requireAutomatiskBehandling() = require("automatiskBehandling") { automatiskBehandling -> automatiskBehandling.asBoolean() }
+
     }
 }

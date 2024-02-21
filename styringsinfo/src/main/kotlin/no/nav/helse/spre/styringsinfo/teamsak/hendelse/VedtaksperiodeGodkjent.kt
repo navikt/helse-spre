@@ -1,25 +1,24 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.VEDTATT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.asSakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.automatiskBehandling
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.beslutterIdent
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireAutomatiskBehandling
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireSaksbehandlerIdent
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.saksbehandlerIdent
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 internal class VedtaksperiodeGodkjent(
     override val id: UUID,
@@ -57,6 +56,7 @@ internal class VedtaksperiodeGodkjent(
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
+                packet.interestedIn("beslutterIdent")
                 packet.requireVedtaksperiodeId()
                 packet.requireSaksbehandlerIdent()
                 packet.requireAutomatiskBehandling()
@@ -71,5 +71,8 @@ internal class VedtaksperiodeGodkjent(
                 automatiskBehandling = packet.automatiskBehandling
             )}
         )
+
+        internal fun JsonMessage.requireSaksbehandlerIdent() = require("saksbehandlerIdent") { saksbehandlerIdent -> saksbehandlerIdent.asText() }
+        internal fun JsonMessage.requireAutomatiskBehandling() = require("automatiskBehandling") { automatiskBehandling -> automatiskBehandling.asBoolean() }
     }
 }

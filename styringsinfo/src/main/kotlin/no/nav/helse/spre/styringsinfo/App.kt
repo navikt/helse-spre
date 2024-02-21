@@ -88,6 +88,7 @@ fun launchApplication(dataSource: HikariDataSource, environment: Map<String, Str
         AvsluttetUtenVedtak.river(this, hendelseDao, behandlingshendelseDao)
         GenerasjonForkastet.river(this, hendelseDao, behandlingshendelseDao)
         VedtaksperiodeEndret.river(this, hendelseDao, behandlingshendelseDao)
+        VedtaksperiodeGodkjent.river(this, hendelseDao, behandlingshendelseDao)
     }
 }
 
