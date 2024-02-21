@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import org.apache.kafka.clients.CommonClientConfigs
@@ -22,6 +23,11 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
 
 internal val log = LoggerFactory.getLogger("helse-spre-oppgaver")
 internal val sikkerLog = LoggerFactory.getLogger("tjenestekall")
+
+internal fun loggUkjentMelding(forventetEventnavn: String, problems: MessageProblems) {
+    sikkerLog.error("Forstod ikke $forventetEventnavn: ${problems.toExtendedReport()}")
+    log.error("Forstod ikke $forventetEventnavn: $problems")
+}
 
 fun interface Publisist {
     fun publiser(dokumentId: String, oppgaveDTO: OppgaveDTO)
@@ -57,16 +63,15 @@ internal fun RapidsConnection.registerRivers(
     oppgaveDAO: OppgaveDAO,
     publisist: Publisist
 ) {
-    RegistrerSøknader(this, oppgaveDAO, publisist)
-    RegistrerInntektsmeldinger(this, oppgaveDAO, publisist)
-    HåndterVedtaksperiodeendringer(this, oppgaveDAO, publisist)
-    HåndterVedtaksperiodeVenterPåHva(this, oppgaveDAO, publisist)
-    HåndterVedtaksperiodeVenterPåHvorfor(this, oppgaveDAO, publisist)
-    HåndterVedtaksperiodeForkastet(this, oppgaveDAO, publisist)
-    HåndterInntektsmeldingFørSøknad(this, oppgaveDAO, publisist)
-    InntektsmeldingHåndtert(this, oppgaveDAO, publisist)
-    InntektsmeldingIkkeHåndtert(this, oppgaveDAO, publisist)
-    SøknadHåndtert(this, oppgaveDAO, publisist)
+    SøknadRiver(this, oppgaveDAO, publisist)
+    InntektsmeldingRiver(this, oppgaveDAO, publisist)
+    VedtaksperiodeEndretRiver(this, oppgaveDAO, publisist)
+    VedtaksperiodeVenterRiver(this, oppgaveDAO, publisist)
+    VedtaksperiodeForkastetRiver(this, oppgaveDAO, publisist)
+    InntektsmeldingerFørSøknadRiver(this, oppgaveDAO, publisist)
+    InntektsmeldingHåndtertRiver(this, oppgaveDAO, publisist)
+    InntektsmeldingIkkeHåndtertRiver(this, oppgaveDAO, publisist)
+    SøknadHåndtertRiver(this, oppgaveDAO, publisist)
     if (System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp") SlettPersonRiver(this, oppgaveDAO)
 }
 

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class RegistrerSøknaderTest {
+class SøknadRiverTest {
     private val dataSource = setupDataSourceMedFlyway()
     private val testRapid = TestRapid()
     private val oppgaveDAO = OppgaveDAO(dataSource)
@@ -16,7 +16,7 @@ class RegistrerSøknaderTest {
     private val publisist = Publisist { _, _ -> }
 
     init {
-        RegistrerSøknader(testRapid, oppgaveDAO, publisist)
+        SøknadRiver(testRapid, oppgaveDAO, publisist)
     }
 
     @Test

@@ -3,7 +3,7 @@ package no.nav.helse.spre.oppgaver
 import no.nav.helse.rapids_rivers.*
 import java.util.*
 
-class HåndterVedtaksperiodeendringer(
+class VedtaksperiodeEndretRiver(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
     publisist: Publisist,
@@ -13,15 +13,18 @@ class HåndterVedtaksperiodeendringer(
 
     init {
         River(rapidsConnection).apply {
+            validate { it.demandValue("@event_name", "vedtaksperiode_endret") }
             validate { it.requireKey("hendelser") }
-            validate { it.requireValue("@event_name", "vedtaksperiode_endret") }
             validate { it.interestedIn("forrigeTilstand") }
-            validate { it.requireAny("gjeldendeTilstand", listOf(
+            validate { it.demandAny("gjeldendeTilstand", listOf(
                 "AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING", "AVSLUTTET", "AVSLUTTET_UTEN_UTBETALING"
             ))}
         }.register(this)
     }
 
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        loggUkjentMelding("vedtaksperiode_endret", problems)
+    }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val forrigeTilstand = packet["forrigeTilstand"].asText()

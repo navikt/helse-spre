@@ -3,7 +3,7 @@ package no.nav.helse.spre.oppgaver
 import no.nav.helse.rapids_rivers.*
 import java.util.*
 
-class InntektsmeldingIkkeHåndtert(
+class InntektsmeldingIkkeHåndtertRiver(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
     publisist: Publisist,
@@ -16,6 +16,10 @@ class InntektsmeldingIkkeHåndtert(
             validate { it.requireValue("@event_name", "inntektsmelding_ikke_håndtert") }
             validate { it.requireKey("inntektsmeldingId", "harPeriodeInnenfor16Dager") }
         }.register(this)
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        loggUkjentMelding("inntektsmelding_ikke_håndtert", problems)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

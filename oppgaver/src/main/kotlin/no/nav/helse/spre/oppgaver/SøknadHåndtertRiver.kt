@@ -3,7 +3,7 @@ package no.nav.helse.spre.oppgaver
 import no.nav.helse.rapids_rivers.*
 import java.util.*
 
-class SøknadHåndtert(
+class SøknadHåndtertRiver(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
     publisist: Publisist,
@@ -13,9 +13,13 @@ class SøknadHåndtert(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireValue("@event_name", "søknad_håndtert") }
+            validate { it.demandValue("@event_name", "søknad_håndtert") }
             validate { it.requireKey("søknadId") }
         }.register(this)
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        loggUkjentMelding("søknad_håndtert", problems)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {

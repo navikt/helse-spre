@@ -3,7 +3,7 @@ package no.nav.helse.spre.oppgaver
 import no.nav.helse.rapids_rivers.*
 import java.util.*
 
-class HåndterVedtaksperiodeForkastet(
+class VedtaksperiodeForkastetRiver(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
     publisist: Publisist,
@@ -13,12 +13,15 @@ class HåndterVedtaksperiodeForkastet(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
+            validate { it.demandValue("@event_name", "vedtaksperiode_forkastet") }
             validate { it.requireKey("hendelser", "harPeriodeInnenfor16Dager", "forlengerPeriode", "fødselsnummer", "organisasjonsnummer") }
             validate { it.rejectValue("@forårsaket_av.event_name", "person_påminnelse") }
         }.register(this)
     }
 
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        loggUkjentMelding("vedtaksperiode_forkastet", problems)
+    }
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val harPeriodeInnenfor16Dager = packet["harPeriodeInnenfor16Dager"].asBoolean()
         val forlengerPeriode = packet["forlengerPeriode"].asBoolean()

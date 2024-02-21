@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.*
 import java.util.UUID
 
-class RegistrerSøknader(rapidsConnection: RapidsConnection, private val oppgaveDAO: OppgaveDAO, private val publisist: Publisist) : River.PacketListener{
+class SøknadRiver(rapidsConnection: RapidsConnection, private val oppgaveDAO: OppgaveDAO, private val publisist: Publisist) : River.PacketListener{
 
     init {
         River(rapidsConnection).apply {
@@ -17,8 +17,7 @@ class RegistrerSøknader(rapidsConnection: RapidsConnection, private val oppgave
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
-        log.error("Forstod ikke søknad-melding, se sikkerlogg for detaljer")
-        sikkerLog.error("Forstod ikke søknadmelding:\n${problems.toExtendedReport()}")
+        loggUkjentMelding("søknad", problems)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
