@@ -6,6 +6,8 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.VEDTATT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
@@ -62,7 +64,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
         behandling = avsluttetMedVedtak(behandlingId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingsresultat.VEDTATT, behandling.behandlingsresultat)
+        assertEquals(VEDTATT, behandling.behandlingsresultat)
     }
 
     @Test
@@ -75,10 +77,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
         var behandling = vedtaksperiodeGodkjent(sakId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingsmetode.MANUELL, behandling.behandlingsmetode)
+        assertEquals(VEDTATT, behandling.behandlingsresultat)
 
         behandling = avsluttetMedVedtak(behandlingId).håndter(behandlingshendelseDao, behandlingId)
-        assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingsresultat.VEDTATT, behandling.behandlingsresultat)
         assertNull(behandling.behandlingsmetode)
     }
 
@@ -92,6 +93,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
         var behandling = vedtaksperiodeAvvist(sakId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingsmetode.MANUELL, behandling.behandlingsmetode)
+        assertEquals(AVBRUTT, behandling.behandlingsresultat)
         assertEquals("SB123", behandling.saksbehandlerEnhet)
         assertEquals("SB456", behandling.beslutterEnhet)
 
@@ -151,7 +153,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val generasjonForkastet = generasjonForkastet(sakId)
         behandling = generasjonForkastet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingsresultat.AVBRUTT, behandling.behandlingsresultat)
+        assertEquals(AVBRUTT, behandling.behandlingsresultat)
     }
 
     @Test
@@ -169,7 +171,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         utbetaltBehandling = januarAvsluttetMedVedtak.håndter(behandlingshendelseDao, januarBehandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING, utbetaltBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.VEDTATT, utbetaltBehandling.behandlingsresultat)
+        assertEquals(VEDTATT, utbetaltBehandling.behandlingsresultat)
         assertNull(utbetaltBehandling.behandlingsmetode)
 
         val (annulleringBehandlingId, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)
@@ -189,7 +191,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         listOf(annullertBehandling, utbetaltBehandling).forEach {
             assertEquals(Behandling.Behandlingstatus.AVSLUTTET, it.behandlingstatus)
             assertEquals(Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING, it.behandlingstype)
-            assertEquals(Behandling.Behandlingsresultat.AVBRUTT, it.behandlingsresultat)
+            assertEquals(AVBRUTT, it.behandlingsresultat)
         }
 
         assertNull(utbetaltBehandling.behandlingsmetode)
@@ -207,7 +209,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         behandling = generasjonForkastet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING, behandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.AVBRUTT, behandling.behandlingsresultat)
+        assertEquals(AVBRUTT, behandling.behandlingsresultat)
     }
 
     @Test
@@ -339,7 +341,23 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun generasjonForkastet(sakId: SakId) = GenerasjonForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeEndret(sakId: SakId) = VedtaksperiodeEndret(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
-       internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeBeslutning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, "SB123", "SB456", false, "vedtaksperiode_godkjent")
-       internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeBeslutning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, "SB123", "SB456", false, "vedtaksperiode_avvist")
+       internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeBeslutning(UUID.randomUUID(),
+           nesteTidspunkt,
+           blob,
+           sakId.id,
+           "SB123",
+           "SB456",
+           false,
+           VEDTATT,
+           "vedtaksperiode_godkjent")
+       internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeBeslutning(UUID.randomUUID(),
+           nesteTidspunkt,
+           blob,
+           sakId.id,
+           "SB123",
+           "SB456",
+           false,
+           AVBRUTT,
+           "vedtaksperiode_avvist")
    }
 }
