@@ -5,7 +5,7 @@ kafkaResetPolicy: earliest
 livenessInitialDelay: 30
 readinessInitialDelay: 30
 app:
-  leaderElected: true
+  leaderElection: true
 gcp:
   type: POSTGRES_15
   databaseName: spre-styringsinfo
