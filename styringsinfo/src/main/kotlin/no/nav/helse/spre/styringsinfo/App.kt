@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.zaxxer.hikari.HikariDataSource
-import no.nav.helse.nom.Nom
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
+import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.nom.MidlertidigNOMRiver
+import no.nav.helse.nom.Nom
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.db.*
@@ -100,7 +100,8 @@ fun launchApplication(dataSource: HikariDataSource, environment: Map<String, Str
         GenerasjonForkastet.river(this, hendelseDao, behandlingshendelseDao)
         VedtaksperiodeEndret.river(this, hendelseDao, behandlingshendelseDao)
         MidlertidigNOMRiver(this, nom)
-        VedtaksperiodeGodkjent.river(this, hendelseDao, behandlingshendelseDao, nom)
+        VedtaksperiodeBeslutning.vedtaksperiodeAvvistRiver(this, hendelseDao, behandlingshendelseDao, nom)
+        VedtaksperiodeBeslutning.vedtaksperiodeGodkjentRiver(this, hendelseDao, behandlingshendelseDao, nom)
     }
 }
 

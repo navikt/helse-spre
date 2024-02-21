@@ -22,14 +22,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-internal class VedtaksperiodeGodkjent(
+internal class VedtaksperiodeBeslutning(
     override val id: UUID,
     override val opprettet: LocalDateTime,
     override val data: JsonNode,
     private val vedtaksperiodeId: UUID,
     private val saksbehandlerEnhet: String?,
     private val beslutterEnhet: String?,
-    private val automatiskBehandling: Boolean
+    private val automatiskBehandling: Boolean,
+    private val eventName: String,
 ) : Hendelse {
     override val type = eventName
 
@@ -48,9 +49,13 @@ internal class VedtaksperiodeGodkjent(
     }
 
     internal companion object {
-        private const val eventName = "vedtaksperiode_godkjent"
 
-        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao, nom: Nom) = HendelseRiver(
+        internal fun vedtaksperiodeAvvistRiver(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao, nom: Nom) =
+            river(rapidsConnection, hendelseDao, behandlingshendelseDao, nom, "vedtaksperiode_avvist")
+        internal fun vedtaksperiodeGodkjentRiver(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao, nom: Nom) =
+            river(rapidsConnection, hendelseDao, behandlingshendelseDao, nom, "vedtaksperiode_godkjent")
+
+        private fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao, nom: Nom, eventName: String) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
@@ -61,18 +66,19 @@ internal class VedtaksperiodeGodkjent(
                 packet.requireSaksbehandlerIdent()
                 packet.requireAutomatiskBehandling()
             },
-            opprett = { packet -> VedtaksperiodeGodkjent(
+            opprett = { packet -> VedtaksperiodeBeslutning(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
                 vedtaksperiodeId = packet.vedtaksperiodeId,
                 saksbehandlerEnhet = if (packet.automatiskBehandling) null else nom.hentEnhet(packet.saksbehandlerIdent, LocalDate.now(), packet.hendelseId.toString()),
                 beslutterEnhet = nom.hentEnhet(packet.beslutterIdent, LocalDate.now(), packet.hendelseId.toString()),
-                automatiskBehandling = packet.automatiskBehandling
+                automatiskBehandling = packet.automatiskBehandling,
+                eventName = eventName
             )}
         )
 
-        internal fun JsonMessage.requireSaksbehandlerIdent() = require("saksbehandlerIdent") { saksbehandlerIdent -> saksbehandlerIdent.asText() }
-        internal fun JsonMessage.requireAutomatiskBehandling() = require("automatiskBehandling") { automatiskBehandling -> automatiskBehandling.asBoolean() }
+        private fun JsonMessage.requireSaksbehandlerIdent() = require("saksbehandlerIdent") { saksbehandlerIdent -> saksbehandlerIdent.asText() }
+        private fun JsonMessage.requireAutomatiskBehandling() = require("automatiskBehandling") { automatiskBehandling -> automatiskBehandling.asBoolean() }
     }
 }
