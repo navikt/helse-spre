@@ -23,6 +23,7 @@ internal class MidlertidigNOMRiver (
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val ident = packet["testIdent"].asText()
         try {
+            sikkerLogg.info("Prøver å finne enhet for ident $ident")
             val enhet = nomClient.hentEnhet(ident, LocalDate.now(), packet["@id"].asText())
             sikkerLogg.info("Fant enhet $enhet for ident $ident")
         } catch (e:Exception) {
