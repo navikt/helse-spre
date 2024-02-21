@@ -1,6 +1,7 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.helse.nom.Nom
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
@@ -17,6 +18,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.saksbehandlerIdent
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -25,16 +27,14 @@ internal class VedtaksperiodeGodkjent(
     override val opprettet: LocalDateTime,
     override val data: JsonNode,
     private val vedtaksperiodeId: UUID,
-    private val saksbehandlerIdent: String?,
-    private val beslutterIdent: String?,
+    private val saksbehandlerEnhet: String?,
+    private val beslutterEnhet: String?,
     private val automatiskBehandling: Boolean
 ) : Hendelse {
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val generasjonId = behandlingshendelseDao.forrigeBehandlingId(vedtaksperiodeId.asSakId()) ?: return false
-        val saksbehandlerEnhet = null // TODO slå opp mot NOM
-        val beslutterEnhet = null // TODO slå opp mot NOM
         val builder = behandlingshendelseDao.initialiser(generasjonId) ?: return false
         val ny = builder
             .behandlingstatus(AVSLUTTET)
@@ -50,7 +50,7 @@ internal class VedtaksperiodeGodkjent(
     internal companion object {
         private const val eventName = "vedtaksperiode_godkjent"
 
-        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
+        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao, nom: Nom) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
@@ -66,8 +66,8 @@ internal class VedtaksperiodeGodkjent(
                 data = packet.blob,
                 opprettet = packet.opprettet,
                 vedtaksperiodeId = packet.vedtaksperiodeId,
-                saksbehandlerIdent = if (packet.automatiskBehandling) null else packet.saksbehandlerIdent,
-                beslutterIdent = packet.beslutterIdent,
+                saksbehandlerEnhet = if (packet.automatiskBehandling) null else nom.hentEnhet(packet.saksbehandlerIdent, LocalDate.now(), packet.hendelseId.toString()),
+                beslutterEnhet = nom.hentEnhet(packet.beslutterIdent, LocalDate.now(), packet.hendelseId.toString()),
                 automatiskBehandling = packet.automatiskBehandling
             )}
         )
