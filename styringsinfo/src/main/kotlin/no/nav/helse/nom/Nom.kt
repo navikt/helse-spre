@@ -87,7 +87,7 @@ class Nom(private val baseUrl: String, private val scope: String, private val az
     )
 
     private data class Variables(
-        val ident: String
+        val navIdent: String
     )
 
     private fun String.onOneLine() = this.replace("\n", " ")
