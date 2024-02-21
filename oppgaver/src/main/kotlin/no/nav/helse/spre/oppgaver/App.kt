@@ -63,6 +63,8 @@ internal fun RapidsConnection.registerRivers(
     oppgaveDAO: OppgaveDAO,
     publisist: Publisist
 ) {
+    AvsluttetMedVedtakRiver(this, oppgaveDAO, publisist)
+    AvsluttetUtenVedtakRiver(this, oppgaveDAO, publisist)
     SøknadRiver(this, oppgaveDAO, publisist)
     InntektsmeldingRiver(this, oppgaveDAO, publisist)
     VedtaksperiodeEndretRiver(this, oppgaveDAO, publisist)

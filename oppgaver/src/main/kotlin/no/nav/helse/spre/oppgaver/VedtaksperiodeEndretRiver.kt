@@ -16,9 +16,7 @@ class VedtaksperiodeEndretRiver(
             validate { it.demandValue("@event_name", "vedtaksperiode_endret") }
             validate { it.requireKey("hendelser") }
             validate { it.interestedIn("forrigeTilstand") }
-            validate { it.demandAny("gjeldendeTilstand", listOf(
-                "AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING", "AVSLUTTET", "AVSLUTTET_UTEN_UTBETALING"
-            ))}
+            validate { it.demandAny("gjeldendeTilstand", listOf("AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING"))}
         }.register(this)
     }
 
@@ -34,11 +32,7 @@ class VedtaksperiodeEndretRiver(
             .mapNotNull { oppgaveDAO.finnOppgave(it, observer) }
             .forEach { oppgave ->
                 withMDC(mapOf("event" to "vedtaksperiode_endret", "tilstand" to gjeldendeTilstand, "forrigeTilstand" to forrigeTilstand)) {
-                    when (gjeldendeTilstand) {
-                        "AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING" -> oppgave.håndter(Hendelse.AvventerGodkjenning)
-                        "AVSLUTTET" -> oppgave.håndter(Hendelse.Avsluttet)
-                        "AVSLUTTET_UTEN_UTBETALING" -> oppgave.håndter(Hendelse.AvsluttetUtenUtbetaling)
-                    }
+                    oppgave.håndter(Hendelse.AvventerGodkjenning)
                 }
             }
     }

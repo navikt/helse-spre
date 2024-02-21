@@ -106,9 +106,8 @@ class EndToEndTest {
             hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
             tilstand = "AVVENTER_GODKJENNING"
         )
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET"
+        sendAvsluttetMedVedtak(
+            hendelseIder = listOf(søknad1HendelseId, inntektsmeldingHendelseId)
         )
 
         assertEquals(6, publiserteOppgaver.size)
@@ -321,11 +320,11 @@ class EndToEndTest {
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendSøknadHåndtert(søknad1HendelseId)
-        sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
+        sendAvsluttetMedVedtak(hendelseIder = listOf(søknad1HendelseId))
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendSøknadHåndtert(søknad1HendelseId)
-        sendVedtaksperiodeEndret(hendelseIder = listOf(søknad1HendelseId), tilstand = "AVSLUTTET")
+        sendAvsluttetMedVedtak(hendelseIder = listOf(søknad1HendelseId))
 
         publiserteOppgaver[0].also { dto ->
             dto.assertInnhold(Utsett, søknad1DokumentId, Søknad)
@@ -448,9 +447,8 @@ class EndToEndTest {
         val søknadArbeidsgiverDokumentId = UUID.randomUUID()
 
         sendArbeidsgiversøknad(søknadArbeidsgiverHendelseId, søknadArbeidsgiverDokumentId)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadArbeidsgiverHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING"
         )
 
         assertEquals(1, publiserteOppgaver.size)
@@ -469,9 +467,8 @@ class EndToEndTest {
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
         inntektsmeldingFørSøknad(inntektsmeldingHendelseId)
         sendSøknad(søknadHendelseId, søknadDokumentId)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(inntektsmeldingHendelseId, søknadHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING"
         )
 
         publiserteOppgaver[0].assertInnhold(Utsett, inntektsmeldingDokumentId, Inntektsmelding)
@@ -500,9 +497,8 @@ class EndToEndTest {
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
         sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode1
         )
 
@@ -539,9 +535,8 @@ class EndToEndTest {
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
         sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode1
         )
 
@@ -579,17 +574,15 @@ class EndToEndTest {
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
         sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadHendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode1
         )
 
         sendSøknad(søknadHendelseId2, søknadDokumentId2)
         sendSøknadHåndtert(søknadHendelseId2)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadHendelseId2, inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode2
         )
 
@@ -621,17 +614,15 @@ class EndToEndTest {
         sendSøknadHåndtert(søknadHendelseId)
 
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadHendelseId, inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode1
         )
 
         sendSøknad(søknadHendelseId2, søknadDokumentId2)
         sendSøknadHåndtert(søknadHendelseId2)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetMedVedtak(
             hendelseIder = listOf(søknadHendelseId2, inntektsmeldingHendelseId),
-            tilstand = "AVSLUTTET",
             vedtaksperiodeId = periode2
         )
 
@@ -651,9 +642,8 @@ class EndToEndTest {
 
         sendSøknad(søknadId)
         sendSøknadHåndtert(søknadId)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode
         )
         vedtaksperiodeForkastet(listOf(søknadId))
@@ -673,18 +663,16 @@ class EndToEndTest {
 
         sendSøknad(søknadId)
         sendSøknadHåndtert(søknadId)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode
         )
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
 
         sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
         sendInntektsmeldingHåndtert(inntektsmeldingId)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadId, inntektsmeldingId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode
         )
 
@@ -705,9 +693,8 @@ class EndToEndTest {
 
         sendSøknad(søknadId)
         sendSøknadHåndtert(søknadId)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode
         )
 
@@ -733,17 +720,15 @@ class EndToEndTest {
 
         sendSøknad(søknadId1)
         sendSøknadHåndtert(søknadId1)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadId1),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode
         )
 
         sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
         sendInntektsmeldingHåndtert(inntektsmeldingId)
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadId1, inntektsmeldingId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = periode
         )
         vedtaksperiodeForkastet(hendelseIder = listOf(inntektsmeldingId))
@@ -838,9 +823,8 @@ class EndToEndTest {
         sendSøknad(søknadHendelseId, søknadDokumentId)
         sendSøknadHåndtert(søknadHendelseId)
 
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = vedtaksperiodeId,
         )
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
@@ -868,9 +852,8 @@ class EndToEndTest {
             tilstand = "AVVENTER_INNTEKTSMELDING_ELLER_HISTORIKK",
             vedtaksperiodeId = vedtaksperiodeId,
         )
-        sendVedtaksperiodeEndret(
+        sendAvsluttetUtenVedtak(
             hendelseIder = listOf(søknadHendelseId),
-            tilstand = "AVSLUTTET_UTEN_UTBETALING",
             vedtaksperiodeId = vedtaksperiodeId,
         )
         sendInntektsmelding(inntektsmeldingHendelseId, inntektsmeldingDokumentId)
@@ -1017,6 +1000,19 @@ class EndToEndTest {
         rapid.sendTestMessage(vedtaksperiodeVenter(hendelseIder, venterPåHva, venterPåHvorfor))
     }
 
+    private fun sendAvsluttetMedVedtak(
+        hendelseIder: List<UUID>,
+        vedtaksperiodeId: UUID = UUID.randomUUID()
+    ) {
+        rapid.sendTestMessage(avsluttetMedVedtak(hendelseIder, vedtaksperiodeId))
+    }
+
+    private fun sendAvsluttetUtenVedtak(
+        hendelseIder: List<UUID>,
+        vedtaksperiodeId: UUID = UUID.randomUUID()
+    ) {
+        rapid.sendTestMessage(avsluttetUtenVedtak(hendelseIder, vedtaksperiodeId))
+    }
 
     private fun sendVedtaksperiodeEndret(
         hendelseIder: List<UUID>,
@@ -1090,7 +1086,7 @@ fun vedtaksperiodeVenter(
     """{
             "@event_name": "vedtaksperiode_venter",
             "@id": "${UUID.randomUUID()}",
-            "hendelser": ${hendelseIder.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
+            "hendelser": ${hendelseIder.tilJSONStringArray()},
             "venterPå": {
                 "venteårsak": {
                   "hva": "$venterPåHva",
@@ -1106,6 +1102,30 @@ private fun String?.hvorfor(): String? {
     else "\"hvorfor\": \"${this}\""
 }
 
+private fun Iterable<Any>.tilJSONStringArray() = joinToString(prefix = "[", postfix = "]") { "\"$it\"" }
+
+@Language("JSON")
+fun avsluttetMedVedtak(
+    hendelser: List<UUID>,
+    vedtaksperiodeId: UUID
+) =
+    """{
+            "@event_name": "avsluttet_med_vedtak",
+            "hendelser": ${hendelser.tilJSONStringArray()},
+            "vedtaksperiodeId": "$vedtaksperiodeId"
+        }"""
+@Language("JSON")
+fun avsluttetUtenVedtak(
+    hendelser: List<UUID>,
+    vedtaksperiodeId: UUID
+) =
+    """{
+            "@event_name": "avsluttet_uten_vedtak",
+            "hendelser": ${hendelser.tilJSONStringArray()},
+            "vedtaksperiodeId": "$vedtaksperiodeId"
+        }"""
+
+@Language("JSON")
 fun vedtaksperiodeEndret(
     hendelser: List<UUID>,
     gjeldendeTilstand: String,
@@ -1113,7 +1133,7 @@ fun vedtaksperiodeEndret(
 ) =
     """{
             "@event_name": "vedtaksperiode_endret",
-            "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
+            "hendelser": ${hendelser.tilJSONStringArray()},
             "gjeldendeTilstand": "$gjeldendeTilstand",
             "vedtaksperiodeId": "$vedtaksperiodeId"
         }"""
@@ -1150,7 +1170,7 @@ fun vedtaksperiodeForkastet(
             "forlengerPeriode": "$forlengerPeriode",
             "fødselsnummer": "$fødselsnummer",
             "organisasjonsnummer": "$organisasjonsnummer",
-            "hendelser": ${hendelser.joinToString(prefix = "[", postfix = "]") { "\"$it\"" }},
+            "hendelser": ${hendelser.tilJSONStringArray()},
             "@forårsaket_av": {
                 "event_name": "$forårsaketAv"
             }
