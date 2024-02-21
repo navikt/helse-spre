@@ -95,8 +95,8 @@ internal data class Behandling(
             behandlingstype = behandlingtype ?: forrige.behandlingstype,
             behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
             behandlingskilde = behandlingskilde ?: forrige.behandlingskilde,
-            saksbehandlerEnhet = saksbehandlerEnhet,
-            beslutterEnhet = beslutterEnhet,
+            saksbehandlerEnhet = saksbehandlerEnhet ?: forrige.saksbehandlerEnhet,
+            beslutterEnhet = beslutterEnhet ?: forrige.beslutterEnhet,
         )
     }
 }

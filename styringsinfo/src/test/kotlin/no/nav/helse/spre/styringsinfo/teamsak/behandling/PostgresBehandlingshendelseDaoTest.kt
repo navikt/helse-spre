@@ -14,6 +14,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
@@ -57,8 +58,11 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         behandlingshendelseDao.lagre(korrigererFørste, hendelseId)
         assertEquals(3, behandlingId.rader)
         // Ettersom vi korrigerer en tidligere rad er det ikke det den siste vi bygger videre på for nye meldinger.
-        assertEquals(HENLAGT, behandlingshendelseDao.hent(behandlingId)!!.behandlingsresultat)
-        assertEquals(SYSTEM, behandlingshendelseDao.hent(behandlingId)!!.behandlingskilde)
+        val behandlingshendelse = behandlingshendelseDao.hent(behandlingId)!!
+        assertEquals(HENLAGT, behandlingshendelse.behandlingsresultat)
+        assertEquals(SYSTEM, behandlingshendelse.behandlingskilde)
+        assertEquals("4488", behandlingshendelse.saksbehandlerEnhet)
+        assertNull(behandlingshendelse.beslutterEnhet)
     }
 
     @Test
@@ -96,6 +100,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         behandlingstatus =  REGISTRERT,
         behandlingskilde = SYSTEM,
         behandlingstype = FØRSTEGANGSBEHANDLING,
-        behandlingsmetode = MANUELL
+        behandlingsmetode = MANUELL,
+        saksbehandlerEnhet = "4488"
     )
 }
