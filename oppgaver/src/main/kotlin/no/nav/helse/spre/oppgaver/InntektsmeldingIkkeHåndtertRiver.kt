@@ -13,7 +13,7 @@ class InntektsmeldingIkkeHåndtertRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.requireValue("@event_name", "inntektsmelding_ikke_håndtert") }
+            validate { it.demandValue("@event_name", "inntektsmelding_ikke_håndtert") }
             validate { it.requireKey("inntektsmeldingId", "harPeriodeInnenfor16Dager") }
         }.register(this)
     }
