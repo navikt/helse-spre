@@ -61,6 +61,8 @@ spec:
       rules:
         {{# each accessPolicy.outbound as |item| }}
         - application: {{ item.application }}
+          namespace: {{ item.namespace }}
+          cluster: {{ item.cluster }}
         {{/each}}
       external:
         {{# each accessPolicy.external as |item| }}
