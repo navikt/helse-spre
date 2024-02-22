@@ -24,11 +24,21 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
         assertKorrigerte(rad2, rad3, rad4)
     }
 
+    @Test
+    fun `ignorerer tidligere korrigerte rader`() {
+        val behandlingId1 = UUID.randomUUID()
+        leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = true) { it.put("endretFelt", 1) }
+        leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = true) { it.put("endretFelt", 1) }
+        val rad3 = leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = false) { it.put("endretFelt", 1) }
+        migrer()
+        assertKorrigerte(rad3)
+    }
+
     private companion object {
         private val versjonSomSkalMigreres = Versjon.of("4.1.1")
 
         private class V1337__Eksempelmigrering: BehandlingshendelseJsonMigrering() {
-            override fun whereClause() = "versjon='$versjonSomSkalMigreres'"
+            override fun query() = "select sekvensnummer, data, er_korrigert from behandlingshendelse where versjon='$versjonSomSkalMigreres'"
             override fun nyVersjon() = Versjon.of("5.0.0")
             override fun nyData(gammelData: ObjectNode): ObjectNode {
                 gammelData.put("nyttFelt", "kult")
