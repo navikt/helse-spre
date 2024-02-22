@@ -6,6 +6,7 @@ import kotliquery.Row
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
 import org.flywaydb.core.Flyway
@@ -99,7 +100,11 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
         assertTrue(ny.tekniskTid > gammel.tekniskTid)
 
         // Sjekker at versjonen på den nye raden er korrekt
-        migrering.nyVersjon()?.let { assertEquals(it, Versjon.of(ny.versjon)) }
+        if (migrering.nyVersjon() == null) {
+            assertEquals(gammel.versjon, ny.versjon)
+        } else {
+            assertEquals(migrering.nyVersjon(), Versjon.of(ny.versjon))
+        }
 
         // Egne assertions for data
         assertion(gammel.data, ny.data)
@@ -112,10 +117,10 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
         versjon: Versjon,
         erKorrigert: Boolean = false,
         funksjonellTid: LocalDateTime = LocalDateTime.now(),
+        hendelse: Hendelse = Testhendelse(UUID.randomUUID()),
         data: (data: ObjectNode) -> ObjectNode = { it }
     ): Rad {
-        val hendelseId = UUID.randomUUID()
-        hendelseDao.lagre(Testhendelse(hendelseId))
+        hendelseDao.lagre(hendelse)
 
         sessionOf(dataSource, returnGeneratedKey = true).use { session ->
             val sql = """
@@ -130,7 +135,7 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
                 "versjon" to versjon.toString(),
                 "siste" to siste,
                 "data" to data(objectMapper.createObjectNode()).toString(),
-                "hendelseId" to hendelseId,
+                "hendelseId" to hendelse.id,
                 "erKorrigert" to erKorrigert
             )).asUpdateAndReturnGeneratedKey)!!
             return Rad(sekvensnummer)

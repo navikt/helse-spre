@@ -5,15 +5,18 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
+import org.slf4j.LoggerFactory
 import java.sql.ResultSet
 
 internal abstract class BehandlingshendelseJsonMigrering: BaseJavaMigration() {
+    private val logg = LoggerFactory.getLogger(this::class.java)
 
     override fun migrate(context: Context) {
         val queryStatement = context.connection.createStatement()
         val batchStatement = context.connection.createStatement()
 
         val versjon = nyVersjon()?.let { "'$it'" } ?: BEHOLD_VERSJON
+        var antallKorringerteRader = 0L
 
         queryStatement.use { statement -> statement.executeQuery(query()).use { resultSet ->
             while (resultSet.next()) {
@@ -35,9 +38,11 @@ internal abstract class BehandlingshendelseJsonMigrering: BaseJavaMigration() {
 
                 batchStatement.addBatch(insert)
                 batchStatement.addBatch(update)
+                antallKorringerteRader++
             }
         }}
         batchStatement.use { statement -> statement.executeBatch() }
+        logg.info("Korrigerte $antallKorringerteRader rader.")
     }
     // Query som identifiserer radene som skal korrigeres. Må være mulig å hente ut "sekvensnummer", "data" og "er_korrigert"
     abstract fun query(): String

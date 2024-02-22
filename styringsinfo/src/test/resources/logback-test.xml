@@ -10,5 +10,6 @@
     </root>
 
     <logger name="sprestyringsinfo" level="INFO"/>
+    <logger name="db.migration" level="INFO"/>
 </configuration>
 
