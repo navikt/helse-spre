@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import org.flywaydb.core.api.MigrationVersion
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -17,11 +19,16 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
         val behandlingId1 = UUID.randomUUID()
 
         leggTilRad(behandlingId = behandlingId1, siste = false, versjon = Versjon.of("1.0.0"))
-        val rad2 = leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 1) }
-        val rad3 = leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 1) }
-        val rad4 = leggTilRad(behandlingId = behandlingId1, siste = true, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 1) }
+        val rad2 = leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 2).put("fjernFelt", true) }
+        val rad3 = leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 3).put("fjernFelt", true) }
+        val rad4 = leggTilRad(behandlingId = behandlingId1, siste = true, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 4).put("fjernFelt", true) }
         migrer()
-        assertKorrigerte(rad2, rad3, rad4)
+        assertKorrigerte(rad2, rad3)
+        assertKorrigert(rad4) { _, ny->
+            assertEquals("kult", ny.path("nyttFelt").asText())
+            assertFalse(ny.has("fjernFelt"))
+            assertEquals(1337, ny.path("endretFelt").asInt())
+        }
     }
 
     @Test
@@ -43,7 +50,7 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
             override fun nyData(gammelData: ObjectNode): ObjectNode {
                 gammelData.put("nyttFelt", "kult")
                 gammelData.remove("fjernFelt")
-                gammelData.put("endretFelt", 2)
+                gammelData.put("endretFelt", 1337)
                 return gammelData
             }
         }
