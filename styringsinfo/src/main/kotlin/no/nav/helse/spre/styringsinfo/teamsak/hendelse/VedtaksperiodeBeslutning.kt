@@ -1,7 +1,9 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.helse.nom.Enhet
 import no.nav.helse.nom.Nom
+import no.nav.helse.nom.Saksbehandler
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
@@ -79,13 +81,18 @@ internal class VedtaksperiodeBeslutning(
                 data = packet.blob,
                 opprettet = packet.opprettet,
                 vedtaksperiodeId = packet.vedtaksperiodeId,
-                saksbehandlerEnhet = if (packet.automatiskBehandling) null else nom.hentEnhet(packet.saksbehandlerIdent, LocalDate.now(), packet.hendelseId.toString()),
-                beslutterEnhet = nom.hentEnhet(packet.beslutterIdent, LocalDate.now(), packet.hendelseId.toString()),
+                saksbehandlerEnhet = packet.enhet(nom, packet.saksbehandlerIdent),
+                beslutterEnhet = packet.enhet(nom, packet.beslutterIdent),
                 automatiskBehandling = packet.automatiskBehandling,
                 behandlingsresultat = behandlingsresultat,
                 eventName = eventName
             )}
         )
+
+        private fun JsonMessage.enhet(nom: Nom, ident: Saksbehandler?): Enhet? {
+            if (automatiskBehandling || ident == null) return null
+            return nom.hentEnhet(ident, LocalDate.now(), hendelseId.toString())
+        }
 
         private fun JsonMessage.requireSaksbehandlerIdent() = require("saksbehandlerIdent") { saksbehandlerIdent -> saksbehandlerIdent.asText() }
         private fun JsonMessage.requireAutomatiskBehandling() = require("automatiskBehandling") { automatiskBehandling -> automatiskBehandling.asBoolean() }

@@ -57,8 +57,8 @@ internal class HendelseRiver(
         internal val JsonMessage.opprettet get() = LocalDateTime.parse(this["@opprettet"].asText())
         internal val JsonMessage.vedtaksperiodeId get() = UUID.fromString(this["vedtaksperiodeId"].asText())
         internal val JsonMessage.generasjonId get() = UUID.fromString(this["generasjonId"].asText())
-        internal val JsonMessage.saksbehandlerIdent get() = this["saksbehandlerIdent"].asText()
-        internal val JsonMessage.beslutterIdent get() = this["beslutterIdent"].asText()
+        internal val JsonMessage.saksbehandlerIdent get() = this["saksbehandlerIdent"].asText().takeUnless { it.isBlank() }
+        internal val JsonMessage.beslutterIdent get() = this["beslutterIdent"].asText().takeUnless { it.isBlank() }
         internal val JsonMessage.automatiskBehandling get() = this["automatiskBehandling"].asBoolean()
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
         internal fun JsonMessage.requireGenerasjonId() = require("generasjonId") { generasjonId -> UUID.fromString(generasjonId.asText()) }

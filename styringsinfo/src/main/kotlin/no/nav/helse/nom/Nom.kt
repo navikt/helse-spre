@@ -47,7 +47,6 @@ class Nom(private val baseUrl: String, private val scope: String, private val az
         )
     }
     internal fun hentEnhet(ident: Saksbehandler, gyldigPåDato: LocalDate, hendelseId: String): Enhet? {
-        if (ident.isBlank()) return null
         val accessToken = azureClient.bearerToken(scope).token
 
         val body =
