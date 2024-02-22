@@ -31,7 +31,8 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
     )
 
     private val hendelseDao = PostgresHendelseDao(dataSource)
-    private var nyeEllerEndretEtterMigrering: MutableList<Behandlingshendelse> = mutableListOf()
+    private var hendelserFørMigrering = listOf<Behandlingshendelse>()
+    private var nyeEllerEndredeHendelserEtterMigrering = mutableListOf<Behandlingshendelse>()
 
     @BeforeEach
     fun beforeEach() {
@@ -54,28 +55,29 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
 
     @AfterEach
     fun afterEach() {
-        assertEquals(emptyList<Behandlingshendelse>(), nyeEllerEndretEtterMigrering)
+        assertEquals(emptyList<Behandlingshendelse>(), nyeEllerEndredeHendelserEtterMigrering)
     }
 
     protected fun migrer() {
         val raderFør = antallRader()
-        val hendelserFør = alleBehandlingshendelser()
+        hendelserFørMigrering = alleBehandlingshendelser()
 
         Flyway.configure().dataSource(dataSource).javaMigrations(migrering).target(migrering.version).load().migrate()
         val raderEtter = antallRader()
         val hendelserEtter = alleBehandlingshendelser()
 
-        nyeEllerEndretEtterMigrering = (hendelserEtter - hendelserFør.toSet()).toMutableList()
+        nyeEllerEndredeHendelserEtterMigrering = (hendelserEtter - hendelserFørMigrering.toSet()).toMutableList()
 
-        val antallNyeRader = nyeEllerEndretEtterMigrering.size / 2 // En med oppdaterte flagg + en ny rad som korrigerer
+        val antallNyeRader = nyeEllerEndredeHendelserEtterMigrering.size / 2 // En med oppdaterte flagg + en ny rad som korrigerer
         assertEquals(raderEtter - raderFør, antallNyeRader)
     }
 
     private fun finnGammelOgNyHendelse(rad: Rad): Pair<Behandlingshendelse, Behandlingshendelse> {
-        val gammel = nyeEllerEndretEtterMigrering.single { it.sekvensnummer == rad.sekvensnummer }
-        val ny = nyeEllerEndretEtterMigrering.single { it.sekvensnummer != rad.sekvensnummer && it.behandlingId == gammel.behandlingId && it.funksjonellTid == gammel.funksjonellTid }
-        assertTrue(nyeEllerEndretEtterMigrering.remove(gammel))
-        assertTrue(nyeEllerEndretEtterMigrering.remove(ny))
+        val gammel = nyeEllerEndredeHendelserEtterMigrering.single { it.sekvensnummer == rad.sekvensnummer }
+        val ny = nyeEllerEndredeHendelserEtterMigrering.single { it.sekvensnummer != rad.sekvensnummer && it.behandlingId == gammel.behandlingId && it.funksjonellTid == gammel.funksjonellTid }
+        // Fjerner dem slik at vi afterEach kan sjekke at lista er tom (det betyr at man _må_ asserte på alle rader som korrigeres.)
+        assertTrue(nyeEllerEndredeHendelserEtterMigrering.remove(gammel))
+        assertTrue(nyeEllerEndredeHendelserEtterMigrering.remove(ny))
         return gammel to ny
     }
 
@@ -83,13 +85,14 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
     protected fun assertKorrigert(rad: Rad, assertion: (gammel: ObjectNode, ny: ObjectNode) -> Unit = { _,_ -> } ) {
         val (gammel, ny) = finnGammelOgNyHendelse(rad)
 
+        // Den gamle raden skal være flagget som korrigert og er aldri siste
         assertTrue(gammel.erKorrigert)
         assertFalse(gammel.siste)
 
-        // TODO: Dette mangler jo da..
+        val gammelFørMigrering = hendelserFørMigrering.single { it.sekvensnummer == gammel.sekvensnummer}
         // Om den gamle raden var markert med siste=true skal den nye nå være siste=true
-        // if (gammelFørMigrering.siste) assertTrue(ny.siste)
-        //else assertFalse(ny.siste)
+        if (gammelFørMigrering.siste) assertTrue(ny.siste)
+        else assertFalse(ny.siste)
 
         // Den nye raden skal ikke være markert som korrigert, og må ha en nyere teknisk tid enn den korrigerte raden
         assertFalse(ny.erKorrigert)
