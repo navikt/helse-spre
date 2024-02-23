@@ -14,7 +14,7 @@ class VedtaksperiodeForkastetRiver(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "vedtaksperiode_forkastet") }
-            validate { it.requireKey("hendelser", "harPeriodeInnenfor16Dager", "forlengerPeriode", "fødselsnummer", "organisasjonsnummer") }
+            validate { it.requireKey("hendelser", "vedtaksperiodeId", "tilstand", "harPeriodeInnenfor16Dager", "forlengerPeriode", "fødselsnummer", "aktørId", "organisasjonsnummer") }
             validate { it.rejectValue("@forårsaket_av.event_name", "person_påminnelse") }
         }.register(this)
     }
@@ -33,7 +33,14 @@ class VedtaksperiodeForkastetRiver(
             .map { UUID.fromString(it.asText()) }
         val oppgaver = hendelser.mapNotNull { oppgaveDAO.finnOppgave(it, observer) } + oppgaveDAO.finnOppgaverIDokumentOppdaget(orgnummer, fødselsnummer, observer, hendelser)
         oppgaver.forEach { oppgave ->
-            withMDC(mapOf("event" to "vedtaksperiode_forkastet", "harPeriodeInnenfor16Dager" to harPeriodeInnenfor16Dager.utfall(), "forlengerPeriode" to forlengerPeriode.utfall())) {
+            withMDC(mapOf(
+                "event" to "vedtaksperiode_forkastet",
+                "harPeriodeInnenfor16Dager" to harPeriodeInnenfor16Dager.utfall(),
+                "forlengerPeriode" to forlengerPeriode.utfall(),
+                "aktørId" to packet["aktørId"].asText(),
+                "vedtaksperiodeId" to packet["vedtaksperiodeId"].asText(),
+                "tilstand" to packet["tilstand"].asText()
+            )) {
                 if (speilRelatert) oppgave.lagOppgavePåSpeilKø()
                 else oppgave.lagOppgave()
             }

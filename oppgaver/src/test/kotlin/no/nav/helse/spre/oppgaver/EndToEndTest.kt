@@ -1169,6 +1169,9 @@ fun vedtaksperiodeForkastet(
             "harPeriodeInnenfor16Dager": "$harPeriodeInnenfor16Dager",
             "forlengerPeriode": "$forlengerPeriode",
             "fødselsnummer": "$fødselsnummer",
+            "aktørId": "aktør",
+            "tilstand": "AVVENTER_INNTEKTSMELDING",
+            "vedtaksperiodeId": "${UUID.randomUUID()}",
             "organisasjonsnummer": "$organisasjonsnummer",
             "hendelser": ${hendelser.tilJSONStringArray()},
             "@forårsaket_av": {
