@@ -6,6 +6,8 @@ import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asOptionalLocalDate
 import no.nav.helse.spre.styringsinfo.objectMapper
+import no.nav.helse.spre.styringsinfo.sikkerLogg
+import java.lang.Exception
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -47,33 +49,38 @@ class Nom(private val baseUrl: String, private val scope: String, private val az
         )
     }
     internal fun hentEnhet(ident: Saksbehandler, gyldigPåDato: LocalDate, hendelseId: String): Enhet? {
-        val accessToken = azureClient.bearerToken(scope).token
+        try {
+            val accessToken = azureClient.bearerToken(scope).token
 
-        val body =
-            objectMapper.writeValueAsString(
-                NomQuery(query = finnEnhetQuery.onOneLine(), variables = Variables(ident))
-            )
+            val body =
+                objectMapper.writeValueAsString(
+                    NomQuery(query = finnEnhetQuery.onOneLine(), variables = Variables(ident))
+                )
 
-        val request = HttpRequest.newBuilder(URI.create("$baseUrl/graphql"))
-            .header("Authorization", "Bearer $accessToken")
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .header("Nav-Call-Id", hendelseId)
-            .POST(HttpRequest.BodyPublishers.ofString(body))
-            .build()
+            val request = HttpRequest.newBuilder(URI.create("$baseUrl/graphql"))
+                .header("Authorization", "Bearer $accessToken")
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("Nav-Call-Id", hendelseId)
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build()
 
-        val newHttpClient = HttpClient.newHttpClient()
-        val responseHandler = HttpResponse.BodyHandlers.ofString()
-        val response = newHttpClient.send(request, responseHandler)
+            val newHttpClient = HttpClient.newHttpClient()
+            val responseHandler = HttpResponse.BodyHandlers.ofString()
+            val response = newHttpClient.send(request, responseHandler)
 
-        if (response.statusCode() != 200) {
-            throw RuntimeException("error (responseCode=${response.statusCode()}) from NOM")
+            if (response.statusCode() != 200) {
+                throw RuntimeException("error (responseCode=${response.statusCode()}) from NOM")
+            }
+            val responseBody = objectMapper.readTree(response.body())
+            if (responseBody.containsErrors()) {
+                throw RuntimeException("errors from NOM: ${responseBody["errors"].errorMsgs()}")
+            }
+            return responseBody.enhet(gyldigPåDato = gyldigPåDato)
+        } catch (exception: Exception) {
+            sikkerLogg.error("Feil oppsto ved kall mot NOM for ident $ident og hendelse $hendelseId", exception)
+            return null
         }
-        val responseBody = objectMapper.readTree(response.body())
-        if (responseBody.containsErrors()) {
-            throw RuntimeException("errors from NOM: ${responseBody["errors"].errorMsgs()}")
-        }
-        return responseBody.enhet(gyldigPåDato = gyldigPåDato)
     }
 
     private data class NomQuery(
@@ -110,6 +117,5 @@ class Nom(private val baseUrl: String, private val scope: String, private val az
       }
     }
     """.trimIndent()
-
 }
 
