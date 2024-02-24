@@ -354,6 +354,18 @@ class EndToEndTest {
     }
 
     @Test
+    fun `oppretter ikke oppgave dersom perioden er behandlet i Infotrygd`() {
+        val søknad1HendelseId = UUID.randomUUID()
+        val søknad1DokumentId = UUID.randomUUID()
+
+        sendSøknad(søknad1HendelseId, søknad1DokumentId)
+        vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId), behandletIInfotrygd = true)
+
+        assertEquals(0, publiserteOppgaver.size)
+        assertEquals(0, rapid.inspektør.size)
+    }
+
+    @Test
     fun `oppgave opprettet speilrelatert harPeriodeInnenfor16Dager`() {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
@@ -1036,13 +1048,14 @@ class EndToEndTest {
 
     private fun vedtaksperiodeForkastet(
         hendelseIder: List<UUID>,
+        behandletIInfotrygd: Boolean = false,
         harPeriodeInnenfor16Dager: Boolean = false,
         forlengerPeriode: Boolean = false,
         organisasjonsnummer: String = ORGNUMMER,
         fødselsnummer: String = FØDSELSNUMMER,
         forårsaketAv: String = "hva_som_helst"
     ) {
-        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, harPeriodeInnenfor16Dager, forlengerPeriode, fødselsnummer, organisasjonsnummer, forårsaketAv))
+        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, behandletIInfotrygd, harPeriodeInnenfor16Dager, forlengerPeriode, fødselsnummer, organisasjonsnummer, forårsaketAv))
     }
 
 
@@ -1158,6 +1171,7 @@ fun søknadHåndtert(
 
 fun vedtaksperiodeForkastet(
     hendelser: List<UUID>,
+    behandletIInfotrygd: Boolean,
     harPeriodeInnenfor16Dager: Boolean,
     forlengerPeriode: Boolean,
     fødselsnummer: String,
@@ -1168,6 +1182,7 @@ fun vedtaksperiodeForkastet(
             "@event_name": "vedtaksperiode_forkastet",
             "harPeriodeInnenfor16Dager": "$harPeriodeInnenfor16Dager",
             "forlengerPeriode": "$forlengerPeriode",
+            "behandletIInfotrygd": $behandletIInfotrygd,
             "fødselsnummer": "$fødselsnummer",
             "aktørId": "aktør",
             "tilstand": "AVVENTER_INNTEKTSMELDING",
