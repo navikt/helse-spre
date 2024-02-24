@@ -1,7 +1,9 @@
 package no.nav.helse.spre.oppgaver
 
+import com.fasterxml.jackson.databind.JsonNode
 import net.logstash.logback.argument.StructuredArguments.kv
 import no.nav.helse.rapids_rivers.*
+import java.time.LocalDate
 import java.util.*
 
 class VedtaksperiodeForkastetRiver(
@@ -17,6 +19,8 @@ class VedtaksperiodeForkastetRiver(
             validate { it.demandValue("@event_name", "vedtaksperiode_forkastet") }
             validate { it.requireKey("hendelser", "vedtaksperiodeId", "tilstand", "harPeriodeInnenfor16Dager", "forlengerPeriode", "fødselsnummer", "aktørId", "organisasjonsnummer") }
             validate { it.requireKey("behandletIInfotrygd") }
+            validate { it.require("fom", JsonNode::asLocalDate) }
+            validate { it.require("tom", JsonNode::asLocalDate) }
             validate { it.rejectValue("@forårsaket_av.event_name", "person_påminnelse") }
         }.register(this)
     }
@@ -31,7 +35,9 @@ class VedtaksperiodeForkastetRiver(
         val fødselsnummer = packet["fødselsnummer"].asText()
         val speilRelatert = harPeriodeInnenfor16Dager || forlengerPeriode
         val behandletIInfotrygd = packet["behandletIInfotrygd"].asBoolean(false)
-
+        val fom = packet["fom"].asLocalDate()
+        val tom = packet["tom"].asLocalDate()
+        val erGammelPeriode = tom <= LocalDate.of(2022, 12, 31)
         val hendelser = packet["hendelser"].map { UUID.fromString(it.asText()) }
         val oppgaver = hendelser.mapNotNull { oppgaveDAO.finnOppgave(it, observer) } + oppgaveDAO.finnOppgaverIDokumentOppdaget(orgnummer, fødselsnummer, observer, hendelser)
 
@@ -42,10 +48,13 @@ class VedtaksperiodeForkastetRiver(
             "behandletIInfotrygd" to behandletIInfotrygd.utfall(),
             "aktørId" to packet["aktørId"].asText(),
             "vedtaksperiodeId" to packet["vedtaksperiodeId"].asText(),
-            "tilstand" to packet["tilstand"].asText()
+            "tilstand" to packet["tilstand"].asText(),
+            "fomÅr" to fom.year.toString(),
+            "tomÅr" to tom.year.toString(),
+            "erGammelPeriode" to erGammelPeriode.utfall()
         )) {
-            if (oppgaver.isEmpty()) return@withMDC sikkerLog.info("Ignorerer vedtaksperiode_opprettet fordi ingen hendelser kan mappes til oppgaver i databasen", kv("fødselsnummer", fødselsnummer))
-            if (behandletIInfotrygd) return@withMDC sikkerLog.info("Ignorerer vedtaksperiode_opprettet fordi perioden er allerede behandlet i Infotrygd", kv("fødselsnummer", fødselsnummer))
+            if (oppgaver.isEmpty()) return@withMDC sikkerLog.info("Ignorerer vedtaksperiode_forkastet fordi ingen hendelser kan mappes til oppgaver i databasen", kv("fødselsnummer", fødselsnummer))
+            if (behandletIInfotrygd) return@withMDC sikkerLog.info("Ignorerer vedtaksperiode_forkastet fordi perioden er allerede behandlet i Infotrygd", kv("fødselsnummer", fødselsnummer))
             oppgaver.forEach { oppgave ->
                 if (speilRelatert) oppgave.lagOppgavePåSpeilKø()
                 else oppgave.lagOppgave()

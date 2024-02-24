@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.util.*
@@ -1187,6 +1188,8 @@ fun vedtaksperiodeForkastet(
             "aktørId": "aktør",
             "tilstand": "AVVENTER_INNTEKTSMELDING",
             "vedtaksperiodeId": "${UUID.randomUUID()}",
+            "fom": "${LocalDate.now()}",
+            "tom": "${LocalDate.now()}",
             "organisasjonsnummer": "$organisasjonsnummer",
             "hendelser": ${hendelser.tilJSONStringArray()},
             "@forårsaket_av": {
