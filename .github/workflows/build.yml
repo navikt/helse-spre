@@ -132,7 +132,7 @@ jobs:
         with:
           files: "${{ env.VARS }}"
       - name: deploy
-        if: steps.vars_file.outputs.files_exists == 'true'
+        if: steps.vars_file.outputs.files_exists == 'true' && needs.build.result == 'success'
         uses: nais/deploy/actions/deploy@v2
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
