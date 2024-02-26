@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import org.flywaydb.core.api.MigrationVersion
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -33,6 +32,7 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
 
     @Test
     fun `ignorerer tidligere korrigerte rader`() {
+        assertTrue(false) { "Bare en test som sjekker om vi deployer broken builds." }
         val behandlingId1 = UUID.randomUUID()
         leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = true) { it.put("endretFelt", 1) }
         leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = true) { it.put("endretFelt", 1) }

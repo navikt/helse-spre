@@ -29,7 +29,7 @@ class VedtakMediator(
         opprettSammenslåttVedtak(vedtak)
     }
 
-    internal fun opprettSammenslåttVedtak(vedtakMessage: VedtakMessage) {
+    private fun opprettSammenslåttVedtak(vedtakMessage: VedtakMessage) {
         if (vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
         runBlocking {
             val organisasjonsnavn = try {
