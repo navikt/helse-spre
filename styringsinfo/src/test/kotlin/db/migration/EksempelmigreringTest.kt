@@ -32,7 +32,6 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
 
     @Test
     fun `ignorerer tidligere korrigerte rader`() {
-        assertTrue(false) { "Bare en test som sjekker om vi deployer broken builds." }
         val behandlingId1 = UUID.randomUUID()
         leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = true) { it.put("endretFelt", 1) }
         leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = true) { it.put("endretFelt", 1) }
