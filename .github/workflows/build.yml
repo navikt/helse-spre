@@ -109,6 +109,10 @@ jobs:
           docker_context: ${{ matrix.project }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+      - name: lage build success fil
+        if: ${{ success() }}
+        run: |
+          touch "${{ matrix.project }}_build_success"
 
   deploy:
     needs: [generate_vars, build]
@@ -130,9 +134,9 @@ jobs:
         id: vars_file
         uses: andstor/file-existence-action@v3
         with:
-          files: "${{ env.VARS }}"
+          files: "${{ env.VARS }}, ${{ matrix.project }}_build_success"
       - name: deploy
-        if: steps.vars_file.outputs.files_exists == 'true' && needs.build.result == 'success'
+        if: steps.vars_file.outputs.files_exists == 'true'
         uses: nais/deploy/actions/deploy@v2
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
