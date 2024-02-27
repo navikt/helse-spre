@@ -35,7 +35,7 @@ spec:
       path: /stop
   resources:
     limits:
-      memory: 1024Mi
+      memory: 2Gi
     requests:
       cpu: 250m
       memory: 128Mi
