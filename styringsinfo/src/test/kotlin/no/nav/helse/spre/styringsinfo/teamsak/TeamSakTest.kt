@@ -64,7 +64,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
         behandling = avsluttetMedVedtak(behandlingId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(VEDTATT, behandling.behandlingsresultat)
+        assertEquals(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT, behandling.behandlingsresultat)
     }
 
     @Test
@@ -80,7 +80,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(VEDTATT, behandling.behandlingsresultat)
 
         behandling = avsluttetMedVedtak(behandlingId).håndter(behandlingshendelseDao, behandlingId)
-        assertNull(behandling.behandlingsmetode)
+        assertEquals(Behandling.Behandlingsmetode.AUTOMATISK, behandling.behandlingsmetode)
     }
 
     @Test
@@ -171,8 +171,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         utbetaltBehandling = januarAvsluttetMedVedtak.håndter(behandlingshendelseDao, januarBehandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING, utbetaltBehandling.behandlingstype)
-        assertEquals(VEDTATT, utbetaltBehandling.behandlingsresultat)
-        assertNull(utbetaltBehandling.behandlingsmetode)
+        assertEquals(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT, utbetaltBehandling.behandlingsresultat)
+        assertEquals(Behandling.Behandlingsmetode.AUTOMATISK, utbetaltBehandling.behandlingsmetode)
 
         val (annulleringBehandlingId, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)
         var annullertBehandling = januarAnnullertGenerasjonOpprettet.håndter(behandlingshendelseDao, annulleringBehandlingId)
@@ -349,7 +349,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
            "SB456",
            false,
            VEDTATT,
-           "vedtaksperiode_godkjent")
+           "vedtaksperiode_godkjent",
+           Behandling.Behandlingstatus.GODKJENT)
        internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeBeslutning(UUID.randomUUID(),
            nesteTidspunkt,
            blob,
@@ -358,6 +359,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
            "SB456",
            false,
            AVBRUTT,
-           "vedtaksperiode_avvist")
+           "vedtaksperiode_avvist",
+           Behandling.Behandlingstatus.AVSLUTTET)
    }
 }

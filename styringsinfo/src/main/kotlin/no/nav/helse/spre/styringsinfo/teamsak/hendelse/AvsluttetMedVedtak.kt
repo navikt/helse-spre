@@ -25,7 +25,8 @@ internal class AvsluttetMedVedtak(
         val builder = behandlingshendelseDao.initialiser(BehandlingId(generasjonId)) ?: return false
         val ny = builder
             .behandlingstatus(Behandling.Behandlingstatus.AVSLUTTET)
-            .behandlingsresultat(Behandling.Behandlingsresultat.VEDTATT)
+            .behandlingsresultat(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT)
+            .behandlingsmetode(Behandling.Behandlingsmetode.AUTOMATISK)
             .build(opprettet)
         behandlingshendelseDao.lagre(ny, this.id)
         return true

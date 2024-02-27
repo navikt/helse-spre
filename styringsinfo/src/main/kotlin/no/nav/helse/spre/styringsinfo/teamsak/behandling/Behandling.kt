@@ -33,6 +33,7 @@ internal data class Behandling(
     internal enum class Behandlingstatus {
         REGISTRERT,
         AVVENTER_GODKJENNING,
+        GODKJENT,
         AVSLUTTET
     }
 
@@ -45,7 +46,8 @@ internal data class Behandling(
     internal enum class Behandlingsresultat {
         VEDTATT, // Per nå har vi ikke nok info til å utlede innvilget/delvisInnvilget/avslag, så alt sendes som ☂️-betegnelsen Vedtatt
         HENLAGT,
-        AVBRUTT
+        AVBRUTT,
+        VEDTAK_IVERKSATT
     }
 
     internal enum class Behandlingskilde {
