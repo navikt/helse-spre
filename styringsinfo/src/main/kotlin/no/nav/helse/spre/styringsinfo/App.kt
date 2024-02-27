@@ -48,7 +48,6 @@ fun main() {
     val sendtSøknadPatcher = SendtSøknadPatcher(SendtSøknadDao(dataSource))
     val vedtakFattetPatcher = VedtakFattetPatcher(VedtakFattetDao(dataSource))
     val vedtakForkastetPatcher = VedtakForkastetPatcher(VedtakForkastetDao(dataSource))
-    dataSourceBuilder.migrate()
 
     val azureClient = createAzureTokenClientFromEnvironment()
 
@@ -58,23 +57,27 @@ fun main() {
         azureClient = azureClient
     )
 
-    thread {
-        sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = SendtSøknadPatch.values().last().ordinal))
-    }
-    thread {
-        vedtakFattetPatcher.patchVedtakFattet(PatchOptions(
-            patchLevelMindreEnn = VedtakFattetPatch.values().last().ordinal,
-            initialSleepMillis = 1000
-        ))
-    }
-    thread {
-        vedtakForkastetPatcher.patchVedtakForkastet(PatchOptions(
-            patchLevelMindreEnn = VedtakForkastetPatch.values().last().ordinal,
-            initialSleepMillis = 1000
-        ))
-    }
-
     val rapidsConnection = launchApplication(dataSource, environment, nomClient)
+    rapidsConnection.register(object: RapidsConnection.StatusListener {
+        override fun onStartup(rapidsConnection: RapidsConnection) {
+            dataSourceBuilder.migrate()
+            thread {
+                sendtSøknadPatcher.patchSendtSøknad(PatchOptions(patchLevelMindreEnn = SendtSøknadPatch.values().last().ordinal))
+            }
+            thread {
+                vedtakFattetPatcher.patchVedtakFattet(PatchOptions(
+                    patchLevelMindreEnn = VedtakFattetPatch.values().last().ordinal,
+                    initialSleepMillis = 1000
+                ))
+            }
+            thread {
+                vedtakForkastetPatcher.patchVedtakForkastet(PatchOptions(
+                    patchLevelMindreEnn = VedtakForkastetPatch.values().last().ordinal,
+                    initialSleepMillis = 1000
+                ))
+            }
+        }
+    })
     rapidsConnection.start()
 }
 
