@@ -35,7 +35,7 @@ spec:
       path: /stop
   resources:
     limits:
-      memory: 2Gi
+      memory: {{#if maxMemory }}{{ maxMemory }}{{else}}1024Mi{{/if}}
     requests:
       cpu: 250m
       memory: 128Mi
