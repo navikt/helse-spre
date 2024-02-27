@@ -16,7 +16,7 @@ internal abstract class BehandlingshendelseJsonMigrering: BaseJavaMigration() {
         val batchStatement = context.connection.createStatement()
 
         val versjon = nyVersjon()?.let { "'$it'" } ?: BEHOLD_VERSJON
-        var antallKorringerteRader = 0L
+        val gamleSekvensnummer = mutableListOf<Long>()
 
         queryStatement.use { statement -> statement.executeQuery(query()).use { resultSet ->
             while (resultSet.next()) {
@@ -32,17 +32,22 @@ internal abstract class BehandlingshendelseJsonMigrering: BaseJavaMigration() {
                     where sekvensnummer=${gammeltSekvensnummer};
                 """
 
-                val update = """
-                    update behandlingshendelse set siste=false, er_korrigert=true where sekvensnummer=${gammeltSekvensnummer};
-                """
-
                 batchStatement.addBatch(insert)
-                batchStatement.addBatch(update)
-                antallKorringerteRader++
+                gamleSekvensnummer.add(gammeltSekvensnummer)
+                if (gamleSekvensnummer.size % 100_000 == 0) logg.info("Batchet opp ${gamleSekvensnummer.size} rader for korrigering.")
             }
         }}
+
+
+        if (gamleSekvensnummer.isNotEmpty()) {
+            val update = """
+                update behandlingshendelse set siste=false, er_korrigert=true where sekvensnummer in ${gamleSekvensnummer.joinToString(prefix = "(", postfix = ")")};
+            """
+            batchStatement.addBatch(update)
+        }
+
         batchStatement.use { statement -> statement.executeBatch() }
-        logg.info("Korrigerte $antallKorringerteRader rader.")
+        logg.info("Korrigerte ${gamleSekvensnummer.size} rader.")
     }
     // Query som identifiserer radene som skal korrigeres. Må være mulig å hente ut "sekvensnummer", "data" og "er_korrigert"
     abstract fun query(): String
