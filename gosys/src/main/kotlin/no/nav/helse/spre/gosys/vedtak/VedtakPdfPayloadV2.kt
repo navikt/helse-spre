@@ -27,6 +27,7 @@ data class VedtakPdfPayloadV2(
     val skjæringstidspunkt: LocalDate,
     val avviksprosent: Double?,
     val skjønnsfastsettingtype: String?,
+    val skjønnsfastsettingårsak: String?,
     val arbeidsgivere: List<ArbeidsgiverData>?,
     val begrunnelser: Map<String, String>?,
 ) {

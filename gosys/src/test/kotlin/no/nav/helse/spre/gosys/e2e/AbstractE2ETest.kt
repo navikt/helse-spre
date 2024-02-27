@@ -25,6 +25,7 @@ import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingårsak
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.testhelpers.*
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
@@ -49,7 +50,12 @@ internal abstract class AbstractE2ETest {
     protected val pdfClient = PdfClient(mockClient, "http://url.no")
     private val azureMock: AzureTokenProvider = mockk {
         every { bearerToken("scope") }.returns(AzureToken("token", LocalDateTime.MAX))
-        every { bearerToken("JOARK_SCOPE") }.returns(AzureToken("6B70C162-8AAB-4B56-944D-7F092423FE4B", LocalDateTime.MAX))
+        every { bearerToken("JOARK_SCOPE") }.returns(
+            AzureToken(
+                "6B70C162-8AAB-4B56-944D-7F092423FE4B",
+                LocalDateTime.MAX
+            )
+        )
     }
     protected val joarkClient = JoarkClient("https://url.no", azureMock, "JOARK_SCOPE", mockClient)
     protected val eregClient = EregClient("https://url.no", mockClient)
@@ -65,7 +71,14 @@ internal abstract class AbstractE2ETest {
     @BeforeEach
     internal fun abstractSetup() {
         testRapid.reset()
-        testRapid.settOppRivers(duplikatsjekkDao, annulleringMediator, feriepengerMediator, vedtakFattetDao, utbetalingDao, vedtakMediator)
+        testRapid.settOppRivers(
+            duplikatsjekkDao,
+            annulleringMediator,
+            feriepengerMediator,
+            vedtakFattetDao,
+            utbetalingDao,
+            vedtakMediator
+        )
         capturedJoarkRequests.clear()
         capturedPdfRequests.clear()
     }
@@ -117,7 +130,10 @@ internal abstract class AbstractE2ETest {
     }
 
     open fun MockRequestHandleScope.handlerForPdlKall(request: HttpRequestData): HttpResponseData {
-        return respond(content = pdlResponse().toByteArray(), headers = headersOf("Content-Type" to listOf("application/json")))
+        return respond(
+            content = pdlResponse().toByteArray(),
+            headers = headersOf("Content-Type" to listOf("application/json"))
+        )
     }
 
     private inline fun <reified T> HttpRequestData.parsePayload(): T = runBlocking {
@@ -165,8 +181,14 @@ internal abstract class AbstractE2ETest {
         skjæringstidspunkt: LocalDate = fom,
         avviksprosent: Double = 20.0,
         skjønnsfastsettingtype: Skjønnsfastsettingtype = OMREGNET_ÅRSINNTEKT,
+        skjønnsfastsettingårsak: Skjønnsfastsettingårsak = Skjønnsfastsettingårsak.ANDRE_AVSNITT,
         arbeidsgivere: List<ArbeidsgiverData> = listOf(
-            ArbeidsgiverData(organisasjonsnummer = "123456789", omregnetÅrsinntekt = 565260.0, innrapportertÅrsinntekt = 500000.0, skjønnsfastsatt = 565260.0)
+            ArbeidsgiverData(
+                organisasjonsnummer = "123456789",
+                omregnetÅrsinntekt = 565260.0,
+                innrapportertÅrsinntekt = 500000.0,
+                skjønnsfastsatt = 565260.0
+            )
         ),
         begrunnelser: Map<String, String>? = null,
     ) =
@@ -197,6 +219,11 @@ internal abstract class AbstractE2ETest {
                 OMREGNET_ÅRSINNTEKT -> "Omregnet årsinntekt"
                 RAPPORTERT_ÅRSINNTEKT -> "Rapportert årsinntekt"
                 ANNET -> "Annet"
+                else -> null
+            },
+            skjønnsfastsettingårsak = when (skjønnsfastsettingårsak) {
+                Skjønnsfastsettingårsak.ANDRE_AVSNITT -> "Skjønnsfastsettelse ved mer enn 25 % avvik (§ 8-30 andre avsnitt)"
+                Skjønnsfastsettingårsak.TREDJE_AVSNITT -> "Skjønnsfastsettelse ved mangelfull eller uriktig rapportering (§ 8-30 tredje avsnitt)"
                 else -> null
             },
             arbeidsgivere = arbeidsgivere,
@@ -288,6 +315,7 @@ internal abstract class AbstractE2ETest {
       "seksG": 711720.0,
       "tags": ["6GBegrenset"],
       "skjønnsfastsettingtype": "OMREGNET_ÅRSINNTEKT",
+      "skjønnsfastsettingårsak": "ANDRE_AVSNITT",
       "skjønnsfastsatt": 565260.0,
       "arbeidsgivere": [
         {

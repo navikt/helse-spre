@@ -7,6 +7,7 @@ import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Oppdrag
 import no.nav.helse.spre.gosys.vedtakFattet.Begrunnelse
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingårsak
 import no.nav.helse.spre.gosys.vedtakFattet.SykepengegrunnlagsfaktaData
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -122,10 +123,15 @@ data class VedtakMessage(
         organisasjonsnavn = organisasjonsnavn,
         skjæringstidspunkt = skjæringstidspunkt,
         avviksprosent = sykepengegrunnlagsfakta.avviksprosent,
-        skjønnsfastsettingtype = when (sykepengegrunnlagsfakta.skjønnsfastsettingtype) {
+        skjønnsfastsettingtype = if (sykepengegrunnlagsfakta.skjønnsfastsettingårsak == Skjønnsfastsettingårsak.ANDRE_AVSNITT) when (sykepengegrunnlagsfakta.skjønnsfastsettingtype) {
             OMREGNET_ÅRSINNTEKT -> "Omregnet årsinntekt"
             RAPPORTERT_ÅRSINNTEKT -> "Rapportert årsinntekt"
             ANNET -> "Annet"
+            else -> null
+        } else null,
+        skjønnsfastsettingårsak = when (sykepengegrunnlagsfakta.skjønnsfastsettingårsak) {
+            Skjønnsfastsettingårsak.ANDRE_AVSNITT -> "Skjønnsfastsettelse ved mer enn 25 % avvik (§ 8-30 andre avsnitt)"
+            Skjønnsfastsettingårsak.TREDJE_AVSNITT -> "Skjønnsfastsettelse ved mangelfull eller uriktig rapportering (§ 8-30 tredje avsnitt)"
             else -> null
         },
         arbeidsgivere = sykepengegrunnlagsfakta.arbeidsgivere,
