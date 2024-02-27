@@ -67,7 +67,7 @@ internal class GenerasjonOpprettet(
         }
 
         private val Generasjonstype.behandlingstype get() = when (verdi) {
-            "Førstegangsbehandling", "TilInfotrygd", "Søknad" -> Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING
+            "TilInfotrygd", "Søknad" -> Behandling.Behandlingstype.SØKNAD
             "Omgjøring" -> Behandling.Behandlingstype.OMGJØRING
             "Revurdering" -> Behandling.Behandlingstype.REVURDERING
             else -> throw IllegalStateException("Kjenner ikke til generasjontype $verdi")

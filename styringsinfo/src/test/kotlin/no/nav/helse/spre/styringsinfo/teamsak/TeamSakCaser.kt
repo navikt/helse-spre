@@ -3,7 +3,7 @@ package no.nav.helse.spre.styringsinfo.teamsak
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
-import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.Førstegangsbehandling
+import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.Søknad
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.TilInfotrygd
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetMedVedtak
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetUtenVedtak
@@ -35,7 +35,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
         // generasjon opprettet med vedtak - januar
 
         val (behandlingId, januarGenerasjonOpprettet) = generasjonOpprettet(
-            Førstegangsbehandling,
+            Søknad,
             aktørId = "Scenario 1"
         )
         januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
@@ -55,7 +55,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
         */
         // generasjon opprettet med vedtak - januar
         val (behandlingIdJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(
-            Førstegangsbehandling,
+            Søknad,
             aktørId = "Scenario 2"
         )
         januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
@@ -65,7 +65,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - februar
         val (behandlingIdFebruar, februarGenerasjonOpprettet, sakIdFebruar) = generasjonOpprettet(
-            Førstegangsbehandling,
+            Søknad,
             aktørId = "Scenario 2"
         )
         februarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
@@ -75,7 +75,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - februar igjen?
         val (andreGenerasjonFebruar, andreFebruarGenerasjonOpprettet) = generasjonOpprettet(
-            Førstegangsbehandling,
+            Søknad,
             aktørId = "Scenario 2",
             sakId = sakIdFebruar
         )
@@ -93,7 +93,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - januar
         val (generasjonJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(
-            Førstegangsbehandling,
+            Søknad,
             aktørId = "Scenario 3"
         )
         januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
@@ -112,7 +112,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - januar
         val (_, januarGenerasjonOpprettet, sakId) = generasjonOpprettet(
-            Førstegangsbehandling,
+            Søknad,
             aktørId = "Scenario 4"
         )
         januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
@@ -131,7 +131,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // generasjon opprettet med vedtak - januar
         val (generasjonJanuar, januarGenerasjonOpprettet, sakId) = generasjonOpprettet(
-            Førstegangsbehandling,
+            Søknad,
             aktørId = "Scenario 5"
         )
         januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)

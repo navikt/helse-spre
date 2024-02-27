@@ -38,7 +38,7 @@ internal data class Behandling(
     }
 
     internal enum class Behandlingstype {
-        FØRSTEGANGSBEHANDLING,
+        SØKNAD,
         OMGJØRING,
         REVURDERING
     }

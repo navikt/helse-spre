@@ -9,7 +9,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.HENLAGT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
@@ -99,7 +99,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         funksjonellTid = LocalDateTime.now(),
         behandlingstatus =  REGISTRERT,
         behandlingskilde = SYSTEM,
-        behandlingstype = FØRSTEGANGSBEHANDLING,
+        behandlingstype = SØKNAD,
         behandlingsmetode = MANUELL,
         saksbehandlerEnhet = "4488"
     )

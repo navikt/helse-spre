@@ -37,7 +37,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `funksjonell lik behandling`() {
-        val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling)
+        val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Søknad)
 
         assertEquals(0, behandlingId.rader)
         generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
@@ -53,7 +53,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for vedtak`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Førstegangsbehandling)
+        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
         var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
@@ -69,7 +69,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for godkjent vedtak`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Førstegangsbehandling)
+        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
         generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
@@ -85,7 +85,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for avvist vedtak`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Førstegangsbehandling)
+        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
         generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
@@ -105,7 +105,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     @Test
     fun `presisjon på tidsstempler truncates ned til 6 desimaler i databasen`() {
         val tidspunkt = LocalDateTime.parse("2024-02-13T15:29:54.123123123")
-        val (behandlingId, generasjonOpprettet, _) = generasjonOpprettet(Førstegangsbehandling, innsendt = tidspunkt, registrert = tidspunkt, opprettet = tidspunkt)
+        val (behandlingId, generasjonOpprettet, _) = generasjonOpprettet(Søknad, innsendt = tidspunkt, registrert = tidspunkt, opprettet = tidspunkt)
         generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
         fun String.antallDesimaler() = if (this.contains(".")) this.split(".").last().length else 0
@@ -119,7 +119,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val innsendt = LocalDateTime.parse("2024-02-13T15:29")
         val registrert = LocalDateTime.parse("2024-02-20T15:29")
         val opprettet = LocalDateTime.parse("2024-02-20T15:29:54.123")
-        val (behandlingId, generasjonOpprettet, _) = generasjonOpprettet(Førstegangsbehandling, innsendt = innsendt, registrert = registrert, opprettet = opprettet)
+        val (behandlingId, generasjonOpprettet, _) = generasjonOpprettet(Søknad, innsendt = innsendt, registrert = registrert, opprettet = opprettet)
         generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
         fun String.antallDesimaler() = if (this.contains(".")) this.split(".").last().length else 0
@@ -130,7 +130,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for auu`() {
-        val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Førstegangsbehandling)
+        val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
         var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
@@ -144,7 +144,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for forkastet periode`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Førstegangsbehandling)
+        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
         var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
@@ -158,11 +158,11 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `annullering av en tidligere utbetalt periode`() {
-        val (januarBehandlingId, januarGenerasjonOpprettet, januarSakId) = generasjonOpprettet(Førstegangsbehandling)
+        val (januarBehandlingId, januarGenerasjonOpprettet, januarSakId) = generasjonOpprettet(Søknad)
 
         var utbetaltBehandling = januarGenerasjonOpprettet.håndter(behandlingshendelseDao, januarBehandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, utbetaltBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING, utbetaltBehandling.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
         assertNull(utbetaltBehandling.behandlingsresultat)
         assertEquals(utbetaltBehandling.behandlingsmetode, Behandling.Behandlingsmetode.AUTOMATISK)
 
@@ -170,14 +170,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val januarAvsluttetMedVedtak = avsluttetMedVedtak(januarBehandlingId)
         utbetaltBehandling = januarAvsluttetMedVedtak.håndter(behandlingshendelseDao, januarBehandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, utbetaltBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING, utbetaltBehandling.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
         assertEquals(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT, utbetaltBehandling.behandlingsresultat)
         assertEquals(Behandling.Behandlingsmetode.AUTOMATISK, utbetaltBehandling.behandlingsmetode)
 
         val (annulleringBehandlingId, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)
         var annullertBehandling = januarAnnullertGenerasjonOpprettet.håndter(behandlingshendelseDao, annulleringBehandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, annullertBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING, annullertBehandling.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.SØKNAD, annullertBehandling.behandlingstype)
         assertEquals(Behandling.Behandlingskilde.SAKSBEHANDLER, annullertBehandling.behandlingskilde)
         assertNull(annullertBehandling.behandlingsresultat)
 
@@ -190,7 +190,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
         listOf(annullertBehandling, utbetaltBehandling).forEach {
             assertEquals(Behandling.Behandlingstatus.AVSLUTTET, it.behandlingstatus)
-            assertEquals(Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING, it.behandlingstype)
+            assertEquals(Behandling.Behandlingstype.SØKNAD, it.behandlingstype)
             assertEquals(AVBRUTT, it.behandlingsresultat)
         }
 
@@ -202,19 +202,19 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(TilInfotrygd)
         var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING, behandling.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
         assertNull(behandling.behandlingsresultat)
 
         val generasjonForkastet = generasjonForkastet(sakId)
         behandling = generasjonForkastet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.FØRSTEGANGSBEHANDLING, behandling.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
     }
 
     @Test
     fun `en omgjøring av auu`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Førstegangsbehandling)
+        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
 
         val avsluttetUtenVedtak = avsluttetUtenVedtak(behandlingId)
 
@@ -304,7 +304,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        internal val Saksbehandler = GenerasjonOpprettet.Avsender("SAKSBEHANDLER")
        internal val System = GenerasjonOpprettet.Avsender("SYSTEM")
 
-       internal val Førstegangsbehandling = GenerasjonOpprettet.Generasjonstype("Førstegangsbehandling")
+       internal val Søknad = GenerasjonOpprettet.Generasjonstype("Søknad")
        internal val TilInfotrygd = GenerasjonOpprettet.Generasjonstype("TilInfotrygd")
        internal val Omgjøring = GenerasjonOpprettet.Generasjonstype("Omgjøring")
        internal val Revurdering = GenerasjonOpprettet.Generasjonstype("Revurdering")
