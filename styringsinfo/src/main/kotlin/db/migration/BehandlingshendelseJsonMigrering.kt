@@ -49,11 +49,11 @@ internal abstract class BehandlingshendelseJsonMigrering: BaseJavaMigration() {
         batchStatement.use { statement -> statement.executeBatch() }
         logg.info("Korrigerte ${gamleSekvensnummer.size} rader.")
     }
-    // Query som identifiserer radene som skal korrigeres. Må være mulig å hente ut "sekvensnummer", "data" og "er_korrigert"
+    /** Query som identifiserer radene som skal korrigeres. Må være mulig å hente ut "sekvensnummer", "data" og "er_korrigert" */
     abstract fun query(): String
-    // Settes om de nye radene skal få en annen versjon enn raden som korrigeres
+    /** Settes om de nye radene skal få en annen versjon enn raden som korrigeres */
     abstract fun nyVersjon(): Versjon?
-    // Får data fra raden som skal korrigeres og returnerer data som skal inn i den nye raden
+    /** Får data fra raden som skal korrigeres og returnerer data som skal inn i den nye raden */
     abstract fun nyData(gammelData: ObjectNode): ObjectNode
 
     private companion object {

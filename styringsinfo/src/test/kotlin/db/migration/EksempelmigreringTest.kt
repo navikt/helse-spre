@@ -17,10 +17,10 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
     fun `Migrerer riktige rader`() {
         val behandlingId1 = UUID.randomUUID()
 
-        leggTilRad(behandlingId = behandlingId1, siste = false, versjon = Versjon.of("1.0.0"))
-        val rad2 = leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 2).put("fjernFelt", true) }
-        val rad3 = leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 3).put("fjernFelt", true) }
-        val rad4 = leggTilRad(behandlingId = behandlingId1, siste = true, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 4).put("fjernFelt", true) }
+        leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = false, versjon = Versjon.of("1.0.0"))
+        val rad2 = leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 2).put("fjernFelt", true) }
+        val rad3 = leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 3).put("fjernFelt", true) }
+        val rad4 = leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = true, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 4).put("fjernFelt", true) }
         migrer()
         assertKorrigerte(rad2, rad3)
         assertKorrigert(rad4) { _, ny->
@@ -33,9 +33,9 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
     @Test
     fun `ignorerer tidligere korrigerte rader`() {
         val behandlingId1 = UUID.randomUUID()
-        leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = true) { it.put("endretFelt", 1) }
-        leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = true) { it.put("endretFelt", 1) }
-        val rad3 = leggTilRad(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = false) { it.put("endretFelt", 1) }
+        leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = true) { it.put("endretFelt", 1) }
+        leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = true) { it.put("endretFelt", 1) }
+        val rad3 = leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = false, versjon = versjonSomSkalMigreres, erKorrigert = false) { it.put("endretFelt", 1) }
         migrer()
         assertKorrigerte(rad3)
     }

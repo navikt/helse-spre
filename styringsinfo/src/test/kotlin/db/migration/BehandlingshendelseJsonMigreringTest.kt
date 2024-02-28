@@ -110,7 +110,7 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
         assertion(gammel.data, ny.data)
     }
 
-    protected fun leggTilRad(
+    protected fun leggTilBehandlingshendelse(
         sakId: UUID = UUID.randomUUID(),
         behandlingId: UUID,
         siste: Boolean,

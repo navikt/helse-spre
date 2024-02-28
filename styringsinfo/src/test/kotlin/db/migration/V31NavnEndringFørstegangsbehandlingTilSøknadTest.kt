@@ -29,7 +29,7 @@ internal class V31NavnEndringFørstegangsbehandlingTilSøknadTest: Behandlingshe
             generasjonstype = GenerasjonOpprettet.Generasjonstype("FØRSTEGANGSBEHANDLING")
         )
 
-        val rad1behandling1 = leggTilRad(behandlingId = behandlingId1, siste = true, versjon = Versjon.Companion.of("1.2.3"), hendelse = generasjonOpprettet) {
+        val rad1behandling1 = leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = true, versjon = Versjon.Companion.of("1.2.3"), hendelse = generasjonOpprettet) {
             it.put("behandlingtype", "FØRSTEGANGSBEHANDLING")
             it.put("uendretFelt", true)
         }
