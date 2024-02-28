@@ -194,7 +194,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
             assertEquals(AVBRUTT, it.behandlingsresultat)
         }
 
-        assertNull(utbetaltBehandling.behandlingsmetode)
+        assertEquals(Behandling.Behandlingsmetode.MANUELL, utbetaltBehandling.behandlingsmetode)
     }
 
     @Test
@@ -339,7 +339,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        }
        internal fun avsluttetMedVedtak(behandlingId: BehandlingId) = AvsluttetMedVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
-       internal fun generasjonForkastet(sakId: SakId) = GenerasjonForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
+       internal fun generasjonForkastet(sakId: SakId, behandlingsmetode: Behandling.Behandlingsmetode = Behandling.Behandlingsmetode.MANUELL) = GenerasjonForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, behandlingsmetode)
        internal fun vedtaksperiodeEndret(sakId: SakId) = VedtaksperiodeEndret(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeBeslutning(UUID.randomUUID(),
            nesteTidspunkt,
