@@ -17,8 +17,6 @@ internal class V32BehandlingsstatusVedtaksperiodeGodkjentTest: Behandlingshendel
 ) {
     @Test
     fun `skal skrive om alle vedtaksperiode_godkjent-hendelser sin behandlingsstatus fra AVSLUTTET til GODKJENT`() {
-        // insert en hendelse: vedtaksperiode_godkjent
-        // insert en behandlingshendelse
         val hendelseId = UUID.randomUUID()
         val korrigertHendelse = leggTilBehandlingshendelse(
             UUID.randomUUID(), hendelseId, true, Versjon.of("0.1.0"), false, data = {

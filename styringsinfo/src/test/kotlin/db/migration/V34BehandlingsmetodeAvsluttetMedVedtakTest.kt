@@ -10,16 +10,16 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
 
-internal class V33BehandlingsresultatAvsluttetMedVedtakTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V33__behandlingsresultat_avsluttet_med_vedtak(),
+internal class V34BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJsonMigreringTest(
+    migrering = V34__behandlingsmetode_avsluttet_med_vedtak(),
     dataSource = dataSource
 ) {
     @Test
-    fun `skal skrive om alle avsluttet_med_vedtak-hendelser sitt behandlingsresultat fra VEDTATT til VEDTAK_IVERKSATT`() {
+    fun `skal skrive om alle avsluttet_med_vedtak-hendelser sin behandlingsmetode fra null til AUTOMATISK`() {
         val hendelseId = UUID.randomUUID()
         val korrigertHendelse = leggTilBehandlingshendelse(
             UUID.randomUUID(), hendelseId, true, Versjon.of("0.1.0"), false, data = {
-                it.put("behandlingsresultat", "VEDTATT")
+                it.putNull("behandlingsmetode")
             },
             hendelse = AvsluttetMedVedtak(
                 id = hendelseId,
@@ -31,7 +31,7 @@ internal class V33BehandlingsresultatAvsluttetMedVedtakTest: Behandlingshendelse
 
         migrer()
         assertKorrigert(korrigertHendelse) { _, ny ->
-            assertEquals("VEDTAK_IVERKSATT", ny.path("behandlingsresultat").asText())
+            assertEquals("AUTOMATISK", ny.path("behandlingsmetode").asText())
         }
     }
 
