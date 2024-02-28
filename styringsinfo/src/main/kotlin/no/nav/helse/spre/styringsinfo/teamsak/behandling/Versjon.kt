@@ -25,7 +25,10 @@ internal class Versjon private constructor(
             return felter to forrigeVersjon.minorUpdate
         }
 
-        private val versjoner = listOf { forrigeFelter: Set<String>, forrigeVersjon: Versjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter + "saksbehandlerEnhet" + "beslutterEnhet") }
+        private val versjoner = listOf(
+            { forrigeFelter: Set<String>, forrigeVersjon: Versjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter + "saksbehandlerEnhet" + "beslutterEnhet") },
+            { forrigeFelter: Set<String>, forrigeVersjon: Versjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter + "periodetype") }
+        )
 
         private val genererteVersjoner = versjoner.fold(listOf(initielleFelter to initiellVersjon)) { versjoner, genererNesteVersjon ->
             val (forrigeFelter, forrigeVersjon) = versjoner.last()
@@ -36,10 +39,12 @@ internal class Versjon private constructor(
             val nyeFelter = felter - sisteFelter
             val fjernedeFelter = sisteFelter - felter
             throw IllegalStateException("""
+                (-(-(-(-_-)-)-)-) LES HELE MELDINGEN DIN LATSABB! (-(-(-(-_-)-)-)-)
                 Finner ingen definert versjon for disse feltene. Differanse i forhold til siste versjon $sisteVersjon:
                     NyeFelter: ${nyeFelter.joinToString()}
                     FjernedeFelter: ${fjernedeFelter.joinToString()}
                     Legges dette til blir det versjon ${nesteVersjon(sisteVersjon, sisteFelter, felter).second}
+                    Her behøves et nytt element i en liste!
                     Dette gjøres ved å legge til følgende innslag i `val versjoner`:
                          { forrigeFelter: Set<String>, forrigeVersjon: Versjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter${nyeFelter.eksempelverdi('+')}${fjernedeFelter.eksempelverdi('-')} )}
             """.trimIndent())

@@ -5,22 +5,14 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.VEDTATT
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.VURDERER_INNGANGSVILKÅR
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FORLENGELSE
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetMedVedtak
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetUtenVedtak
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonForkastet
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeEndret
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -28,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.lang.System.getenv
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 internal class TeamSakTest: AbstractDatabaseTest() {
 
@@ -59,12 +51,81 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
-        behandling = vedtaksperiodeEndret(sakId).håndter(behandlingshendelseDao, behandlingId)
-        assertEquals(Behandling.Behandlingstatus.AVVENTER_GODKJENNING, behandling.behandlingstatus)
+        behandling = vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
 
         behandling = avsluttetMedVedtak(behandlingId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT, behandling.behandlingsresultat)
+    }
+
+    @Test
+    fun `periodetype blir førstegangsbehandling for perioder som vilkårsprøves`() {
+        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
+        assertNull(behandlingshendelseDao.hent(behandlingId))
+        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+
+        val behandling = vedtaksperiodeEndretTilVilkårsprøving(sakId).håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(VURDERER_INNGANGSVILKÅR, behandling.behandlingstatus)
+        assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
+    }
+
+    @Test
+    fun `peridodetype blir forlengelse ved godkjenning dersom ingen tidligere hendelse på behandlingen er markert som førstegangsbehandling`() {
+        val (førstegangsbehandlingId, generasjonOpprettetFørstegang, sakIdFørstegang) = generasjonOpprettet(Søknad)
+        generasjonOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        vedtaksperiodeGodkjent(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        avsluttetMedVedtak(førstegangsbehandlingId).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+
+        val (forlengelseBehandlingId, generasjonOpprettetForlengelse, sakIdForlengelse) = generasjonOpprettet(Søknad)
+        generasjonOpprettetForlengelse.håndter(behandlingshendelseDao, forlengelseBehandlingId)
+        val behandling = vedtaksperiodeEndretTilGodkjenning(sakIdForlengelse).håndter(behandlingshendelseDao, forlengelseBehandlingId)
+
+        assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
+        assertEquals(FORLENGELSE, behandling.periodetype)
+    }
+
+    @Test
+    fun `periodetype går fra førstegangsbehandling til forlengelse ved et snasent out-of-order-scenario`() {
+        val (førstegangsbehandlingId, generasjonOpprettetFørstegang, sakIdFørstegang) = generasjonOpprettet(Søknad)
+        generasjonOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        vedtaksperiodeGodkjent(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        val behandling = avsluttetMedVedtak(førstegangsbehandlingId).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
+
+        // out of order
+        val (førstegangsbehandlingId2, generasjonOpprettetFørstegang2, sakIdFørstegang2) = generasjonOpprettet(Søknad)
+        generasjonOpprettetFørstegang2.håndter(behandlingshendelseDao, førstegangsbehandlingId2)
+        vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
+        vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
+        vedtaksperiodeGodkjent(sakIdFørstegang2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
+        val behandling2 = avsluttetMedVedtak(førstegangsbehandlingId2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
+        assertEquals(FØRSTEGANGSBEHANDLING, behandling2.periodetype)
+
+        // revurdering grunnet out of order
+        val (revurderingsbehandlingId, generasjonOpprettetRevurdering, sakIdRevurdering) = generasjonOpprettet(Søknad, sakId = sakIdFørstegang)
+        assertEquals(sakIdRevurdering, sakIdFørstegang)
+        generasjonOpprettetRevurdering.håndter(behandlingshendelseDao, revurderingsbehandlingId)
+        vedtaksperiodeEndretTilGodkjenning(sakIdRevurdering).håndter(behandlingshendelseDao, revurderingsbehandlingId)
+        vedtaksperiodeGodkjent(sakIdRevurdering).håndter(behandlingshendelseDao, revurderingsbehandlingId)
+        val behandling3 = avsluttetMedVedtak(revurderingsbehandlingId).håndter(behandlingshendelseDao, revurderingsbehandlingId)
+        assertEquals(FORLENGELSE, behandling3.periodetype)
+    }
+
+    @Test
+    fun `peridodetype blir førstegangsbehandling ved godkjenning dersom tidligere hendelse på behandlingen er markert som førstegangsbehandling`() {
+        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
+        assertNull(behandlingshendelseDao.hent(behandlingId))
+        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        vedtaksperiodeEndretTilVilkårsprøving(sakId).håndter(behandlingshendelseDao, behandlingId)
+        val behandling = vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
+
+        assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
+        assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
     }
 
     @Test
@@ -73,7 +134,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertNull(behandlingshendelseDao.hent(behandlingId))
         generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
-        vedtaksperiodeEndret(sakId).håndter(behandlingshendelseDao, behandlingId)
+        vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
 
         var behandling = vedtaksperiodeGodkjent(sakId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingsmetode.MANUELL, behandling.behandlingsmetode)
@@ -89,7 +150,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertNull(behandlingshendelseDao.hent(behandlingId))
         generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
-        vedtaksperiodeEndret(sakId).håndter(behandlingshendelseDao, behandlingId)
+        vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
 
         var behandling = vedtaksperiodeAvvist(sakId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingsmetode.MANUELL, behandling.behandlingsmetode)
@@ -340,26 +401,31 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        internal fun avsluttetMedVedtak(behandlingId: BehandlingId) = AvsluttetMedVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun generasjonForkastet(sakId: SakId, behandlingsmetode: Behandling.Behandlingsmetode = Behandling.Behandlingsmetode.MANUELL) = GenerasjonForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, behandlingsmetode)
-       internal fun vedtaksperiodeEndret(sakId: SakId) = VedtaksperiodeEndret(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
-       internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeBeslutning(UUID.randomUUID(),
-           nesteTidspunkt,
-           blob,
-           sakId.id,
-           "SB123",
-           "SB456",
-           false,
-           VEDTATT,
-           "vedtaksperiode_godkjent",
-           Behandling.Behandlingstatus.GODKJENT)
-       internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeBeslutning(UUID.randomUUID(),
-           nesteTidspunkt,
-           blob,
-           sakId.id,
-           "SB123",
-           "SB456",
-           false,
-           AVBRUTT,
-           "vedtaksperiode_avvist",
-           Behandling.Behandlingstatus.AVSLUTTET)
+       internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId) = VedtaksperiodeEndretTilGodkjenning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
+       internal fun vedtaksperiodeEndretTilVilkårsprøving(sakId: SakId) = VedtaksperiodeEndretTilVilkårsprøving(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
+       internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeBeslutning(
+           id = UUID.randomUUID(),
+           opprettet = nesteTidspunkt,
+           data = blob,
+           vedtaksperiodeId = sakId.id,
+           saksbehandlerEnhet = "SB123",
+           beslutterEnhet = "SB456",
+           automatiskBehandling = false,
+           behandlingsresultat = VEDTATT,
+           eventName = "vedtaksperiode_godkjent",
+           behandlingstatus = Behandling.Behandlingstatus.GODKJENT
+       )
+       internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeBeslutning(
+           id = UUID.randomUUID(),
+           opprettet = nesteTidspunkt,
+           data = blob,
+           vedtaksperiodeId = sakId.id,
+           saksbehandlerEnhet = "SB123",
+           beslutterEnhet = "SB456",
+           automatiskBehandling = false,
+           behandlingsresultat = AVBRUTT,
+           eventName = "vedtaksperiode_avvist",
+           behandlingstatus = Behandling.Behandlingstatus.AVSLUTTET
+       )
    }
 }

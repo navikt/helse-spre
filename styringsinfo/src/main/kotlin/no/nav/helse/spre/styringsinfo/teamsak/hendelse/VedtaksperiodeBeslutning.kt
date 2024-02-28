@@ -42,7 +42,7 @@ internal class VedtaksperiodeBeslutning(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val generasjonId = behandlingshendelseDao.forrigeBehandlingId(vedtaksperiodeId.asSakId()) ?: return false
+        val generasjonId = behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(vedtaksperiodeId.asSakId()) ?: return false
         val builder = behandlingshendelseDao.initialiser(generasjonId) ?: return false
         val ny = builder
             .behandlingstatus(behandlingstatus)

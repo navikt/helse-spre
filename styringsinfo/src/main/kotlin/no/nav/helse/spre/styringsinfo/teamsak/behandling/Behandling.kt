@@ -24,6 +24,7 @@ internal data class Behandling(
     internal val funksjonellTid: LocalDateTime,      // Tidspunkt for siste endring på behandlingen. Ved første melding vil denne være lik registrertTid.
     internal val behandlingstatus: Behandlingstatus,
     internal val behandlingstype: Behandlingstype,
+    internal val periodetype: Periodetype? = null,
     internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
     internal val behandlingsmetode: Behandlingsmetode?,
@@ -32,9 +33,15 @@ internal data class Behandling(
 ) {
     internal enum class Behandlingstatus {
         REGISTRERT,
+        VURDERER_INNGANGSVILKÅR,
         AVVENTER_GODKJENNING,
         GODKJENT,
         AVSLUTTET
+    }
+
+    internal enum class Periodetype {
+        FØRSTEGANGSBEHANDLING,
+        FORLENGELSE
     }
 
     internal enum class Behandlingstype {
@@ -70,6 +77,7 @@ internal data class Behandling(
 
         private var behandlingstatus: Behandlingstatus? = null
         private var behandlingtype: Behandlingstype? = null
+        private var periodetype: Periodetype? = null
         private var behandlingsresultat: Behandlingsresultat? = null
         private var behandlingskilde: Behandlingskilde? = null
         private var behandlingsmetode: Behandlingsmetode? = null
@@ -78,6 +86,7 @@ internal data class Behandling(
 
         internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply { this.behandlingstatus = behandlingstatus }
         internal fun behandlingtype(behandlingtype: Behandlingstype) = apply { this.behandlingtype = behandlingtype }
+        internal fun periodetype(periodetype: Periodetype) = apply { this.periodetype = periodetype }
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun behandlingskilde(behandlingskilde: Behandlingskilde) = apply { this.behandlingskilde = behandlingskilde }
         internal fun behandlingsmetode(behandlingsmetode: Behandlingsmetode) = apply { this.behandlingsmetode = behandlingsmetode }
@@ -95,6 +104,7 @@ internal data class Behandling(
             behandlingsmetode = behandlingsmetode,
             behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
             behandlingstype = behandlingtype ?: forrige.behandlingstype,
+            periodetype = periodetype ?: forrige.periodetype,
             behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
             behandlingskilde = behandlingskilde ?: forrige.behandlingskilde,
             saksbehandlerEnhet = saksbehandlerEnhet ?: forrige.saksbehandlerEnhet,

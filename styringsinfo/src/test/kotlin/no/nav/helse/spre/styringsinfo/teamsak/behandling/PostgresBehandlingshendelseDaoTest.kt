@@ -98,8 +98,8 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         registrertTid = LocalDateTime.now(),
         funksjonellTid = LocalDateTime.now(),
         behandlingstatus =  REGISTRERT,
-        behandlingskilde = SYSTEM,
         behandlingstype = SØKNAD,
+        behandlingskilde = SYSTEM,
         behandlingsmetode = MANUELL,
         saksbehandlerEnhet = "4488"
     )

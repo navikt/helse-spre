@@ -64,6 +64,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             putString("behandlingsmetode", behandling.behandlingsmetode?.name)
             putString("relatertBehandlingId", behandling.relatertBehandlingId?.toString())
             putString("behandlingsresultat", behandling.behandlingsresultat?.name)
+            putString("periodetype", behandling.periodetype?.name)
             putString("saksbehandlerEnhet", behandling.saksbehandlerEnhet)
             putString("beslutterEnhet", behandling.beslutterEnhet)
         }
@@ -95,13 +96,14 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         return Behandling(
             sakId = SakId(uuid("sakId")),
             behandlingId = BehandlingId(uuid("behandlingId")),
-            funksjonellTid = localDateTime("funksjonellTid"),
             relatertBehandlingId = data.path("relatertBehandlingId").uuidOrNull?.let { BehandlingId(it) },
             aktørId = data.path("aktørId").asText(),
             mottattTid = LocalDateTime.parse(data.path("mottattTid").asText()),
             registrertTid = LocalDateTime.parse(data.path("registrertTid").asText()),
+            funksjonellTid = localDateTime("funksjonellTid"),
             behandlingstatus = Behandling.Behandlingstatus.valueOf(data.path("behandlingstatus").asText()),
             behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingtype").asText()),
+            periodetype = data.path("periodetype").textOrNull?.let { Behandling.Periodetype.valueOf(it) },
             behandlingsresultat = data.path("behandlingsresultat").textOrNull?.let { Behandling.Behandlingsresultat.valueOf(it) },
             behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText()),
             behandlingsmetode = data.path("behandlingsmetode").textOrNull?.let { Behandling.Behandlingsmetode.valueOf(it) },
@@ -110,7 +112,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         )
     }
 
-    override fun forrigeBehandlingId(sakId: SakId): BehandlingId? {
+    override fun behandlingIdFraForrigeBehandlingshendelse(sakId: SakId): BehandlingId? {
         val sql = """
             select behandlingId from behandlingshendelse where sakId='${sakId}' and siste=true order by sekvensnummer desc limit 1
         """
@@ -120,6 +122,17 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
                     BehandlingId(row.uuid("behandlingId"))
                 }.asSingle)
         }
+    }
+
+    override fun erFørstegangsbehandling(behandlingId: BehandlingId): Boolean {
+        val sql = """
+           select count(0) from behandlingshendelse where behandlingId='${behandlingId}' and data->>'periodetype'='FØRSTEGANGSBEHANDLING' 
+        """
+        return (sessionOf(dataSource).use { session ->
+            session.run(
+                queryOf(sql).map { it.int(1) }.asSingle
+            ) ?: 0
+        }) > 0
     }
 
     private companion object {
