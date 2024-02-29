@@ -8,5 +8,5 @@ internal interface BehandlingshendelseDao {
     fun lagre(behandling: Behandling, hendelseId: UUID)
     fun hent(behandlingId: BehandlingId): Behandling?
     fun behandlingIdFraForrigeBehandlingshendelse(sakId: SakId): BehandlingId?
-    fun erFørstegangsbehandling(behandlingId: BehandlingId): Boolean
+    fun erFørstegangsbehandling(sakId: SakId): Boolean
 }

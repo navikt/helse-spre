@@ -124,9 +124,9 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         }
     }
 
-    override fun erFørstegangsbehandling(behandlingId: BehandlingId): Boolean {
+    override fun erFørstegangsbehandling(sakId: SakId): Boolean {
         val sql = """
-           select count(0) from behandlingshendelse where behandlingId='${behandlingId}' and data->>'periodetype'='FØRSTEGANGSBEHANDLING' 
+           select count(0) from behandlingshendelse where sakId='${sakId}' and data->>'periodetype'='FØRSTEGANGSBEHANDLING' 
         """
         return (sessionOf(dataSource).use { session ->
             session.run(
