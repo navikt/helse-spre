@@ -30,7 +30,7 @@ internal class VersjonTest {
     fun `Evaluerer versjon ut i fra felter`() {
         assertEquals(Versjon.of("0.0.4"), Versjon.of(initielleFelter))
         assertEquals(Versjon.of("0.1.0"), Versjon.of(initielleFelter + "saksbehandlerEnhet" + "beslutterEnhet"))
-
+        assertEquals(Versjon.of("0.2.0"), Versjon.of(initielleFelter + "saksbehandlerEnhet" + "beslutterEnhet" + "periodetype"))
     }
 
     @Test
