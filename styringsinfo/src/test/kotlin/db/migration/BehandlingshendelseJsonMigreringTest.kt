@@ -74,7 +74,7 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
     }
 
     private fun finnGammelOgNyHendelse(rad: Rad): Pair<Behandlingshendelse, Behandlingshendelse> {
-        val gammel = nyeEllerEndredeHendelserEtterMigrering.single { it.sekvensnummer == rad.sekvensnummer }
+        val gammel = nyeEllerEndredeHendelserEtterMigrering.singleOrNull { it.sekvensnummer == rad.sekvensnummer } ?: fail("$rad er ikke blitt korrigert!")
         val ny = nyeEllerEndredeHendelserEtterMigrering.single { it.sekvensnummer != rad.sekvensnummer && it.behandlingId == gammel.behandlingId && it.funksjonellTid == gammel.funksjonellTid }
         // Fjerner dem slik at vi afterEach kan sjekke at lista er tom (det betyr at man _må_ asserte på alle rader som korrigeres.)
         assertTrue(nyeEllerEndredeHendelserEtterMigrering.remove(gammel))
@@ -112,9 +112,9 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
 
     protected fun leggTilBehandlingshendelse(
         sakId: UUID = UUID.randomUUID(),
-        behandlingId: UUID,
-        siste: Boolean,
-        versjon: Versjon,
+        behandlingId: UUID = UUID.randomUUID(),
+        siste: Boolean = true,
+        versjon: Versjon = Versjon.of("13.3.7"),
         erKorrigert: Boolean = false,
         funksjonellTid: LocalDateTime = LocalDateTime.now(),
         hendelse: Hendelse = Testhendelse(UUID.randomUUID()),
@@ -176,4 +176,4 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
     }
 }
 
-internal class Rad(val sekvensnummer: Long)
+internal data class Rad(val sekvensnummer: Long)

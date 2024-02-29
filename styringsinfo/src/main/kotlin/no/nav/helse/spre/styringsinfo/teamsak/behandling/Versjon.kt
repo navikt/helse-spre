@@ -42,6 +42,7 @@ internal class Versjon private constructor(
         internal fun LeggTil(vararg felter: String) = Versjonsutleder { forrigeFelter, forrigeVersjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter + felter) }
         internal fun Fjern(vararg felter: String) = Versjonsutleder { forrigeFelter, forrigeVersjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter - felter.toSet()) }
         internal fun LeggTilOgFjern(leggTil: Set<String>, fjern: Set<String>) = Versjonsutleder { forrigeFelter, forrigeVersjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter + leggTil - fjern) }
+        private fun Rename(fra: String, til: String) = Versjonsutleder { forrigeFelter, forrigeVersjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter - fra + til) }
         private object InitiellVersjon: Versjonsutleder {
             override fun nyVersjon(forrigeFelter: Set<String>, forrigeVersjon: Versjon) =
                 setOf("aktørId", "mottattTid", "registrertTid", "behandlingstatus", "behandlingtype", "behandlingskilde", "behandlingsmetode", "relatertBehandlingId", "behandlingsresultat") to of("0.0.1")
@@ -49,11 +50,12 @@ internal class Versjon private constructor(
 
         private val versjoner = listOf(
             InitiellVersjon,
-            Patch("Endret enum-verdier til CAPS LOCK (842144a) og korrigerte tidligere rader (bdebadb), derfor bare Patch update"),
+            Patch("Endret enum-verdier til CAPS LOCK (842144a) og korrigerte tidligere rader (bdebadb), dette burde nok i sin tid ha vært en Major update"),
             Patch("Presisjon på tidsstempler truncates til 6 desimaler i databasen (2aa8b95 & 1b17827)"),
             Patch("Presisjon på tidsstempler truncates til 6 desimaler i databasen take 2️⃣ (909324f)"),
             LeggTil("saksbehandlerEnhet", "beslutterEnhet"),
-            LeggTil("periodetype")
+            LeggTil("periodetype"),
+            Rename("behandlingtype", "behandlingstype")
         ).genererVersjoner
 
         internal val List<Versjonsutleder>.genererVersjoner: Map<Set<String>, Versjon> get() {

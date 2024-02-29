@@ -59,7 +59,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             put("mottattTid", behandling.mottattTid.format(formatter))
             put("registrertTid", behandling.registrertTid.format(formatter))
             put("behandlingstatus", behandling.behandlingstatus.name)
-            put("behandlingtype", behandling.behandlingstype.name)
+            put("behandlingstype", behandling.behandlingstype.name)
             put("behandlingskilde", behandling.behandlingskilde.name)
             putString("behandlingsmetode", behandling.behandlingsmetode?.name)
             putString("relatertBehandlingId", behandling.relatertBehandlingId?.toString())
@@ -102,7 +102,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             registrertTid = LocalDateTime.parse(data.path("registrertTid").asText()),
             funksjonellTid = localDateTime("funksjonellTid"),
             behandlingstatus = Behandling.Behandlingstatus.valueOf(data.path("behandlingstatus").asText()),
-            behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingtype").asText()),
+            behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingstype").asText()),
             periodetype = data.path("periodetype").textOrNull?.let { Behandling.Periodetype.valueOf(it) },
             behandlingsresultat = data.path("behandlingsresultat").textOrNull?.let { Behandling.Behandlingsresultat.valueOf(it) },
             behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText()),
