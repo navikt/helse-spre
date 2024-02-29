@@ -3,7 +3,7 @@ kafkaConsumerGroup: tbd-spre-styringsinfo-v3
 kafkaResetPolicy: earliest
 livenessInitialDelay: 30
 readinessInitialDelay: 30
-maxMemory: 4Gi
+maxMemory: 2Gi
 app:
   leaderElection: true
 gcp:

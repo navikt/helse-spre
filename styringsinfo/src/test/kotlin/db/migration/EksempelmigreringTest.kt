@@ -40,6 +40,14 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
         assertKorrigerte(rad3)
     }
 
+    @Test
+    fun `migrering over flere batcher`() {
+        val behandlingId1 = UUID.randomUUID()
+        val rader = (1..57).map { leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = it == 57, versjon = versjonSomSkalMigreres) }
+        migrer()
+        assertKorrigerte(*rader.toTypedArray())
+    }
+
     private companion object {
         private val versjonSomSkalMigreres = Versjon.of("4.1.1")
 
@@ -52,6 +60,8 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
                 gammelData.put("endretFelt", 1337)
                 return gammelData
             }
+
+            override val batchSize = 7
         }
     }
 }
