@@ -41,6 +41,7 @@ internal class Versjon private constructor(
         internal fun Major(@Suppress("UNUSED_PARAMETER") beskrivelse: String) = Versjonsutleder{ forrigeFelter, forrigeVersjon -> forrigeFelter to forrigeVersjon.majorUpdate }
         internal fun LeggTil(vararg felter: String) = Versjonsutleder { forrigeFelter, forrigeVersjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter + felter) }
         internal fun Fjern(vararg felter: String) = Versjonsutleder { forrigeFelter, forrigeVersjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter - felter.toSet()) }
+        internal fun LeggTilOgFjern(leggTil: Set<String>, fjern: Set<String>) = Versjonsutleder { forrigeFelter, forrigeVersjon -> nesteVersjon(forrigeVersjon, forrigeFelter, forrigeFelter + leggTil - fjern) }
         private object InitiellVersjon: Versjonsutleder {
             override fun nyVersjon(forrigeFelter: Set<String>, forrigeVersjon: Versjon) =
                 setOf("aktørId", "mottattTid", "registrertTid", "behandlingstatus", "behandlingtype", "behandlingskilde", "behandlingsmetode", "relatertBehandlingId", "behandlingsresultat") to of("0.0.1")

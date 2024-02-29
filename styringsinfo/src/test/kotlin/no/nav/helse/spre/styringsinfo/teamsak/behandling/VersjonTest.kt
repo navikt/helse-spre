@@ -2,6 +2,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.Fjern
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.LeggTil
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.LeggTilOgFjern
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.Major
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.Minor
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.Patch
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 internal class VersjonTest {
+
     @Test
     fun `kan ikke lag ugyldige versjoner`() {
         assertEquals("Ugyldig versjon tull", assertThrows<IllegalStateException> { Versjon.of("tull") }.message)
@@ -72,12 +74,11 @@ internal class VersjonTest {
         assertEquals(Versjon.of("0.0.5"), versjoner.of("a"))
         assertEquals(Versjon.of("1.0.0"), versjoner.of("a", "b"))
         versjoner.add(Fjern("a"))
-
-        // TODO: Det er jo litt leit at vi nå går tilbake til 0.0.5 & 1.0.0
         assertEquals(Versjon.of("0.0.5"), versjoner.of("a"))
         assertEquals(Versjon.of("1.0.0"), versjoner.of("a", "b"))
-        // Men denne er rett da :)
         assertEquals(Versjon.of("2.0.0"), versjoner.of("b"))
+        versjoner.add(LeggTilOgFjern(leggTil = setOf("a"), fjern = setOf("b")))
+        assertEquals(Versjon.of("3.0.0"), versjoner.of("a"))
     }
 
     private fun List<Versjonsutleder>.of(vararg felter: String) =
