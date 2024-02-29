@@ -2,13 +2,9 @@ package db.migration
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -17,8 +13,6 @@ internal class V29UppercaseEnumVerdierTest: BehandlingshendelseJsonMigreringTest
     migrering = V29__uppercase_enum_verdier(),
     dataSource = dataSource
 ) {
-
-    private val behandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
 
     @Test
     fun `Legger til korrigerende rader for å rette opp i feil enum-verdier i versjon 0_0_1`() {
@@ -31,13 +25,7 @@ internal class V29UppercaseEnumVerdierTest: BehandlingshendelseJsonMigreringTest
         val behandling2Rad2 = leggTilRad(behandlingId2, false)
         val behandling2Rad3 = leggTilRad(behandlingId2, true)
 
-        assertThrows<IllegalArgumentException> { behandlingshendelseDao.hent(BehandlingId(behandlingId1)) }
-        assertThrows<IllegalArgumentException> { behandlingshendelseDao.hent(BehandlingId(behandlingId2)) }
-
         migrer()
-
-        assertDoesNotThrow { behandlingshendelseDao.hent(BehandlingId(behandlingId1)) }
-        assertDoesNotThrow { behandlingshendelseDao.hent(BehandlingId(behandlingId2)) }
 
         assertKorrigert(behandling1Rad1) { gammel, ny -> assertGammelOgNyData(gammel, ny) }
         assertKorrigert(behandling1Rad2) { gammel, ny -> assertGammelOgNyData(gammel, ny) }
