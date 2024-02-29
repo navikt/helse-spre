@@ -1,5 +1,12 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.Fjern
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.LeggTil
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.Major
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.Minor
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.Patch
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.Versjonsutleder
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon.Companion.genererVersjoner
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -35,11 +42,44 @@ internal class VersjonTest {
 
     @Test
     fun `Feiler om versjon for felter ikke er definert`() {
-        val initielleFelter = setOf("aktørId", "mottattTid", "registrertTid", "behandlingstatus", "behandlingtype", "behandlingskilde", "behandlingsmetode", "relatertBehandlingId", "behandlingsresultat")
         assertThrows<IllegalStateException> { Versjon.of(initielleFelter - "aktørId") }
         assertThrows<IllegalStateException> { Versjon.of(initielleFelter + "finnesIkke") }
         assertThrows<IllegalStateException> { Versjon.of(initielleFelter + "finnesIkke" - "aktørId") }
     }
 
     private val initielleFelter = setOf("aktørId", "mottattTid", "registrertTid", "behandlingstatus", "behandlingtype", "behandlingskilde", "behandlingsmetode", "relatertBehandlingId", "behandlingsresultat")
+
+
+    @Test
+    fun `Utviklingen av versjonering med og uten endringer i felter`() {
+        val versjoner = mutableListOf<Versjonsutleder>()
+        assertThrows<IllegalStateException> { versjoner.of("a") }
+        versjoner.add(Versjonsutleder { _, _ -> setOf("a") to Versjon.of("0.0.5") })
+        assertEquals(Versjon.of("0.0.5"), versjoner.of("a"))
+        versjoner.add(LeggTil("b"))
+        assertEquals(Versjon.of("0.0.5"), versjoner.of("a"))
+        assertEquals(Versjon.of("0.1.0"), versjoner.of("a", "b"))
+        versjoner.add(Patch("Bare gjorde en liten ting uten endring i felter"))
+        assertEquals(Versjon.of("0.0.5"), versjoner.of("a"))
+        assertEquals(Versjon.of("0.1.1"), versjoner.of("a", "b"))
+        versjoner.add(Patch("Bare gjorde en liten ting uten endring i felter"))
+        assertEquals(Versjon.of("0.0.5"), versjoner.of("a"))
+        assertEquals(Versjon.of("0.1.2"), versjoner.of("a", "b"))
+        versjoner.add(Minor("Her gjorde vi en signifikant ting uten endring i felter"))
+        assertEquals(Versjon.of("0.0.5"), versjoner.of("a"))
+        assertEquals(Versjon.of("0.2.0"), versjoner.of("a", "b"))
+        versjoner.add(Major("Ja, du vet - Her gjorde vi noe breaking changes uten endring i felter"))
+        assertEquals(Versjon.of("0.0.5"), versjoner.of("a"))
+        assertEquals(Versjon.of("1.0.0"), versjoner.of("a", "b"))
+        versjoner.add(Fjern("a"))
+
+        // TODO: Det er jo litt leit at vi nå går tilbake til 0.0.5 & 1.0.0
+        assertEquals(Versjon.of("0.0.5"), versjoner.of("a"))
+        assertEquals(Versjon.of("1.0.0"), versjoner.of("a", "b"))
+        // Men denne er rett da :)
+        assertEquals(Versjon.of("2.0.0"), versjoner.of("b"))
+    }
+
+    private fun List<Versjonsutleder>.of(vararg felter: String) =
+        genererVersjoner[felter.toSet()] ?: throw IllegalStateException("Fant ikke versjon for feltene $felter")
 }
