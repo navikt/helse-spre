@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.*
 import org.intellij.lang.annotations.Language
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -24,21 +25,23 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
     }
 
     override fun lagre(behandling: Behandling, hendelseId: UUID) {
-        val behandlingId = behandling.behandlingId
-
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
-            val sisteBehandling = tx.hent(behandlingId)
-            if (sisteBehandling?.funksjoneltLik(behandling) == true) return@use
-            val nySiste = when {
-                sisteBehandling == null -> true // Første rad på denne behandlingen
-                behandling.funksjonellTid > sisteBehandling.funksjonellTid -> true // Ny informasjon på behandlingen
-                behandling.funksjonellTid == sisteBehandling.funksjonellTid -> true // Korrigerer siste rad
-                else -> false // Korrigerer en tidligere rad
-            }
-
-            if (nySiste) tx.markerGamle(behandlingId)
-            tx.lagre(behandling, nySiste, hendelseId)
+            if (!tx.kanLagres(behandling, hendelseId)) return
+            val sisteBehandling = tx.hent(behandling.behandlingId)
+            if (sisteBehandling?.funksjoneltLik(behandling) == true) return logger.info("Lagrer _ikke_ ny rad for sak ${behandling.sakId}, behandling ${behandling.behandlingId} fra hendelse $hendelseId. Behandlingen er funksjonelt lik siste rad")
+            tx.markerGamle(behandling.behandlingId)
+            tx.lagre(behandling, hendelseId)
         }}
+    }
+
+    private fun TransactionalSession.kanLagres(behandling: Behandling, hendelseId: UUID): Boolean {
+        @Language("PostgreSQL") val antallRaderMedLikEllerSenereFunksjonellTidQuery = """
+            select count(1) from behandlingshendelse where behandlingId = :behandlingId AND funksjonellTid >= :funksjonellTid
+        """
+        val antallRaderMedLikEllerSenereFunksjonellTid = run(queryOf(antallRaderMedLikEllerSenereFunksjonellTidQuery, mapOf("behandlingId" to behandling.behandlingId.id, "funksjonellTid" to behandling.funksjonellTid)).map { it.int(1) }.asSingle) ?: 0
+        val kanLagres = antallRaderMedLikEllerSenereFunksjonellTid == 0
+        if (!kanLagres) logger.warn("Lagrer _ikke_ ny rad for sak ${behandling.sakId}, behandling ${behandling.behandlingId} fra hendelse $hendelseId. Det finnes allerede $antallRaderMedLikEllerSenereFunksjonellTid rader med funksjonellTid >= ${behandling.funksjonellTid}")
+        return kanLagres
     }
 
     private fun TransactionalSession.markerGamle(behandlingId: BehandlingId) {
@@ -48,10 +51,10 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         execute(queryOf(markerGamle))
     }
 
-    private fun TransactionalSession.lagre(behandling: Behandling, siste: Boolean, hendelseId: UUID) {
+    private fun TransactionalSession.lagre(behandling: Behandling, hendelseId: UUID) {
         val sql = """
             insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste, hendelseId, er_korrigert) 
-            values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste, :hendelseId, false)
+            values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, true, :hendelseId, false)
         """
 
         val data = objectMapper.createObjectNode().apply {
@@ -76,7 +79,6 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             "behandlingId" to behandling.behandlingId.id,
             "funksjonellTid" to behandling.funksjonellTid,
             "versjon" to versjon.toString(),
-            "siste" to siste,
             "data" to data.toString(),
             "hendelseId" to hendelseId
         )).asUpdate) == 1) { "Forventet at en rad skulle legges til" }
@@ -136,6 +138,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
     }
 
     private companion object {
+        private val logger = LoggerFactory.getLogger(PostgresBehandlingshendelseDao::class.java)
         private val objectMapper = jacksonObjectMapper()
 
         val formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS") // timestamps lagres med 6 desimaler i db
