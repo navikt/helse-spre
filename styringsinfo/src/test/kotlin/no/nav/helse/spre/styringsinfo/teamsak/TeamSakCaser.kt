@@ -7,8 +7,8 @@ import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.Søknad
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.TilInfotrygd
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetMedVedtak
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetUtenVedtak
-import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonForkastet
-import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonOpprettet
+import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.behandlingForkastet
+import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.behandlingIdOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.BehandlingOpprettet
@@ -32,13 +32,13 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         */
 
-        // generasjon opprettet med vedtak - januar
+        // behandling opprettet med vedtak - januar
 
-        val (behandlingId, januarGenerasjonOpprettet) = generasjonOpprettet(
+        val (behandlingId, januarBehandlingOpprettet) = behandlingIdOpprettet(
             Søknad,
             aktørId = "Scenario 1"
         )
-        januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
+        januarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
         val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingId)
         januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
     }
@@ -46,42 +46,42 @@ class TeamSakCaser : AbstractDatabaseTest() {
     @Test
     fun `case 2 lage litt eksempeldata til team sak`() {
         /*
-        Scenario 2: to vedtaksperioder, forlengelsen får én generasjon
+        Scenario 2: to vedtaksperioder, forlengelsen får én behandling
 
         Bruker får sykmelding og sender søknad for januar. Arbeidsgiver sender inn inntektsmelding. Perioden utbetales.
         Bruker får sykmelding og sender søknad for februar. Perioden utbetales.
         Bruker sender korrigerende søknad med noen feriedager i februar. Perioden revurderes og utbetales.
 
         */
-        // generasjon opprettet med vedtak - januar
-        val (behandlingIdJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(
+        // behandling opprettet med vedtak - januar
+        val (behandlingIdJanuar, januarBehandlingOpprettet) = behandlingIdOpprettet(
             Søknad,
             aktørId = "Scenario 2"
         )
-        januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
+        januarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
         val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingIdJanuar)
         januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
 
-        // generasjon opprettet med vedtak - februar
-        val (behandlingIdFebruar, februarGenerasjonOpprettet, sakIdFebruar) = generasjonOpprettet(
+        // behandling opprettet med vedtak - februar
+        val (behandlingIdFebruar, februarBehandlingOpprettet, sakIdFebruar) = behandlingIdOpprettet(
             Søknad,
             aktørId = "Scenario 2"
         )
-        februarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
+        februarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
         val februarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingIdFebruar)
         februarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
 
-        // generasjon opprettet med vedtak - februar igjen?
-        val (andreGenerasjonFebruar, andreFebruarGenerasjonOpprettet) = generasjonOpprettet(
+        // behandling opprettet med vedtak - februar igjen?
+        val (andreBehandlingFebruar, andreFebruarBehandlingOpprettet) = behandlingIdOpprettet(
             Søknad,
             aktørId = "Scenario 2",
             sakId = sakIdFebruar
         )
-        andreFebruarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
+        andreFebruarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val andreFebruarAvsluttetMedVedtak = avsluttetMedVedtak(andreGenerasjonFebruar)
+        val andreFebruarAvsluttetMedVedtak = avsluttetMedVedtak(andreBehandlingFebruar)
         andreFebruarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
     }
 
@@ -91,14 +91,14 @@ class TeamSakCaser : AbstractDatabaseTest() {
 
         // Bruker sender søknad som er helt innenfor arbeidsgiverperioden.
 
-        // generasjon opprettet med vedtak - januar
-        val (generasjonJanuar, januarGenerasjonOpprettet) = generasjonOpprettet(
+        // behandling opprettet med vedtak - januar
+        val (behandlingJanuar, januarBehandlingOpprettet) = behandlingIdOpprettet(
             Søknad,
             aktørId = "Scenario 3"
         )
-        januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
+        januarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val januarAvsluttetUtenVedtak = avsluttetUtenVedtak(generasjonJanuar)
+        val januarAvsluttetUtenVedtak = avsluttetUtenVedtak(behandlingJanuar)
         januarAvsluttetUtenVedtak.lagreOgHåndter(behandlingshendelseDao)
     }
 
@@ -110,15 +110,15 @@ class TeamSakCaser : AbstractDatabaseTest() {
         // Arbeidsgiver sender inntektsmelding.
         // Saken forkastes og løses i Infotrygd
 
-        // generasjon opprettet med vedtak - januar
-        val (_, januarGenerasjonOpprettet, sakId) = generasjonOpprettet(
+        // behandling opprettet med vedtak - januar
+        val (_, januarBehandlingOpprettet, sakId) = behandlingIdOpprettet(
             Søknad,
             aktørId = "Scenario 4"
         )
-        januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
+        januarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val generasjonForkastet = generasjonForkastet(sakId)
-        generasjonForkastet.lagreOgHåndter(behandlingshendelseDao)
+        val behandlingForkastet = behandlingForkastet(sakId)
+        behandlingForkastet.lagreOgHåndter(behandlingshendelseDao)
     }
 
     @Test
@@ -129,26 +129,26 @@ class TeamSakCaser : AbstractDatabaseTest() {
         // Arbeidsgiver sender inntektsmelding. Vedtaksperioden utbetales
         // Ny inntektsmelding betyr at saken ikke kan håndteres av ny vedtaksløsning livevel og saksbehandler annullerer
 
-        // generasjon opprettet med vedtak - januar
-        val (generasjonJanuar, januarGenerasjonOpprettet, sakId) = generasjonOpprettet(
+        // behandling opprettet med vedtak - januar
+        val (behandlingJanuar, januarBehandlingOpprettet, sakId) = behandlingIdOpprettet(
             Søknad,
             aktørId = "Scenario 5"
         )
-        januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
+        januarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val januarAvsluttetMedVedtak = avsluttetMedVedtak(generasjonJanuar)
+        val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingJanuar)
         januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
 
-        val (_, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(
+        val (_, januarAnnullertBehandlingOpprettet) = behandlingIdOpprettet(
             TilInfotrygd,
             aktørId = "Scenario 5",
             sakId = sakId,
             avsender = BehandlingOpprettet.Avsender("SAKSBEHANDLER")
         )
-        januarAnnullertGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
+        januarAnnullertBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val generasjonForkastet = generasjonForkastet(sakId)
-        generasjonForkastet.lagreOgHåndter(behandlingshendelseDao)
+        val behandlingForkastet = behandlingForkastet(sakId)
+        behandlingForkastet.lagreOgHåndter(behandlingshendelseDao)
     }
 
     private fun Hendelse.lagreOgHåndter(behandlingshendelseDao: BehandlingshendelseDao) {

@@ -28,10 +28,10 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `funksjonell lik behandling`() {
-        val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Søknad)
+        val (behandlingId, behandlingOpprettet) = behandlingIdOpprettet(Søknad)
 
         assertEquals(0, behandlingId.rader)
-        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(1, behandlingId.rader)
 
         val avsluttetMedVedtak = avsluttetMedVedtak(behandlingId)
@@ -44,9 +44,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for vedtak`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
+        val (behandlingId, behandlingOpprettet, sakId) = behandlingIdOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
-        var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
@@ -60,9 +60,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `periodetype blir førstegangsbehandling for perioder som vilkårsprøves`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
+        val (behandlingId, behandlingOpprettet, sakId) = behandlingIdOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
-        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
         val behandling = vedtaksperiodeEndretTilVilkårsprøving(sakId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(VURDERER_INNGANGSVILKÅR, behandling.behandlingstatus)
@@ -71,8 +71,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `førstegangsbehandling revurderes`() {
-        val (førstegangsbehandlingId, generasjonOpprettetFørstegang, sakIdFørstegang) = generasjonOpprettet(Søknad)
-        generasjonOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        val (førstegangsbehandlingId, behandlingOpprettetFørstegang, sakIdFørstegang) = behandlingIdOpprettet(Søknad)
+        behandlingOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
         vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
         vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
         vedtaksperiodeGodkjent(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
@@ -81,8 +81,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
 
-        val (revurderingbehandlingId, generasjonOpprettetRevurdering, sakIdRevurdering) = generasjonOpprettet(Søknad, sakIdFørstegang)
-        generasjonOpprettetRevurdering.håndter(behandlingshendelseDao, revurderingbehandlingId)
+        val (revurderingbehandlingId, behandlingOpprettetRevurdering, sakIdRevurdering) = behandlingIdOpprettet(Søknad, sakIdFørstegang)
+        behandlingOpprettetRevurdering.håndter(behandlingshendelseDao, revurderingbehandlingId)
         val behandlingRevurdering = vedtaksperiodeEndretTilGodkjenning(sakIdRevurdering).håndter(behandlingshendelseDao, revurderingbehandlingId)
 
         assertEquals(AVVENTER_GODKJENNING, behandlingRevurdering.behandlingstatus)
@@ -91,15 +91,15 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `peridodetype blir forlengelse ved godkjenning dersom ingen tidligere hendelse på behandlingen er markert som førstegangsbehandling`() {
-        val (førstegangsbehandlingId, generasjonOpprettetFørstegang, sakIdFørstegang) = generasjonOpprettet(Søknad)
-        generasjonOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        val (førstegangsbehandlingId, behandlingOpprettetFørstegang, sakIdFørstegang) = behandlingIdOpprettet(Søknad)
+        behandlingOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
         vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
         vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
         vedtaksperiodeGodkjent(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
         avsluttetMedVedtak(førstegangsbehandlingId).håndter(behandlingshendelseDao, førstegangsbehandlingId)
 
-        val (forlengelseBehandlingId, generasjonOpprettetForlengelse, sakIdForlengelse) = generasjonOpprettet(Søknad)
-        generasjonOpprettetForlengelse.håndter(behandlingshendelseDao, forlengelseBehandlingId)
+        val (forlengelseBehandlingId, behandlingOpprettetForlengelse, sakIdForlengelse) = behandlingIdOpprettet(Søknad)
+        behandlingOpprettetForlengelse.håndter(behandlingshendelseDao, forlengelseBehandlingId)
         val behandling = vedtaksperiodeEndretTilGodkjenning(sakIdForlengelse).håndter(behandlingshendelseDao, forlengelseBehandlingId)
 
         assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
@@ -108,8 +108,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `periodetype går fra førstegangsbehandling til forlengelse ved et snasent out-of-order-scenario`() {
-        val (førstegangsbehandlingId, generasjonOpprettetFørstegang, sakIdFørstegang) = generasjonOpprettet(Søknad)
-        generasjonOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        val (førstegangsbehandlingId, behandlingOpprettetFørstegang, sakIdFørstegang) = behandlingIdOpprettet(Søknad)
+        behandlingOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
         vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
         vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
         vedtaksperiodeGodkjent(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
@@ -117,8 +117,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
 
         // out of order
-        val (førstegangsbehandlingId2, generasjonOpprettetFørstegang2, sakIdFørstegang2) = generasjonOpprettet(Søknad)
-        generasjonOpprettetFørstegang2.håndter(behandlingshendelseDao, førstegangsbehandlingId2)
+        val (førstegangsbehandlingId2, behandlingOpprettetFørstegang2, sakIdFørstegang2) = behandlingIdOpprettet(Søknad)
+        behandlingOpprettetFørstegang2.håndter(behandlingshendelseDao, førstegangsbehandlingId2)
         vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
         vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
         vedtaksperiodeGodkjent(sakIdFørstegang2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
@@ -126,9 +126,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(FØRSTEGANGSBEHANDLING, behandling2.periodetype)
 
         // revurdering grunnet out of order
-        val (revurderingsbehandlingId, generasjonOpprettetRevurdering, sakIdRevurdering) = generasjonOpprettet(Søknad, sakId = sakIdFørstegang)
+        val (revurderingsbehandlingId, behandlingOpprettetRevurdering, sakIdRevurdering) = behandlingIdOpprettet(Søknad, sakId = sakIdFørstegang)
         assertEquals(sakIdRevurdering, sakIdFørstegang)
-        generasjonOpprettetRevurdering.håndter(behandlingshendelseDao, revurderingsbehandlingId)
+        behandlingOpprettetRevurdering.håndter(behandlingshendelseDao, revurderingsbehandlingId)
         vedtaksperiodeEndretTilGodkjenning(sakIdRevurdering).håndter(behandlingshendelseDao, revurderingsbehandlingId)
         vedtaksperiodeGodkjent(sakIdRevurdering).håndter(behandlingshendelseDao, revurderingsbehandlingId)
         val behandling3 = avsluttetMedVedtak(revurderingsbehandlingId).håndter(behandlingshendelseDao, revurderingsbehandlingId)
@@ -140,9 +140,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `peridodetype blir førstegangsbehandling ved godkjenning dersom tidligere hendelse på behandlingen er markert som førstegangsbehandling`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
+        val (behandlingId, behandlingOpprettet, sakId) = behandlingIdOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
-        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         vedtaksperiodeEndretTilVilkårsprøving(sakId).håndter(behandlingshendelseDao, behandlingId)
         val behandling = vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
 
@@ -152,9 +152,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for godkjent vedtak`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
+        val (behandlingId, behandlingOpprettet, sakId) = behandlingIdOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
-        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
         vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
 
@@ -168,9 +168,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for avvist vedtak`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
+        val (behandlingId, behandlingOpprettet, sakId) = behandlingIdOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
-        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
         vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
 
@@ -188,8 +188,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     @Test
     fun `presisjon på tidsstempler truncates ned til 6 desimaler i databasen`() {
         val tidspunkt = LocalDateTime.parse("2024-02-13T15:29:54.123123123")
-        val (behandlingId, generasjonOpprettet, _) = generasjonOpprettet(Søknad, innsendt = tidspunkt, registrert = tidspunkt, opprettet = tidspunkt)
-        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        val (behandlingId, behandlingOpprettet, _) = behandlingIdOpprettet(Søknad, innsendt = tidspunkt, registrert = tidspunkt, opprettet = tidspunkt)
+        behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
         fun String.antallDesimaler() = if (this.contains(".")) this.split(".").last().length else 0
         assertEquals(6, funksjonellTid!!.antallDesimaler())
@@ -202,8 +202,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         val innsendt = LocalDateTime.parse("2024-02-13T15:29")
         val registrert = LocalDateTime.parse("2024-02-20T15:29")
         val opprettet = LocalDateTime.parse("2024-02-20T15:29:54.123")
-        val (behandlingId, generasjonOpprettet, _) = generasjonOpprettet(Søknad, innsendt = innsendt, registrert = registrert, opprettet = opprettet)
-        generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        val (behandlingId, behandlingOpprettet, _) = behandlingIdOpprettet(Søknad, innsendt = innsendt, registrert = registrert, opprettet = opprettet)
+        behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
         fun String.antallDesimaler() = if (this.contains(".")) this.split(".").last().length else 0
         //assertEquals(6, funksjonellTid!!.antallDesimaler())
@@ -213,9 +213,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for auu`() {
-        val (behandlingId, generasjonOpprettet) = generasjonOpprettet(Søknad)
+        val (behandlingId, behandlingOpprettet) = behandlingIdOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
-        var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
@@ -227,23 +227,23 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for forkastet periode`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
+        val (behandlingId, behandlingOpprettet, sakId) = behandlingIdOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
-        var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
-        val generasjonForkastet = generasjonForkastet(sakId)
-        behandling = generasjonForkastet.håndter(behandlingshendelseDao, behandlingId)
+        val behandlingForkastet = behandlingForkastet(sakId)
+        behandling = behandlingForkastet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
     }
 
     @Test
     fun `annullering av en tidligere utbetalt periode`() {
-        val (januarBehandlingId, januarGenerasjonOpprettet, januarSakId) = generasjonOpprettet(Søknad)
+        val (januarBehandlingId, januarBehandlingOpprettet, januarSakId) = behandlingIdOpprettet(Søknad)
 
-        var utbetaltBehandling = januarGenerasjonOpprettet.håndter(behandlingshendelseDao, januarBehandlingId)
+        var utbetaltBehandling = januarBehandlingOpprettet.håndter(behandlingshendelseDao, januarBehandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
         assertNull(utbetaltBehandling.behandlingsresultat)
@@ -257,15 +257,15 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT, utbetaltBehandling.behandlingsresultat)
         assertEquals(Behandling.Behandlingsmetode.AUTOMATISK, utbetaltBehandling.behandlingsmetode)
 
-        val (annulleringBehandlingId, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)
-        var annullertBehandling = januarAnnullertGenerasjonOpprettet.håndter(behandlingshendelseDao, annulleringBehandlingId)
+        val (annulleringBehandlingId, januarAnnullertBehandlingOpprettet) = behandlingIdOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)
+        var annullertBehandling = januarAnnullertBehandlingOpprettet.håndter(behandlingshendelseDao, annulleringBehandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, annullertBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, annullertBehandling.behandlingstype)
         assertEquals(Behandling.Behandlingskilde.SAKSBEHANDLER, annullertBehandling.behandlingskilde)
         assertNull(annullertBehandling.behandlingsresultat)
 
-        val generasjonForkastet = generasjonForkastet(januarSakId)
-        annullertBehandling = generasjonForkastet.håndter(behandlingshendelseDao, annulleringBehandlingId)
+        val behandlingForkastet = behandlingForkastet(januarSakId)
+        annullertBehandling = behandlingForkastet.håndter(behandlingshendelseDao, annulleringBehandlingId)
         utbetaltBehandling = behandlingshendelseDao.hent(januarBehandlingId)!!
 
         assertEquals(3, januarBehandlingId.rader) // Registret, Vedtatt, Avbrutt
@@ -282,14 +282,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `periode som blir forkastet på direkten`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(TilInfotrygd)
-        var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        val (behandlingId, behandlingOpprettet, sakId) = behandlingIdOpprettet(TilInfotrygd)
+        var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
         assertNull(behandling.behandlingsresultat)
 
-        val generasjonForkastet = generasjonForkastet(sakId)
-        behandling = generasjonForkastet.håndter(behandlingshendelseDao, behandlingId)
+        val behandlingForkastet = behandlingForkastet(sakId)
+        behandling = behandlingForkastet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
@@ -297,12 +297,12 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `en omgjøring av auu`() {
-        val (behandlingId, generasjonOpprettet, sakId) = generasjonOpprettet(Søknad)
+        val (behandlingId, behandlingOpprettet, sakId) = behandlingIdOpprettet(Søknad)
 
         val avsluttetUtenVedtak = avsluttetUtenVedtak(behandlingId)
 
         assertNull(behandlingshendelseDao.hent(behandlingId))
-        var behandling = generasjonOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.relatertBehandlingId)
 
@@ -311,8 +311,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(Behandling.Behandlingsresultat.HENLAGT, behandling.behandlingsresultat)
         assertNull(behandling.relatertBehandlingId)
 
-        val (behandlingId2, generasjonOpprettet2) = generasjonOpprettet(Omgjøring, sakId, avsender = Arbeidsgiver)
-        val behandling2 = generasjonOpprettet2.håndter(behandlingshendelseDao, behandlingId2)
+        val (behandlingId2, behandlingOpprettet2) = behandlingIdOpprettet(Omgjøring, sakId, avsender = Arbeidsgiver)
+        val behandling2 = behandlingOpprettet2.håndter(behandlingshendelseDao, behandlingId2)
 
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling2.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.OMGJØRING, behandling2.behandlingstype)
@@ -406,7 +406,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
             println()
         }
 
-       internal fun generasjonOpprettet(
+       internal fun behandlingIdOpprettet(
            behandlingstype: BehandlingOpprettet.Behandlingstype,
            sakId: SakId = SakId(UUID.randomUUID()),
            behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()),
@@ -422,7 +422,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        }
        internal fun avsluttetMedVedtak(behandlingId: BehandlingId) = AvsluttetMedVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
-       internal fun generasjonForkastet(sakId: SakId, behandlingsmetode: Behandling.Behandlingsmetode = Behandling.Behandlingsmetode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, behandlingsmetode)
+       internal fun behandlingForkastet(sakId: SakId, behandlingsmetode: Behandling.Behandlingsmetode = Behandling.Behandlingsmetode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, behandlingsmetode)
        internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId) = VedtaksperiodeEndretTilGodkjenning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeEndretTilVilkårsprøving(sakId: SakId) = VedtaksperiodeEndretTilVilkårsprøving(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeBeslutning(
