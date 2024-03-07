@@ -11,7 +11,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsr
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.VURDERER_INNGANGSVILKÅR
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Mottaker.ARBEIDSGIVER
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Mottaker.UKJENT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FORLENGELSE
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
@@ -70,9 +70,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         behandling = vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
 
-        behandling = vedtakFattet(behandlingId).håndter(behandlingshendelseDao, behandlingId)
+        behandling = vedtakFattet(behandlingId, tags = emptyList()).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(ARBEIDSGIVER, behandling.mottaker)
+        assertEquals(UKJENT, behandling.mottaker)
         assertEquals(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT, behandling.behandlingsresultat)
     }
 

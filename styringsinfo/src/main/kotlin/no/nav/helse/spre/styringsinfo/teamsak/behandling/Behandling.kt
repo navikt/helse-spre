@@ -74,7 +74,8 @@ internal data class Behandling(
         SYKMELDT,
         ARBEIDSGIVER,
         SYKMELDT_OG_ARBEIDSGIVER,
-        INGEN
+        INGEN,
+        UKJENT,
     }
 
     internal fun funksjoneltLik(other: Behandling): Boolean {
