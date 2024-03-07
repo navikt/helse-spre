@@ -440,7 +440,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        }
        internal fun vedtakFattet(behandlingId: BehandlingId, tags: List<Tag> = listOf(Tag.Arbeidsgiverutbetaling)) = VedtakFattet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id, tags)
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
-       internal fun behandlingForkastet(sakId: SakId, behandlingsmetode: Behandling.Behandlingsmetode = Behandling.Behandlingsmetode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, behandlingsmetode)
+       internal fun behandlingForkastet(sakId: SakId, behandlingsmetode: Behandling.Behandlingsmetode = Behandling.Behandlingsmetode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, automatiskBehandling = behandlingsmetode == Behandling.Behandlingsmetode.AUTOMATISK)
        internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId) = VedtaksperiodeEndretTilGodkjenning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeEndretTilVilkårsprøving(sakId: SakId) = VedtaksperiodeEndretTilVilkårsprøving(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeBeslutning(

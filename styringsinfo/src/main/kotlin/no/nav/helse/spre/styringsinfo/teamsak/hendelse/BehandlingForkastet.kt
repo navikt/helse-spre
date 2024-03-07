@@ -3,7 +3,6 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
@@ -22,8 +21,9 @@ internal class BehandlingForkastet(
     override val opprettet: LocalDateTime,
     override val data: JsonNode,
     private val vedtaksperiodeId: UUID,
-    private val behandlingsmetode: Behandlingsmetode
+    automatiskBehandling: Boolean
 ) : Hendelse {
+    private val behandlingsmetode = if (automatiskBehandling) AUTOMATISK else MANUELL
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
@@ -48,14 +48,14 @@ internal class BehandlingForkastet(
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
                 packet.requireVedtaksperiodeId()
-                packet.interestedIn("automatiskBehandling")
+                packet.require("automatiskBehandling", JsonNode::isBoolean)
             },
             opprett = { packet -> BehandlingForkastet(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
                 vedtaksperiodeId = packet.vedtaksperiodeId,
-                behandlingsmetode = if (packet.automatiskBehandling) AUTOMATISK else MANUELL
+                automatiskBehandling = packet.automatiskBehandling
             )}
         )
 
