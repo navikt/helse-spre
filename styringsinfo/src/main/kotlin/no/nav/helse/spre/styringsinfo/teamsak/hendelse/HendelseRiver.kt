@@ -62,12 +62,12 @@ internal class HendelseRiver(
         internal val JsonMessage.hendelseId get() = UUID.fromString(this["@id"].asText())
         internal val JsonMessage.opprettet get() = LocalDateTime.parse(this["@opprettet"].asText())
         internal val JsonMessage.vedtaksperiodeId get() = UUID.fromString(this["vedtaksperiodeId"].asText())
-        internal val JsonMessage.generasjonId get() = (get("behandlingId").takeUnless { it.isMissingOrNull() } ?: get("generasjonId")).let { UUID.fromString(it.asText()) }
+        internal val JsonMessage.behandlingId get() = (get("behandlingId").takeUnless { it.isMissingOrNull() } ?: get("generasjonId")).let { UUID.fromString(it.asText()) }
         internal val JsonMessage.saksbehandlerIdent get() = this["saksbehandlerIdent"].asText().takeUnless { it.isBlank() }
         internal val JsonMessage.beslutterIdent get() = this["beslutterIdent"].asText().takeUnless { it.isBlank() }
         internal val JsonMessage.automatiskBehandling get() = this["automatiskBehandling"].asBoolean()
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
-        internal fun JsonMessage.requireGenerasjonId() {
+        internal fun JsonMessage.requireBehandlingId() {
             // TODO: Fjern generasjonId når #ting heter behandling
             if (get("behandlingId").isMissingOrNull()) require("generasjonId") { generasjonId -> UUID.fromString(generasjonId.asText()) }
             else require("behandlingId") { behandlingId -> UUID.fromString(behandlingId.asText()) }

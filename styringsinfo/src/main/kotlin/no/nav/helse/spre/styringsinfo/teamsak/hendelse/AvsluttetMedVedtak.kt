@@ -6,10 +6,10 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.generasjonId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireGenerasjonId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -40,12 +40,12 @@ internal class AvsluttetMedVedtak(
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
-            valider = { packet -> packet.requireGenerasjonId() },
+            valider = { packet -> packet.requireBehandlingId() },
             opprett = { packet -> AvsluttetMedVedtak(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
-                generasjonId = packet.generasjonId
+                generasjonId = packet.behandlingId
             )}
         )
     }
