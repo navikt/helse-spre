@@ -28,6 +28,7 @@ internal data class Behandling(
     internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
     internal val behandlingsmetode: Behandlingsmetode?,
+    internal val mottaker: Mottaker? = null,
     internal val saksbehandlerEnhet: String? = null,
     internal val beslutterEnhet: String? = null,
 ) {
@@ -69,6 +70,13 @@ internal data class Behandling(
         AUTOMATISK
     }
 
+    internal enum class Mottaker {
+        SYKMELDT,
+        ARBEIDSGIVER,
+        SYKMELDT_OG_ARBEIDSGIVER,
+        INGEN
+    }
+
     internal fun funksjoneltLik(other: Behandling): Boolean {
         return copy(funksjonellTid = MIN) == other.copy(funksjonellTid = MIN)
     }
@@ -81,6 +89,7 @@ internal data class Behandling(
         private var behandlingsresultat: Behandlingsresultat? = null
         private var behandlingskilde: Behandlingskilde? = null
         private var behandlingsmetode: Behandlingsmetode? = null
+        private var mottaker: Mottaker? = null
         private var saksbehandlerEnhet: String? = null
         private var beslutterEnhet: String? = null
 
@@ -90,6 +99,7 @@ internal data class Behandling(
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun behandlingskilde(behandlingskilde: Behandlingskilde) = apply { this.behandlingskilde = behandlingskilde }
         internal fun behandlingsmetode(behandlingsmetode: Behandlingsmetode) = apply { this.behandlingsmetode = behandlingsmetode }
+        internal fun mottaker(mottaker: Mottaker) = apply { this.mottaker = mottaker }
         internal fun saksbehandlerEnhet(saksbehandlerEnhet: String?) = apply { this.saksbehandlerEnhet = saksbehandlerEnhet }
         internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
 
@@ -109,6 +119,7 @@ internal data class Behandling(
             behandlingskilde = behandlingskilde ?: forrige.behandlingskilde,
             saksbehandlerEnhet = saksbehandlerEnhet ?: forrige.saksbehandlerEnhet,
             beslutterEnhet = beslutterEnhet ?: forrige.beslutterEnhet,
+            mottaker = mottaker ?: forrige.mottaker
         )
     }
 }

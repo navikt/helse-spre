@@ -53,7 +53,8 @@ internal class Versjon private constructor(
             Patch("Presisjon på tidsstempler truncates til 6 desimaler i databasen (2aa8b95 & 1b17827)"),
             Patch("Presisjon på tidsstempler truncates til 6 desimaler i databasen take 2️⃣ (909324f)"),
             LeggTil("saksbehandlerEnhet", "beslutterEnhet"),
-            LeggTil("periodetype")
+            LeggTil("periodetype"),
+            LeggTil("mottaker"),
         ).genererVersjoner
 
         internal val List<Versjonsutleder>.genererVersjoner: Map<Set<String>, Versjon> get() {

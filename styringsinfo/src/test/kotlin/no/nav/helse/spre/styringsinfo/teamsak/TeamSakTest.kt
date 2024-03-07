@@ -11,6 +11,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsr
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.VURDERER_INNGANGSVILKÅR
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Mottaker.ARBEIDSGIVER
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FORLENGELSE
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
@@ -24,6 +25,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeBeslutning
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeEndretTilGodkjenning
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeEndretTilVilkårsprøving
@@ -70,6 +72,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
         behandling = vedtakFattet(behandlingId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
+        assertEquals(ARBEIDSGIVER, behandling.mottaker)
         assertEquals(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT, behandling.behandlingsresultat)
     }
 
@@ -435,7 +438,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
            val behandlingOpprettet = BehandlingOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, behandlingskilde, behandlingstype)
            return Triple(behandlingId, behandlingOpprettet, sakId)
        }
-       internal fun vedtakFattet(behandlingId: BehandlingId) = VedtakFattet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
+       internal fun vedtakFattet(behandlingId: BehandlingId, tags: List<Tag> = listOf(Tag.Arbeidsgiverutbetaling)) = VedtakFattet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id, tags)
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun behandlingForkastet(sakId: SakId, behandlingsmetode: Behandling.Behandlingsmetode = Behandling.Behandlingsmetode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, behandlingsmetode)
        internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId) = VedtaksperiodeEndretTilGodkjenning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)

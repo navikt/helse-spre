@@ -49,6 +49,20 @@ internal class VedtakFattetRiverTest {
         assertFalse(hendelseDao.harLagretHendelsen())
     }
 
+    @Test
+    fun `tags`() {
+        testRapid.sendTestMessage(
+            vedtakFattet(
+                tags = listOf(
+                    "EnArbeidsgiver",
+                    "Arbeidsgiverutbetaling",
+                    "SykepengegrunnlagUnder2G"
+                )
+            )
+        )
+        assertTrue(hendelseDao.harLagretHendelsen())
+    }
+
     @Language("JSON")
     private fun vedtakFattet(
         utbetalingId: UUID? = UUID.randomUUID(),
