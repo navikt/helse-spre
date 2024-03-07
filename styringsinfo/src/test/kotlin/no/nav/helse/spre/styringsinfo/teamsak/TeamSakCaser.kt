@@ -5,10 +5,10 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.Søknad
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.TilInfotrygd
-import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetMedVedtak
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetUtenVedtak
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonForkastet
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonOpprettet
+import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.vedtakFattet
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
@@ -39,8 +39,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
             aktørId = "Scenario 1"
         )
         januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
-        val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingId)
-        januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
+        val januarVedtakFattet = vedtakFattet(behandlingId)
+        januarVedtakFattet.lagreOgHåndter(behandlingshendelseDao)
     }
 
     @Test
@@ -60,8 +60,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
         )
         januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingIdJanuar)
-        januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
+        val januarVedtakFattet = vedtakFattet(behandlingIdJanuar)
+        januarVedtakFattet.lagreOgHåndter(behandlingshendelseDao)
 
         // generasjon opprettet med vedtak - februar
         val (behandlingIdFebruar, februarGenerasjonOpprettet, sakIdFebruar) = generasjonOpprettet(
@@ -70,8 +70,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
         )
         februarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val februarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingIdFebruar)
-        februarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
+        val februarVedtakFattet = vedtakFattet(behandlingIdFebruar)
+        februarVedtakFattet.lagreOgHåndter(behandlingshendelseDao)
 
         // generasjon opprettet med vedtak - februar igjen?
         val (andreGenerasjonFebruar, andreFebruarGenerasjonOpprettet) = generasjonOpprettet(
@@ -81,8 +81,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
         )
         andreFebruarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val andreFebruarAvsluttetMedVedtak = avsluttetMedVedtak(andreGenerasjonFebruar)
-        andreFebruarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
+        val andreFebruarVedtakFattet = vedtakFattet(andreGenerasjonFebruar)
+        andreFebruarVedtakFattet.lagreOgHåndter(behandlingshendelseDao)
     }
 
     @Test
@@ -136,8 +136,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
         )
         januarGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val januarAvsluttetMedVedtak = avsluttetMedVedtak(generasjonJanuar)
-        januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
+        val januarVedtakFattet = vedtakFattet(generasjonJanuar)
+        januarVedtakFattet.lagreOgHåndter(behandlingshendelseDao)
 
         val (_, januarAnnullertGenerasjonOpprettet) = generasjonOpprettet(
             TilInfotrygd,

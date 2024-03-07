@@ -10,12 +10,26 @@ import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.nom.Nom
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.db.*
+import no.nav.helse.spre.styringsinfo.db.DataSourceBuilder
+import no.nav.helse.spre.styringsinfo.db.GenerasjonOpprettetDao
+import no.nav.helse.spre.styringsinfo.db.SendtSøknadDao
+import no.nav.helse.spre.styringsinfo.db.SendtSøknadPatcher
+import no.nav.helse.spre.styringsinfo.db.VedtakFattetDao
+import no.nav.helse.spre.styringsinfo.db.VedtakFattetPatcher
+import no.nav.helse.spre.styringsinfo.db.VedtakForkastetDao
+import no.nav.helse.spre.styringsinfo.db.VedtakForkastetPatcher
 import no.nav.helse.spre.styringsinfo.domain.SendtSøknadPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakFattetPatch
 import no.nav.helse.spre.styringsinfo.domain.VedtakForkastetPatch
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetUtenVedtak
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonForkastet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeBeslutning
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeEndretTilGodkjenning
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeEndretTilVilkårsprøving
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -97,7 +111,7 @@ fun launchApplication(dataSource: HikariDataSource, environment: Map<String, Str
         VedtakForkastetRiver(this, vedtakForkastetDao)
         GenerasjonOpprettetRiver(this, generasjonOpprettetDao)
         GenerasjonOpprettet.river(this, hendelseDao, behandlingshendelseDao)
-        AvsluttetMedVedtak.river(this, hendelseDao, behandlingshendelseDao)
+        VedtakFattet.river(this, hendelseDao, behandlingshendelseDao)
         AvsluttetUtenVedtak.river(this, hendelseDao, behandlingshendelseDao)
         GenerasjonForkastet.river(this, hendelseDao, behandlingshendelseDao)
         VedtaksperiodeEndretTilGodkjenning.river(this, hendelseDao, behandlingshendelseDao)

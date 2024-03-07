@@ -4,7 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import net.logstash.logback.argument.StructuredArgument
 import net.logstash.logback.argument.StructuredArguments.keyValue
-import no.nav.helse.rapids_rivers.*
+import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
+import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.rapids_rivers.River
+import no.nav.helse.rapids_rivers.asLocalDateTime
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helse.spre.styringsinfo.sikkerLogg
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import java.time.LocalDateTime
@@ -57,12 +63,19 @@ internal class HendelseRiver(
         internal val JsonMessage.opprettet get() = LocalDateTime.parse(this["@opprettet"].asText())
         internal val JsonMessage.vedtaksperiodeId get() = UUID.fromString(this["vedtaksperiodeId"].asText())
         internal val JsonMessage.generasjonId get() = UUID.fromString(this["generasjonId"].asText())
+        internal val JsonMessage.behandlingId get() = UUID.fromString(this["behandlingId"].asText())
         internal val JsonMessage.saksbehandlerIdent get() = this["saksbehandlerIdent"].asText().takeUnless { it.isBlank() }
         internal val JsonMessage.beslutterIdent get() = this["beslutterIdent"].asText().takeUnless { it.isBlank() }
         internal val JsonMessage.automatiskBehandling get() = this["automatiskBehandling"].asBoolean()
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
         internal fun JsonMessage.requireGenerasjonId() = require("generasjonId") { generasjonId -> UUID.fromString(generasjonId.asText()) }
+        internal fun JsonMessage.requireBehandlingId() = require("behandlingId") { behandlingId -> UUID.fromString(behandlingId.asText()) }
         internal fun JsonMessage.requireVedtaksperiodeId() = require("vedtaksperiodeId") { vedtaksperiodeId -> UUID.fromString(vedtaksperiodeId.asText()) }
+
+        internal fun JsonMessage.demandUtbetalingId() = demand("utbetalingId") { utbetalingId -> UUID.fromString(utbetalingId.asText()) }
+        internal fun JsonMessage.demandSykepengegrunnlagfakta() = demand("sykepengegrunnlagsfakta") {
+                sykepengegrunnlagsfakta -> require(!sykepengegrunnlagsfakta.isMissingOrNull())
+        }
 
     }
 }
