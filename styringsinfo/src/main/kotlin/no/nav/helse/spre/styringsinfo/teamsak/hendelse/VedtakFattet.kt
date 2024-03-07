@@ -86,7 +86,7 @@ internal class VedtakFattet(
                 sykmeldtErMottaker && arbeidsgiverErMottaker -> Behandling.Mottaker.SYKMELDT_OG_ARBEIDSGIVER
                 sykmeldtErMottaker -> Behandling.Mottaker.SYKMELDT
                 arbeidsgiverErMottaker -> Behandling.Mottaker.ARBEIDSGIVER
-                else -> throw IllegalArgumentException("Ugyldig mottaker. Hvordan kan dette skje? Hva slags tags er dette?")
+                else -> UKJENT
             }
         }
 
