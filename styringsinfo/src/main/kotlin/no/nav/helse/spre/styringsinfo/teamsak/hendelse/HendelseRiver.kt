@@ -59,23 +59,13 @@ internal class HendelseRiver(
 
     internal companion object {
         private val objectMapper = jacksonObjectMapper()
-
         private val JsonMessage.eventName get() = this["@event_name"].asText()
         internal val JsonMessage.hendelseId get() = UUID.fromString(this["@id"].asText())
         internal val JsonMessage.opprettet get() = LocalDateTime.parse(this["@opprettet"].asText())
         internal val JsonMessage.vedtaksperiodeId get() = UUID.fromString(this["vedtaksperiodeId"].asText())
         internal val JsonMessage.behandlingId get() = UUID.fromString(this["behandlingId"].asText())
-        internal val JsonMessage.saksbehandlerIdent get() = this["saksbehandlerIdent"].asText().takeUnless { it.isBlank() }
-        internal val JsonMessage.beslutterIdent get() = this["beslutterIdent"].asText().takeUnless { it.isBlank() }
-        internal val JsonMessage.automatiskBehandling get() = this["automatiskBehandling"].asBoolean()
-        internal val JsonMessage.tags get() = this["tags"].map { it.asText() }
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
         internal fun JsonMessage.requireBehandlingId() = require("behandlingId") { behandlingId -> UUID.fromString(behandlingId.asText()) }
-        internal fun JsonMessage.requireTags() = requireKey("tags")
         internal fun JsonMessage.requireVedtaksperiodeId() = require("vedtaksperiodeId") { vedtaksperiodeId -> UUID.fromString(vedtaksperiodeId.asText()) }
-        internal fun JsonMessage.demandUtbetalingId() = demand("utbetalingId") { utbetalingId -> UUID.fromString(utbetalingId.asText()) }
-        internal fun JsonMessage.demandSykepengegrunnlagfakta() = demand("sykepengegrunnlagsfakta") {
-            sykepengegrunnlagsfakta -> require(!sykepengegrunnlagsfakta.isMissingOrNull())
-        }
     }
 }

@@ -1,7 +1,9 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helse.spre.styringsinfo.log
 import no.nav.helse.spre.styringsinfo.sikkerLogg
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
@@ -10,13 +12,9 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.demandSykepengegrunnlagfakta
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.demandUtbetalingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireTags
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.tags
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.*
 import java.time.LocalDateTime
 import java.util.UUID
@@ -128,5 +126,12 @@ internal class VedtakFattet(
                 tags = packet.tags.tilKjenteTags()
             )}
         )
+
+        private val JsonMessage.tags get() = this["tags"].map { it.asText() }
+        private fun JsonMessage.requireTags() = requireKey("tags")
+        private fun JsonMessage.demandUtbetalingId() = demand("utbetalingId") { utbetalingId -> UUID.fromString(utbetalingId.asText()) }
+        private fun JsonMessage.demandSykepengegrunnlagfakta() = demand("sykepengegrunnlagsfakta") {
+            sykepengegrunnlagsfakta -> require(!sykepengegrunnlagsfakta.isMissingOrNull())
+        }
     }
 }

@@ -15,13 +15,10 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingst
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.GODKJENT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.asSakId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.automatiskBehandling
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.beslutterIdent
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.saksbehandlerIdent
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -100,7 +97,10 @@ internal class VedtaksperiodeBeslutning(
             return nom.hentEnhet(ident, LocalDate.now(), hendelseId.toString())
         }
 
+        private val JsonMessage.saksbehandlerIdent get() = this["saksbehandlerIdent"].asText().takeUnless { it.isBlank() }
+        private val JsonMessage.beslutterIdent get() = this["beslutterIdent"].asText().takeUnless { it.isBlank() }
         private fun JsonMessage.requireSaksbehandlerIdent() = require("saksbehandlerIdent") { saksbehandlerIdent -> saksbehandlerIdent.asText() }
         private fun JsonMessage.requireAutomatiskBehandling() = require("automatiskBehandling") { automatiskBehandling -> automatiskBehandling.asBoolean() }
+        private val JsonMessage.automatiskBehandling get() = this["automatiskBehandling"].asBoolean()
     }
 }
