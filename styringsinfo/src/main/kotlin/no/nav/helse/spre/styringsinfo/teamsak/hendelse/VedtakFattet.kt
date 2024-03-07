@@ -99,12 +99,12 @@ internal class VedtakFattet(
             val ingenOgNoen = ingenErMottaker && (arbeidsgiverErMottaker || sykmeldtErMottaker)
             val nadaTrue = !(ingenErMottaker || arbeidsgiverErMottaker || sykmeldtErMottaker)
             if (ingenOgNoen) {
-                log.error("Vi synes at det er litt rart at ingen har mottatt penger og noen har mottatt penger, dette må være en feil (se sikkerlogg for melding)")
-                sikkerLogg.error("Vi synes at det er litt rart at ingen har mottatt penger og noen har mottatt penger, dette må være en feil. Melding: $data")
+                log.warn("Vi synes at det er litt rart at ingen har mottatt penger og noen har mottatt penger, dette må være en feil (se sikkerlogg for melding)")
+                sikkerLogg.warn("Vi synes at det er litt rart at ingen har mottatt penger og noen har mottatt penger, dette må være en feil. Melding: $data")
             }
             if (nadaTrue) {
-                log.error("Vi synes det er litt rart at mottaker ikke er spesifisert når vi liksom har tatt høyde for at det kan være en ingen mottaker, dette må være en feil (se sikkerlogg for melding)")
-                sikkerLogg.error("Vi synes det er litt rart at mottaker ikke er spesifisert når vi liksom har tatt høyde for at det kan være ingen mottaker, dette må være en feil. Melding $data")
+                log.warn("Vi synes det er litt rart at mottaker ikke er spesifisert når vi liksom har tatt høyde for at det kan være en ingen mottaker, dette må være en feil (se sikkerlogg for melding)")
+                sikkerLogg.warn("Vi synes det er litt rart at mottaker ikke er spesifisert når vi liksom har tatt høyde for at det kan være ingen mottaker, dette må være en feil. Melding $data")
             }
         }
 
