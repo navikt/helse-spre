@@ -16,7 +16,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.v
 import java.time.LocalDateTime
 import java.util.UUID
 
-internal class GenerasjonForkastet(
+internal class BehandlingForkastet(
     override val id: UUID,
     override val opprettet: LocalDateTime,
     override val data: JsonNode,
@@ -39,10 +39,12 @@ internal class GenerasjonForkastet(
     }
 
     internal companion object {
-        private const val eventName = "generasjon_forkastet"
+        private const val eventName = "behandling_forkastet"
+        private const val alternativtEventName = "generasjon_forkastet" // TODO: Fjern meg
 
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
+            alternativtEventName = alternativtEventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
@@ -50,7 +52,7 @@ internal class GenerasjonForkastet(
                 packet.requireVedtaksperiodeId()
                 packet.interestedIn("automatiskBehandling")
             },
-            opprett = { packet -> GenerasjonForkastet(
+            opprett = { packet -> BehandlingForkastet(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
