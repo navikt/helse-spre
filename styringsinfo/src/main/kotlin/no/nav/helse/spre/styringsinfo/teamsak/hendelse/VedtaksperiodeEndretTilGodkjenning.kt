@@ -26,8 +26,8 @@ internal class VedtaksperiodeEndretTilGodkjenning(
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val sakId = SakId(vedtaksperiodeId)
-        val generasjonId = behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(sakId) ?: return false
-        val builder = behandlingshendelseDao.initialiser(generasjonId) ?: return false
+        val behandlingId = behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(sakId) ?: return false
+        val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
         val periodetype = if (behandlingshendelseDao.erFørstegangsbehandling(sakId)) FØRSTEGANGSBEHANDLING else FORLENGELSE
         val ny = builder
             .behandlingstatus(AVVENTER_GODKJENNING)

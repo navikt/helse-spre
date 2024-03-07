@@ -17,12 +17,12 @@ internal class AvsluttetMedVedtak(
     override val id: UUID,
     override val opprettet: LocalDateTime,
     override val data: JsonNode,
-    private val generasjonId: UUID
+    private val behandlingId: UUID
 ) : Hendelse {
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val builder = behandlingshendelseDao.initialiser(BehandlingId(generasjonId)) ?: return false
+        val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId)) ?: return false
         val ny = builder
             .behandlingstatus(Behandling.Behandlingstatus.AVSLUTTET)
             .behandlingsresultat(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT)
@@ -45,7 +45,7 @@ internal class AvsluttetMedVedtak(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
-                generasjonId = packet.behandlingId
+                behandlingId = packet.behandlingId
             )}
         )
     }

@@ -25,7 +25,7 @@ internal class V33BehandlingsresultatAvsluttetMedVedtakTest: Behandlingshendelse
                 id = hendelseId,
                 opprettet = LocalDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
-                generasjonId = UUID.randomUUID()
+                behandlingId = UUID.randomUUID()
             )
         )
 

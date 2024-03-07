@@ -26,7 +26,7 @@ internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJs
                 id = behandlingId,
                 opprettet = LocalDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
-                generasjonId = UUID.randomUUID()
+                behandlingId = UUID.randomUUID()
             )
         )
         val behandlingId2 = UUID.randomUUID()
@@ -38,7 +38,7 @@ internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJs
                 id = behandlingId2,
                 opprettet = LocalDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
-                generasjonId = UUID.randomUUID()
+                behandlingId = UUID.randomUUID()
             )
         )
 
