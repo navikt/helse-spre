@@ -74,11 +74,9 @@ internal class BehandlingOpprettet(
         }
 
         private const val eventName = "behandling_opprettet"
-        private const val alternativtEventName = "generasjon_opprettet" // TODO: Fjern meg etterpå
 
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
-            alternativtEventName = alternativtEventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
