@@ -27,7 +27,7 @@ internal class HendelseRiver(
     init {
         River(rapidsConnection).apply {
             validate {
-                it.demandValue("@event_name", eventName)
+                it.demandAny("@event_name", listOf(eventName, "${eventName}_styringsinfo_replay"))
                 it.require("@opprettet", JsonNode::asLocalDateTime)
                 it.require("@id") { id -> UUID.fromString(id.asText()) }
                 it.interestedIn(
