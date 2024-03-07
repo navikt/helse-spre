@@ -20,32 +20,32 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.v
 import java.time.LocalDateTime
 import java.util.UUID
 
-internal class GenerasjonOpprettet(
+internal class BehandlingOpprettet(
     override val id: UUID,
     override val opprettet: LocalDateTime,
     override val data: JsonNode,
     private val vedtaksperiodeId: UUID,
-    private val generasjonId: UUID,
+    private val behandlingId: UUID,
     private val aktørId: String,
-    private val generasjonkilde: Generasjonkilde,
-    private val generasjonstype: Generasjonstype
+    private val behandlingskilde: Behandlingskilde,
+    private val behandlingstype: Behandlingstype
 ) : Hendelse {
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val sakId = SakId(vedtaksperiodeId)
-        val behandlingskilde = generasjonkilde.avsender.behandlingskilde
+        val behandlingskilde = behandlingskilde.avsender.behandlingskilde
 
         val behandling = Behandling(
             sakId = sakId,
-            behandlingId = BehandlingId(generasjonId),
+            behandlingId = BehandlingId(behandlingId),
             relatertBehandlingId = behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(sakId),
             aktørId = aktørId,
-            mottattTid = generasjonkilde.innsendt,
-            registrertTid = generasjonkilde.registrert,
+            mottattTid = this.behandlingskilde.innsendt,
+            registrertTid = this.behandlingskilde.registrert,
             funksjonellTid = opprettet,
             behandlingstatus = REGISTRERT,
-            behandlingstype = generasjonstype.behandlingstype,
+            behandlingstype = behandlingstype.behandlingstype,
             behandlingskilde = behandlingskilde,
             behandlingsmetode = if (behandlingskilde == SAKSBEHANDLER) MANUELL else AUTOMATISK
         )
@@ -53,9 +53,9 @@ internal class GenerasjonOpprettet(
         return true
     }
 
-    internal class Generasjonkilde(internal val innsendt: LocalDateTime, internal val registrert: LocalDateTime, internal val avsender: Avsender)
+    internal class Behandlingskilde(internal val innsendt: LocalDateTime, internal val registrert: LocalDateTime, internal val avsender: Avsender)
     internal class Avsender(val verdi: String)
-    internal class Generasjonstype(val verdi: String)
+    internal class Behandlingstype(val verdi: String)
 
     internal companion object {
         private val Avsender.behandlingskilde get() = when (verdi) {
@@ -66,17 +66,19 @@ internal class GenerasjonOpprettet(
             else -> throw IllegalStateException("Kjenner ikke til kildeavsender $verdi")
         }
 
-        private val Generasjonstype.behandlingstype get() = when (verdi) {
+        private val Behandlingstype.behandlingstype get() = when (verdi) {
             "TilInfotrygd", "Søknad" -> Behandling.Behandlingstype.SØKNAD
             "Omgjøring" -> Behandling.Behandlingstype.OMGJØRING
             "Revurdering" -> Behandling.Behandlingstype.REVURDERING
-            else -> throw IllegalStateException("Kjenner ikke til generasjontype $verdi")
+            else -> throw IllegalStateException("Kjenner ikke til behandlingstype $verdi")
         }
 
-        private const val eventName = "generasjon_opprettet"
+        private const val eventName = "behandling_opprettet"
+        private const val alternativtEventName = "generasjon_opprettet" // TODO: Fjern meg etterpå
 
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
+            alternativtEventName = alternativtEventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
@@ -85,19 +87,19 @@ internal class GenerasjonOpprettet(
                 packet.requireBehandlingId()
                 packet.requireKey("aktørId", "kilde.registrert", "kilde.innsendt", "kilde.avsender", "type")
             },
-            opprett = { packet -> GenerasjonOpprettet(
+            opprett = { packet -> BehandlingOpprettet(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
-                generasjonId = packet.behandlingId,
+                behandlingId = packet.behandlingId,
                 vedtaksperiodeId = packet.vedtaksperiodeId,
                 aktørId = packet["aktørId"].asText(),
-                generasjonkilde = Generasjonkilde(
+                behandlingskilde = Behandlingskilde(
                     innsendt = LocalDateTime.parse(packet["kilde.innsendt"].asText()),
                     registrert = LocalDateTime.parse(packet["kilde.registrert"].asText()),
                     avsender = Avsender(packet["kilde.avsender"].asText())
                 ),
-                generasjonstype = Generasjonstype(packet["type"].asText())
+                behandlingstype = Behandlingstype(packet["type"].asText())
             )}
         )
     }

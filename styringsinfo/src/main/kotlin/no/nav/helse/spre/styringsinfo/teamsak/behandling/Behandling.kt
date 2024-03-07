@@ -16,7 +16,7 @@ internal data class BehandlingId(val id: UUID) {
 
 internal data class Behandling(
     internal val sakId: SakId,                       // SakId er team sak-terminologi for vedtaksperiodeId
-    internal val behandlingId: BehandlingId,         // behandlingId er team sak-terminologi for generasjonId
+    internal val behandlingId: BehandlingId,
     internal val relatertBehandlingId: BehandlingId?,
     internal val aktørId: String,
     internal val mottattTid: LocalDateTime,          // Tidspunktet da behandlingen oppstår (eks. søknad mottas). Dette er starten på beregning av saksbehandlingstid.

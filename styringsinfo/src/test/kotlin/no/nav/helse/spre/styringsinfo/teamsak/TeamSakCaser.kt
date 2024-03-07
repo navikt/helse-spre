@@ -11,7 +11,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonFo
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.generasjonOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.GenerasjonOpprettet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.BehandlingOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
@@ -143,7 +143,7 @@ class TeamSakCaser : AbstractDatabaseTest() {
             TilInfotrygd,
             aktørId = "Scenario 5",
             sakId = sakId,
-            avsender = GenerasjonOpprettet.Avsender("SAKSBEHANDLER")
+            avsender = BehandlingOpprettet.Avsender("SAKSBEHANDLER")
         )
         januarAnnullertGenerasjonOpprettet.lagreOgHåndter(behandlingshendelseDao)
 

@@ -382,15 +382,15 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        private val objectMapper = jacksonObjectMapper()
        private val blob = objectMapper.createObjectNode()
 
-       internal val Sykmeldt = GenerasjonOpprettet.Avsender("SYKMELDT")
-       internal val Arbeidsgiver = GenerasjonOpprettet.Avsender("ARBEIDSGIVER")
-       internal val Saksbehandler = GenerasjonOpprettet.Avsender("SAKSBEHANDLER")
-       internal val System = GenerasjonOpprettet.Avsender("SYSTEM")
+       internal val Sykmeldt = BehandlingOpprettet.Avsender("SYKMELDT")
+       internal val Arbeidsgiver = BehandlingOpprettet.Avsender("ARBEIDSGIVER")
+       internal val Saksbehandler = BehandlingOpprettet.Avsender("SAKSBEHANDLER")
+       internal val System = BehandlingOpprettet.Avsender("SYSTEM")
 
-       internal val Søknad = GenerasjonOpprettet.Generasjonstype("Søknad")
-       internal val TilInfotrygd = GenerasjonOpprettet.Generasjonstype("TilInfotrygd")
-       internal val Omgjøring = GenerasjonOpprettet.Generasjonstype("Omgjøring")
-       internal val Revurdering = GenerasjonOpprettet.Generasjonstype("Revurdering")
+       internal val Søknad = BehandlingOpprettet.Behandlingstype("Søknad")
+       internal val TilInfotrygd = BehandlingOpprettet.Behandlingstype("TilInfotrygd")
+       internal val Omgjøring = BehandlingOpprettet.Behandlingstype("Omgjøring")
+       internal val Revurdering = BehandlingOpprettet.Behandlingstype("Revurdering")
 
 
         private val String.printbar get() = take(25).padEnd(25, ' ') + "   "
@@ -407,18 +407,18 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         }
 
        internal fun generasjonOpprettet(
-           generasjonstype: GenerasjonOpprettet.Generasjonstype,
+           behandlingstype: BehandlingOpprettet.Behandlingstype,
            sakId: SakId = SakId(UUID.randomUUID()),
            behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()),
            aktørId: String = "1234",
-           avsender: GenerasjonOpprettet.Avsender = Sykmeldt,
+           avsender: BehandlingOpprettet.Avsender = Sykmeldt,
            innsendt: LocalDateTime = nesteTidspunkt,
            registrert: LocalDateTime = nesteTidspunkt,
            opprettet: LocalDateTime = nesteTidspunkt,
-       ): Triple<BehandlingId, GenerasjonOpprettet, SakId> {
-           val generasjonkilde = GenerasjonOpprettet.Generasjonkilde(innsendt, registrert, avsender)
-           val generasjonOpprettet = GenerasjonOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, generasjonkilde, generasjonstype)
-           return Triple(behandlingId, generasjonOpprettet, sakId)
+       ): Triple<BehandlingId, BehandlingOpprettet, SakId> {
+           val behandlingskilde = BehandlingOpprettet.Behandlingskilde(innsendt, registrert, avsender)
+           val behandlingOpprettet = BehandlingOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, behandlingskilde, behandlingstype)
+           return Triple(behandlingId, behandlingOpprettet, sakId)
        }
        internal fun avsluttetMedVedtak(behandlingId: BehandlingId) = AvsluttetMedVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)

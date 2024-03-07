@@ -40,7 +40,7 @@ internal class BehandlingForkastet(
 
     internal companion object {
         private const val eventName = "behandling_forkastet"
-        private const val alternativtEventName = "generasjon_forkastet" // TODO: Fjern meg
+        private const val alternativtEventName = "generasjon_forkastet" // TODO: Fjern meg etterpå
 
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
