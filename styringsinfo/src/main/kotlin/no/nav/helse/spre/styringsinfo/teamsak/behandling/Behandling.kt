@@ -27,7 +27,7 @@ internal data class Behandling(
     internal val periodetype: Periodetype? = null,
     internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
-    internal val behandlingsmetode: Behandlingsmetode?,
+    internal val behandlingsmetode: Behandlingsmetode?, // TODO: Hadde vært kjekt å migrere alle rader med siste=true til å ha en verdi, da hadde vi unngått at denne er nullable her i koden
     internal val mottaker: Mottaker? = null,
     internal val saksbehandlerEnhet: String? = null,
     internal val beslutterEnhet: String? = null,
@@ -85,26 +85,20 @@ internal data class Behandling(
     class Builder(private val forrige: Behandling) {
 
         private var behandlingstatus: Behandlingstatus? = null
-        private var behandlingtype: Behandlingstype? = null
         private var periodetype: Periodetype? = null
         private var behandlingsresultat: Behandlingsresultat? = null
-        private var behandlingskilde: Behandlingskilde? = null
-        private var behandlingsmetode: Behandlingsmetode? = null
         private var mottaker: Mottaker? = null
         private var saksbehandlerEnhet: String? = null
         private var beslutterEnhet: String? = null
 
         internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply { this.behandlingstatus = behandlingstatus }
-        internal fun behandlingtype(behandlingtype: Behandlingstype) = apply { this.behandlingtype = behandlingtype }
         internal fun periodetype(periodetype: Periodetype) = apply { this.periodetype = periodetype }
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
-        internal fun behandlingskilde(behandlingskilde: Behandlingskilde) = apply { this.behandlingskilde = behandlingskilde }
-        internal fun behandlingsmetode(behandlingsmetode: Behandlingsmetode) = apply { this.behandlingsmetode = behandlingsmetode }
         internal fun mottaker(mottaker: Mottaker) = apply { this.mottaker = mottaker }
         internal fun saksbehandlerEnhet(saksbehandlerEnhet: String?) = apply { this.saksbehandlerEnhet = saksbehandlerEnhet }
         internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
 
-        internal fun build(funksjonellTid: LocalDateTime) = Behandling(
+        internal fun build(funksjonellTid: LocalDateTime, behandlingsmetode: Behandlingsmetode) = Behandling(
             sakId = forrige.sakId,
             behandlingId = forrige.behandlingId,
             relatertBehandlingId = forrige.relatertBehandlingId,
@@ -114,10 +108,10 @@ internal data class Behandling(
             funksjonellTid = funksjonellTid,
             behandlingsmetode = behandlingsmetode,
             behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
-            behandlingstype = behandlingtype ?: forrige.behandlingstype,
+            behandlingstype = forrige.behandlingstype,
             periodetype = periodetype ?: forrige.periodetype,
             behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
-            behandlingskilde = behandlingskilde ?: forrige.behandlingskilde,
+            behandlingskilde = forrige.behandlingskilde,
             saksbehandlerEnhet = saksbehandlerEnhet ?: forrige.saksbehandlerEnhet,
             beslutterEnhet = beslutterEnhet ?: forrige.beslutterEnhet,
             mottaker = mottaker ?: forrige.mottaker

@@ -3,9 +3,10 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.*
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
@@ -29,10 +30,9 @@ internal class BehandlingForkastet(
         val builders = behandlingshendelseDao.initialiser(SakId(vedtaksperiodeId)).takeUnless { it.isEmpty() } ?: return false
         builders.forEach { builder ->
             val ny = builder
-                .behandlingstatus(Behandling.Behandlingstatus.AVSLUTTET)
-                .behandlingsresultat(Behandling.Behandlingsresultat.AVBRUTT)
-                .behandlingsmetode(behandlingsmetode)
-                .build(opprettet)
+                .behandlingstatus(AVSLUTTET)
+                .behandlingsresultat(AVBRUTT)
+                .build(opprettet, behandlingsmetode)
             behandlingshendelseDao.lagre(ny, this.id)
         }
         return true

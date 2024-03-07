@@ -25,6 +25,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
     }
 
     override fun lagre(behandling: Behandling, hendelseId: UUID) {
+        checkNotNull(behandling.behandlingsmetode) { "Nye rader i behandlingshendelse _må_ ha behandlingsmtode satt!" }
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
             if (!tx.kanLagres(behandling, hendelseId)) return
             val sisteBehandling = tx.hent(behandling.behandlingId)

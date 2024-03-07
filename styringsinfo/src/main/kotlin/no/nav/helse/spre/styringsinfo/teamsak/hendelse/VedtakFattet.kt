@@ -7,6 +7,9 @@ import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helse.spre.styringsinfo.log
 import no.nav.helse.spre.styringsinfo.sikkerLogg
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.VEDTAK_IVERKSATT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Mottaker.UKJENT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
@@ -33,11 +36,10 @@ internal class VedtakFattet(
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId)) ?: return false
         val mottaker = mottaker(tags, data)
         val ny = builder
-            .behandlingstatus(Behandling.Behandlingstatus.AVSLUTTET)
-            .behandlingsresultat(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT)
-            .behandlingsmetode(Behandling.Behandlingsmetode.AUTOMATISK)
+            .behandlingstatus(AVSLUTTET)
+            .behandlingsresultat(VEDTAK_IVERKSATT)
             .mottaker(mottaker)
-            .build(opprettet)
+            .build(opprettet, AUTOMATISK)
         behandlingshendelseDao.lagre(ny, this.id)
         return true
     }

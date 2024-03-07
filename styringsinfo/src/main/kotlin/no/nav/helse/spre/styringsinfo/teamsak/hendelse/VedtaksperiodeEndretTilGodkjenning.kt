@@ -31,9 +31,8 @@ internal class VedtaksperiodeEndretTilGodkjenning(
         val periodetype = if (behandlingshendelseDao.erFørstegangsbehandling(sakId)) FØRSTEGANGSBEHANDLING else FORLENGELSE
         val ny = builder
             .behandlingstatus(AVVENTER_GODKJENNING)
-            .behandlingsmetode(AUTOMATISK)
             .periodetype(periodetype)
-            .build(opprettet)
+            .build(opprettet, AUTOMATISK)
         behandlingshendelseDao.lagre(ny, this.id)
         return true
     }

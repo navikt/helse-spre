@@ -28,9 +28,8 @@ internal class VedtaksperiodeEndretTilVilkårsprøving(
         val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
         val ny = builder
             .behandlingstatus(VURDERER_INNGANGSVILKÅR)
-            .behandlingsmetode(AUTOMATISK)
             .periodetype(FØRSTEGANGSBEHANDLING)
-            .build(opprettet)
+            .build(opprettet, AUTOMATISK)
         behandlingshendelseDao.lagre(ny, this.id)
         return true
     }
