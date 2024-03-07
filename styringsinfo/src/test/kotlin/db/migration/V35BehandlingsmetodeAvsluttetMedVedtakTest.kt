@@ -5,10 +5,10 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import junit.framework.TestCase.assertEquals
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetMedVedtak
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJsonMigreringTest(
     migrering = V35__riktig_periodetype_for_revurderte_førstegangsbehandlinger(),
@@ -22,7 +22,7 @@ internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJs
             sakId, behandlingId, true, Versjon.of("0.1.0"), false, data = {
                 it.put("periodetype", "FØRSTEGANGSBEHANDLING")
             },
-            hendelse = AvsluttetMedVedtak(
+            hendelse = VedtakFattet(
                 id = behandlingId,
                 opprettet = LocalDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
@@ -34,7 +34,7 @@ internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJs
             sakId, behandlingId2, true, Versjon.of("0.1.0"), false, data = {
                 it.put("periodetype", "FORLENGELSE")
             },
-            hendelse = AvsluttetMedVedtak(
+            hendelse = VedtakFattet(
                 id = behandlingId2,
                 opprettet = LocalDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,

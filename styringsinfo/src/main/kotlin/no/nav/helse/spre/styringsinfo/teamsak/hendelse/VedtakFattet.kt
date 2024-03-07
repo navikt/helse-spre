@@ -5,15 +5,18 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.demandSykepengegrunnlagfakta
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.demandUtbetalingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.LocalDateTime
 import java.util.UUID
 
-internal class AvsluttetMedVedtak(
+// Skal lese inn vedtak_fattet-event kun for perioder med vedtak, ikke AUU
+internal class VedtakFattet(
     override val id: UUID,
     override val opprettet: LocalDateTime,
     override val data: JsonNode,
@@ -33,15 +36,20 @@ internal class AvsluttetMedVedtak(
     }
 
     internal companion object {
-        private const val eventName = "avsluttet_med_vedtak"
+        private const val eventName = "vedtak_fattet"
 
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
-            valider = { packet -> packet.requireBehandlingId() },
-            opprett = { packet -> AvsluttetMedVedtak(
+            valider = {
+                packet ->
+                    packet.requireBehandlingId()
+                    packet.demandSykepengegrunnlagfakta()
+                    packet.demandUtbetalingId()
+            },
+            opprett = { packet -> VedtakFattet(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,

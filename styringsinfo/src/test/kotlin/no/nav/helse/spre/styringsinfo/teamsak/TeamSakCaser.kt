@@ -5,8 +5,8 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.Søknad
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.TilInfotrygd
-import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetMedVedtak
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.avsluttetUtenVedtak
+import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.vedtakFattet
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.behandlingForkastet
 import no.nav.helse.spre.styringsinfo.teamsak.TeamSakTest.Companion.behandlingIdOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
@@ -39,8 +39,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
             aktørId = "Scenario 1"
         )
         januarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
-        val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingId)
-        januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
+        val januarVedtakFattet = vedtakFattet(behandlingId)
+        januarVedtakFattet.lagreOgHåndter(behandlingshendelseDao)
     }
 
     @Test
@@ -60,8 +60,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
         )
         januarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingIdJanuar)
-        januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
+        val januarVedtakFattet = vedtakFattet(behandlingIdJanuar)
+        januarVedtakFattet.lagreOgHåndter(behandlingshendelseDao)
 
         // behandling opprettet med vedtak - februar
         val (behandlingIdFebruar, februarBehandlingOpprettet, sakIdFebruar) = behandlingIdOpprettet(
@@ -70,8 +70,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
         )
         februarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val februarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingIdFebruar)
-        februarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
+        val februarVedtakFattet = vedtakFattet(behandlingIdFebruar)
+        februarVedtakFattet.lagreOgHåndter(behandlingshendelseDao)
 
         // behandling opprettet med vedtak - februar igjen?
         val (andreBehandlingFebruar, andreFebruarBehandlingOpprettet) = behandlingIdOpprettet(
@@ -81,8 +81,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
         )
         andreFebruarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val andreFebruarAvsluttetMedVedtak = avsluttetMedVedtak(andreBehandlingFebruar)
-        andreFebruarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
+        val andreFebruarVedtakFattet = vedtakFattet(andreBehandlingFebruar)
+        andreFebruarVedtakFattet.lagreOgHåndter(behandlingshendelseDao)
     }
 
     @Test
@@ -136,8 +136,8 @@ class TeamSakCaser : AbstractDatabaseTest() {
         )
         januarBehandlingOpprettet.lagreOgHåndter(behandlingshendelseDao)
 
-        val januarAvsluttetMedVedtak = avsluttetMedVedtak(behandlingJanuar)
-        januarAvsluttetMedVedtak.lagreOgHåndter(behandlingshendelseDao)
+        val januarVedtakFattet = vedtakFattet(behandlingJanuar)
+        januarVedtakFattet.lagreOgHåndter(behandlingshendelseDao)
 
         val (_, januarAnnullertBehandlingOpprettet) = behandlingIdOpprettet(
             TilInfotrygd,
