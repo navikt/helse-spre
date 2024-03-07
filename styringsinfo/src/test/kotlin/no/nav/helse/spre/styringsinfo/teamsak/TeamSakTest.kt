@@ -443,29 +443,23 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        internal fun behandlingForkastet(sakId: SakId, behandlingsmetode: Behandling.Behandlingsmetode = Behandling.Behandlingsmetode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, automatiskBehandling = behandlingsmetode == Behandling.Behandlingsmetode.AUTOMATISK)
        internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId) = VedtaksperiodeEndretTilGodkjenning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeEndretTilVilkårsprøving(sakId: SakId) = VedtaksperiodeEndretTilVilkårsprøving(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
-       internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeBeslutning(
+       internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeBeslutning.vedtaksperiodeGodkjent(
            id = UUID.randomUUID(),
            opprettet = nesteTidspunkt,
            data = blob,
            vedtaksperiodeId = sakId.id,
            saksbehandlerEnhet = "SB123",
            beslutterEnhet = "SB456",
-           automatiskBehandling = false,
-           behandlingsresultat = VEDTATT,
-           eventName = "vedtaksperiode_godkjent",
-           behandlingstatus = Behandling.Behandlingstatus.GODKJENT
+           automatiskBehandling = false
        )
-       internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeBeslutning(
+       internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeBeslutning.vedtaksperiodeAvvist(
            id = UUID.randomUUID(),
            opprettet = nesteTidspunkt,
            data = blob,
            vedtaksperiodeId = sakId.id,
            saksbehandlerEnhet = "SB123",
            beslutterEnhet = "SB456",
-           automatiskBehandling = false,
-           behandlingsresultat = AVBRUTT,
-           eventName = "vedtaksperiode_avvist",
-           behandlingstatus = AVSLUTTET
+           automatiskBehandling = false
        )
    }
 }

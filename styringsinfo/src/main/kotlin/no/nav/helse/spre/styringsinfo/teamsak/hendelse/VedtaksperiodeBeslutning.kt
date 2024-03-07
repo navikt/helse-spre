@@ -6,7 +6,6 @@ import no.nav.helse.nom.Nom
 import no.nav.helse.nom.Saksbehandler
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
@@ -20,11 +19,13 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.h
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeBeslutning.Companion.Beslutning.Avvist
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeBeslutning.Companion.Beslutning.Godkjent
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-internal class VedtaksperiodeBeslutning(
+internal class VedtaksperiodeBeslutning private constructor(
     override val id: UUID,
     override val opprettet: LocalDateTime,
     override val data: JsonNode,
@@ -32,11 +33,11 @@ internal class VedtaksperiodeBeslutning(
     private val saksbehandlerEnhet: String?,
     private val beslutterEnhet: String?,
     private val automatiskBehandling: Boolean,
-    private val behandlingsresultat: Behandling.Behandlingsresultat,
-    private val eventName: String,
-    private val behandlingstatus: Behandling.Behandlingstatus
+    beslutning: Beslutning
 ) : Hendelse {
-    override val type = eventName
+    private val behandlingstatus = when (beslutning) { Godkjent -> GODKJENT; Avvist -> AVSLUTTET }
+    private val behandlingsresultat = when (beslutning) { Godkjent -> VEDTATT; Avvist -> AVBRUTT }
+    override val type = beslutning.eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val behandlingId = behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(vedtaksperiodeId.asSakId()) ?: return false
@@ -53,22 +54,26 @@ internal class VedtaksperiodeBeslutning(
     }
 
     internal companion object {
+        private enum class Beslutning(val eventName: String) { Godkjent("vedtaksperiode_godkjent"), Avvist("vedtaksperiode_avvist") }
+
+        internal fun vedtaksperiodeAvvist(id: UUID, opprettet: LocalDateTime, data: JsonNode, vedtaksperiodeId: UUID, saksbehandlerEnhet: String?, beslutterEnhet: String?, automatiskBehandling: Boolean) =
+            VedtaksperiodeBeslutning(id, opprettet, data, vedtaksperiodeId, saksbehandlerEnhet, beslutterEnhet, automatiskBehandling, Avvist)
+        internal fun vedtaksperiodeGodkjent(id: UUID, opprettet: LocalDateTime, data: JsonNode, vedtaksperiodeId: UUID, saksbehandlerEnhet: String?, beslutterEnhet: String?, automatiskBehandling: Boolean) =
+            VedtaksperiodeBeslutning(id, opprettet, data, vedtaksperiodeId, saksbehandlerEnhet, beslutterEnhet, automatiskBehandling, Godkjent)
 
         internal fun vedtaksperiodeAvvistRiver(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao, nom: Nom) =
-            river(rapidsConnection, hendelseDao, behandlingshendelseDao, nom, AVBRUTT, "vedtaksperiode_avvist", AVSLUTTET)
+            river(rapidsConnection, hendelseDao, behandlingshendelseDao, nom, Avvist)
         internal fun vedtaksperiodeGodkjentRiver(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao, nom: Nom) =
-            river(rapidsConnection, hendelseDao, behandlingshendelseDao, nom, VEDTATT, "vedtaksperiode_godkjent", GODKJENT)
+            river(rapidsConnection, hendelseDao, behandlingshendelseDao, nom, Godkjent)
 
         private fun river(
             rapidsConnection: RapidsConnection,
             hendelseDao: HendelseDao,
             behandlingshendelseDao: BehandlingshendelseDao,
             nom: Nom,
-            behandlingsresultat: Behandling.Behandlingsresultat,
-            eventName: String,
-            behandlingstatus: Behandling.Behandlingstatus
+            beslutning: Beslutning,
         ) = HendelseRiver(
-            eventName = eventName,
+            eventName = beslutning.eventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
@@ -86,9 +91,7 @@ internal class VedtaksperiodeBeslutning(
                 saksbehandlerEnhet = packet.enhet(nom, packet.saksbehandlerIdent),
                 beslutterEnhet = packet.enhet(nom, packet.beslutterIdent),
                 automatiskBehandling = packet.automatiskBehandling,
-                behandlingsresultat = behandlingsresultat,
-                eventName = eventName,
-                behandlingstatus = behandlingstatus
+                beslutning = beslutning
             )}
         )
 

@@ -2,11 +2,10 @@ package db.migration
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import junit.framework.TestCase.assertEquals
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeBeslutning
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
@@ -22,23 +21,20 @@ internal class V32BehandlingsstatusVedtaksperiodeGodkjentTest: Behandlingshendel
             UUID.randomUUID(), hendelseId, true, Versjon.of("0.1.0"), false, data = {
                 it.put("behandlingstatus", "AVSLUTTET")
             },
-            hendelse = VedtaksperiodeBeslutning(
+            hendelse = VedtaksperiodeBeslutning.vedtaksperiodeGodkjent(
                 id = hendelseId,
                 opprettet = LocalDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
                 vedtaksperiodeId = UUID.randomUUID(),
                 saksbehandlerEnhet = "nei",
                 beslutterEnhet = "nope",
-                automatiskBehandling = true,
-                behandlingsresultat = Behandling.Behandlingsresultat.VEDTATT,
-                eventName = "vedtaksperiode_godkjent",
-                behandlingstatus = Behandling.Behandlingstatus.GODKJENT
+                automatiskBehandling = true
             )
         )
 
         migrer()
         assertKorrigert(korrigertHendelse) { _, ny ->
-            assertEquals("GODKJENT", ny.path("behandlingstatus").asText())
+            Assertions.assertEquals("GODKJENT", ny.path("behandlingstatus").asText())
         }
     }
 
