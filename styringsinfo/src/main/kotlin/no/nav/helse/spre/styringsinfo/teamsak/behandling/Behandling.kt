@@ -74,8 +74,7 @@ internal data class Behandling(
         SYKMELDT,
         ARBEIDSGIVER,
         SYKMELDT_OG_ARBEIDSGIVER,
-        INGEN,
-        UKJENT,
+        INGEN
     }
 
     internal fun funksjoneltLik(other: Behandling): Boolean {
@@ -94,7 +93,7 @@ internal data class Behandling(
         internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply { this.behandlingstatus = behandlingstatus }
         internal fun periodetype(periodetype: Periodetype) = apply { this.periodetype = periodetype }
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
-        internal fun mottaker(mottaker: Mottaker) = apply { this.mottaker = mottaker }
+        internal fun mottaker(mottaker: Mottaker?) = apply { this.mottaker = mottaker }
         internal fun saksbehandlerEnhet(saksbehandlerEnhet: String?) = apply { this.saksbehandlerEnhet = saksbehandlerEnhet }
         internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
 

@@ -10,7 +10,6 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.VEDTAK_IVERKSATT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Mottaker.UKJENT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
@@ -74,8 +73,8 @@ internal class VedtakFattet(
             }
         }
 
-        private fun mottaker(tags: List<Tag>, data: JsonNode): Behandling.Mottaker {
-            if (tags.isEmpty()) return UKJENT
+        private fun mottaker(tags: List<Tag>, data: JsonNode): Behandling.Mottaker? {
+            if (tags.none { it in listOf(Personutbetaling, NegativPersonutbetaling, Arbeidsgiverutbetaling, NegativArbeidsgiverutbetaling, IngenUtbetaling) }) return null
             val sykmeldtErMottaker = tags.any { it in listOf(Personutbetaling, NegativPersonutbetaling) }
             val arbeidsgiverErMottaker = tags.any { it in listOf(Arbeidsgiverutbetaling, NegativArbeidsgiverutbetaling) }
             val ingenErMottaker = tags.contains(IngenUtbetaling)
@@ -85,7 +84,7 @@ internal class VedtakFattet(
                 sykmeldtErMottaker && arbeidsgiverErMottaker -> Behandling.Mottaker.SYKMELDT_OG_ARBEIDSGIVER
                 sykmeldtErMottaker -> Behandling.Mottaker.SYKMELDT
                 arbeidsgiverErMottaker -> Behandling.Mottaker.ARBEIDSGIVER
-                else -> UKJENT
+                else -> null
             }
         }
 
@@ -103,7 +102,7 @@ internal class VedtakFattet(
             }
             if (nadaTrue) {
                 log.warn("Vi synes det er litt rart at mottaker ikke er spesifisert når vi liksom har tatt høyde for at det kan være en ingen mottaker, dette må være en feil (se sikkerlogg for melding)")
-                sikkerLogg.warn("Vi synes det er litt rart at mottaker ikke er spesifisert når vi liksom har tatt høyde for at det kan være ingen mottaker, dette må være en feil. Melding $data")
+                sikkerLogg.warn("Vi synes at det er litt rart at mottaker ikke er spesifisert når vi liksom har tatt høyde for at det kan være ingen mottaker, dette må være en feil. Melding $data")
             }
         }
 
