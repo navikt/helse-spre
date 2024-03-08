@@ -30,8 +30,7 @@ internal class VedtaksperiodeEndretTilVilkårsprøving(
             .behandlingstatus(VURDERER_INNGANGSVILKÅR)
             .periodetype(FØRSTEGANGSBEHANDLING)
             .build(opprettet, AUTOMATISK)
-        behandlingshendelseDao.lagre(ny, this.id)
-        return true
+        return behandlingshendelseDao.lagre(ny, this.id)
     }
 
     internal companion object {

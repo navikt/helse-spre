@@ -29,8 +29,7 @@ internal class AvsluttetUtenVedtak(
             .behandlingstatus(AVSLUTTET)
             .behandlingsresultat(HENLAGT)
             .build(opprettet, AUTOMATISK)
-        behandlingshendelseDao.lagre(ny, this.id)
-        return true
+        return behandlingshendelseDao.lagre(ny, this.id)
     }
 
     internal companion object {

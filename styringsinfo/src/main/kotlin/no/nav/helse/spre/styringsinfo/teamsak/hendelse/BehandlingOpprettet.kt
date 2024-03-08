@@ -49,8 +49,7 @@ internal class BehandlingOpprettet(
             behandlingskilde = behandlingskilde,
             behandlingsmetode = if (behandlingskilde == SAKSBEHANDLER) MANUELL else AUTOMATISK
         )
-        behandlingshendelseDao.lagre(behandling, this.id)
-        return true
+        return behandlingshendelseDao.lagre(behandling, this.id)
     }
 
     internal class Behandlingskilde(internal val innsendt: LocalDateTime, internal val registrert: LocalDateTime, internal val avsender: Avsender)

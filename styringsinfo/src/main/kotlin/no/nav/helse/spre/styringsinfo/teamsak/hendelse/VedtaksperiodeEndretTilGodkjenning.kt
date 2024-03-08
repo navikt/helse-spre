@@ -33,8 +33,7 @@ internal class VedtaksperiodeEndretTilGodkjenning(
             .behandlingstatus(AVVENTER_GODKJENNING)
             .periodetype(periodetype)
             .build(opprettet, AUTOMATISK)
-        behandlingshendelseDao.lagre(ny, this.id)
-        return true
+        return behandlingshendelseDao.lagre(ny, this.id)
     }
 
     internal companion object {

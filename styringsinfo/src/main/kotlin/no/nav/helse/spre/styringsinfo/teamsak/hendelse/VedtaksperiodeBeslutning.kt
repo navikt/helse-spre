@@ -49,8 +49,7 @@ internal class VedtaksperiodeBeslutning private constructor(
             .saksbehandlerEnhet(saksbehandlerEnhet)
             .beslutterEnhet(beslutterEnhet)
             .build(opprettet, behandlingsmetode)
-        behandlingshendelseDao.lagre(ny, this.id)
-        return true
+        return behandlingshendelseDao.lagre(ny, this.id)
     }
 
     internal companion object {

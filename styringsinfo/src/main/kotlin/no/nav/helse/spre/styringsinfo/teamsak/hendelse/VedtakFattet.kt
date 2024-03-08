@@ -40,8 +40,7 @@ internal class VedtakFattet(
             .behandlingsresultat(VEDTAK_IVERKSATT)
             .mottaker(mottaker)
             .build(opprettet, AUTOMATISK)
-        behandlingshendelseDao.lagre(ny, this.id)
-        return true
+        return behandlingshendelseDao.lagre(ny, this.id)
     }
 
     internal companion object {

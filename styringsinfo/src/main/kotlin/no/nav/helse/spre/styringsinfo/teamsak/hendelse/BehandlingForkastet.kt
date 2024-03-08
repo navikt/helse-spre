@@ -28,14 +28,13 @@ internal class BehandlingForkastet(
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builders = behandlingshendelseDao.initialiser(SakId(vedtaksperiodeId)).takeUnless { it.isEmpty() } ?: return false
-        builders.forEach { builder ->
+        return builders.map { builder ->
             val ny = builder
                 .behandlingstatus(AVSLUTTET)
                 .behandlingsresultat(AVBRUTT)
                 .build(opprettet, behandlingsmetode)
             behandlingshendelseDao.lagre(ny, this.id)
-        }
-        return true
+        }.any { it }
     }
 
     internal companion object {
