@@ -11,9 +11,10 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingst
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -35,10 +36,10 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
         val behandling = nyBehandling(behandlingId, nå)
-        behandlingshendelseDao.lagre(behandling, hendelseId)
+        assertTrue(behandlingshendelseDao.lagre(behandling, hendelseId))
         assertEquals(1, behandlingId.rader)
         val korrigertInfo = behandling.copy(behandlingskilde = SAKSBEHANDLER)
-        behandlingshendelseDao.lagre(korrigertInfo, hendelseId)
+        assertFalse(behandlingshendelseDao.lagre(korrigertInfo, hendelseId))
         assertEquals(1, behandlingId.rader)
     }
 
@@ -47,10 +48,10 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
         val behandling = nyBehandling(behandlingId, nå)
-        behandlingshendelseDao.lagre(behandling, hendelseId)
+        assertTrue(behandlingshendelseDao.lagre(behandling, hendelseId))
         assertEquals(1, behandlingId.rader)
         val korrigertInfo = behandling.copy(behandlingskilde = SAKSBEHANDLER, funksjonellTid = før)
-        behandlingshendelseDao.lagre(korrigertInfo, hendelseId)
+        assertFalse(behandlingshendelseDao.lagre(korrigertInfo, hendelseId))
         assertEquals(1, behandlingId.rader)
     }
 
@@ -59,10 +60,10 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
         val behandling = nyBehandling(behandlingId, nå)
-        behandlingshendelseDao.lagre(behandling, hendelseId)
+        assertTrue(behandlingshendelseDao.lagre(behandling, hendelseId))
         assertEquals(1, behandlingId.rader)
         val korrigertInfo = behandling.copy(behandlingskilde = SAKSBEHANDLER, funksjonellTid = etter)
-        behandlingshendelseDao.lagre(korrigertInfo, hendelseId)
+        assertTrue(behandlingshendelseDao.lagre(korrigertInfo, hendelseId))
         assertEquals(2, behandlingId.rader)
     }
 
@@ -71,11 +72,18 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
         val behandling = nyBehandling(behandlingId, nå)
-        behandlingshendelseDao.lagre(behandling, hendelseId)
+        assertTrue(behandlingshendelseDao.lagre(behandling, hendelseId))
         assertEquals(1, behandlingId.rader)
         val korrigertInfo = behandling.copy(funksjonellTid = etter)
-        behandlingshendelseDao.lagre(korrigertInfo, hendelseId)
+        assertFalse(behandlingshendelseDao.lagre(korrigertInfo, hendelseId))
         assertEquals(1, behandlingId.rader)
+    }
+
+    @Test
+    fun `kan ikke lagre behandling uten behandlingsmetode`() {
+        val behandlingId = BehandlingId(UUID.randomUUID())
+        val utenBehandlingsmetode = nyBehandling(behandlingId, nå).copy(behandlingsmetode = null)
+        assertThrows<IllegalStateException> { behandlingshendelseDao.lagre(utenBehandlingsmetode, hendelseId) }
     }
 
     @BeforeEach

@@ -24,15 +24,16 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         }.map { Behandling.Builder(it) }
     }
 
-    override fun lagre(behandling: Behandling, hendelseId: UUID) {
+    override fun lagre(behandling: Behandling, hendelseId: UUID): Boolean {
         checkNotNull(behandling.behandlingsmetode) { "Nye rader i behandlingshendelse _må_ ha behandlingsmtode satt!" }
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
-            if (!tx.kanLagres(behandling, hendelseId)) return
+            if (!tx.kanLagres(behandling, hendelseId)) return false
             val sisteBehandling = tx.hent(behandling.behandlingId)
-            if (sisteBehandling?.funksjoneltLik(behandling) == true) return logger.info("Lagrer _ikke_ ny rad for sak ${behandling.sakId}, behandling ${behandling.behandlingId} fra hendelse $hendelseId. Behandlingen er funksjonelt lik siste rad")
+            if (sisteBehandling?.funksjoneltLik(behandling) == true) return false.also { logger.info("Lagrer _ikke_ ny rad for sak ${behandling.sakId}, behandling ${behandling.behandlingId} fra hendelse $hendelseId. Behandlingen er funksjonelt lik siste rad") }
             tx.markerGamle(behandling.behandlingId)
             tx.lagre(behandling, hendelseId)
         }}
+        return true
     }
 
     private fun TransactionalSession.kanLagres(behandling: Behandling, hendelseId: UUID): Boolean {
