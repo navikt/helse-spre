@@ -85,7 +85,6 @@ fun launchApplication(dataSource: HikariDataSource, environment: Map<String, Str
     val sendtSøknadDao = SendtSøknadDao(dataSource)
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val vedtakForkastetDao = VedtakForkastetDao(dataSource)
-    val generasjonOpprettetDao = GenerasjonOpprettetDao(dataSource)
 
     val hendelseDao = PostgresHendelseDao(dataSource)
     val behandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
@@ -95,7 +94,6 @@ fun launchApplication(dataSource: HikariDataSource, environment: Map<String, Str
         SendtSøknadNavRiver(this, sendtSøknadDao)
         VedtakFattetRiver(this, vedtakFattetDao)
         VedtakForkastetRiver(this, vedtakForkastetDao)
-        GenerasjonOpprettetRiver(this, generasjonOpprettetDao)
         BehandlingOpprettet.river(this, hendelseDao, behandlingshendelseDao)
         VedtakFattet.river(this, hendelseDao, behandlingshendelseDao)
         AvsluttetUtenVedtak.river(this, hendelseDao, behandlingshendelseDao)
