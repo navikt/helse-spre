@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
 
-internal class V35UkjentMottakerBlirNullTest: BehandlingshendelseJsonMigreringTest(
+internal class V36UkjentMottakerBlirNullTest: BehandlingshendelseJsonMigreringTest(
     migrering = V36__ukjent_mottaker_blir_null(),
     dataSource = dataSource
 ) {

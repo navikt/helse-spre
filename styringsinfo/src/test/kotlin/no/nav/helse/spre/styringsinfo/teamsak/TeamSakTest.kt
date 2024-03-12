@@ -72,7 +72,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         behandling = vedtakFattet(behandlingId, tags = listOf(Tag.Arbeidsgiverutbetaling)).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Mottaker.ARBEIDSGIVER, behandling.mottaker)
-        assertEquals(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT, behandling.behandlingsresultat)
+        assertEquals(Behandling.Behandlingsresultat.VEDTATT, behandling.behandlingsresultat)
     }
 
     @Test
@@ -271,7 +271,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         utbetaltBehandling = januarVedtakFattet.håndter(behandlingshendelseDao, januarBehandlingId)
         assertEquals(AVSLUTTET, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.VEDTAK_IVERKSATT, utbetaltBehandling.behandlingsresultat)
+        assertEquals(Behandling.Behandlingsresultat.VEDTATT, utbetaltBehandling.behandlingsresultat)
         assertEquals(Behandling.Behandlingsmetode.AUTOMATISK, utbetaltBehandling.behandlingsmetode)
 
         val (annulleringBehandlingId, januarAnnullertBehandlingOpprettet) = behandlingIdOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)

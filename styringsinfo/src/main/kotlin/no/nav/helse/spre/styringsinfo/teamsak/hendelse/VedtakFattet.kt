@@ -8,7 +8,7 @@ import no.nav.helse.spre.styringsinfo.log
 import no.nav.helse.spre.styringsinfo.sikkerLogg
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.VEDTAK_IVERKSATT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.VEDTATT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
@@ -36,7 +36,7 @@ internal class VedtakFattet(
         val mottaker = mottaker(tags, data)
         val ny = builder
             .behandlingstatus(AVSLUTTET)
-            .behandlingsresultat(VEDTAK_IVERKSATT)
+            .behandlingsresultat(VEDTATT)
             .mottaker(mottaker)
             .build(opprettet, AUTOMATISK)
         return behandlingshendelseDao.lagre(ny, this.id)
