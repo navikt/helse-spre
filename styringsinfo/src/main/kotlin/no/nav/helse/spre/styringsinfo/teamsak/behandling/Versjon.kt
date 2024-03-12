@@ -55,6 +55,7 @@ internal class Versjon private constructor(
             LeggTil("saksbehandlerEnhet", "beslutterEnhet"),
             LeggTil("periodetype"),
             LeggTil("mottaker"),
+            Patch("Henter riktig behandlingId fra sakId"),
         ).genererVersjoner
 
         internal val List<Versjonsutleder>.genererVersjoner: Map<Set<String>, Versjon> get() {

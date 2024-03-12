@@ -120,7 +120,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
 
     override fun behandlingIdFraForrigeBehandlingshendelse(sakId: SakId): BehandlingId? {
         val sql = """
-            select behandlingId from behandlingshendelse where sakId='${sakId}' and siste=true order by sekvensnummer desc limit 1
+            select behandlingId from behandlingshendelse where sakId='${sakId}' and siste=true order by funksjonelltid desc limit 1
         """
         return sessionOf(dataSource).use { session ->
             session.run(

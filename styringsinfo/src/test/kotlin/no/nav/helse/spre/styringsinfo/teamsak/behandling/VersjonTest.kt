@@ -40,7 +40,7 @@ internal class VersjonTest {
         assertEquals(Versjon.of("0.0.4"), Versjon.of(initielleFelter))
         assertEquals(Versjon.of("0.1.0"), Versjon.of(initielleFelter + "saksbehandlerEnhet" + "beslutterEnhet"))
         assertEquals(Versjon.of("0.2.0"), Versjon.of(initielleFelter + "saksbehandlerEnhet" + "beslutterEnhet" + "periodetype"))
-        assertEquals(Versjon.of("0.3.0"), Versjon.of(initielleFelter + "saksbehandlerEnhet" + "beslutterEnhet" + "periodetype" + "mottaker"))
+        assertEquals(Versjon.of("0.3.1"), Versjon.of(initielleFelter + "saksbehandlerEnhet" + "beslutterEnhet" + "periodetype" + "mottaker"))
     }
 
     @Test

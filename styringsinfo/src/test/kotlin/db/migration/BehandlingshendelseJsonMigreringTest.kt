@@ -113,8 +113,8 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
     protected fun leggTilBehandlingshendelse(
         sakId: UUID = UUID.randomUUID(),
         behandlingId: UUID,
-        siste: Boolean,
-        versjon: Versjon,
+        siste: Boolean = true,
+        versjon: Versjon = Versjon.of("1.0.0"),
         erKorrigert: Boolean = false,
         funksjonellTid: LocalDateTime = LocalDateTime.now(),
         hendelse: Hendelse = Testhendelse(UUID.randomUUID()),
