@@ -15,7 +15,6 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
 ) {
     @Test
     fun `Migrerer riktige rader`() {
-        assertTrue(false)
         val behandlingId1 = UUID.randomUUID()
 
         leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = false, versjon = Versjon.of("1.0.0"))
