@@ -109,33 +109,41 @@ jobs:
           docker_context: ${{ matrix.project }}
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
-
-  deploy:
-    needs: [generate_vars, build]
-    name: deploy
-    if: always() && needs.generate_vars.outputs.emptyDeployMatrix == 'false'
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.generate_vars.outputs.deployMatrix) }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: create env vars
+      - name: lage build-fil
         run: |
-          VARS_FILE="config/${{ matrix.project }}/${{ matrix.cluster }}.yml"
-          echo "VARS=$VARS_FILE" >> $GITHUB_ENV
-          echo "IMAGE=${{ env.DOCKER_REGISTRY }}/${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}/${{ needs.generate_vars.outputs.team }}/${{ github.event.repository.name }}-${{ matrix.project }}:${{ needs.generate_vars.outputs.tag }}" >> $GITHUB_ENV
-      - name: Fetch sources
-        uses: actions/checkout@v4
-      - name: Check for vars yml
-        id: vars_file
-        uses: andstor/file-existence-action@v3
+          echo oui > "${{ matrix.project }}_build_${{ steps.docker-build-push.outcome }}.txt"
+      - name: laste opp build-fil
+        uses: actions/upload-artifact@v4
         with:
-          files: "${{ env.VARS }}"
-      - name: deploy
-        if: steps.vars_file.outputs.files_exists == 'true' && needs.build.result == 'success'
-        uses: nais/deploy/actions/deploy@v2
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: ${{ matrix.cluster }}
-          VAR: team=${{ needs.generate_vars.outputs.team }},app=${{ matrix.project }},git_sha=${{ github.sha }}
+          name: "${{ matrix.project }}_build_result"
+          path: "${{ matrix.project }}_build_${{ steps.docker-build-push.outcome }}.txt"
+
+#  deploy:
+#    needs: [generate_vars, build]
+#    name: deploy
+#    if: always() && needs.generate_vars.outputs.emptyDeployMatrix == 'false'
+#    strategy:
+#      fail-fast: false
+#      matrix: ${{ fromJSON(needs.generate_vars.outputs.deployMatrix) }}
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: create env vars
+#        run: |
+#          VARS_FILE="config/${{ matrix.project }}/${{ matrix.cluster }}.yml"
+#          echo "VARS=$VARS_FILE" >> $GITHUB_ENV
+#          echo "IMAGE=${{ env.DOCKER_REGISTRY }}/${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}/${{ needs.generate_vars.outputs.team }}/${{ github.event.repository.name }}-${{ matrix.project }}:${{ needs.generate_vars.outputs.tag }}" >> $GITHUB_ENV
+#      - name: Fetch sources
+#        uses: actions/checkout@v4
+#      - name: Check for vars yml
+#        id: vars_file
+#        uses: andstor/file-existence-action@v3
+#        with:
+#          files: "${{ env.VARS }}"
+#      - name: deploy
+#        if: steps.vars_file.outputs.files_exists == 'true' && needs.build.result == 'success'
+#        uses: nais/deploy/actions/deploy@v2
+#        env:
+#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+#          CLUSTER: ${{ matrix.cluster }}
+#          VAR: team=${{ needs.generate_vars.outputs.team }},app=${{ matrix.project }},git_sha=${{ github.sha }}
 
