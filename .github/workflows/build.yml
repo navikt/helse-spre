@@ -110,9 +110,11 @@ jobs:
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
       - name: lage build-fil
+        if: ${{ always() }}
         run: |
           echo oui > "${{ matrix.project }}_build_${{ steps.docker-build-push.outcome }}.txt"
       - name: laste opp build-fil
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: "${{ matrix.project }}_build_result"
