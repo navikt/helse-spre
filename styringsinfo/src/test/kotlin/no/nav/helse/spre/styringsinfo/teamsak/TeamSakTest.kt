@@ -17,8 +17,8 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetUtenVedtak
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.BehandlingForkastet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.BehandlingOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
@@ -69,10 +69,10 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         behandling = vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
 
-        behandling = vedtakFattet(behandlingId, tags = listOf(Tag.Arbeidsgiverutbetaling)).håndter(behandlingshendelseDao, behandlingId)
+        behandling = vedtakFattet(behandlingId, tags = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Mottaker.ARBEIDSGIVER, behandling.mottaker)
-        assertEquals(Behandling.Behandlingsresultat.VEDTATT, behandling.behandlingsresultat)
+        assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
     }
 
     @Test
@@ -271,7 +271,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         utbetaltBehandling = januarVedtakFattet.håndter(behandlingshendelseDao, januarBehandlingId)
         assertEquals(AVSLUTTET, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.VEDTATT, utbetaltBehandling.behandlingsresultat)
+        assertEquals(Behandling.Behandlingsresultat.INNVILGET, utbetaltBehandling.behandlingsresultat)
         assertEquals(Behandling.Behandlingsmetode.AUTOMATISK, utbetaltBehandling.behandlingsmetode)
 
         val (annulleringBehandlingId, januarAnnullertBehandlingOpprettet) = behandlingIdOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)
@@ -437,7 +437,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
            val behandlingOpprettet = BehandlingOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, behandlingskilde, behandlingstype)
            return Triple(behandlingId, behandlingOpprettet, sakId)
        }
-       internal fun vedtakFattet(behandlingId: BehandlingId, tags: List<Tag> = listOf(Tag.Arbeidsgiverutbetaling)) = VedtakFattet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id, tags)
+       internal fun vedtakFattet(behandlingId: BehandlingId, tags: List<Tag> = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)) = VedtakFattet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id, tags)
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
        internal fun behandlingForkastet(sakId: SakId, behandlingsmetode: Behandling.Behandlingsmetode = Behandling.Behandlingsmetode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, automatiskBehandling = behandlingsmetode == Behandling.Behandlingsmetode.AUTOMATISK)
        internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId) = VedtaksperiodeEndretTilGodkjenning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)

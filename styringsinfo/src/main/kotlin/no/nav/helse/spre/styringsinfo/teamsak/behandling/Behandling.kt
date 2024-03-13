@@ -52,7 +52,10 @@ internal data class Behandling(
     }
     
     internal enum class Behandlingsresultat {
-        VEDTATT, // Per nå har vi ikke nok info til å utlede innvilget/delvisInnvilget/avslag, så alt sendes som ☂️-betegnelsen Vedtatt
+        VEDTATT, // Vi har fått mer granulære resultater (innvilget/delvis innvilget/avslag), men trenger fortsatt denne for tidligere behandlinger
+        INNVILGET,
+        DELVIS_INNVILGET,
+        AVSLAG,
         HENLAGT,
         AVBRUTT
     }
@@ -91,7 +94,7 @@ internal data class Behandling(
 
         internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply { this.behandlingstatus = behandlingstatus }
         internal fun periodetype(periodetype: Periodetype) = apply { this.periodetype = periodetype }
-        internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat) = apply { this.behandlingsresultat = behandlingsresultat }
+        internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat?) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun mottaker(mottaker: Mottaker?) = apply { this.mottaker = mottaker }
         internal fun saksbehandlerEnhet(saksbehandlerEnhet: String?) = apply { this.saksbehandlerEnhet = saksbehandlerEnhet }
         internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
