@@ -56,6 +56,7 @@ internal class Versjon private constructor(
             LeggTil("periodetype"),
             LeggTil("mottaker"),
             Patch("Henter riktig behandlingId fra sakId"),
+            Patch("Legger til flere enumverdier for behandlingsresultat (innvilget, delvis innvilget og avslag)")
         ).genererVersjoner
 
         internal val List<Versjonsutleder>.genererVersjoner: Map<Set<String>, Versjon> get() {
