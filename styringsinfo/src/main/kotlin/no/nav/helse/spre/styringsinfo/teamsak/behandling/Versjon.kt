@@ -9,13 +9,17 @@ internal class Versjon private constructor(
     private val minorUpdate get() = Versjon(major, minor + 1, 0)
     private val patchUpdate get() = Versjon(major, minor, patch + 1)
 
-    private val tall = "$major$minor$patch".toInt()
-    override fun compareTo(other: Versjon) = this.tall.compareTo(other.tall)
+    private val semver = "$major.$minor.$patch"
 
-    override fun equals(other: Any?) = other is Versjon && this.toString() == other.toString()
+    override fun compareTo(other: Versjon): Int {
+        if (this.major != other.major) return this.major.compareTo(other.major)
+        if (this.minor != other.minor) return this.minor.compareTo(other.minor)
+        return this.patch.compareTo(other.patch)
+    }
+
+    override fun equals(other: Any?) = other is Versjon && this.semver == other.semver
     override fun hashCode() = toString().hashCode()
-    override fun toString() = "$major.$minor.$patch"
-
+    override fun toString() = semver
 
     internal companion object {
         private val String.ikkeNegativInt get() = toIntOrNull()?.takeIf { it >= 0 }

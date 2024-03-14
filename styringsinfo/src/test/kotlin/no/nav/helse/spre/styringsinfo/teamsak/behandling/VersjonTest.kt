@@ -29,7 +29,8 @@ internal class VersjonTest {
             Versjon.of("0.0.1"),
             Versjon.of("0.1.0"),
             Versjon.of("1.0.0"),
-            Versjon.of("2.0.0")
+            Versjon.of("2.0.0"),
+            Versjon.of("1.0.10")
         )
         assertEquals(Versjon.of("2.0.0"), versjoner.max())
         assertEquals(Versjon.of("0.0.1"), versjoner.min())
