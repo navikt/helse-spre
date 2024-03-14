@@ -17,13 +17,19 @@ metadata:
 spec:
   image: {{image}}
   port: 8080
-  {{#if strategy}}
   strategy:
-    type: {{strategy}}
+  {{#if recreateStrategy }}
+    type: Recreate
+  {{else}}
+    type: RollingUpdate
     rollingUpdate:
       maxSurge: 2
       maxUnavailable: 1
   {{/if}}
+  replicas:
+    min: 2
+    max: {{#if maxReplicas }}{{ maxReplicas }}{{else}}4{{/if}}
+      cpuThresholdPercentage: 75
   liveness:
     path: isalive
     initialDelay: {{#if livenessInitialDelay }}{{ livenessInitialDelay }}{{else}}5{{/if}}
@@ -39,10 +45,6 @@ spec:
     requests:
       cpu: 250m
       memory: 128Mi
-  replicas:
-    min: 2
-    max: {{#if maxReplicas }}{{ maxReplicas }}{{else}}4{{/if}}
-    cpuThresholdPercentage: 75
   {{#if kafkaPool}}
   kafka:
     pool: {{ kafkaPool }}
