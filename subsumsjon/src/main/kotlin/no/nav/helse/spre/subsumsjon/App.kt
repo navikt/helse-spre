@@ -17,7 +17,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-
 internal val log = LoggerFactory.getLogger("spre-subsumsjoner")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
@@ -68,7 +67,6 @@ private fun createProducer(env: Map<String, String>): KafkaProducer<String, Stri
         put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
         put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, env.getValue("KAFKA_KEYSTORE_PATH"))
         put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
-
         put(ProducerConfig.CLIENT_ID_CONFIG, env.getValue("KAFKA_CONSUMER_GROUP_ID"))
         put(ProducerConfig.ACKS_CONFIG, "all")
         put(ProducerConfig.LINGER_MS_CONFIG, "0")

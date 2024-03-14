@@ -4,6 +4,7 @@ kafkaResetPolicy: earliest
 livenessInitialDelay: 30
 readinessInitialDelay: 30
 maxMemory: 2Gi
+recreateStrategy: true
 app:
   leaderElection: true
 gcp:
