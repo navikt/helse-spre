@@ -38,9 +38,11 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
 
     private fun validerNyRad(nyBehandling: Behandling, forrigeBehandling: Behandling?) {
         checkNotNull(nyBehandling.behandlingsmetode) { "Nye rader i behandlingshendelse _må_ ha behandlingsmetode satt!" }
-        check(nyBehandling.behandlingsresultat != Behandling.Behandlingsresultat.VEDTATT) { "Nye rader i behandlingshendelse kan _ikke_ ha behandlingsresultatt VEDTATT!" }
+        if (nyBehandling.behandlingsresultat == Behandling.Behandlingsresultat.VEDTATT) {
+            logger.warn("Nå lagrer vi en rad i behandlingshendelse med behandlingsresultatt VEDTATT, det virker riv ruskende rart. Ta en titt på behandlingen ${nyBehandling.behandlingId}")
+        }
         if (forrigeBehandling?.behandlingstatus == Behandling.Behandlingstatus.AVSLUTTET) {
-            logger.error("Nå lagrer vi en ny rad på samme behandling, selvom status er AVSLUTTET. Det tror vi må være en feil, ta en titt på behandling ${nyBehandling.behandlingId}")
+            logger.warn("Nå lagrer vi en ny rad på samme behandling, selvom status er AVSLUTTET. Det tror vi må være en feil, ta en titt på behandling ${nyBehandling.behandlingId}")
         }
     }
 
