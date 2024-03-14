@@ -5,6 +5,7 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SAKSBEHANDLER
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SYSTEM
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
@@ -68,13 +69,13 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
     }
 
     @Test
-    fun `lagrer ikke ny rad for funksjonelle like behandlinger`() {
+    fun `lagrer ikke ny rad for funksjonelt like behandlinger`() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
-        val behandling = nyBehandling(behandlingId, nå)
+        val behandling = nyBehandling(behandlingId, nå, MANUELL)
         assertTrue(behandlingshendelseDao.lagre(behandling, hendelseId))
         assertEquals(1, behandlingId.rader)
-        val korrigertInfo = behandling.copy(funksjonellTid = etter)
+        val korrigertInfo = behandling.copy(funksjonellTid = etter, behandlingsmetode = AUTOMATISK)
         assertFalse(behandlingshendelseDao.lagre(korrigertInfo, hendelseId))
         assertEquals(1, behandlingId.rader)
     }
@@ -98,7 +99,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
     } ?: 0
 
-    private fun nyBehandling(behandlingId: BehandlingId, funksjonellTid: LocalDateTime) = Behandling(
+    private fun nyBehandling(behandlingId: BehandlingId, funksjonellTid: LocalDateTime, behandlingsmetode: Behandling.Behandlingsmetode = MANUELL) = Behandling(
         sakId = SakId(UUID.randomUUID()),
         behandlingId = behandlingId,
         relatertBehandlingId = null,
@@ -109,7 +110,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         behandlingstatus = REGISTRERT,
         behandlingstype = SØKNAD,
         behandlingskilde = SYSTEM,
-        behandlingsmetode = MANUELL,
+        behandlingsmetode = behandlingsmetode,
         saksbehandlerEnhet = "4488"
     )
 }

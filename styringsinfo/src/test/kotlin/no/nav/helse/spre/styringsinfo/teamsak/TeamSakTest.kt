@@ -25,9 +25,10 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeBeslutning
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeAvvist
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeEndretTilGodkjenning
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeEndretTilVilkårsprøving
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeGodkjent
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -177,10 +178,11 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
         var behandling = vedtaksperiodeGodkjent(sakId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingsmetode.MANUELL, behandling.behandlingsmetode)
-        assertEquals(VEDTATT, behandling.behandlingsresultat)
+        assertNull(behandling.behandlingsresultat)
 
         behandling = vedtakFattet(behandlingId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingsmetode.AUTOMATISK, behandling.behandlingsmetode)
+        assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
     }
 
     @Test
@@ -442,7 +444,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        internal fun behandlingForkastet(sakId: SakId, behandlingsmetode: Behandling.Behandlingsmetode = Behandling.Behandlingsmetode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id, automatiskBehandling = behandlingsmetode == Behandling.Behandlingsmetode.AUTOMATISK)
        internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId) = VedtaksperiodeEndretTilGodkjenning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeEndretTilVilkårsprøving(sakId: SakId) = VedtaksperiodeEndretTilVilkårsprøving(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
-       internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeBeslutning.vedtaksperiodeGodkjent(
+       internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeGodkjent(
            id = UUID.randomUUID(),
            opprettet = nesteTidspunkt,
            data = blob,
@@ -451,7 +453,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
            beslutterEnhet = "SB456",
            automatiskBehandling = false
        )
-       internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeBeslutning.vedtaksperiodeAvvist(
+       internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeAvvist(
            id = UUID.randomUUID(),
            opprettet = nesteTidspunkt,
            data = blob,

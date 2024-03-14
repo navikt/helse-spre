@@ -27,7 +27,7 @@ internal data class Behandling(
     internal val periodetype: Periodetype? = null,
     internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
-    internal val behandlingsmetode: Behandlingsmetode?, // TODO: Hadde vært kjekt å migrere alle rader med siste=true til å ha en verdi, da hadde vi unngått at denne er nullable her i koden
+    internal val behandlingsmetode: Behandlingsmetode?,
     internal val mottaker: Mottaker? = null,
     internal val saksbehandlerEnhet: String? = null,
     internal val beslutterEnhet: String? = null,
@@ -80,7 +80,7 @@ internal data class Behandling(
     }
 
     internal fun funksjoneltLik(other: Behandling): Boolean {
-        return copy(funksjonellTid = MIN) == other.copy(funksjonellTid = MIN)
+        return copy(funksjonellTid = MIN, behandlingsmetode = null) == other.copy(funksjonellTid = MIN, behandlingsmetode = null)
     }
 
     class Builder(private val forrige: Behandling) {
@@ -100,19 +100,19 @@ internal data class Behandling(
         internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
 
         internal fun build(funksjonellTid: LocalDateTime, behandlingsmetode: Behandlingsmetode) = Behandling(
+            funksjonellTid = funksjonellTid,
+            behandlingsmetode = behandlingsmetode,
             sakId = forrige.sakId,
             behandlingId = forrige.behandlingId,
             relatertBehandlingId = forrige.relatertBehandlingId,
             aktørId = forrige.aktørId,
             mottattTid = forrige.mottattTid,
             registrertTid = forrige.registrertTid,
-            funksjonellTid = funksjonellTid,
-            behandlingsmetode = behandlingsmetode,
-            behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
             behandlingstype = forrige.behandlingstype,
+            behandlingskilde = forrige.behandlingskilde,
+            behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
             periodetype = periodetype ?: forrige.periodetype,
             behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
-            behandlingskilde = forrige.behandlingskilde,
             saksbehandlerEnhet = saksbehandlerEnhet ?: forrige.saksbehandlerEnhet,
             beslutterEnhet = beslutterEnhet ?: forrige.beslutterEnhet,
             mottaker = mottaker ?: forrige.mottaker

@@ -3,7 +3,7 @@ package db.migration
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeBeslutning
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeAvvist
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ internal class V30KorrigererBehandlingsresultatVedVedtaksperiodeAvvistTest: Beha
     fun `endrer behandlingsresultat til AVBRUTT for hendelser som feilaktig har behandlingsresultat VEDTATT`() {
         val behandlingId1 = UUID.randomUUID()
         val behandlingId2 = UUID.randomUUID()
-        val vedtaksperiodeAvvist = VedtaksperiodeBeslutning.vedtaksperiodeAvvist(UUID.randomUUID(), LocalDateTime.now(), jacksonObjectMapper().createObjectNode(), UUID.randomUUID(), null, null, true)
+        val vedtaksperiodeAvvist = VedtaksperiodeAvvist(UUID.randomUUID(), LocalDateTime.now(), jacksonObjectMapper().createObjectNode(), UUID.randomUUID(), null, null, true)
 
         val rad1behandling1 = leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = true, versjon = Versjon.Companion.of("1.2.3"), hendelse = vedtaksperiodeAvvist) {
             it.put("behandlingsresultat", "VEDTATT")

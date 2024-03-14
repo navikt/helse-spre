@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeBeslutning
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeGodkjent
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -21,7 +21,7 @@ internal class V32BehandlingsstatusVedtaksperiodeGodkjentTest: Behandlingshendel
             UUID.randomUUID(), hendelseId, true, Versjon.of("0.1.0"), false, data = {
                 it.put("behandlingstatus", "AVSLUTTET")
             },
-            hendelse = VedtaksperiodeBeslutning.vedtaksperiodeGodkjent(
+            hendelse = VedtaksperiodeGodkjent(
                 id = hendelseId,
                 opprettet = LocalDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
