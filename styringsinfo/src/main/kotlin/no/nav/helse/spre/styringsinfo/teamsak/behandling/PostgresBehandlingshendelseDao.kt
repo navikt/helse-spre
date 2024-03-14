@@ -25,20 +25,23 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
     }
 
     override fun lagre(behandling: Behandling, hendelseId: UUID): Boolean {
-        validerNyRad(behandling)
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
             if (!tx.kanLagres(behandling, hendelseId)) return false
             val sisteBehandling = tx.hent(behandling.behandlingId)
             if (sisteBehandling?.funksjoneltLik(behandling) == true) return false.also { logger.info("Lagrer _ikke_ ny rad for sak ${behandling.sakId}, behandling ${behandling.behandlingId} fra hendelse $hendelseId. Behandlingen er funksjonelt lik siste rad") }
+            validerNyRad(behandling, sisteBehandling)
             tx.markerGamle(behandling.behandlingId)
             tx.lagre(behandling, hendelseId)
         }}
         return true
     }
 
-    private fun validerNyRad(behandling: Behandling) {
-        checkNotNull(behandling.behandlingsmetode) { "Nye rader i behandlingshendelse _må_ ha behandlingsmetode satt!" }
-        check(behandling.behandlingsresultat != Behandling.Behandlingsresultat.VEDTATT) { "Nye rader i behandlingshendelse kan _ikke_ ha behandlingsresultatt VEDTATT!" }
+    private fun validerNyRad(nyBehandling: Behandling, forrigeBehandling: Behandling?) {
+        checkNotNull(nyBehandling.behandlingsmetode) { "Nye rader i behandlingshendelse _må_ ha behandlingsmetode satt!" }
+        check(nyBehandling.behandlingsresultat != Behandling.Behandlingsresultat.VEDTATT) { "Nye rader i behandlingshendelse kan _ikke_ ha behandlingsresultatt VEDTATT!" }
+        if (forrigeBehandling?.behandlingstatus == Behandling.Behandlingstatus.AVSLUTTET) {
+            logger.error("Nå lagrer vi en ny rad på samme behandling, selvom status er AVSLUTTET. Det tror vi må være en feil, ta en titt på behandling ${nyBehandling.behandlingId}")
+        }
     }
 
     private fun TransactionalSession.kanLagres(behandling: Behandling, hendelseId: UUID): Boolean {
