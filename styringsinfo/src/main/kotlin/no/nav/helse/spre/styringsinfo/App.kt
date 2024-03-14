@@ -7,15 +7,25 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.helse.nom.Nom
+import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisjonsmasterClient
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.db.*
-import no.nav.helse.spre.styringsinfo.domain.SendtSøknadPatch
-import no.nav.helse.spre.styringsinfo.domain.VedtakFattetPatch
-import no.nav.helse.spre.styringsinfo.domain.VedtakForkastetPatch
+import no.nav.helse.spre.styringsinfo.datafortelling.SendtSøknadArbeidsgiverRiver
+import no.nav.helse.spre.styringsinfo.datafortelling.SendtSøknadNavRiver
+import no.nav.helse.spre.styringsinfo.datafortelling.VedtakFattetRiver
+import no.nav.helse.spre.styringsinfo.datafortelling.VedtakForkastetRiver
+import no.nav.helse.spre.styringsinfo.datafortelling.db.SendtSøknadDao
+import no.nav.helse.spre.styringsinfo.datafortelling.db.SendtSøknadPatcher
+import no.nav.helse.spre.styringsinfo.datafortelling.db.VedtakFattetDao
+import no.nav.helse.spre.styringsinfo.datafortelling.db.VedtakFattetPatcher
+import no.nav.helse.spre.styringsinfo.datafortelling.db.VedtakForkastetDao
+import no.nav.helse.spre.styringsinfo.datafortelling.db.VedtakForkastetPatcher
+import no.nav.helse.spre.styringsinfo.datafortelling.domain.SendtSøknadPatch
+import no.nav.helse.spre.styringsinfo.datafortelling.domain.VedtakFattetPatch
+import no.nav.helse.spre.styringsinfo.datafortelling.domain.VedtakForkastetPatch
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -51,7 +61,7 @@ fun main() {
 
     val azureClient = createAzureTokenClientFromEnvironment()
 
-    val nomClient = Nom(
+    val nomClient = NavOrganisjonsmasterClient(
         baseUrl = environment.getValue("NOM_API_BASE_URL"),
         scope = environment.getValue("NOM_API_OAUTH_SCOPE"),
         azureClient = azureClient
@@ -81,7 +91,7 @@ fun main() {
     rapidsConnection.start()
 }
 
-fun launchApplication(dataSource: HikariDataSource, environment: Map<String, String>, nom: Nom): RapidsConnection {
+internal fun launchApplication(dataSource: HikariDataSource, environment: Map<String, String>, nom: NavOrganisjonsmasterClient): RapidsConnection {
     val sendtSøknadDao = SendtSøknadDao(dataSource)
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val vedtakForkastetDao = VedtakForkastetDao(dataSource)

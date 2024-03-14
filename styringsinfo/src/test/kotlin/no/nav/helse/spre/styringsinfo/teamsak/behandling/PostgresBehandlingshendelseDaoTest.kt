@@ -2,7 +2,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
+import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SAKSBEHANDLER
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SYSTEM
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK

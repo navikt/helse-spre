@@ -2,7 +2,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
+import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

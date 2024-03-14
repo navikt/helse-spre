@@ -2,7 +2,7 @@ package db.migration
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
+import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeGodkjent
 import org.junit.jupiter.api.Assertions

@@ -4,10 +4,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest
+import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.VEDTATT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.VURDERER_INNGANGSVILKÅR

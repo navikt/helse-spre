@@ -1,7 +1,7 @@
 package db.migration
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
+import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

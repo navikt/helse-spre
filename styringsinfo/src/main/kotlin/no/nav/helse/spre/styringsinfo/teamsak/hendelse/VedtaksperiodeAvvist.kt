@@ -1,11 +1,11 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
-import no.nav.helse.nom.Enhet
-import no.nav.helse.nom.Nom
-import no.nav.helse.nom.Saksbehandler
+import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisjonsmasterClient
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.spre.styringsinfo.teamsak.Enhet
+import no.nav.helse.spre.styringsinfo.teamsak.Saksbehandler
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
@@ -52,7 +52,7 @@ internal class VedtaksperiodeAvvist(
             rapidsConnection: RapidsConnection,
             hendelseDao: HendelseDao,
             behandlingshendelseDao: BehandlingshendelseDao,
-            nom: Nom
+            nom: NavOrganisjonsmasterClient
         ) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
@@ -75,7 +75,7 @@ internal class VedtaksperiodeAvvist(
             )}
         )
 
-        private fun JsonMessage.enhet(nom: Nom, ident: Saksbehandler?): Enhet? {
+        private fun JsonMessage.enhet(nom: NavOrganisjonsmasterClient, ident: Saksbehandler?): Enhet? {
             if (automatiskBehandling || ident == null) return null
             return nom.hentEnhet(ident, LocalDate.now(), hendelseId.toString())
         }

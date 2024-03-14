@@ -1,6 +1,6 @@
 package db.migration
 
-import no.nav.helse.spre.styringsinfo.db.AbstractDatabaseTest.Companion.dataSource
+import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
