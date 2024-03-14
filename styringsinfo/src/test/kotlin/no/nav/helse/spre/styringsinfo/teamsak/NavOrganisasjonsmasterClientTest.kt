@@ -1,13 +1,13 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
-import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisjonsmasterClient.Companion.enhet
+import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisasjonsmasterClient.Companion.enhet
 import no.nav.helse.spre.styringsinfo.objectMapper
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class NavOrganisjonsmasterClientTest {
+class NavOrganisasjonsmasterClientTest {
 
     @Test
     fun `parser enhet i et enkelt case`() {

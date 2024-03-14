@@ -1,7 +1,7 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
-import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisjonsmasterClient
+import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisasjonsmasterClient
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.Enhet
@@ -52,7 +52,7 @@ internal class VedtaksperiodeAvvist(
             rapidsConnection: RapidsConnection,
             hendelseDao: HendelseDao,
             behandlingshendelseDao: BehandlingshendelseDao,
-            nom: NavOrganisjonsmasterClient
+            nom: NavOrganisasjonsmasterClient
         ) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
@@ -75,7 +75,7 @@ internal class VedtaksperiodeAvvist(
             )}
         )
 
-        private fun JsonMessage.enhet(nom: NavOrganisjonsmasterClient, ident: Saksbehandler?): Enhet? {
+        private fun JsonMessage.enhet(nom: NavOrganisasjonsmasterClient, ident: Saksbehandler?): Enhet? {
             if (automatiskBehandling || ident == null) return null
             return nom.hentEnhet(ident, LocalDate.now(), hendelseId.toString())
         }

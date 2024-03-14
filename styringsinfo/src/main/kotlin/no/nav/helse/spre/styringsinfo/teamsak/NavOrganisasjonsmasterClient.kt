@@ -17,7 +17,7 @@ import java.time.LocalDate
 typealias Saksbehandler = String
 typealias Enhet = String
 
-internal class NavOrganisjonsmasterClient(private val baseUrl: String, private val scope: String, private val azureClient: AzureTokenProvider) {
+internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private val scope: String, private val azureClient: AzureTokenProvider) {
 
     companion object {
         private const val dollar = '$'

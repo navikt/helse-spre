@@ -7,7 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisjonsmasterClient
+import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisasjonsmasterClient
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.datafortelling.SendtSøknadArbeidsgiverRiver
@@ -61,7 +61,7 @@ fun main() {
 
     val azureClient = createAzureTokenClientFromEnvironment()
 
-    val nomClient = NavOrganisjonsmasterClient(
+    val nomClient = NavOrganisasjonsmasterClient(
         baseUrl = environment.getValue("NOM_API_BASE_URL"),
         scope = environment.getValue("NOM_API_OAUTH_SCOPE"),
         azureClient = azureClient
@@ -91,7 +91,7 @@ fun main() {
     rapidsConnection.start()
 }
 
-internal fun launchApplication(dataSource: HikariDataSource, environment: Map<String, String>, nom: NavOrganisjonsmasterClient): RapidsConnection {
+internal fun launchApplication(dataSource: HikariDataSource, environment: Map<String, String>, nom: NavOrganisasjonsmasterClient): RapidsConnection {
     val sendtSøknadDao = SendtSøknadDao(dataSource)
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val vedtakForkastetDao = VedtakForkastetDao(dataSource)

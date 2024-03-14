@@ -87,6 +87,13 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         assertThrows<IllegalStateException> { behandlingshendelseDao.lagre(utenBehandlingsmetode, hendelseId) }
     }
 
+    @Test
+    fun `kan ikke lagre behandling med behandlingsresultat som har gått ut på dato`() {
+        val behandlingId = BehandlingId(UUID.randomUUID())
+        val medRartBehandlingsresultat = nyBehandling(behandlingId, nå).copy(behandlingsresultat = Behandling.Behandlingsresultat.VEDTATT)
+        assertThrows<IllegalStateException> { behandlingshendelseDao.lagre(medRartBehandlingsresultat, hendelseId) }
+    }
+
     @BeforeEach
     fun beforeEach() {
         sessionOf(dataSource).use { session ->
