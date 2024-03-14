@@ -29,7 +29,7 @@ spec:
   replicas:
     min: 2
     max: {{#if maxReplicas }}{{ maxReplicas }}{{else}}4{{/if}}
-      cpuThresholdPercentage: 75
+    cpuThresholdPercentage: 75
   liveness:
     path: isalive
     initialDelay: {{#if livenessInitialDelay }}{{ livenessInitialDelay }}{{else}}5{{/if}}
