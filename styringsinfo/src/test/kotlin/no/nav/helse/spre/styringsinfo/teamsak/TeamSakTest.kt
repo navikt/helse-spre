@@ -185,20 +185,17 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     }
 
     @Test
-    fun `start og slutt for avvist vedtak`() {
+    fun `start og slutt for utkast til vedtak som avvises av saksbehandler i speil`() {
         val (behandlingId, behandlingOpprettet, sakId) = behandlingIdOpprettet(Søknad)
         assertNull(behandlingshendelseDao.hent(behandlingId))
         behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
         vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
 
-        var behandling = vedtaksperiodeAvvist(sakId).håndter(behandlingshendelseDao, behandlingId)
+        val behandling = vedtaksperiodeAvvist(sakId).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingsmetode.MANUELL, behandling.behandlingsmetode)
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
-        assertEquals("SB123", behandling.saksbehandlerEnhet)
-        assertEquals("SB456", behandling.beslutterEnhet)
-
-        behandling = vedtakFattet(behandlingId).håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals("SB123", behandling.saksbehandlerEnhet)
         assertEquals("SB456", behandling.beslutterEnhet)
     }

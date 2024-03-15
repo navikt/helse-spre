@@ -20,20 +20,18 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             if (!tx.kanLagres(behandling, hendelseId)) return false
             val sisteBehandling = tx.hent(behandling.behandlingId)
             if (sisteBehandling?.funksjoneltLik(behandling) == true) return false.also { logger.info("Lagrer _ikke_ ny rad for sak ${behandling.sakId}, behandling ${behandling.behandlingId} fra hendelse $hendelseId. Behandlingen er funksjonelt lik siste rad") }
-            validerNyRad(behandling, sisteBehandling)
+            validerNyRad(behandling, sisteBehandling, hendelseId)
             tx.markerGamle(behandling.behandlingId)
             tx.lagre(behandling, hendelseId)
         }}
         return true
     }
 
-    private fun validerNyRad(nyBehandling: Behandling, forrigeBehandling: Behandling?) {
+    private fun validerNyRad(nyBehandling: Behandling, forrigeBehandling: Behandling?, hendelseId: UUID) {
         checkNotNull(nyBehandling.behandlingsmetode) { "Nye rader i behandlingshendelse _må_ ha behandlingsmetode satt!" }
+        check(forrigeBehandling?.behandlingstatus != Behandling.Behandlingstatus.AVSLUTTET) { "Nå prøvde jeg å lagre en ny rad på samme behandling, selv om status er AVSLUTTET. Det må være en feil, ta en titt på behandling ${nyBehandling.behandlingId} fra hendelse $hendelseId" }
         if (nyBehandling.behandlingsresultat == Behandling.Behandlingsresultat.VEDTATT) {
             logger.warn("Nå lagrer vi en rad i behandlingshendelse med behandlingsresultatt VEDTATT, det virker riv ruskende rart. Ta en titt på behandlingen ${nyBehandling.behandlingId}")
-        }
-        if (forrigeBehandling?.behandlingstatus == Behandling.Behandlingstatus.AVSLUTTET) {
-            logger.warn("Nå lagrer vi en ny rad på samme behandling, selvom status er AVSLUTTET. Det tror vi må være en feil, ta en titt på behandling ${nyBehandling.behandlingId}")
         }
     }
 
