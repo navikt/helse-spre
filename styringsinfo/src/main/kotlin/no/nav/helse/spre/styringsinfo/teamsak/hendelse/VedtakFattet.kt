@@ -88,7 +88,7 @@ internal class VedtakFattet(
             }
         }
 
-        private fun mottaker(tags: List<Tag>, data: JsonNode, behandlingId: UUID, hendelseId: UUID): Behandling.Mottaker? {
+        private fun mottaker(tags: List<Tag>, data: JsonNode, behandlingId: UUID, hendelseId: UUID): Behandling.Mottaker {
             val sykmeldtErMottaker = tags.any { it in listOf(Personutbetaling, NegativPersonutbetaling) }
             val arbeidsgiverErMottaker = tags.any { it in listOf(Arbeidsgiverutbetaling, NegativArbeidsgiverutbetaling) }
             val ingenErMottaker = tags.contains(IngenUtbetaling)
