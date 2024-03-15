@@ -47,7 +47,6 @@ internal class VedtakFattet(
         val behandlingsresultat = behandlingsresultat(tags, data)
         val ny = builder
             .behandlingstatus(AVSLUTTET)
-            .behandlingsresultat(VEDTATT)
             .mottaker(mottaker)
             .behandlingsresultat(behandlingsresultat)
             .build(opprettet, AUTOMATISK)

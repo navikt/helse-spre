@@ -15,15 +15,6 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
     override fun initialiser(behandlingId: BehandlingId) =
         hent(behandlingId)?.let { Behandling.Builder(it) }
 
-    override fun initialiser(sakId: SakId): List<Behandling.Builder> {
-        val sql = """
-            select * from behandlingshendelse where sakId='${sakId}' and siste=true
-        """
-        return sessionOf(dataSource).use { session ->
-            session.run(queryOf(sql).map { it.behandling }.asList)
-        }.map { Behandling.Builder(it) }
-    }
-
     override fun lagre(behandling: Behandling, hendelseId: UUID): Boolean {
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
             if (!tx.kanLagres(behandling, hendelseId)) return false
