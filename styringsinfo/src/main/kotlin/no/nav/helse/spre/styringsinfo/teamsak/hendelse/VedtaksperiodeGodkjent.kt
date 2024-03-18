@@ -6,9 +6,8 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.Enhet
 import no.nav.helse.spre.styringsinfo.teamsak.Saksbehandler
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.GODKJENT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.asSakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
@@ -28,13 +27,14 @@ internal class VedtaksperiodeGodkjent(
     private val saksbehandlerEnhet: String?,
     private val beslutterEnhet: String?,
     private val automatiskBehandling: Boolean,
+    private val totrinnsbehandling: Boolean
 ) : Hendelse {
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val behandlingId = behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(vedtaksperiodeId.asSakId()) ?: return false
         val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
-        val behandlingsmetode = if (automatiskBehandling) AUTOMATISK else MANUELL
+        val behandlingsmetode = if (automatiskBehandling) AUTOMATISK else if (totrinnsbehandling) TOTRINNS else MANUELL
         val ny = builder
             .behandlingstatus(GODKJENT)
             .saksbehandlerEnhet(saksbehandlerEnhet)
@@ -70,7 +70,8 @@ internal class VedtaksperiodeGodkjent(
                 vedtaksperiodeId = packet.vedtaksperiodeId,
                 saksbehandlerEnhet = packet.enhet(nom, packet.saksbehandlerIdent),
                 beslutterEnhet = packet.enhet(nom, packet.beslutterIdent),
-                automatiskBehandling = packet.automatiskBehandling
+                automatiskBehandling = packet.automatiskBehandling,
+                totrinnsbehandling = packet.saksbehandlerIdent != null && packet.beslutterIdent != null
             )}
         )
 

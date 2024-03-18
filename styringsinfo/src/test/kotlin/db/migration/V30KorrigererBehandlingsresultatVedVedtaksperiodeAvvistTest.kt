@@ -19,7 +19,7 @@ internal class V30KorrigererBehandlingsresultatVedVedtaksperiodeAvvistTest: Beha
     fun `endrer behandlingsresultat til AVBRUTT for hendelser som feilaktig har behandlingsresultat VEDTATT`() {
         val behandlingId1 = UUID.randomUUID()
         val behandlingId2 = UUID.randomUUID()
-        val vedtaksperiodeAvvist = VedtaksperiodeAvvist(UUID.randomUUID(), LocalDateTime.now(), jacksonObjectMapper().createObjectNode(), UUID.randomUUID(), null, null, true)
+        val vedtaksperiodeAvvist = VedtaksperiodeAvvist(UUID.randomUUID(), LocalDateTime.now(), jacksonObjectMapper().createObjectNode(), UUID.randomUUID(), null, true)
 
         val rad1behandling1 = leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = true, versjon = Versjon.Companion.of("1.2.3"), hendelse = vedtaksperiodeAvvist) {
             it.put("behandlingsresultat", "VEDTATT")

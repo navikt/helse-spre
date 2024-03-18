@@ -27,7 +27,6 @@ internal class VedtaksperiodeAvvist(
     override val data: JsonNode,
     private val vedtaksperiodeId: UUID,
     private val saksbehandlerEnhet: String?,
-    private val beslutterEnhet: String?,
     private val automatiskBehandling: Boolean
 ) : Hendelse {
     override val type = eventName
@@ -40,7 +39,6 @@ internal class VedtaksperiodeAvvist(
             .behandlingstatus(AVSLUTTET)
             .behandlingsresultat(AVBRUTT)
             .saksbehandlerEnhet(saksbehandlerEnhet)
-            .beslutterEnhet(beslutterEnhet)
             .build(opprettet, behandlingsmetode)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
@@ -60,7 +58,6 @@ internal class VedtaksperiodeAvvist(
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
-                packet.interestedIn("beslutterIdent")
                 packet.requireVedtaksperiodeId()
                 packet.requireSaksbehandlerIdent()
                 packet.requireAutomatiskBehandling()
@@ -71,7 +68,6 @@ internal class VedtaksperiodeAvvist(
                 opprettet = packet.opprettet,
                 vedtaksperiodeId = packet.vedtaksperiodeId,
                 saksbehandlerEnhet = packet.enhet(nom, packet.saksbehandlerIdent),
-                beslutterEnhet = packet.enhet(nom, packet.beslutterIdent),
                 automatiskBehandling = packet.automatiskBehandling
             )}
         )
@@ -82,7 +78,6 @@ internal class VedtaksperiodeAvvist(
         }
 
         private val JsonMessage.saksbehandlerIdent get() = this["saksbehandlerIdent"].asText().takeUnless { it.isBlank() }
-        private val JsonMessage.beslutterIdent get() = this["beslutterIdent"].asText().takeUnless { it.isBlank() }
         private fun JsonMessage.requireSaksbehandlerIdent() = require("saksbehandlerIdent") { saksbehandlerIdent -> saksbehandlerIdent.asText() }
         private fun JsonMessage.requireAutomatiskBehandling() = require("automatiskBehandling") { automatiskBehandling -> automatiskBehandling.asBoolean() }
         private val JsonMessage.automatiskBehandling get() = this["automatiskBehandling"].asBoolean()

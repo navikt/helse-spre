@@ -7,9 +7,9 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.VURDERER_INNGANGSVILKÅR
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.*
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.TOTRINNS
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FORLENGELSE
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
@@ -180,7 +180,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertNull(behandling.behandlingsresultat)
 
         behandling = vedtakFattet(behandlingId).håndter(behandlingshendelseDao, behandlingId)
-        assertEquals(Behandling.Metode.AUTOMATISK, behandling.hendelsesmetode)
+        assertEquals(AUTOMATISK, behandling.hendelsesmetode)
         assertEquals(Behandling.Metode.MANUELL, behandling.behandlingsmetode)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
     }
@@ -198,7 +198,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals("SB123", behandling.saksbehandlerEnhet)
-        assertEquals("SB456", behandling.beslutterEnhet)
+        assertNull(behandling.beslutterEnhet)
     }
 
     @Test
@@ -263,7 +263,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
         assertNull(utbetaltBehandling.behandlingsresultat)
-        assertEquals(utbetaltBehandling.behandlingsmetode, Behandling.Metode.AUTOMATISK)
+        assertEquals(utbetaltBehandling.behandlingsmetode, AUTOMATISK)
 
 
         val januarVedtakFattet = vedtakFattet(januarBehandlingId)
@@ -271,7 +271,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(AVSLUTTET, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, utbetaltBehandling.behandlingsresultat)
-        assertEquals(Behandling.Metode.AUTOMATISK, utbetaltBehandling.behandlingsmetode)
+        assertEquals(AUTOMATISK, utbetaltBehandling.behandlingsmetode)
 
         val (annulleringBehandlingId, januarAnnullertBehandlingOpprettet) = behandlingIdOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)
         var annullertBehandling = januarAnnullertBehandlingOpprettet.håndter(behandlingshendelseDao, annulleringBehandlingId)
@@ -290,7 +290,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(AVSLUTTET, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, utbetaltBehandling.behandlingsresultat)
-        assertEquals(Behandling.Metode.AUTOMATISK, utbetaltBehandling.behandlingsmetode)
+        assertEquals(AUTOMATISK, utbetaltBehandling.behandlingsmetode)
 
         assertEquals(AVSLUTTET, annullertBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, annullertBehandling.behandlingstype)
@@ -338,6 +338,13 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(behandlingId, behandling2.relatertBehandlingId)
     }
 
+    @Test
+    fun `når to saksbehandlere har behandlet saken blir det behandlingsmetode totrinns`() {
+        val behandling = nyttVedtak(totrinnsbehandling = true)
+        assertEquals(TOTRINNS, behandling.behandlingsmetode)
+        assertEquals(AUTOMATISK, behandling.hendelsesmetode)
+    }
+
     @BeforeEach
     fun beforeEach() {
         sessionOf(dataSource).use { session ->
@@ -349,6 +356,29 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     fun afterEach() {
         if (getenv("CI") == "true") return
         alleRader.printTabell()
+    }
+
+    private fun nyttVedtak(sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()), totrinnsbehandling: Boolean = false): Behandling {
+        val (_, behandlingOpprettet) = behandlingIdOpprettet(Søknad, sakId = sakId, behandlingId = behandlingId)
+        assertNull(behandlingshendelseDao.hent(behandlingId))
+        var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
+        assertNull(behandling.behandlingsresultat)
+
+        behandling = vedtaksperiodeEndretTilVilkårsprøving(sakId).håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(VURDERER_INNGANGSVILKÅR, behandling.behandlingstatus)
+
+        behandling = vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
+
+        behandling = vedtaksperiodeGodkjent(sakId = sakId, totrinnsbehandling = totrinnsbehandling).håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(GODKJENT, behandling.behandlingstatus)
+
+        behandling = vedtakFattet(behandlingId, tags = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)).håndter(behandlingshendelseDao, behandlingId)
+        assertEquals(AVSLUTTET, behandling.behandlingstatus)
+        assertEquals(Behandling.Mottaker.ARBEIDSGIVER, behandling.mottaker)
+        assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
+        return behandling
     }
 
     private val BehandlingId.rader get() =  sessionOf(dataSource).use { session ->
@@ -440,17 +470,18 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        }
        internal fun vedtakFattet(behandlingId: BehandlingId, tags: List<Tag> = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)) = VedtakFattet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id, tags)
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
-       internal fun behandlingForkastet(behandlingId: BehandlingId, hendelsesmetode: Behandling.Metode = Behandling.Metode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId = behandlingId.id, automatiskBehandling = hendelsesmetode == Behandling.Metode.AUTOMATISK)
+       internal fun behandlingForkastet(behandlingId: BehandlingId, hendelsesmetode: Behandling.Metode = Behandling.Metode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId = behandlingId.id, automatiskBehandling = hendelsesmetode == AUTOMATISK)
        internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId) = VedtaksperiodeEndretTilGodkjenning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeEndretTilVilkårsprøving(sakId: SakId) = VedtaksperiodeEndretTilVilkårsprøving(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
-       internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeGodkjent(
+       internal fun vedtaksperiodeGodkjent(sakId: SakId, totrinnsbehandling: Boolean = false) = VedtaksperiodeGodkjent(
            id = UUID.randomUUID(),
            opprettet = nesteTidspunkt,
            data = blob,
            vedtaksperiodeId = sakId.id,
            saksbehandlerEnhet = "SB123",
            beslutterEnhet = "SB456",
-           automatiskBehandling = false
+           automatiskBehandling = false,
+           totrinnsbehandling = totrinnsbehandling
        )
        internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeAvvist(
            id = UUID.randomUUID(),
@@ -458,7 +489,6 @@ internal class TeamSakTest: AbstractDatabaseTest() {
            data = blob,
            vedtaksperiodeId = sakId.id,
            saksbehandlerEnhet = "SB123",
-           beslutterEnhet = "SB456",
            automatiskBehandling = false
        )
    }
