@@ -2,6 +2,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
 import java.time.LocalDateTime
 import java.time.LocalDateTime.MIN
 import java.util.UUID
@@ -122,8 +123,19 @@ internal data class Behandling(
             )
 
             if (ny.funksjoneltLik(forrige)) {
-                sikkerLogg.info("Lagrer _ikke_ ny rad for sak ${ny.sakId}, behandling ${ny.behandlingId}. Behandlingen er funksjonelt lik siste rad")
+                sikkerLogg.info("Lagrer _ikke_ ny rad. Behandlingen er funksjonelt lik siste rad")
                 return null
+            }
+
+            if (ny.behandlingsresultat == Behandlingsresultat.VEDTATT) {
+                sikkerLogg.warn("Nå lagrer vi en rad i behandlingshendelse med behandlingsresultatt VEDTATT, det virker riv ruskende rart. Ta en titt på behandlingen")
+            }
+
+            if (forrige.behandlingstatus == Behandlingstatus.AVSLUTTET) {
+                "Nå prøvde jeg å lagre en ny rad på samme behandling, selv om status er AVSLUTTET. Det må være en feil, ta en titt!".let { feilmelding ->
+                    sikkerLogg.error(feilmelding)
+                    throw IllegalStateException(feilmelding)
+                }
             }
 
             return ny

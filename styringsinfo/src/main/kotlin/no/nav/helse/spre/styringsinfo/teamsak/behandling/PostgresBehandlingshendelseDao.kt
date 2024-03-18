@@ -16,22 +16,13 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         hent(behandlingId)?.let { Behandling.Builder(it) }
 
     override fun lagre(behandling: Behandling, hendelseId: UUID): Boolean {
+        checkNotNull(behandling.behandlingsmetode) { "Nye rader i behandlingshendelse _må_ ha behandlingsmetode satt!" } // TODO: Om vi sletter datasettet bør vi ordne slik at den ikke er nullable, da slipper vi dette hacket.
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
             if (!tx.kanLagres(behandling, hendelseId)) return false
-            val sisteBehandling = tx.hent(behandling.behandlingId)
-            validerNyRad(behandling, sisteBehandling, hendelseId)
             tx.markerGamle(behandling.behandlingId)
             tx.lagre(behandling, hendelseId)
         }}
         return true
-    }
-
-    private fun validerNyRad(nyBehandling: Behandling, forrigeBehandling: Behandling?, hendelseId: UUID) {
-        checkNotNull(nyBehandling.behandlingsmetode) { "Nye rader i behandlingshendelse _må_ ha behandlingsmetode satt!" }
-        check(forrigeBehandling?.behandlingstatus != Behandling.Behandlingstatus.AVSLUTTET) { "Nå prøvde jeg å lagre en ny rad på samme behandling, selv om status er AVSLUTTET. Det må være en feil, ta en titt på behandling ${nyBehandling.behandlingId} fra hendelse $hendelseId" }
-        if (nyBehandling.behandlingsresultat == Behandling.Behandlingsresultat.VEDTATT) {
-            logger.warn("Nå lagrer vi en rad i behandlingshendelse med behandlingsresultatt VEDTATT, det virker riv ruskende rart. Ta en titt på behandlingen ${nyBehandling.behandlingId}")
-        }
     }
 
     private fun TransactionalSession.kanLagres(behandling: Behandling, hendelseId: UUID): Boolean {
