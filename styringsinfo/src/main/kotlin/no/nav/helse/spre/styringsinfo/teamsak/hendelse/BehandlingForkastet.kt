@@ -3,7 +3,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.*
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId

@@ -30,7 +30,7 @@ internal data class Behandling(
     internal val periodetype: Periodetype? = null,
     internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
-    internal val behandlingsmetode: Behandlingsmetode?,
+    internal val behandlingsmetode: Metode?,
     internal val mottaker: Mottaker? = null,
     internal val saksbehandlerEnhet: String? = null,
     internal val beslutterEnhet: String? = null,
@@ -70,7 +70,7 @@ internal data class Behandling(
         SYSTEM
     }
 
-    internal enum class Behandlingsmetode(internal val neste: (ny: Behandlingsmetode) -> Behandlingsmetode) {
+    internal enum class Metode(internal val neste: (ny: Metode) -> Metode) {
         AUTOMATISK({ ny -> ny }),
         MANUELL({ ny -> if (ny == TOTRINNS) TOTRINNS else MANUELL }),
         TOTRINNS({ TOTRINNS })
@@ -103,7 +103,7 @@ internal data class Behandling(
         internal fun saksbehandlerEnhet(saksbehandlerEnhet: String?) = apply { this.saksbehandlerEnhet = saksbehandlerEnhet }
         internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
 
-        internal fun build(funksjonellTid: LocalDateTime, behandlingsmetode: Behandlingsmetode): Behandling? {
+        internal fun build(funksjonellTid: LocalDateTime, behandlingsmetode: Metode): Behandling? {
             val ny = Behandling(
                 funksjonellTid = funksjonellTid,
                 behandlingsmetode = behandlingsmetode,

@@ -13,8 +13,8 @@ internal class BuilderTest {
     @Test
     fun `ignorerer funksjonelt like behandlinger`() {
         val forrige = lagBehandling()
-        assertNull(Behandling.Builder(forrige).build(nå.plusDays(1), Behandling.Behandlingsmetode.MANUELL))
-        val ny = Behandling.Builder(forrige).saksbehandlerEnhet("1234").build(nå.plusDays(1), Behandling.Behandlingsmetode.MANUELL)
+        assertNull(Behandling.Builder(forrige).build(nå.plusDays(1), Behandling.Metode.MANUELL))
+        val ny = Behandling.Builder(forrige).saksbehandlerEnhet("1234").build(nå.plusDays(1), Behandling.Metode.MANUELL)
         assertNotNull(ny)
         assertEquals("1234", ny!!.saksbehandlerEnhet)
     }
@@ -22,7 +22,7 @@ internal class BuilderTest {
     @Test
     fun `får en feil om man prøver å legge til ny rad etter at noe er avsluttet`() {
         val forrige = lagBehandling().copy(behandlingsresultat = Behandling.Behandlingsresultat.INNVILGET, behandlingstatus = Behandling.Behandlingstatus.AVSLUTTET)
-        assertThrows<IllegalStateException> { Behandling.Builder(forrige).saksbehandlerEnhet("1234").build(etterpå, Behandling.Behandlingsmetode.MANUELL) }
+        assertThrows<IllegalStateException> { Behandling.Builder(forrige).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.MANUELL) }
     }
 
     private val nå = LocalDateTime.now()
@@ -36,7 +36,7 @@ internal class BuilderTest {
         registrertTid = nå,
         funksjonellTid = nå,
         behandlingstatus = Behandling.Behandlingstatus.REGISTRERT,
-        behandlingsmetode = Behandling.Behandlingsmetode.AUTOMATISK,
+        behandlingsmetode = Behandling.Metode.AUTOMATISK,
         behandlingskilde = Behandling.Behandlingskilde.SYKMELDT,
         periodetype = Behandling.Periodetype.FORLENGELSE,
         behandlingstype = Behandling.Behandlingstype.SØKNAD,

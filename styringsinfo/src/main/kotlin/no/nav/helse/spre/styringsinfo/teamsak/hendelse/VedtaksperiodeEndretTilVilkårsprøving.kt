@@ -2,7 +2,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.VURDERER_INNGANGSVILKÅR
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao

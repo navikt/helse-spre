@@ -5,7 +5,7 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SAKSBEHANDLER
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SYSTEM
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.MANUELL
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
@@ -86,7 +86,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
     } ?: 0
 
-    private fun nyBehandling(behandlingId: BehandlingId, funksjonellTid: LocalDateTime, behandlingsmetode: Behandling.Behandlingsmetode = MANUELL) = Behandling(
+    private fun nyBehandling(behandlingId: BehandlingId, funksjonellTid: LocalDateTime, behandlingsmetode: Behandling.Metode = MANUELL) = Behandling(
         sakId = SakId(UUID.randomUUID()),
         behandlingId = behandlingId,
         relatertBehandlingId = null,

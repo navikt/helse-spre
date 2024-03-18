@@ -100,7 +100,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             periodetype = data.path("periodetype").textOrNull?.let { Behandling.Periodetype.valueOf(it) },
             behandlingsresultat = data.path("behandlingsresultat").textOrNull?.let { Behandling.Behandlingsresultat.valueOf(it) },
             behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText()),
-            behandlingsmetode = data.path("behandlingsmetode").textOrNull?.let { Behandling.Behandlingsmetode.valueOf(it) },
+            behandlingsmetode = data.path("behandlingsmetode").textOrNull?.let { Behandling.Metode.valueOf(it) },
             saksbehandlerEnhet = data.path("saksbehandlerEnhet").textOrNull,
             beslutterEnhet = data.path("beslutterEnhet").textOrNull,
             mottaker = data.path("mottaker").textOrNull?.let { Behandling.Mottaker.valueOf(it) }
