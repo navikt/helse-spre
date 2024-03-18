@@ -23,7 +23,7 @@ internal class BehandlingForkastet(
     private val behandlingId: UUID,
     automatiskBehandling: Boolean
 ) : Hendelse {
-    private val behandlingsmetode = if (automatiskBehandling) AUTOMATISK else MANUELL
+    private val hendelsesmetode = if (automatiskBehandling) AUTOMATISK else MANUELL
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
@@ -31,7 +31,7 @@ internal class BehandlingForkastet(
         val ny = builder
             .behandlingstatus(AVSLUTTET)
             .behandlingsresultat(AVBRUTT)
-            .build(opprettet, behandlingsmetode)
+            .build(opprettet, hendelsesmetode)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }

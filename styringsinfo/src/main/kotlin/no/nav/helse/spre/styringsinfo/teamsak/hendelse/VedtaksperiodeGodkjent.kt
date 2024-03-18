@@ -34,12 +34,12 @@ internal class VedtaksperiodeGodkjent(
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val behandlingId = behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(vedtaksperiodeId.asSakId()) ?: return false
         val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
-        val behandlingsmetode = if (automatiskBehandling) AUTOMATISK else if (totrinnsbehandling) TOTRINNS else MANUELL
+        val hendelsesmetode = if (automatiskBehandling) AUTOMATISK else if (totrinnsbehandling) TOTRINNS else MANUELL
         val ny = builder
             .behandlingstatus(GODKJENT)
             .saksbehandlerEnhet(saksbehandlerEnhet)
             .beslutterEnhet(beslutterEnhet)
-            .build(opprettet, behandlingsmetode)
+            .build(opprettet, hendelsesmetode)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
