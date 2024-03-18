@@ -25,6 +25,29 @@ internal class BuilderTest {
         assertThrows<IllegalStateException> { Behandling.Builder(forrige).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.MANUELL) }
     }
 
+    @Test
+    fun behandlingsmetode() {
+        val behandlingsmetodeNull = lagBehandling().copy(behandlingsmetode = null)
+        assertEquals(Behandling.Metode.AUTOMATISK, Behandling.Builder(behandlingsmetodeNull).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.AUTOMATISK)?.behandlingsmetode)
+        assertEquals(Behandling.Metode.MANUELL, Behandling.Builder(behandlingsmetodeNull).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.MANUELL)?.behandlingsmetode)
+        assertEquals(Behandling.Metode.TOTRINNS, Behandling.Builder(behandlingsmetodeNull).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.TOTRINNS)?.behandlingsmetode)
+
+        val behandlingsmetodeAutomatisk = lagBehandling().copy(behandlingsmetode = Behandling.Metode.AUTOMATISK)
+        assertEquals(Behandling.Metode.AUTOMATISK, Behandling.Builder(behandlingsmetodeAutomatisk).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.AUTOMATISK)?.behandlingsmetode)
+        assertEquals(Behandling.Metode.MANUELL, Behandling.Builder(behandlingsmetodeAutomatisk).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.MANUELL)?.behandlingsmetode)
+        assertEquals(Behandling.Metode.TOTRINNS, Behandling.Builder(behandlingsmetodeAutomatisk).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.TOTRINNS)?.behandlingsmetode)
+
+        val behandlingsmetodeManuell = lagBehandling().copy(behandlingsmetode = Behandling.Metode.MANUELL)
+        assertEquals(Behandling.Metode.MANUELL, Behandling.Builder(behandlingsmetodeManuell).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.AUTOMATISK)?.behandlingsmetode)
+        assertEquals(Behandling.Metode.MANUELL, Behandling.Builder(behandlingsmetodeManuell).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.MANUELL)?.behandlingsmetode)
+        assertEquals(Behandling.Metode.TOTRINNS, Behandling.Builder(behandlingsmetodeManuell).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.TOTRINNS)?.behandlingsmetode)
+
+        val behandlingsmetodeTotrinns = lagBehandling().copy(behandlingsmetode = Behandling.Metode.TOTRINNS)
+        assertEquals(Behandling.Metode.TOTRINNS, Behandling.Builder(behandlingsmetodeTotrinns).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.AUTOMATISK)?.behandlingsmetode)
+        assertEquals(Behandling.Metode.TOTRINNS, Behandling.Builder(behandlingsmetodeTotrinns).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.MANUELL)?.behandlingsmetode)
+        assertEquals(Behandling.Metode.TOTRINNS, Behandling.Builder(behandlingsmetodeTotrinns).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.TOTRINNS)?.behandlingsmetode)
+    }
+
     private val nå = LocalDateTime.now()
     private val etterpå = nå.plusDays(1)
     private fun lagBehandling() = Behandling(

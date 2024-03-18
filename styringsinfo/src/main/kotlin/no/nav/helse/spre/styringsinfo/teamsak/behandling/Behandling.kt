@@ -71,10 +71,10 @@ internal data class Behandling(
         SYSTEM
     }
 
-    internal enum class Metode(internal val neste: (ny: Metode) -> Metode) {
-        AUTOMATISK({ ny -> ny }),
-        MANUELL({ ny -> if (ny == TOTRINNS) TOTRINNS else MANUELL }),
-        TOTRINNS({ TOTRINNS })
+    internal enum class Metode {
+        AUTOMATISK,
+        MANUELL,
+        TOTRINNS
     }
 
     internal enum class Mottaker {
@@ -108,7 +108,7 @@ internal data class Behandling(
             val ny = Behandling(
                 funksjonellTid = funksjonellTid,
                 hendelsesmetode = hendelsesmetode,
-                behandlingsmetode = forrige.behandlingsmetode?.neste?.invoke(hendelsesmetode) ?: hendelsesmetode,
+                behandlingsmetode = forrige.behandlingsmetode + hendelsesmetode,
                 sakId = forrige.sakId,
                 behandlingId = forrige.behandlingId,
                 relatertBehandlingId = forrige.relatertBehandlingId,
@@ -137,6 +137,15 @@ internal data class Behandling(
 
         private companion object {
             private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
+
+            private operator fun Metode?.plus(ny: Metode): Metode {
+                val forrige = this ?: return ny
+                return when (forrige) {
+                    Metode.AUTOMATISK -> ny
+                    Metode.MANUELL -> if (ny == Metode.TOTRINNS) Metode.TOTRINNS else Metode.MANUELL
+                    Metode.TOTRINNS -> Metode.TOTRINNS
+                }
+            }
 
             private fun valider(forrige: Behandling, ny: Behandling) {
                 if (ny.behandlingsresultat == Behandlingsresultat.VEDTATT) {
