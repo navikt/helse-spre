@@ -127,22 +127,27 @@ internal data class Behandling(
                 return null
             }
 
-            if (ny.behandlingsresultat == Behandlingsresultat.VEDTATT) {
-                sikkerLogg.warn("Nå lagrer vi en rad i behandlingshendelse med behandlingsresultatt VEDTATT, det virker riv ruskende rart. Ta en titt på behandlingen")
-            }
-
-            if (forrige.behandlingstatus == Behandlingstatus.AVSLUTTET) {
-                "Nå prøvde jeg å lagre en ny rad på samme behandling, selv om status er AVSLUTTET. Det må være en feil, ta en titt!".let { feilmelding ->
-                    sikkerLogg.error(feilmelding)
-                    throw IllegalStateException(feilmelding)
-                }
-            }
+            valider(forrige, ny)
 
             return ny
         }
 
         private companion object {
             private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
+
+            private fun valider(forrige: Behandling, ny: Behandling) {
+                if (ny.behandlingsresultat == Behandlingsresultat.VEDTATT) {
+                    // TODO: Dette kan kanskje bli en exception? 🤔 Hvertfall om vi starter med nytt datasett
+                    sikkerLogg.warn("Nå lagrer vi en rad i behandlingshendelse med behandlingsresultatt VEDTATT, det virker riv ruskende rart. Ta en titt på behandlingen")
+                }
+
+                if (forrige.behandlingstatus == Behandlingstatus.AVSLUTTET) {
+                    "Nå prøvde jeg å lagre en ny rad på samme behandling, selv om status er AVSLUTTET. Det må være en feil, ta en titt!".let { feilmelding ->
+                        sikkerLogg.error(feilmelding)
+                        throw IllegalStateException(feilmelding)
+                    }
+                }
+            }
         }
     }
 }
