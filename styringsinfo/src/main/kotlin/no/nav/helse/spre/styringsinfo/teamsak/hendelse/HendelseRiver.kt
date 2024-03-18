@@ -46,9 +46,9 @@ internal class HendelseRiver(
         packet.sikkerLogg("Håndterte ${packet.eventName}")
     }
 
-    private fun JsonMessage.sikkerLogg(melding: String) = sikkerLogg.info("$melding.\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()))
+    private fun JsonMessage.sikkerLogg(melding: String) = sikkerLogg.info("$melding\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()))
 
-    private val JsonMessage.mdcValues get() = listOf("vedtaksperiodeId", "behandlingId", "@id")
+    private val JsonMessage.mdcValues get() = listOf("vedtaksperiodeId", "behandlingId", "@id", "@event_name")
         .associate { key -> key.removePrefix("@") to get(key) }
         .mapValues { (_, value) -> value.takeUnless { it.isMissingOrNull() }?.asText() }
         .filterValues { it != null }
