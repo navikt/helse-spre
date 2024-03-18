@@ -33,6 +33,8 @@ internal class BehandlingOpprettet(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
+        check(behandlingshendelseDao.hent(BehandlingId(behandlingId)) == null) { "Forventer at opprettelse av behandling er det første som skjer på en behandling" }
+
         val sakId = SakId(vedtaksperiodeId)
         val behandlingskilde = behandlingskilde.avsender.behandlingskilde
 

@@ -5,7 +5,6 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SAKSBEHANDLER
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SYSTEM
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
@@ -66,18 +65,6 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val korrigertInfo = behandling.copy(behandlingskilde = SAKSBEHANDLER, funksjonellTid = etter)
         assertTrue(behandlingshendelseDao.lagre(korrigertInfo, hendelseId))
         assertEquals(2, behandlingId.rader)
-    }
-
-    @Test
-    fun `lagrer ikke ny rad for funksjonelt like behandlinger`() {
-        val behandlingId = BehandlingId(UUID.randomUUID())
-        assertEquals(0, behandlingId.rader)
-        val behandling = nyBehandling(behandlingId, nå, MANUELL)
-        assertTrue(behandlingshendelseDao.lagre(behandling, hendelseId))
-        assertEquals(1, behandlingId.rader)
-        val korrigertInfo = behandling.copy(funksjonellTid = etter, behandlingsmetode = AUTOMATISK)
-        assertFalse(behandlingshendelseDao.lagre(korrigertInfo, hendelseId))
-        assertEquals(1, behandlingId.rader)
     }
 
     @Test

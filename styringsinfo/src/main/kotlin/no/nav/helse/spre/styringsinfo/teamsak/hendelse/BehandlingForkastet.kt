@@ -8,15 +8,11 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsr
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.asSakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -36,6 +32,7 @@ internal class BehandlingForkastet(
             .behandlingstatus(AVSLUTTET)
             .behandlingsresultat(AVBRUTT)
             .build(opprettet, behandlingsmetode)
+            ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 

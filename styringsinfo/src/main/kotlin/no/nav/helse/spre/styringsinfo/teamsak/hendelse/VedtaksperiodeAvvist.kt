@@ -42,6 +42,7 @@ internal class VedtaksperiodeAvvist(
             .saksbehandlerEnhet(saksbehandlerEnhet)
             .beslutterEnhet(beslutterEnhet)
             .build(opprettet, behandlingsmetode)
+            ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 

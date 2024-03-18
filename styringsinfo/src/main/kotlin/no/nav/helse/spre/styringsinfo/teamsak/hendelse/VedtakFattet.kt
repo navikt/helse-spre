@@ -10,7 +10,6 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsmetode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVSLAG
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.DELVIS_INNVILGET
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.VEDTATT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
@@ -44,13 +43,14 @@ internal class VedtakFattet(
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId)) ?: return false
-        val mottaker = mottaker(tags, data, behandlingId, id)
-        val behandlingsresultat = behandlingsresultat(tags, data, behandlingId, id)
+        val mottaker = mottaker(tags, behandlingId, id)
+        val behandlingsresultat = behandlingsresultat(tags, behandlingId, id)
         val ny = builder
             .behandlingstatus(AVSLUTTET)
             .mottaker(mottaker)
             .behandlingsresultat(behandlingsresultat)
             .build(opprettet, AUTOMATISK)
+            ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 
@@ -88,7 +88,7 @@ internal class VedtakFattet(
             }
         }
 
-        private fun mottaker(tags: List<Tag>, data: JsonNode, behandlingId: UUID, hendelseId: UUID): Behandling.Mottaker {
+        private fun mottaker(tags: List<Tag>, behandlingId: UUID, hendelseId: UUID): Behandling.Mottaker {
             val sykmeldtErMottaker = tags.any { it in listOf(Personutbetaling, NegativPersonutbetaling) }
             val arbeidsgiverErMottaker = tags.any { it in listOf(Arbeidsgiverutbetaling, NegativArbeidsgiverutbetaling) }
             val ingenErMottaker = tags.contains(IngenUtbetaling)
@@ -101,7 +101,7 @@ internal class VedtakFattet(
             }
         }
 
-        private fun behandlingsresultat(tags: List<Tag>, data: JsonNode, behandlingId: UUID, hendelseId: UUID): Behandling.Behandlingsresultat {
+        private fun behandlingsresultat(tags: List<Tag>, behandlingId: UUID, hendelseId: UUID): Behandling.Behandlingsresultat {
             return when {
                 tags.any { it == Innvilget } -> Behandling.Behandlingsresultat.INNVILGET
                 tags.any { it == DelvisInnvilget } -> DELVIS_INNVILGET

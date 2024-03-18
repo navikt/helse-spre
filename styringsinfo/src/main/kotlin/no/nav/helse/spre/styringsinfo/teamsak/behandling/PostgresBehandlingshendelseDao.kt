@@ -19,7 +19,6 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
             if (!tx.kanLagres(behandling, hendelseId)) return false
             val sisteBehandling = tx.hent(behandling.behandlingId)
-            if (sisteBehandling?.funksjoneltLik(behandling) == true) return false.also { logger.info("Lagrer _ikke_ ny rad for sak ${behandling.sakId}, behandling ${behandling.behandlingId} fra hendelse $hendelseId. Behandlingen er funksjonelt lik siste rad") }
             validerNyRad(behandling, sisteBehandling, hendelseId)
             tx.markerGamle(behandling.behandlingId)
             tx.lagre(behandling, hendelseId)

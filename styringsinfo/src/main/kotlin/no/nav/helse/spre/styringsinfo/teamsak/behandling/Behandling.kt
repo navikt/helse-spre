@@ -1,5 +1,7 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.time.LocalDateTime.MIN
 import java.util.UUID
@@ -79,7 +81,7 @@ internal data class Behandling(
         INGEN
     }
 
-    internal fun funksjoneltLik(other: Behandling): Boolean {
+    private fun funksjoneltLik(other: Behandling): Boolean {
         return copy(funksjonellTid = MIN, behandlingsmetode = null) == other.copy(funksjonellTid = MIN, behandlingsmetode = null)
     }
 
@@ -99,23 +101,36 @@ internal data class Behandling(
         internal fun saksbehandlerEnhet(saksbehandlerEnhet: String?) = apply { this.saksbehandlerEnhet = saksbehandlerEnhet }
         internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
 
-        internal fun build(funksjonellTid: LocalDateTime, behandlingsmetode: Behandlingsmetode) = Behandling(
-            funksjonellTid = funksjonellTid,
-            behandlingsmetode = behandlingsmetode,
-            sakId = forrige.sakId,
-            behandlingId = forrige.behandlingId,
-            relatertBehandlingId = forrige.relatertBehandlingId,
-            aktørId = forrige.aktørId,
-            mottattTid = forrige.mottattTid,
-            registrertTid = forrige.registrertTid,
-            behandlingstype = forrige.behandlingstype,
-            behandlingskilde = forrige.behandlingskilde,
-            behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
-            periodetype = periodetype ?: forrige.periodetype,
-            behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
-            saksbehandlerEnhet = saksbehandlerEnhet ?: forrige.saksbehandlerEnhet,
-            beslutterEnhet = beslutterEnhet ?: forrige.beslutterEnhet,
-            mottaker = mottaker ?: forrige.mottaker
-        )
+        internal fun build(funksjonellTid: LocalDateTime, behandlingsmetode: Behandlingsmetode): Behandling? {
+            val ny = Behandling(
+                funksjonellTid = funksjonellTid,
+                behandlingsmetode = behandlingsmetode,
+                sakId = forrige.sakId,
+                behandlingId = forrige.behandlingId,
+                relatertBehandlingId = forrige.relatertBehandlingId,
+                aktørId = forrige.aktørId,
+                mottattTid = forrige.mottattTid,
+                registrertTid = forrige.registrertTid,
+                behandlingstype = forrige.behandlingstype,
+                behandlingskilde = forrige.behandlingskilde,
+                behandlingstatus = behandlingstatus ?: forrige.behandlingstatus,
+                periodetype = periodetype ?: forrige.periodetype,
+                behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
+                saksbehandlerEnhet = saksbehandlerEnhet ?: forrige.saksbehandlerEnhet,
+                beslutterEnhet = beslutterEnhet ?: forrige.beslutterEnhet,
+                mottaker = mottaker ?: forrige.mottaker
+            )
+
+            if (ny.funksjoneltLik(forrige)) {
+                sikkerLogg.info("Lagrer _ikke_ ny rad for sak ${ny.sakId}, behandling ${ny.behandlingId}. Behandlingen er funksjonelt lik siste rad")
+                return null
+            }
+
+            return ny
+        }
+
+        private companion object {
+            private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
+        }
     }
 }

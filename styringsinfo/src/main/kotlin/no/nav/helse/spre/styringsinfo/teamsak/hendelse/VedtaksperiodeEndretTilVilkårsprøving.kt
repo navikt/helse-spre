@@ -30,6 +30,7 @@ internal class VedtaksperiodeEndretTilVilkårsprøving(
             .behandlingstatus(VURDERER_INNGANGSVILKÅR)
             .periodetype(FØRSTEGANGSBEHANDLING)
             .build(opprettet, AUTOMATISK)
+            ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 

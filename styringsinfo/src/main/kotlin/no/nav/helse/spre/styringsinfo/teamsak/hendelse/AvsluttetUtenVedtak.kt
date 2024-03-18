@@ -29,6 +29,7 @@ internal class AvsluttetUtenVedtak(
             .behandlingstatus(AVSLUTTET)
             .behandlingsresultat(HENLAGT)
             .build(opprettet, AUTOMATISK)
+            ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 
