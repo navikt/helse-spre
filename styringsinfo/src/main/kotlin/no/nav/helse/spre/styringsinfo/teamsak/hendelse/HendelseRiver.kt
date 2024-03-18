@@ -2,15 +2,8 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import net.logstash.logback.argument.StructuredArgument
 import net.logstash.logback.argument.StructuredArguments.keyValue
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.asLocalDateTime
-import no.nav.helse.rapids_rivers.isMissingOrNull
+import no.nav.helse.rapids_rivers.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -42,6 +35,10 @@ internal class HendelseRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        withMDC(packet.mdcValues) { håndterHendelse(packet) }
+    }
+
+    private fun håndterHendelse(packet: JsonMessage) {
         val hendelse = opprett(packet)
         if (!hendelseDao.lagre(hendelse)) return packet.sikkerLogg("Har håndtert ${packet.eventName} tidligere")
         // Ikke registrert starten på behandlingen/har ikke noe ny info utover det vi allerede har lagret (funksjonelt lik)/hendelse kommer out of order
@@ -49,13 +46,13 @@ internal class HendelseRiver(
         packet.sikkerLogg("Håndterte ${packet.eventName}")
     }
 
-    private fun JsonMessage.sikkerLogg(melding: String) = structuredArguments.let { sa ->
-        sikkerLogg.info("$melding. ${sa.joinToString { "{}" }}\n\t${toJson()}", *sa)
-    }
+    private fun JsonMessage.sikkerLogg(melding: String) = sikkerLogg.info("$melding.\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()))
 
-    private val JsonMessage.structuredArguments get(): Array<StructuredArgument>  =
-        listOf("aktørId", "vedtaksperiodeId", "behandlingId", "@id").mapNotNull { key -> get(key).takeUnless { it.isMissingOrNull() }
-            ?.let { keyValue(key.removePrefix("@"), it.asText()) } }.toTypedArray()
+    private val JsonMessage.mdcValues get() = listOf("vedtaksperiodeId", "behandlingId", "@id")
+        .associate { key -> key.removePrefix("@") to get(key) }
+        .mapValues { (_, value) -> value.takeUnless { it.isMissingOrNull() }?.asText() }
+        .filterValues { it != null }
+        .mapValues { (_, value) -> value!! }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         sikkerLogg.error("Forsto ikke $eventName:\n\t${problems.toExtendedReport()}")
