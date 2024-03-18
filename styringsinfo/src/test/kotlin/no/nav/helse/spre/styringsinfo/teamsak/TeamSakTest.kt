@@ -180,7 +180,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertNull(behandling.behandlingsresultat)
 
         behandling = vedtakFattet(behandlingId).håndter(behandlingshendelseDao, behandlingId)
-        assertEquals(Behandling.Metode.AUTOMATISK, behandling.behandlingsmetode)
+        assertEquals(Behandling.Metode.AUTOMATISK, behandling.hendelsesmetode)
+        assertEquals(Behandling.Metode.MANUELL, behandling.behandlingsmetode)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
     }
 
@@ -439,7 +440,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
        }
        internal fun vedtakFattet(behandlingId: BehandlingId, tags: List<Tag> = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)) = VedtakFattet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id, tags)
        internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
-       internal fun behandlingForkastet(behandlingId: BehandlingId, behandlingsmetode: Behandling.Metode = Behandling.Metode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId = behandlingId.id, automatiskBehandling = behandlingsmetode == Behandling.Metode.AUTOMATISK)
+       internal fun behandlingForkastet(behandlingId: BehandlingId, hendelsesmetode: Behandling.Metode = Behandling.Metode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId = behandlingId.id, automatiskBehandling = hendelsesmetode == Behandling.Metode.AUTOMATISK)
        internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId) = VedtaksperiodeEndretTilGodkjenning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeEndretTilVilkårsprøving(sakId: SakId) = VedtaksperiodeEndretTilVilkårsprøving(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
        internal fun vedtaksperiodeGodkjent(sakId: SakId) = VedtaksperiodeGodkjent(

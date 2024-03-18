@@ -13,8 +13,8 @@ internal class BuilderTest {
     @Test
     fun `ignorerer funksjonelt like behandlinger`() {
         val forrige = lagBehandling()
-        assertNull(Behandling.Builder(forrige).build(nå.plusDays(1), Behandling.Metode.MANUELL))
-        val ny = Behandling.Builder(forrige).saksbehandlerEnhet("1234").build(nå.plusDays(1), Behandling.Metode.MANUELL)
+        assertNull(Behandling.Builder(forrige).build(nå.plusDays(1), Behandling.Metode.AUTOMATISK))
+        val ny = Behandling.Builder(forrige).saksbehandlerEnhet("1234").build(nå.plusDays(1), Behandling.Metode.AUTOMATISK)
         assertNotNull(ny)
         assertEquals("1234", ny!!.saksbehandlerEnhet)
     }
@@ -43,6 +43,7 @@ internal class BuilderTest {
         behandlingsresultat = null,
         mottaker = null,
         saksbehandlerEnhet = null,
-        beslutterEnhet = null
+        beslutterEnhet = null,
+        hendelsesmetode = Behandling.Metode.AUTOMATISK
     )
 }

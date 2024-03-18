@@ -8,6 +8,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
@@ -98,6 +99,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         behandlingstype = SØKNAD,
         behandlingskilde = SYSTEM,
         behandlingsmetode = behandlingsmetode,
-        saksbehandlerEnhet = "4488"
+        saksbehandlerEnhet = "4488",
+        hendelsesmetode = AUTOMATISK
     )
 }

@@ -31,6 +31,7 @@ internal data class Behandling(
     internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
     internal val behandlingsmetode: Metode?,
+    internal val hendelsesmetode: Metode,
     internal val mottaker: Mottaker? = null,
     internal val saksbehandlerEnhet: String? = null,
     internal val beslutterEnhet: String? = null,
@@ -84,7 +85,7 @@ internal data class Behandling(
     }
 
     private fun funksjoneltLik(other: Behandling): Boolean {
-        return copy(funksjonellTid = MIN, behandlingsmetode = null) == other.copy(funksjonellTid = MIN, behandlingsmetode = null)
+        return copy(funksjonellTid = MIN, hendelsesmetode = Metode.AUTOMATISK) == other.copy(funksjonellTid = MIN, hendelsesmetode = Metode.AUTOMATISK)
     }
 
     class Builder(private val forrige: Behandling) {
@@ -103,11 +104,11 @@ internal data class Behandling(
         internal fun saksbehandlerEnhet(saksbehandlerEnhet: String?) = apply { this.saksbehandlerEnhet = saksbehandlerEnhet }
         internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
 
-        internal fun build(funksjonellTid: LocalDateTime, behandlingsmetode: Metode): Behandling? {
+        internal fun build(funksjonellTid: LocalDateTime, hendelsesmetode: Metode): Behandling? {
             val ny = Behandling(
                 funksjonellTid = funksjonellTid,
-                behandlingsmetode = behandlingsmetode,
-                //behandlingsmetode = forrige.behandlingsmetode?.neste?.invoke(behandlingsmetode) ?: behandlingsmetode,
+                hendelsesmetode = hendelsesmetode,
+                behandlingsmetode = forrige.behandlingsmetode?.neste?.invoke(hendelsesmetode) ?: hendelsesmetode,
                 sakId = forrige.sakId,
                 behandlingId = forrige.behandlingId,
                 relatertBehandlingId = forrige.relatertBehandlingId,

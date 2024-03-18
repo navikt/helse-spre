@@ -37,6 +37,7 @@ internal class BehandlingOpprettet(
 
         val sakId = SakId(vedtaksperiodeId)
         val behandlingskilde = behandlingskilde.avsender.behandlingskilde
+        val metode = if (behandlingskilde == SAKSBEHANDLER) MANUELL else AUTOMATISK
 
         val behandling = Behandling(
             sakId = sakId,
@@ -49,7 +50,8 @@ internal class BehandlingOpprettet(
             behandlingstatus = REGISTRERT,
             behandlingstype = behandlingstype.behandlingstype,
             behandlingskilde = behandlingskilde,
-            behandlingsmetode = if (behandlingskilde == SAKSBEHANDLER) MANUELL else AUTOMATISK
+            behandlingsmetode = metode,
+            hendelsesmetode = metode
         )
         return behandlingshendelseDao.lagre(behandling, this.id)
     }
