@@ -70,9 +70,10 @@ internal data class Behandling(
         SYSTEM
     }
 
-    internal enum class Behandlingsmetode {
-        MANUELL,
-        AUTOMATISK
+    internal enum class Behandlingsmetode(internal val neste: (ny: Behandlingsmetode) -> Behandlingsmetode) {
+        AUTOMATISK({ ny -> ny }),
+        MANUELL({ ny -> if (ny == TOTRINNS) TOTRINNS else MANUELL }),
+        TOTRINNS({ TOTRINNS })
     }
 
     internal enum class Mottaker {
@@ -106,6 +107,7 @@ internal data class Behandling(
             val ny = Behandling(
                 funksjonellTid = funksjonellTid,
                 behandlingsmetode = behandlingsmetode,
+                //behandlingsmetode = forrige.behandlingsmetode?.neste?.invoke(behandlingsmetode) ?: behandlingsmetode,
                 sakId = forrige.sakId,
                 behandlingId = forrige.behandlingId,
                 relatertBehandlingId = forrige.relatertBehandlingId,
