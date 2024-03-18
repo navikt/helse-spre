@@ -11,8 +11,9 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.asLocalDateTime
 import no.nav.helse.rapids_rivers.isMissingOrNull
-import no.nav.helse.spre.styringsinfo.sikkerLogg
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -42,22 +43,26 @@ internal class HendelseRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val hendelse = opprett(packet)
-        hendelseDao.lagre(hendelse)
-        if (!hendelse.håndter(behandlingshendelseDao)) return // Logger kun hendelser som ble håndtert som en behandlingshendelse
-        packet.structuredArguments.let {
-            sikkerLogg.info("Håndterte ${packet.eventName}. ${it.joinToString { "{}" }}\n\t${packet.toJson()}", *it.toTypedArray())
-        }
+        if (!hendelseDao.lagre(hendelse)) return packet.sikkerLogg("Har håndtert ${packet.eventName} tidligere")
+        // Ikke registrert starten på behandlingen/har ikke noe ny info utover det vi allerede har lagret (funksjonelt lik)/hendelse kommer out of order
+        if (!hendelse.håndter(behandlingshendelseDao)) return packet.sikkerLogg("Håndterer _ikke_ ${packet.eventName}")
+        packet.sikkerLogg("Håndterte ${packet.eventName}")
     }
 
-    private val JsonMessage.structuredArguments get(): List<StructuredArgument>  =
+    private fun JsonMessage.sikkerLogg(melding: String) = structuredArguments.let { sa ->
+        sikkerLogg.info("$melding. ${sa.joinToString { "{}" }}\n\t${toJson()}", *sa)
+    }
+
+    private val JsonMessage.structuredArguments get(): Array<StructuredArgument>  =
         listOf("aktørId", "vedtaksperiodeId", "behandlingId", "@id").mapNotNull { key -> get(key).takeUnless { it.isMissingOrNull() }
-            ?.let { keyValue(key.removePrefix("@"), it.asText()) } }
+            ?.let { keyValue(key.removePrefix("@"), it.asText()) } }.toTypedArray()
 
     override fun onError(problems: MessageProblems, context: MessageContext) {
         sikkerLogg.error("Forsto ikke $eventName:\n\t${problems.toExtendedReport()}")
     }
 
     internal companion object {
+        private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
         private val objectMapper = jacksonObjectMapper()
         private val JsonMessage.eventName get() = this["@event_name"].asText()
         internal val JsonMessage.hendelseId get() = UUID.fromString(this["@id"].asText())

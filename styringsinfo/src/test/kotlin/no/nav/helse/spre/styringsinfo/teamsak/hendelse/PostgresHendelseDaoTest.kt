@@ -3,7 +3,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -18,9 +18,9 @@ internal class PostgresHendelseDaoTest: AbstractDatabaseTest() {
         val id = UUID.randomUUID()
         val hendelse = Testhendelse(id)
         assertEquals(0, antallRader(id))
-        hendelseDao.lagre(hendelse)
+        assertTrue(hendelseDao.lagre(hendelse))
         assertEquals(1, antallRader(id))
-        hendelseDao.lagre(hendelse)
+        assertFalse(hendelseDao.lagre(hendelse))
         assertEquals(1, antallRader(id))
         val (opprettet, type, data) = hent(id)
         assertEquals(LocalDate.EPOCH.atStartOfDay(), opprettet)

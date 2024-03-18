@@ -89,8 +89,9 @@ internal class TestHendelseDao() : HendelseDao {
         lagretHendelse = false
     }
 
-    override fun lagre(hendelse: Hendelse) {
+    override fun lagre(hendelse: Hendelse): Boolean {
         lagretHendelse = true
+        return true
     }
 
 }
