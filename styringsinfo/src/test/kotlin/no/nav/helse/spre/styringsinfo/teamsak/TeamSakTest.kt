@@ -5,6 +5,10 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
+import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk.Companion.Arbeidsgiver
+import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk.Companion.Saksbehandler
+import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk.Companion.TilInfotrygd
+import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk.Companion.nyBehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.*
@@ -16,18 +20,10 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.AvsluttetUtenVedtak
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.BehandlingForkastet
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.BehandlingOpprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeAvvist
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeEndretTilGodkjenning
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeEndretTilVilkårsprøving
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeGodkjent
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -44,13 +40,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `funksjonell lik behandling`() {
-        val (behandlingId, behandlingOpprettet) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
 
         assertEquals(0, behandlingId.rader)
         behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(1, behandlingId.rader)
 
-        val vedtakFattet = vedtakFattet(behandlingId)
+        val vedtakFattet = hendelsefabrikk.vedtakFattet()
         vedtakFattet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(2, behandlingId.rader)
 
@@ -60,16 +57,17 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for vedtak`() {
-        val (behandlingId, behandlingOpprettet, sakId) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertNull(behandlingshendelseDao.hent(behandlingId))
         var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
-        behandling = vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
+        behandling = hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
 
-        behandling = vedtakFattet(behandlingId, tags = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)).håndter(behandlingshendelseDao, behandlingId)
+        behandling = hendelsefabrikk.vedtakFattet(tags = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Mottaker.ARBEIDSGIVER, behandling.mottaker)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
@@ -77,30 +75,33 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `periodetype blir førstegangsbehandling for perioder som vilkårsprøves`() {
-        val (behandlingId, behandlingOpprettet, sakId) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertNull(behandlingshendelseDao.hent(behandlingId))
         behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
-        val behandling = vedtaksperiodeEndretTilVilkårsprøving(sakId).håndter(behandlingshendelseDao, behandlingId)
+        val behandling = hendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingshendelseDao, behandlingId)
         assertEquals(VURDERER_INNGANGSVILKÅR, behandling.behandlingstatus)
         assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
     }
 
     @Test
     fun `førstegangsbehandling revurderes`() {
-        val (førstegangsbehandlingId, behandlingOpprettetFørstegang, sakIdFørstegang) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (førstegangsbehandlingId, behandlingOpprettetFørstegang) = hendelsefabrikk.behandlingOpprettet()
         behandlingOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        vedtaksperiodeGodkjent(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        val behandling = vedtakFattet(førstegangsbehandlingId).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+
+        hendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        hendelsefabrikk.vedtaksperiodeGodkjent().håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        val behandling = hendelsefabrikk.vedtakFattet().håndter(behandlingshendelseDao, førstegangsbehandlingId)
 
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
 
-        val (revurderingbehandlingId, behandlingOpprettetRevurdering, sakIdRevurdering) = behandlingOpprettet(Søknad, sakIdFørstegang)
+        val (revurderingbehandlingId, behandlingOpprettetRevurdering) = hendelsefabrikk.behandlingOpprettet(behandlingId = nyBehandlingId())
         behandlingOpprettetRevurdering.håndter(behandlingshendelseDao, revurderingbehandlingId)
-        val behandlingRevurdering = vedtaksperiodeEndretTilGodkjenning(sakIdRevurdering).håndter(behandlingshendelseDao, revurderingbehandlingId)
+        val behandlingRevurdering = hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, revurderingbehandlingId)
 
         assertEquals(AVVENTER_GODKJENNING, behandlingRevurdering.behandlingstatus)
         assertEquals(FØRSTEGANGSBEHANDLING, behandlingRevurdering.periodetype)
@@ -108,16 +109,20 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `peridodetype blir forlengelse ved godkjenning dersom ingen tidligere hendelse på behandlingen er markert som førstegangsbehandling`() {
-        val (førstegangsbehandlingId, behandlingOpprettetFørstegang, sakIdFørstegang) = behandlingOpprettet(Søknad)
-        behandlingOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        vedtaksperiodeGodkjent(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        vedtakFattet(førstegangsbehandlingId).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        val hendelsefabrikkFørstegangs = Hendelsefabrikk()
+        val (førstegangsbehandlingId, behandlingOpprettetFørstegang) = hendelsefabrikkFørstegangs.behandlingOpprettet()
 
-        val (forlengelseBehandlingId, behandlingOpprettetForlengelse, sakIdForlengelse) = behandlingOpprettet(Søknad)
+        behandlingOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        hendelsefabrikkFørstegangs.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        hendelsefabrikkFørstegangs.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        hendelsefabrikkFørstegangs.vedtaksperiodeGodkjent().håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        hendelsefabrikkFørstegangs.vedtakFattet().håndter(behandlingshendelseDao, førstegangsbehandlingId)
+
+        val hendelsefabrikkForlengelse = Hendelsefabrikk()
+
+        val (forlengelseBehandlingId, behandlingOpprettetForlengelse) = hendelsefabrikkForlengelse.behandlingOpprettet(behandlingId = nyBehandlingId())
         behandlingOpprettetForlengelse.håndter(behandlingshendelseDao, forlengelseBehandlingId)
-        val behandling = vedtaksperiodeEndretTilGodkjenning(sakIdForlengelse).håndter(behandlingshendelseDao, forlengelseBehandlingId)
+        val behandling = hendelsefabrikkForlengelse.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, forlengelseBehandlingId)
 
         assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
         assertEquals(FORLENGELSE, behandling.periodetype)
@@ -125,30 +130,32 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `periodetype går fra førstegangsbehandling til forlengelse ved et snasent out-of-order-scenario`() {
-        val (førstegangsbehandlingId, behandlingOpprettetFørstegang, sakIdFørstegang) = behandlingOpprettet(Søknad)
+        val førstegangsHendelsefabrikk = Hendelsefabrikk()
+        val (førstegangsbehandlingId, behandlingOpprettetFørstegang, sakIdFørstegang) = førstegangsHendelsefabrikk.behandlingOpprettet()
         behandlingOpprettetFørstegang.håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        vedtaksperiodeGodkjent(sakIdFørstegang).håndter(behandlingshendelseDao, førstegangsbehandlingId)
-        val behandling = vedtakFattet(førstegangsbehandlingId).håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        førstegangsHendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        førstegangsHendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        førstegangsHendelsefabrikk.vedtaksperiodeGodkjent().håndter(behandlingshendelseDao, førstegangsbehandlingId)
+        val behandling = førstegangsHendelsefabrikk.vedtakFattet().håndter(behandlingshendelseDao, førstegangsbehandlingId)
         assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
 
         // out of order
-        val (førstegangsbehandlingId2, behandlingOpprettetFørstegang2, sakIdFørstegang2) = behandlingOpprettet(Søknad)
+        val outOfOrderHendelsefabrikk = Hendelsefabrikk()
+        val (førstegangsbehandlingId2, behandlingOpprettetFørstegang2) = outOfOrderHendelsefabrikk.behandlingOpprettet()
         behandlingOpprettetFørstegang2.håndter(behandlingshendelseDao, førstegangsbehandlingId2)
-        vedtaksperiodeEndretTilVilkårsprøving(sakIdFørstegang2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
-        vedtaksperiodeEndretTilGodkjenning(sakIdFørstegang2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
-        vedtaksperiodeGodkjent(sakIdFørstegang2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
-        val behandling2 = vedtakFattet(førstegangsbehandlingId2).håndter(behandlingshendelseDao, førstegangsbehandlingId2)
+        outOfOrderHendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingshendelseDao, førstegangsbehandlingId2)
+        outOfOrderHendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, førstegangsbehandlingId2)
+        outOfOrderHendelsefabrikk.vedtaksperiodeGodkjent().håndter(behandlingshendelseDao, førstegangsbehandlingId2)
+        val behandling2 = outOfOrderHendelsefabrikk.vedtakFattet().håndter(behandlingshendelseDao, førstegangsbehandlingId2)
         assertEquals(FØRSTEGANGSBEHANDLING, behandling2.periodetype)
 
         // revurdering grunnet out of order
-        val (revurderingsbehandlingId, behandlingOpprettetRevurdering, sakIdRevurdering) = behandlingOpprettet(Søknad, sakId = sakIdFørstegang)
+        val (revurderingsbehandlingId, behandlingOpprettetRevurdering, sakIdRevurdering) = førstegangsHendelsefabrikk.behandlingOpprettet(behandlingId = nyBehandlingId())
         assertEquals(sakIdRevurdering, sakIdFørstegang)
         behandlingOpprettetRevurdering.håndter(behandlingshendelseDao, revurderingsbehandlingId)
-        vedtaksperiodeEndretTilGodkjenning(sakIdRevurdering).håndter(behandlingshendelseDao, revurderingsbehandlingId)
-        vedtaksperiodeGodkjent(sakIdRevurdering).håndter(behandlingshendelseDao, revurderingsbehandlingId)
-        val behandling3 = vedtakFattet(revurderingsbehandlingId).håndter(behandlingshendelseDao, revurderingsbehandlingId)
+        førstegangsHendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, revurderingsbehandlingId)
+        førstegangsHendelsefabrikk.vedtaksperiodeGodkjent().håndter(behandlingshendelseDao, revurderingsbehandlingId)
+        val behandling3 = førstegangsHendelsefabrikk.vedtakFattet(revurderingsbehandlingId).håndter(behandlingshendelseDao, revurderingsbehandlingId)
         // Dette blir strengt tatt en forlengelse, men vi har i skrivende stund ikke datagrunnlaget til å gjenkjenne et out-of-order-tilfelle
         // Vi forenkler derfor ved å si at en periode som på et eller annet tidligere tidspunkt har vært vilkårsprøvd er en førstegangsbehandling
         // Dette vil være riktig for "stor statistikk" ettersom det er få tilfeller av out-of-order
@@ -157,11 +164,12 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `peridodetype blir førstegangsbehandling ved godkjenning dersom tidligere hendelse på behandlingen er markert som førstegangsbehandling`() {
-        val (behandlingId, behandlingOpprettet, sakId) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertNull(behandlingshendelseDao.hent(behandlingId))
         behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
-        vedtaksperiodeEndretTilVilkårsprøving(sakId).håndter(behandlingshendelseDao, behandlingId)
-        val behandling = vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
+        hendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingshendelseDao, behandlingId)
+        val behandling = hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, behandlingId)
 
         assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
         assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
@@ -169,17 +177,18 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for godkjent vedtak`() {
-        val (behandlingId, behandlingOpprettet, sakId) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertNull(behandlingshendelseDao.hent(behandlingId))
         behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
-        vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
+        hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, behandlingId)
 
-        var behandling = vedtaksperiodeGodkjent(sakId).håndter(behandlingshendelseDao, behandlingId)
+        var behandling = hendelsefabrikk.vedtaksperiodeGodkjent().håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Metode.MANUELL, behandling.behandlingsmetode)
         assertNull(behandling.behandlingsresultat)
 
-        behandling = vedtakFattet(behandlingId).håndter(behandlingshendelseDao, behandlingId)
+        behandling = hendelsefabrikk.vedtakFattet().håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AUTOMATISK, behandling.hendelsesmetode)
         assertEquals(Behandling.Metode.MANUELL, behandling.behandlingsmetode)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
@@ -187,13 +196,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for utkast til vedtak som avvises av saksbehandler i speil`() {
-        val (behandlingId, behandlingOpprettet, sakId) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertNull(behandlingshendelseDao.hent(behandlingId))
         behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
-        vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
+        hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, behandlingId)
 
-        val behandling = vedtaksperiodeAvvist(sakId).håndter(behandlingshendelseDao, behandlingId)
+        val behandling = hendelsefabrikk.vedtaksperiodeAvvist().håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Metode.MANUELL, behandling.behandlingsmetode)
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
@@ -203,8 +213,9 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `presisjon på tidsstempler truncates ned til 6 desimaler i databasen`() {
+        val hendelsefabrikk = Hendelsefabrikk()
         val tidspunkt = LocalDateTime.parse("2024-02-13T15:29:54.123123123")
-        val (behandlingId, behandlingOpprettet, _) = behandlingOpprettet(Søknad, innsendt = tidspunkt, registrert = tidspunkt, opprettet = tidspunkt)
+        val (behandlingId, behandlingOpprettet, _) = hendelsefabrikk.behandlingOpprettet(innsendt = tidspunkt, registrert = tidspunkt, opprettet = tidspunkt)
         behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
         fun String.antallDesimaler() = if (this.contains(".")) this.split(".").last().length else 0
@@ -215,10 +226,11 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `presisjon på tidsstempler justeres opp til 6 desimaler i databasen`() {
+        val hendelsefabrikk = Hendelsefabrikk()
         val innsendt = LocalDateTime.parse("2024-02-13T15:29")
         val registrert = LocalDateTime.parse("2024-02-20T15:29")
         val opprettet = LocalDateTime.parse("2024-02-20T15:29:54.123")
-        val (behandlingId, behandlingOpprettet, _) = behandlingOpprettet(Søknad, innsendt = innsendt, registrert = registrert, opprettet = opprettet)
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet(innsendt = innsendt, registrert = registrert, opprettet = opprettet)
         behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
 
         fun String.antallDesimaler() = if (this.contains(".")) this.split(".").last().length else 0
@@ -229,13 +241,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for auu`() {
-        val (behandlingId, behandlingOpprettet) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertNull(behandlingshendelseDao.hent(behandlingId))
         var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
-        val avsluttetUtenVedtak = avsluttetUtenVedtak(behandlingId)
+        val avsluttetUtenVedtak = hendelsefabrikk.avsluttetUtenVedtak()
         behandling = avsluttetUtenVedtak.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingsresultat.HENLAGT, behandling.behandlingsresultat)
@@ -243,13 +256,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `start og slutt for forkastet periode`() {
-        val (behandlingId, behandlingOpprettet) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertNull(behandlingshendelseDao.hent(behandlingId))
         var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
-        val behandlingForkastet = behandlingForkastet(behandlingId)
+        val behandlingForkastet = hendelsefabrikk.behandlingForkastet()
         behandling = behandlingForkastet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
@@ -257,7 +271,8 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `annullering av en tidligere utbetalt periode`() {
-        val (januarBehandlingId, januarBehandlingOpprettet, januarSakId) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (januarBehandlingId, januarBehandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
 
         var utbetaltBehandling = januarBehandlingOpprettet.håndter(behandlingshendelseDao, januarBehandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, utbetaltBehandling.behandlingstatus)
@@ -266,21 +281,21 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(utbetaltBehandling.behandlingsmetode, AUTOMATISK)
 
 
-        val januarVedtakFattet = vedtakFattet(januarBehandlingId)
+        val januarVedtakFattet = hendelsefabrikk.vedtakFattet()
         utbetaltBehandling = januarVedtakFattet.håndter(behandlingshendelseDao, januarBehandlingId)
         assertEquals(AVSLUTTET, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, utbetaltBehandling.behandlingsresultat)
         assertEquals(AUTOMATISK, utbetaltBehandling.behandlingsmetode)
 
-        val (annulleringBehandlingId, januarAnnullertBehandlingOpprettet) = behandlingOpprettet(TilInfotrygd, januarSakId, avsender = Saksbehandler)
+        val (annulleringBehandlingId, januarAnnullertBehandlingOpprettet) = hendelsefabrikk.behandlingOpprettet(behandlingId = nyBehandlingId(), behandlingstype = TilInfotrygd, avsender = Saksbehandler)
         var annullertBehandling = januarAnnullertBehandlingOpprettet.håndter(behandlingshendelseDao, annulleringBehandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, annullertBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, annullertBehandling.behandlingstype)
         assertEquals(Behandling.Behandlingskilde.SAKSBEHANDLER, annullertBehandling.behandlingskilde)
         assertNull(annullertBehandling.behandlingsresultat)
 
-        val behandlingForkastet = behandlingForkastet(annulleringBehandlingId)
+        val behandlingForkastet = hendelsefabrikk.behandlingForkastet(annulleringBehandlingId)
         annullertBehandling = behandlingForkastet.håndter(behandlingshendelseDao, annulleringBehandlingId)
         utbetaltBehandling = behandlingshendelseDao.hent(januarBehandlingId)!!
 
@@ -300,13 +315,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `periode som blir forkastet på direkten`() {
-        val (behandlingId, behandlingOpprettet) = behandlingOpprettet(TilInfotrygd)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
         assertNull(behandling.behandlingsresultat)
 
-        val behandlingForkastet = behandlingForkastet(behandlingId)
+        val behandlingForkastet = hendelsefabrikk.behandlingForkastet()
         behandling = behandlingForkastet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
@@ -315,9 +331,10 @@ internal class TeamSakTest: AbstractDatabaseTest() {
 
     @Test
     fun `en omgjøring av auu`() {
-        val (behandlingId, behandlingOpprettet, sakId) = behandlingOpprettet(Søknad)
+        val hendelsefabrikk = Hendelsefabrikk()
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
 
-        val avsluttetUtenVedtak = avsluttetUtenVedtak(behandlingId)
+        val avsluttetUtenVedtak = hendelsefabrikk.avsluttetUtenVedtak(behandlingId)
 
         assertNull(behandlingshendelseDao.hent(behandlingId))
         var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
@@ -329,7 +346,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(Behandling.Behandlingsresultat.HENLAGT, behandling.behandlingsresultat)
         assertNull(behandling.relatertBehandlingId)
 
-        val (behandlingId2, behandlingOpprettet2) = behandlingOpprettet(Omgjøring, sakId, avsender = Arbeidsgiver)
+        val (behandlingId2, behandlingOpprettet2) = hendelsefabrikk.behandlingOpprettet(behandlingId = nyBehandlingId(), avsender = Arbeidsgiver, behandlingstype = Hendelsefabrikk.Omgjøring)
         val behandling2 = behandlingOpprettet2.håndter(behandlingshendelseDao, behandlingId2)
 
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling2.behandlingstatus)
@@ -359,22 +376,23 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     }
 
     private fun nyttVedtak(sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()), totrinnsbehandling: Boolean = false): Behandling {
-        val (_, behandlingOpprettet) = behandlingOpprettet(Søknad, sakId = sakId, behandlingId = behandlingId)
+        val hendelsefabrikk = Hendelsefabrikk(sakId, behandlingId)
+        val (_, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertNull(behandlingshendelseDao.hent(behandlingId))
         var behandling = behandlingOpprettet.håndter(behandlingshendelseDao, behandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
-        behandling = vedtaksperiodeEndretTilVilkårsprøving(sakId).håndter(behandlingshendelseDao, behandlingId)
+        behandling = hendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingshendelseDao, behandlingId)
         assertEquals(VURDERER_INNGANGSVILKÅR, behandling.behandlingstatus)
 
-        behandling = vedtaksperiodeEndretTilGodkjenning(sakId).håndter(behandlingshendelseDao, behandlingId)
+        behandling = hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
 
-        behandling = vedtaksperiodeGodkjent(sakId = sakId, totrinnsbehandling = totrinnsbehandling).håndter(behandlingshendelseDao, behandlingId)
+        behandling = hendelsefabrikk.vedtaksperiodeGodkjent(totrinnsbehandling = totrinnsbehandling).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(GODKJENT, behandling.behandlingstatus)
 
-        behandling = vedtakFattet(behandlingId, tags = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)).håndter(behandlingshendelseDao, behandlingId)
+        behandling = hendelsefabrikk.vedtakFattet(tags = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)).håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Mottaker.ARBEIDSGIVER, behandling.mottaker)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
@@ -423,24 +441,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     }
 
     internal companion object {
-       private val nå = LocalDateTime.now()
-       private var teller = 1L
-       private val nesteTidspunkt get() = nå.plusDays(teller++)
-
-       private val objectMapper = jacksonObjectMapper()
-       private val blob = objectMapper.createObjectNode()
-
-       internal val Sykmeldt = BehandlingOpprettet.Avsender("SYKMELDT")
-       internal val Arbeidsgiver = BehandlingOpprettet.Avsender("ARBEIDSGIVER")
-       internal val Saksbehandler = BehandlingOpprettet.Avsender("SAKSBEHANDLER")
-       internal val System = BehandlingOpprettet.Avsender("SYSTEM")
-
-       internal val Søknad = BehandlingOpprettet.Behandlingstype("Søknad")
-       internal val TilInfotrygd = BehandlingOpprettet.Behandlingstype("TilInfotrygd")
-       internal val Omgjøring = BehandlingOpprettet.Behandlingstype("Omgjøring")
-       internal val Revurdering = BehandlingOpprettet.Behandlingstype("Revurdering")
-
-
+        private val objectMapper = jacksonObjectMapper()
         private val String.printbar get() = take(25).padEnd(25, ' ') + "   "
         private fun List<ObjectNode>.printTabell() {
             println()
@@ -453,43 +454,5 @@ internal class TeamSakTest: AbstractDatabaseTest() {
             }
             println()
         }
-
-       internal fun behandlingOpprettet(
-           behandlingstype: BehandlingOpprettet.Behandlingstype,
-           sakId: SakId = SakId(UUID.randomUUID()),
-           behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()),
-           aktørId: String = "1234",
-           avsender: BehandlingOpprettet.Avsender = Sykmeldt,
-           innsendt: LocalDateTime = nesteTidspunkt,
-           registrert: LocalDateTime = nesteTidspunkt,
-           opprettet: LocalDateTime = nesteTidspunkt,
-       ): Triple<BehandlingId, BehandlingOpprettet, SakId> {
-           val behandlingskilde = BehandlingOpprettet.Behandlingskilde(innsendt, registrert, avsender)
-           val behandlingOpprettet = BehandlingOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, behandlingskilde, behandlingstype)
-           return Triple(behandlingId, behandlingOpprettet, sakId)
-       }
-       internal fun vedtakFattet(behandlingId: BehandlingId, tags: List<Tag> = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)) = VedtakFattet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id, tags)
-       internal fun avsluttetUtenVedtak(behandlingId: BehandlingId) = AvsluttetUtenVedtak(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId.id)
-       internal fun behandlingForkastet(behandlingId: BehandlingId, hendelsesmetode: Behandling.Metode = Behandling.Metode.MANUELL) = BehandlingForkastet(UUID.randomUUID(), nesteTidspunkt, blob, behandlingId = behandlingId.id, automatiskBehandling = hendelsesmetode == AUTOMATISK)
-       internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId) = VedtaksperiodeEndretTilGodkjenning(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
-       internal fun vedtaksperiodeEndretTilVilkårsprøving(sakId: SakId) = VedtaksperiodeEndretTilVilkårsprøving(UUID.randomUUID(), nesteTidspunkt, blob, sakId.id)
-       internal fun vedtaksperiodeGodkjent(sakId: SakId, totrinnsbehandling: Boolean = false) = VedtaksperiodeGodkjent(
-           id = UUID.randomUUID(),
-           opprettet = nesteTidspunkt,
-           data = blob,
-           vedtaksperiodeId = sakId.id,
-           saksbehandlerEnhet = "SB123",
-           beslutterEnhet = "SB456",
-           automatiskBehandling = false,
-           totrinnsbehandling = totrinnsbehandling
-       )
-       internal fun vedtaksperiodeAvvist(sakId: SakId) = VedtaksperiodeAvvist(
-           id = UUID.randomUUID(),
-           opprettet = nesteTidspunkt,
-           data = blob,
-           vedtaksperiodeId = sakId.id,
-           saksbehandlerEnhet = "SB123",
-           automatiskBehandling = false
-       )
    }
 }
