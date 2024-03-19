@@ -13,6 +13,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.TOTRINNS
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FORLENGELSE
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
@@ -185,12 +186,12 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, behandlingId)
 
         var behandling = hendelsefabrikk.vedtaksperiodeGodkjent().håndter(behandlingshendelseDao, behandlingId)
-        assertEquals(Behandling.Metode.MANUELL, behandling.behandlingsmetode)
+        assertEquals(MANUELL, behandling.behandlingsmetode)
         assertNull(behandling.behandlingsresultat)
 
         behandling = hendelsefabrikk.vedtakFattet().håndter(behandlingshendelseDao, behandlingId)
         assertEquals(AUTOMATISK, behandling.hendelsesmetode)
-        assertEquals(Behandling.Metode.MANUELL, behandling.behandlingsmetode)
+        assertEquals(MANUELL, behandling.behandlingsmetode)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
     }
 
@@ -204,7 +205,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingshendelseDao, behandlingId)
 
         val behandling = hendelsefabrikk.vedtaksperiodeAvvist().håndter(behandlingshendelseDao, behandlingId)
-        assertEquals(Behandling.Metode.MANUELL, behandling.behandlingsmetode)
+        assertEquals(MANUELL, behandling.behandlingsmetode)
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals("SB123", behandling.saksbehandlerEnhet)
@@ -272,13 +273,14 @@ internal class TeamSakTest: AbstractDatabaseTest() {
     @Test
     fun `annullering av en tidligere utbetalt periode`() {
         val hendelsefabrikk = Hendelsefabrikk()
-        val (januarBehandlingId, januarBehandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
+        val (januarBehandlingId, januarBehandlingOpprettet) = hendelsefabrikk.behandlingOpprettet(avsender = Saksbehandler)
 
         var utbetaltBehandling = januarBehandlingOpprettet.håndter(behandlingshendelseDao, januarBehandlingId)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, utbetaltBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
         assertNull(utbetaltBehandling.behandlingsresultat)
         assertEquals(utbetaltBehandling.behandlingsmetode, AUTOMATISK)
+        assertEquals(utbetaltBehandling.hendelsesmetode, MANUELL)
 
 
         val januarVedtakFattet = hendelsefabrikk.vedtakFattet()
@@ -310,7 +312,7 @@ internal class TeamSakTest: AbstractDatabaseTest() {
         assertEquals(AVSLUTTET, annullertBehandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, annullertBehandling.behandlingstype)
         assertEquals(AVBRUTT, annullertBehandling.behandlingsresultat)
-        assertEquals(Behandling.Metode.MANUELL, annullertBehandling.behandlingsmetode)
+        assertEquals(MANUELL, annullertBehandling.behandlingsmetode)
     }
 
     @Test

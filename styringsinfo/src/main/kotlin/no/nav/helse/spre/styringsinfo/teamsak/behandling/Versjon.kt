@@ -62,7 +62,8 @@ internal class Versjon private constructor(
             Patch("Henter riktig behandlingId fra sakId"),
             Patch("Legger til flere enumverdier for behandlingsresultat (innvilget, delvis innvilget og avslag)"),
             Minor("Slutter å forkaste tidligere behandlinger når en behandling forkastes, nå markerer vi kun siste behandling som AVBRUTT"),
-            LeggTil("hendelsesmetode")
+            LeggTil("hendelsesmetode"),
+            Patch("Setter alltid behandlingsmetode til automatisk ved behandling_opprettet")
         ).genererVersjoner
 
         internal val List<Versjonsutleder>.genererVersjoner: Map<Set<String>, Versjon> get() {
