@@ -27,11 +27,6 @@ internal class BuilderTest {
 
     @Test
     fun behandlingsmetode() {
-        val behandlingsmetodeNull = lagBehandling().copy(behandlingsmetode = null)
-        assertEquals(Behandling.Metode.AUTOMATISK, Behandling.Builder(behandlingsmetodeNull).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.AUTOMATISK)?.behandlingsmetode)
-        assertEquals(Behandling.Metode.MANUELL, Behandling.Builder(behandlingsmetodeNull).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.MANUELL)?.behandlingsmetode)
-        assertEquals(Behandling.Metode.TOTRINNS, Behandling.Builder(behandlingsmetodeNull).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.TOTRINNS)?.behandlingsmetode)
-
         val behandlingsmetodeAutomatisk = lagBehandling().copy(behandlingsmetode = Behandling.Metode.AUTOMATISK)
         assertEquals(Behandling.Metode.AUTOMATISK, Behandling.Builder(behandlingsmetodeAutomatisk).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.AUTOMATISK)?.behandlingsmetode)
         assertEquals(Behandling.Metode.MANUELL, Behandling.Builder(behandlingsmetodeAutomatisk).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.MANUELL)?.behandlingsmetode)

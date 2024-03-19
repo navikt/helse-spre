@@ -15,7 +15,6 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -66,13 +65,6 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         val korrigertInfo = behandling.copy(behandlingskilde = SAKSBEHANDLER, funksjonellTid = etter)
         assertTrue(behandlingshendelseDao.lagre(korrigertInfo, hendelseId))
         assertEquals(2, behandlingId.rader)
-    }
-
-    @Test
-    fun `kan ikke lagre behandling uten behandlingsmetode`() {
-        val behandlingId = BehandlingId(UUID.randomUUID())
-        val utenBehandlingsmetode = nyBehandling(behandlingId, nå).copy(behandlingsmetode = null)
-        assertThrows<IllegalStateException> { behandlingshendelseDao.lagre(utenBehandlingsmetode, hendelseId) }
     }
 
     @BeforeEach

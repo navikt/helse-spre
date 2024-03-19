@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class V40__hendelsesmetodeTest: BehandlingshendelseJsonMigreringTest(
+internal class V40HendelsesmetodeTest: BehandlingshendelseJsonMigreringTest(
     migrering = V40__hendelsesmetode(),
     dataSource = dataSource
 ) {

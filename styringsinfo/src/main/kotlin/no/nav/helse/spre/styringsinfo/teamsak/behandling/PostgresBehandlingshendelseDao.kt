@@ -16,7 +16,6 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         hent(behandlingId)?.let { Behandling.Builder(it) }
 
     override fun lagre(behandling: Behandling, hendelseId: UUID): Boolean {
-        checkNotNull(behandling.behandlingsmetode) { "Nye rader i behandlingshendelse _må_ ha behandlingsmetode satt!" } // TODO: Om vi sletter datasettet bør vi ordne slik at den ikke er nullable, da slipper vi dette hacket.
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
             if (!tx.kanLagres(behandling, hendelseId)) return false
             tx.markerGamle(behandling.behandlingId)
@@ -56,7 +55,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             put("behandlingtype", behandling.behandlingstype.name)
             put("behandlingskilde", behandling.behandlingskilde.name)
             put("hendelsesmetode", behandling.hendelsesmetode.name)
-            putString("behandlingsmetode", behandling.behandlingsmetode?.name)
+            put("behandlingsmetode", behandling.behandlingsmetode.name)
             putString("relatertBehandlingId", behandling.relatertBehandlingId?.toString())
             putString("behandlingsresultat", behandling.behandlingsresultat?.name)
             putString("periodetype", behandling.periodetype?.name)
@@ -101,7 +100,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             periodetype = data.path("periodetype").textOrNull?.let { Behandling.Periodetype.valueOf(it) },
             behandlingsresultat = data.path("behandlingsresultat").textOrNull?.let { Behandling.Behandlingsresultat.valueOf(it) },
             behandlingskilde = Behandling.Behandlingskilde.valueOf(data.path("behandlingskilde").asText()),
-            behandlingsmetode = data.path("behandlingsmetode").textOrNull?.let { Behandling.Metode.valueOf(it) },
+            behandlingsmetode = Behandling.Metode.valueOf(data.path("behandlingsmetode").asText()),
             hendelsesmetode = Behandling.Metode.valueOf(data.path("hendelsesmetode").asText()),
             saksbehandlerEnhet = data.path("saksbehandlerEnhet").textOrNull,
             beslutterEnhet = data.path("beslutterEnhet").textOrNull,
@@ -136,7 +135,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         private val logger = LoggerFactory.getLogger(PostgresBehandlingshendelseDao::class.java)
         private val objectMapper = jacksonObjectMapper()
 
-        val formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS") // timestamps lagres med 6 desimaler i db
+        private val formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS") // timestamps lagres med 6 desimaler i db
 
         private val JsonNode.textOrNull get() = takeIf { it.isTextual }?.asText()
         private val JsonNode.uuidOrNull get() = textOrNull?.let { UUID.fromString(it) }

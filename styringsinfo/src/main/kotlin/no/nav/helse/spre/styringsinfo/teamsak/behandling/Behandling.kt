@@ -30,7 +30,7 @@ internal data class Behandling(
     internal val periodetype: Periodetype? = null,
     internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
-    internal val behandlingsmetode: Metode?,
+    internal val behandlingsmetode: Metode,
     internal val hendelsesmetode: Metode,
     internal val mottaker: Mottaker? = null,
     internal val saksbehandlerEnhet: String? = null,
