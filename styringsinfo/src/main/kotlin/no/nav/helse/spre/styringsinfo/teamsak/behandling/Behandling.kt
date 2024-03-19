@@ -138,13 +138,10 @@ internal data class Behandling(
         private companion object {
             private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
-            private operator fun Metode?.plus(ny: Metode): Metode {
-                val forrige = this ?: return ny
-                return when (forrige) {
-                    Metode.AUTOMATISK -> ny
-                    Metode.MANUELL -> if (ny == Metode.TOTRINNS) Metode.TOTRINNS else Metode.MANUELL
-                    Metode.TOTRINNS -> Metode.TOTRINNS
-                }
+            private operator fun Metode.plus(ny: Metode) = when (this) {
+                Metode.AUTOMATISK -> ny
+                Metode.MANUELL -> if (ny == Metode.TOTRINNS) Metode.TOTRINNS else Metode.MANUELL
+                Metode.TOTRINNS -> Metode.TOTRINNS
             }
 
             private fun valider(forrige: Behandling, ny: Behandling) {
