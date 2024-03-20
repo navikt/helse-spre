@@ -56,7 +56,6 @@ internal data class Behandling(
     }
     
     internal enum class Behandlingsresultat {
-        VEDTATT, // Vi har fått mer granulære resultater (innvilget/delvis innvilget/avslag), men trenger fortsatt denne for tidligere behandlinger
         INNVILGET,
         DELVIS_INNVILGET,
         AVSLAG,
@@ -139,7 +138,7 @@ internal data class Behandling(
                 return null
             }
 
-            valider(forrige, ny)
+            valider(forrige)
 
             return ny
         }
@@ -153,12 +152,7 @@ internal data class Behandling(
                 Metode.TOTRINNS -> Metode.TOTRINNS
             }
 
-            private fun valider(forrige: Behandling, ny: Behandling) {
-                if (ny.behandlingsresultat == Behandlingsresultat.VEDTATT) {
-                    // TODO: Dette kan kanskje bli en exception? 🤔 Hvertfall om vi starter med nytt datasett
-                    sikkerLogg.warn("Nå lagrer vi en rad i behandlingshendelse med behandlingsresultatt VEDTATT, det virker riv ruskende rart. Ta en titt på behandlingen")
-                }
-
+            private fun valider(forrige: Behandling) {
                 if (forrige.behandlingstatus == Behandlingstatus.AVSLUTTET) {
                     "Nå prøvde jeg å lagre en ny rad på samme behandling, selv om status er AVSLUTTET. Det må være en feil, ta en titt!".let { feilmelding ->
                         sikkerLogg.error(feilmelding)
