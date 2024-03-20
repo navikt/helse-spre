@@ -1,1 +1,4 @@
 kafkaPool: nav-dev
+replicas:
+  min: 0
+  max: 0
