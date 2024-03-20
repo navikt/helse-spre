@@ -1,5 +1,6 @@
 kafkaPool: nav-prod
-maxReplicas: 6
+replicas:
+  max: 6
 azure:
   enabled: true
 gcp:
