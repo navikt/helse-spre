@@ -7,7 +7,6 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.ANNULLERT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
@@ -35,8 +34,7 @@ internal class BehandlingForkastet(
         if (behandling.behandlingsresultat == ANNULLERT) return false // TODO: Denne kan vi fjern når Spleis ikke forkaster generasjon når det er blitt annullert
         val builder = Behandling.Builder(behandling)
         val ny = builder
-            .behandlingstatus(AVSLUTTET)
-            .behandlingsresultat(AVBRUTT)
+            .avslutt(AVBRUTT)
             .build(opprettet, hendelsesmetode)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)

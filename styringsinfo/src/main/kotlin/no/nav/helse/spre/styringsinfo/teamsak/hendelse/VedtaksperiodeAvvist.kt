@@ -9,7 +9,6 @@ import no.nav.helse.spre.styringsinfo.teamsak.Saksbehandler
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.asSakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
@@ -36,8 +35,7 @@ internal class VedtaksperiodeAvvist(
         val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
         val hendelsesmetode = if (automatiskBehandling) AUTOMATISK else MANUELL
         val ny = builder
-            .behandlingstatus(AVSLUTTET)
-            .behandlingsresultat(AVBRUTT)
+            .avslutt(AVBRUTT)
             .saksbehandlerEnhet(saksbehandlerEnhet)
             .build(opprettet, hendelsesmetode)
             ?: return false

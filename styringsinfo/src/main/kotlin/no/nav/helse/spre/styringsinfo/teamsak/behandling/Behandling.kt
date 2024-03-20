@@ -98,7 +98,10 @@ internal data class Behandling(
         private var saksbehandlerEnhet: String? = null
         private var beslutterEnhet: String? = null
 
-        internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply { this.behandlingstatus = behandlingstatus }
+        internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply {
+            check(behandlingstatus != Behandlingstatus.AVSLUTTET) { "Bruk funksjonen for å avslutte med behandingsresultat" }
+            this.behandlingstatus = behandlingstatus
+        }
         internal fun periodetype(periodetype: Periodetype) = apply { this.periodetype = periodetype }
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat?) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun mottaker(mottaker: Mottaker?) = apply { this.mottaker = mottaker }

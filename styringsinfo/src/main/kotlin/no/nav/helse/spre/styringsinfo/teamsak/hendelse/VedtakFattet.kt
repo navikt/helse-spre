@@ -10,7 +10,6 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVSLAG
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.DELVIS_INNVILGET
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
@@ -46,9 +45,8 @@ internal class VedtakFattet(
         val mottaker = mottaker(tags, behandlingId, id)
         val behandlingsresultat = behandlingsresultat(tags, behandlingId, id)
         val ny = builder
-            .behandlingstatus(AVSLUTTET)
             .mottaker(mottaker)
-            .behandlingsresultat(behandlingsresultat)
+            .avslutt(behandlingsresultat)
             .build(opprettet, AUTOMATISK)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
