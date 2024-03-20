@@ -1,9 +1,0 @@
-kafkaPool: nav-prod
-replicas:
-  min: 0
-  max: 0
-gcp:
-  type: POSTGRES_12
-  databaseName: spre-saksbehandlingsstatistikk
-kafkaConsumerGroup: tbd-spre-saksbehandlingsstatistikk-v4
-kafkaResetPolicy: earliest
