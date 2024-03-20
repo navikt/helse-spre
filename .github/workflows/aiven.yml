@@ -11,8 +11,6 @@ on:
     - 'config/saksbehandlingsstatistikk/aiven-temp-dokumenter-prod.yml'
     - 'config/oppgaver/aiven-dev-spre-oppgaver.yml'
     - 'config/oppgaver/aiven-prod-spre-oppgaver.yml'
-    - 'config/arbeidsgiver/aiven-dev.yml'
-    - 'config/arbeidsgiver/aiven-prod.yml'
 
 jobs:
   deployDev:
@@ -30,11 +28,6 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: config/oppgaver/aiven-dev-spre-oppgaver.yml
-      - uses: nais/deploy/actions/deploy@v2
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: dev-gcp
-          RESOURCE: config/arbeidsgiver/aiven-dev.yml
 
   deployProd:
     name: apply kafka-topic i prod
@@ -51,8 +44,3 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: config/oppgaver/aiven-prod-spre-oppgaver.yml
-      - uses: nais/deploy/actions/deploy@v2
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: prod-gcp
-          RESOURCE: config/arbeidsgiver/aiven-prod.yml

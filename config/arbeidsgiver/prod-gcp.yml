@@ -1,4 +1,0 @@
-kafkaPool: nav-prod
-replicas:
-  min: 0
-  max: 0
