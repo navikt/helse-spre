@@ -61,7 +61,8 @@ internal data class Behandling(
         DELVIS_INNVILGET,
         AVSLAG,
         HENLAGT,
-        AVBRUTT
+        AVBRUTT,
+        ANNULLERT
     }
 
     internal enum class Behandlingskilde {
@@ -103,6 +104,11 @@ internal data class Behandling(
         internal fun mottaker(mottaker: Mottaker?) = apply { this.mottaker = mottaker }
         internal fun saksbehandlerEnhet(saksbehandlerEnhet: String?) = apply { this.saksbehandlerEnhet = saksbehandlerEnhet }
         internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
+
+        internal fun avslutt(behandlingsresultat: Behandlingsresultat) = apply {
+            this.behandlingstatus = Behandlingstatus.AVSLUTTET
+            this.behandlingsresultat = behandlingsresultat
+        }
 
         internal fun build(funksjonellTid: LocalDateTime, hendelsesmetode: Metode): Behandling? {
             val ny = Behandling(

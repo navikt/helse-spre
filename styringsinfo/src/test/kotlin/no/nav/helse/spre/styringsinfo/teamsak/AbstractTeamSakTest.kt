@@ -60,6 +60,17 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         return behandling
     }
 
+    protected fun nyAuu(sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID())): Behandling {
+        val hendelsefabrikk = Hendelsefabrikk(sakId, behandlingId)
+        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
+        val behandling = behandlingOpprettet.håndter(behandlingId)
+        assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
+        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
+        assertNull(behandling.behandlingsresultat)
+        assertNull(behandling.relatertBehandlingId)
+        return behandling
+    }
+
     protected val BehandlingId.rader get() =  sessionOf(dataSource).use { session ->
         session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
     } ?: 0

@@ -84,6 +84,13 @@ internal class Hendelsefabrikk(
         automatiskBehandling = false
     )
 
+    internal fun vedtaksperiodeAnnullert(behandlingId: BehandlingId = this.behandlingId) = VedtaksperiodeAnnullert(
+        id = UUID.randomUUID(),
+        opprettet = nesteTidspunkt,
+        data = blob,
+        behandlingId = behandlingId.id
+    )
+
     internal companion object {
         private val nå = LocalDateTime.now()
         private var teller = 1L
@@ -98,7 +105,6 @@ internal class Hendelsefabrikk(
         internal val System = BehandlingOpprettet.Avsender("SYSTEM")
 
         internal val Søknad = BehandlingOpprettet.Behandlingstype("Søknad")
-        internal val TilInfotrygd = BehandlingOpprettet.Behandlingstype("TilInfotrygd")
         internal val Omgjøring = BehandlingOpprettet.Behandlingstype("Omgjøring")
         internal val Revurdering = BehandlingOpprettet.Behandlingstype("Revurdering")
 

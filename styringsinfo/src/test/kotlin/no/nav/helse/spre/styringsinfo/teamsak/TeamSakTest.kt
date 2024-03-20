@@ -1,8 +1,5 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
-import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk.Companion.Arbeidsgiver
-import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk.Companion.Saksbehandler
-import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk.Companion.TilInfotrygd
 import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk.Companion.nyBehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
@@ -250,51 +247,6 @@ internal class TeamSakTest: AbstractTeamSakTest() {
     }
 
     @Test
-    fun `annullering av en tidligere utbetalt periode`() {
-        val hendelsefabrikk = Hendelsefabrikk()
-        val (januarBehandlingId, januarBehandlingOpprettet) = hendelsefabrikk.behandlingOpprettet(avsender = Saksbehandler)
-
-        var utbetaltBehandling = januarBehandlingOpprettet.håndter(januarBehandlingId)
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, utbetaltBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
-        assertNull(utbetaltBehandling.behandlingsresultat)
-        assertEquals(utbetaltBehandling.behandlingsmetode, AUTOMATISK)
-        assertEquals(utbetaltBehandling.hendelsesmetode, MANUELL)
-
-
-        val januarVedtakFattet = hendelsefabrikk.vedtakFattet()
-        utbetaltBehandling = januarVedtakFattet.håndter(januarBehandlingId)
-        assertEquals(AVSLUTTET, utbetaltBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.INNVILGET, utbetaltBehandling.behandlingsresultat)
-        assertEquals(AUTOMATISK, utbetaltBehandling.behandlingsmetode)
-
-        val (annulleringBehandlingId, januarAnnullertBehandlingOpprettet) = hendelsefabrikk.behandlingOpprettet(behandlingId = nyBehandlingId(), behandlingstype = TilInfotrygd, avsender = Saksbehandler)
-        var annullertBehandling = januarAnnullertBehandlingOpprettet.håndter(annulleringBehandlingId)
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, annullertBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.SØKNAD, annullertBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingskilde.SAKSBEHANDLER, annullertBehandling.behandlingskilde)
-        assertNull(annullertBehandling.behandlingsresultat)
-
-        val behandlingForkastet = hendelsefabrikk.behandlingForkastet(annulleringBehandlingId)
-        annullertBehandling = behandlingForkastet.håndter(annulleringBehandlingId)
-        utbetaltBehandling = behandling(januarBehandlingId)
-
-        assertEquals(2, januarBehandlingId.rader) // Registrert, Vedtatt
-        assertEquals(2, annulleringBehandlingId.rader) // Registrert, Avbrutt
-
-        assertEquals(AVSLUTTET, utbetaltBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.INNVILGET, utbetaltBehandling.behandlingsresultat)
-        assertEquals(AUTOMATISK, utbetaltBehandling.behandlingsmetode)
-
-        assertEquals(AVSLUTTET, annullertBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.SØKNAD, annullertBehandling.behandlingstype)
-        assertEquals(AVBRUTT, annullertBehandling.behandlingsresultat)
-        assertEquals(MANUELL, annullertBehandling.behandlingsmetode)
-    }
-
-    @Test
     fun `periode som blir forkastet på direkten`() {
         val hendelsefabrikk = Hendelsefabrikk()
         val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
@@ -308,32 +260,6 @@ internal class TeamSakTest: AbstractTeamSakTest() {
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
-    }
-
-    @Test
-    fun `en omgjøring av auu`() {
-        val hendelsefabrikk = Hendelsefabrikk()
-        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
-
-        val avsluttetUtenVedtak = hendelsefabrikk.avsluttetUtenVedtak(behandlingId)
-
-        assertUkjentBehandling(behandlingId)
-        var behandling = behandlingOpprettet.håndter(behandlingId)
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
-        assertNull(behandling.relatertBehandlingId)
-
-        behandling = avsluttetUtenVedtak.håndter(behandlingId)
-        assertEquals(AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingsresultat.HENLAGT, behandling.behandlingsresultat)
-        assertNull(behandling.relatertBehandlingId)
-
-        val (behandlingId2, behandlingOpprettet2) = hendelsefabrikk.behandlingOpprettet(behandlingId = nyBehandlingId(), avsender = Arbeidsgiver, behandlingstype = Hendelsefabrikk.Omgjøring)
-        val behandling2 = behandlingOpprettet2.håndter(behandlingId2)
-
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling2.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.OMGJØRING, behandling2.behandlingstype)
-        assertEquals(Behandling.Behandlingskilde.ARBEIDSGIVER, behandling2.behandlingskilde)
-        assertEquals(behandlingId, behandling2.relatertBehandlingId)
     }
 
     @Test

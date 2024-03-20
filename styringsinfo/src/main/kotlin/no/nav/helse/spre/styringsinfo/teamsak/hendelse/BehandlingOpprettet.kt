@@ -69,7 +69,7 @@ internal class BehandlingOpprettet(
         }
 
         private val Behandlingstype.behandlingstype get() = when (verdi) {
-            "TilInfotrygd", "Søknad" -> Behandling.Behandlingstype.SØKNAD
+            "Søknad" -> Behandling.Behandlingstype.SØKNAD
             "Omgjøring" -> Behandling.Behandlingstype.OMGJØRING
             "Revurdering" -> Behandling.Behandlingstype.REVURDERING
             else -> throw IllegalStateException("Kjenner ikke til behandlingstype $verdi")
