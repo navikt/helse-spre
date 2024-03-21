@@ -6,6 +6,6 @@ internal interface BehandlingshendelseDao {
     fun initialiser(behandlingId: BehandlingId): Behandling.Builder?
     fun lagre(behandling: Behandling, hendelseId: UUID): Boolean
     fun hent(behandlingId: BehandlingId): Behandling?
-    fun behandlingIdFraForrigeBehandlingshendelse(sakId: SakId): BehandlingId?
+    fun sisteBehandlingId(sakId: SakId): BehandlingId?
     fun erFørstegangsbehandling(sakId: SakId): Boolean
 }

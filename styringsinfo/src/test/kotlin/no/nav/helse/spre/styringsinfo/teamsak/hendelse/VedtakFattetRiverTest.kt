@@ -50,7 +50,7 @@ internal class VedtakFattetRiverTest {
     }
 
     @Test
-    fun `tags`() {
+    fun tags() {
         testRapid.sendTestMessage(
             vedtakFattet(
                 tags = listOf(
@@ -100,6 +100,6 @@ internal class TestBehandlingshendelseDao : BehandlingshendelseDao {
     override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? = null
     override fun lagre(behandling: Behandling, hendelseId: UUID) = true
     override fun hent(behandlingId: BehandlingId): Behandling? = null
-    override fun behandlingIdFraForrigeBehandlingshendelse(sakId: SakId): BehandlingId? = null
+    override fun sisteBehandlingId(sakId: SakId): BehandlingId? = null
     override fun erFørstegangsbehandling(sakId: SakId): Boolean = true
 }

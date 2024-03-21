@@ -31,7 +31,7 @@ internal class VedtaksperiodeAvvist(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val behandlingId = behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(vedtaksperiodeId.asSakId()) ?: return false
+        val behandlingId = behandlingshendelseDao.sisteBehandlingId(vedtaksperiodeId.asSakId()) ?: return false
         val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
         val hendelsesmetode = if (automatiskBehandling) AUTOMATISK else MANUELL
         val ny = builder

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class RelatertBehandlingidTest: BehandlingshendelseJsonMigreringTest(
+internal class SisteBehandlingIdTest: BehandlingshendelseJsonMigreringTest(
     migrering = V1337__Behandling1Migrering(),
     forrigeVersjon = MigrationVersion.LATEST,
     dataSource = dataSource
@@ -20,7 +20,7 @@ internal class RelatertBehandlingidTest: BehandlingshendelseJsonMigreringTest(
     private val behandlingshendelseDao: BehandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
 
     @Test
-    fun `finner riktig relatertBehandlingId etter migrering av tidligere behandling`() {
+    fun `finner riktig sisteBehandlingId etter migrering av tidligere behandling`() {
         val sakId = UUID.randomUUID()
         val behandlingId2 = UUID.randomUUID()
 
@@ -32,7 +32,7 @@ internal class RelatertBehandlingidTest: BehandlingshendelseJsonMigreringTest(
 
         assertEquals(
             BehandlingId(behandlingId2),
-            behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(sakId.asSakId())
+            behandlingshendelseDao.sisteBehandlingId(sakId.asSakId())
         )
 
         // Migrerer kun behandling 1
@@ -41,7 +41,7 @@ internal class RelatertBehandlingidTest: BehandlingshendelseJsonMigreringTest(
 
         assertEquals(
             BehandlingId(behandlingId2),
-            behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(sakId.asSakId())
+            behandlingshendelseDao.sisteBehandlingId(sakId.asSakId())
         )
     }
 

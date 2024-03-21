@@ -108,7 +108,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         )
     }
 
-    override fun behandlingIdFraForrigeBehandlingshendelse(sakId: SakId): BehandlingId? {
+    override fun sisteBehandlingId(sakId: SakId): BehandlingId? {
         val sql = """
             select behandlingId from behandlingshendelse where sakId='${sakId}' and siste=true order by funksjonelltid desc limit 1
         """

@@ -41,7 +41,7 @@ internal class BehandlingOpprettet(
         val behandling = Behandling(
             sakId = sakId,
             behandlingId = BehandlingId(behandlingId),
-            relatertBehandlingId = behandlingshendelseDao.behandlingIdFraForrigeBehandlingshendelse(sakId),
+            relatertBehandlingId = behandlingshendelseDao.sisteBehandlingId(sakId),
             aktørId = aktørId,
             mottattTid = this.behandlingskilde.innsendt,
             registrertTid = this.behandlingskilde.registrert,
