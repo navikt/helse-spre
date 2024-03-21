@@ -11,8 +11,6 @@ internal data class SakId(val id: UUID) {
     override fun toString() = "$id"
 }
 
-internal fun UUID.asSakId() = SakId(this)
-
 internal data class BehandlingId(val id: UUID) {
     override fun toString() = "$id"
 }
@@ -31,7 +29,7 @@ internal data class Behandling(
     internal val behandlingsresultat: Behandlingsresultat? = null,
     internal val behandlingskilde: Behandlingskilde,
     internal val behandlingsmetode: Metode,
-    internal val hendelsesmetode: Metode,
+    internal val hendelsesmetode: Metode,             // __INTERN__ verdi som ikke teles med Team 🎷
     internal val mottaker: Mottaker? = null,
     internal val saksbehandlerEnhet: String? = null,
     internal val beslutterEnhet: String? = null,

@@ -24,8 +24,7 @@ internal class VedtaksperiodeEndretTilVilkårsprøving(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val behandlingId = behandlingshendelseDao.sisteBehandlingId(SakId(vedtaksperiodeId)) ?: return false
-        val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
+        val builder = behandlingshendelseDao.initialiser(SakId(vedtaksperiodeId)) ?: return false
         val ny = builder
             .behandlingstatus(VURDERER_INNGANGSVILKÅR)
             .periodetype(FØRSTEGANGSBEHANDLING)

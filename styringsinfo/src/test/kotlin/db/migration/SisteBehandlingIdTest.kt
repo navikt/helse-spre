@@ -5,7 +5,6 @@ import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.asSakId
 import org.flywaydb.core.api.MigrationVersion
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -32,7 +31,7 @@ internal class SisteBehandlingIdTest: BehandlingshendelseJsonMigreringTest(
 
         assertEquals(
             BehandlingId(behandlingId2),
-            behandlingshendelseDao.sisteBehandlingId(sakId.asSakId())
+            behandlingshendelseDao.sisteBehandlingId(SakId(sakId))
         )
 
         // Migrerer kun behandling 1
@@ -41,7 +40,7 @@ internal class SisteBehandlingIdTest: BehandlingshendelseJsonMigreringTest(
 
         assertEquals(
             BehandlingId(behandlingId2),
-            behandlingshendelseDao.sisteBehandlingId(sakId.asSakId())
+            behandlingshendelseDao.sisteBehandlingId(SakId(sakId))
         )
     }
 

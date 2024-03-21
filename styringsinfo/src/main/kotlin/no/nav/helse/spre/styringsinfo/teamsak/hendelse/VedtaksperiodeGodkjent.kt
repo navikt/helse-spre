@@ -9,7 +9,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.Saksbehandler
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.GODKJENT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.asSakId
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
@@ -32,8 +32,7 @@ internal class VedtaksperiodeGodkjent(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val behandlingId = behandlingshendelseDao.sisteBehandlingId(vedtaksperiodeId.asSakId()) ?: return false
-        val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
+        val builder = behandlingshendelseDao.initialiser(SakId(vedtaksperiodeId)) ?: return false
         val hendelsesmetode = if (automatiskBehandling) AUTOMATISK else if (totrinnsbehandling) TOTRINNS else MANUELL
         val ny = builder
             .behandlingstatus(GODKJENT)

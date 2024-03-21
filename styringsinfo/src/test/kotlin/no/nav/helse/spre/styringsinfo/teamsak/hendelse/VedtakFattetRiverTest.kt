@@ -98,6 +98,7 @@ internal class TestHendelseDao() : HendelseDao {
 
 internal class TestBehandlingshendelseDao : BehandlingshendelseDao {
     override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? = null
+    override fun initialiser(sakId: SakId): Behandling.Builder? = null
     override fun lagre(behandling: Behandling, hendelseId: UUID) = true
     override fun hent(behandlingId: BehandlingId): Behandling? = null
     override fun sisteBehandlingId(sakId: SakId): BehandlingId? = null
