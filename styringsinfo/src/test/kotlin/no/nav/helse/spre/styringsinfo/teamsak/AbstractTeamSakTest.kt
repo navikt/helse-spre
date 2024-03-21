@@ -62,7 +62,7 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
 
     protected fun nyAuu(sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID())): Behandling {
         val hendelsefabrikk = Hendelsefabrikk(sakId, behandlingId)
-        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
+        val (_, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         val behandling = behandlingOpprettet.håndter(behandlingId)
         assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
@@ -74,24 +74,6 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
     protected val BehandlingId.rader get() =  sessionOf(dataSource).use { session ->
         session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
     } ?: 0
-
-    protected val mottattTid get() = sessionOf(dataSource).use { session ->
-        session.run(queryOf("select data->>'mottattTid' from behandlingshendelse LIMIT 1").map { row ->
-            row.string(1)
-        }.asSingle)
-    }
-
-    protected val registrertTid get() = sessionOf(dataSource).use { session ->
-        session.run(queryOf("select data->>'registrertTid' from behandlingshendelse LIMIT 1").map { row ->
-            row.string(1)
-        }.asSingle)
-    }
-
-    protected val funksjonellTid get() = sessionOf(dataSource).use { session ->
-        session.run(queryOf("select funksjonellTid from behandlingshendelse LIMIT 1").map { row ->
-            row.string(1)
-        }.asSingle)
-    }
 
     protected fun Hendelse.håndter(behandlingId: BehandlingId): Behandling {
         hendelseDao.lagre(this)
