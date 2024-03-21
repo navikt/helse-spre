@@ -11,12 +11,12 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.b
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.*
 
 internal class VedtaksperiodeAnnullert(
     override val id: UUID,
-    override val opprettet: LocalDateTime,
+    override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     behandlingId: UUID
 ) : Hendelse {

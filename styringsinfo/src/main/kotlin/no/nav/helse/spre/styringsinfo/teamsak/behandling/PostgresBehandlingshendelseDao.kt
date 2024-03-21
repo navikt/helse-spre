@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.*
+import no.nav.helse.spre.styringsinfo.teamsak.localDateTimeOslo
+import no.nav.helse.spre.styringsinfo.teamsak.offsetDateTimeOslo
+import no.nav.helse.spre.styringsinfo.toOsloOffset
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.sql.DataSource
@@ -53,8 +56,8 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
 
         val data = objectMapper.createObjectNode().apply {
             put("aktørId", behandling.aktørId)
-            put("mottattTid", behandling.mottattTid.format(formatter))
-            put("registrertTid", behandling.registrertTid.format(formatter))
+            put("mottattTid", behandling.mottattTid.tilJson)
+            put("registrertTid", behandling.registrertTid.tilJson)
             put("behandlingstatus", behandling.behandlingstatus.name)
             put("behandlingtype", behandling.behandlingstype.name)
             put("behandlingskilde", behandling.behandlingskilde.name)
@@ -96,9 +99,9 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             behandlingId = BehandlingId(uuid("behandlingId")),
             relatertBehandlingId = data.path("relatertBehandlingId").uuidOrNull?.let { BehandlingId(it) },
             aktørId = data.path("aktørId").asText(),
-            mottattTid = LocalDateTime.parse(data.path("mottattTid").asText()),
-            registrertTid = LocalDateTime.parse(data.path("registrertTid").asText()),
-            funksjonellTid = localDateTime("funksjonellTid"),
+            mottattTid = data.path("mottattTid").fraJson,
+            registrertTid = data.path("registrertTid").fraJson,
+            funksjonellTid = localDateTime("funksjonellTid").toOsloOffset(),
             behandlingstatus = Behandling.Behandlingstatus.valueOf(data.path("behandlingstatus").asText()),
             behandlingstype = Behandling.Behandlingstype.valueOf(data.path("behandlingtype").asText()),
             periodetype = data.path("periodetype").textOrNull?.let { Behandling.Periodetype.valueOf(it) },
@@ -139,8 +142,10 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         private val logger = LoggerFactory.getLogger(PostgresBehandlingshendelseDao::class.java)
         private val objectMapper = jacksonObjectMapper()
 
+        // TODO: Når vi går over til å lagre OffsetDateTime må vi tweake på dette formatet (legge til offset)
         private val formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS") // timestamps lagres med 6 desimaler i db
-
+        private val OffsetDateTime.tilJson get() = localDateTimeOslo.format(formatter)
+        private val JsonNode.fraJson get() = asText().offsetDateTimeOslo
         private val JsonNode.textOrNull get() = takeIf { it.isTextual }?.asText()
         private val JsonNode.uuidOrNull get() = textOrNull?.let { UUID.fromString(it) }
         private fun ObjectNode.putString(fieldName: String, value: String?) {

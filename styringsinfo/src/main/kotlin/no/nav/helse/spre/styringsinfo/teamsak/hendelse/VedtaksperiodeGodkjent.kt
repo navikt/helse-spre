@@ -16,12 +16,12 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.*
 
 internal class VedtaksperiodeGodkjent(
     override val id: UUID,
-    override val opprettet: LocalDateTime,
+    override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     private val vedtaksperiodeId: UUID,
     private val saksbehandlerEnhet: String?,

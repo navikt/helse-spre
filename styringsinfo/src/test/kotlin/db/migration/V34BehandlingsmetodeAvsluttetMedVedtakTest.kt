@@ -2,13 +2,13 @@ package db.migration
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import junit.framework.TestCase.assertEquals
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.*
 
 @Disabled("Vi lytter på vedtak_fattet i stedet for avsluttet_med_vedtak og testene kjører derfor ikke")
@@ -25,7 +25,7 @@ internal class V34BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJs
             },
             hendelse = VedtakFattet(
                 id = hendelseId,
-                opprettet = LocalDateTime.now(),
+                opprettet = OffsetDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
                 behandlingId = UUID.randomUUID()
             )

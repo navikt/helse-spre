@@ -27,13 +27,13 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Ta
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.Personutbetaling
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.entries
 import java.lang.IllegalArgumentException
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 // Skal lese inn vedtak_fattet-event kun for perioder med vedtak, ikke AUU
 internal class VedtakFattet(
     override val id: UUID,
-    override val opprettet: LocalDateTime,
+    override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     private val behandlingId: UUID,
     private val tags: List<Tag> = emptyList()

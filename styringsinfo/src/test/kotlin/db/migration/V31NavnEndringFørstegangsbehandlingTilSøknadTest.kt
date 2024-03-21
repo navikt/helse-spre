@@ -7,7 +7,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.BehandlingOpprettet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 internal class V31NavnEndringFørstegangsbehandlingTilSøknadTest: BehandlingshendelseJsonMigreringTest(
@@ -20,12 +20,12 @@ internal class V31NavnEndringFørstegangsbehandlingTilSøknadTest: Behandlingshe
         val behandlingId1 = UUID.randomUUID()
         val behandlingOpprettet = BehandlingOpprettet(
             id = UUID.randomUUID(),
-            opprettet = LocalDateTime.now(),
+            opprettet = OffsetDateTime.now(),
             data = jacksonObjectMapper().createObjectNode(),
             vedtaksperiodeId = UUID.randomUUID(),
             behandlingId = UUID.randomUUID(),
             aktørId = "aktør",
-            behandlingskilde = BehandlingOpprettet.Behandlingskilde(LocalDateTime.now(), LocalDateTime.now(), BehandlingOpprettet.Avsender("SYKMELDT")),
+            behandlingskilde = BehandlingOpprettet.Behandlingskilde(OffsetDateTime.now(), OffsetDateTime.now(), BehandlingOpprettet.Avsender("SYKMELDT")),
             behandlingstype = BehandlingOpprettet.Behandlingstype("FØRSTEGANGSBEHANDLING")
         )
 

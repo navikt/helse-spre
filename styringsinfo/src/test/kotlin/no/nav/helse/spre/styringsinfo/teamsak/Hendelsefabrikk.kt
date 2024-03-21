@@ -5,7 +5,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 internal class Hendelsefabrikk(
@@ -19,9 +19,9 @@ internal class Hendelsefabrikk(
         aktørId: String = this.aktørId,
         behandlingstype: BehandlingOpprettet.Behandlingstype = Søknad,
         avsender: BehandlingOpprettet.Avsender = Sykmeldt,
-        innsendt: LocalDateTime = nesteTidspunkt,
-        registrert: LocalDateTime = nesteTidspunkt,
-        opprettet: LocalDateTime = nesteTidspunkt,
+        innsendt: OffsetDateTime = nesteTidspunkt,
+        registrert: OffsetDateTime = nesteTidspunkt,
+        opprettet: OffsetDateTime = nesteTidspunkt,
     ): Triple<BehandlingId, BehandlingOpprettet, SakId> {
         val behandlingskilde = BehandlingOpprettet.Behandlingskilde(innsendt, registrert, avsender)
         val behandlingOpprettet = BehandlingOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, behandlingskilde, behandlingstype)
@@ -92,7 +92,7 @@ internal class Hendelsefabrikk(
     )
 
     internal companion object {
-        private val nå = LocalDateTime.now()
+        private val nå = OffsetDateTime.now()
         private var teller = 1L
         private val nesteTidspunkt get() = nå.plusDays(teller++)
 

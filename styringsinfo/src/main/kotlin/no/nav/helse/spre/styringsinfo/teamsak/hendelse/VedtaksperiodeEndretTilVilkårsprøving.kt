@@ -12,12 +12,12 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.h
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 internal class VedtaksperiodeEndretTilVilkårsprøving(
     override val id: UUID,
-    override val opprettet: LocalDateTime,
+    override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     private val vedtaksperiodeId: UUID
 ) : Hendelse {

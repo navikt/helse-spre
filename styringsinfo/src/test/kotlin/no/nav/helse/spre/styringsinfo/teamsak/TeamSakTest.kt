@@ -11,7 +11,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Ta
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 internal class TeamSakTest: AbstractTeamSakTest() {
 
@@ -191,7 +191,7 @@ internal class TeamSakTest: AbstractTeamSakTest() {
     @Test
     fun `presisjon på tidsstempler truncates ned til 6 desimaler i databasen`() {
         val hendelsefabrikk = Hendelsefabrikk()
-        val tidspunkt = LocalDateTime.parse("2024-02-13T15:29:54.123123123")
+        val tidspunkt = OffsetDateTime.parse("2024-02-13T15:29:54.123123123+01:00")
         val (behandlingId, behandlingOpprettet, _) = hendelsefabrikk.behandlingOpprettet(innsendt = tidspunkt, registrert = tidspunkt, opprettet = tidspunkt)
         behandlingOpprettet.håndter(behandlingId)
 
@@ -204,9 +204,9 @@ internal class TeamSakTest: AbstractTeamSakTest() {
     @Test
     fun `presisjon på tidsstempler justeres opp til 6 desimaler i databasen`() {
         val hendelsefabrikk = Hendelsefabrikk()
-        val innsendt = LocalDateTime.parse("2024-02-13T15:29")
-        val registrert = LocalDateTime.parse("2024-02-20T15:29")
-        val opprettet = LocalDateTime.parse("2024-02-20T15:29:54.123")
+        val innsendt = OffsetDateTime.parse("2024-02-13T15:29+01:00")
+        val registrert = OffsetDateTime.parse("2024-02-20T15:29+01:00")
+        val opprettet = OffsetDateTime.parse("2024-02-20T15:29:54.123+01:00")
         val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet(innsendt = innsendt, registrert = registrert, opprettet = opprettet)
         behandlingOpprettet.håndter(behandlingId)
 

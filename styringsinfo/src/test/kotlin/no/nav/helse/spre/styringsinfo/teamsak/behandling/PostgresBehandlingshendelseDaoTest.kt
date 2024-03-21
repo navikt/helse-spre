@@ -15,8 +15,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
@@ -27,9 +26,9 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
     private val behandlingshendelseDao: BehandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
     private val hendelseDao: HendelseDao = PostgresHendelseDao(dataSource)
 
-    private val før = LocalDateTime.parse("2024-03-01T13:52:53.123455")
-    private val nå = LocalDateTime.parse("2024-03-01T13:52:53.123456")
-    private val etter = LocalDateTime.parse("2024-03-01T13:52:53.123457")
+    private val før = OffsetDateTime.parse("2024-03-01T13:52:53.123455+01:00")
+    private val nå = OffsetDateTime.parse("2024-03-01T13:52:53.123456+01:00")
+    private val etter = OffsetDateTime.parse("2024-03-01T13:52:53.123457+01:00")
 
     @Test
     fun `lagrer ikke ny rad som har lik funksjonell tid, selv om behandlingen har annen info (korringering)`() {
@@ -79,13 +78,13 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
     } ?: 0
 
-    private fun nyBehandling(behandlingId: BehandlingId, funksjonellTid: LocalDateTime, behandlingsmetode: Behandling.Metode = MANUELL) = Behandling(
+    private fun nyBehandling(behandlingId: BehandlingId, funksjonellTid: OffsetDateTime, behandlingsmetode: Behandling.Metode = MANUELL) = Behandling(
         sakId = SakId(UUID.randomUUID()),
         behandlingId = behandlingId,
         relatertBehandlingId = null,
         aktørId = "1",
-        mottattTid = LocalDate.EPOCH.atStartOfDay(),
-        registrertTid = LocalDate.EPOCH.atStartOfDay(),
+        mottattTid = OffsetDateTime.parse("1970-01-01T00:00+01:00"),
+        registrertTid = OffsetDateTime.parse("1970-01-01T00:00+01:00"),
         funksjonellTid = funksjonellTid,
         behandlingstatus = REGISTRERT,
         behandlingstype = SØKNAD,

@@ -5,9 +5,9 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.offsetDateTimeOslo
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
 import java.util.UUID
 
 internal class HendelseRiver(
@@ -22,7 +22,7 @@ internal class HendelseRiver(
         River(rapidsConnection).apply {
             validate {
                 it.demandAny("@event_name", listOf(eventName, "${eventName}_styringsinfo_replay"))
-                it.require("@opprettet", JsonNode::asLocalDateTime)
+                it.require("@opprettet") { opprettet -> opprettet.tidspunkt }
                 it.require("@id") { id -> UUID.fromString(id.asText()) }
                 it.interestedIn(
                     "aktørId",
@@ -63,7 +63,8 @@ internal class HendelseRiver(
         private val objectMapper = jacksonObjectMapper()
         private val JsonMessage.eventName get() = this["@event_name"].asText()
         internal val JsonMessage.hendelseId get() = UUID.fromString(this["@id"].asText())
-        internal val JsonMessage.opprettet get() = LocalDateTime.parse(this["@opprettet"].asText())
+        internal val JsonNode.tidspunkt get() = asText().offsetDateTimeOslo
+        internal val JsonMessage.opprettet get() = get("@opprettet").tidspunkt
         internal val JsonMessage.vedtaksperiodeId get() = UUID.fromString(this["vedtaksperiodeId"].asText())
         internal val JsonMessage.behandlingId get() = UUID.fromString(this["behandlingId"].asText())
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())

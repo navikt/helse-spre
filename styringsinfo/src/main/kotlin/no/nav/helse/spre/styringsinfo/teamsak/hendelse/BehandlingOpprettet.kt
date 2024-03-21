@@ -16,13 +16,14 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.h
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.tidspunkt
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 internal class BehandlingOpprettet(
     override val id: UUID,
-    override val opprettet: LocalDateTime,
+    override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     private val vedtaksperiodeId: UUID,
     private val behandlingId: UUID,
@@ -55,7 +56,7 @@ internal class BehandlingOpprettet(
         return behandlingshendelseDao.lagre(behandling, this.id)
     }
 
-    internal class Behandlingskilde(internal val innsendt: LocalDateTime, internal val registrert: LocalDateTime, internal val avsender: Avsender)
+    internal class Behandlingskilde(internal val innsendt: OffsetDateTime, internal val registrert: OffsetDateTime, internal val avsender: Avsender)
     internal class Avsender(val verdi: String)
     internal class Behandlingstype(val verdi: String)
 
@@ -95,8 +96,8 @@ internal class BehandlingOpprettet(
                 vedtaksperiodeId = packet.vedtaksperiodeId,
                 aktørId = packet["aktørId"].asText(),
                 behandlingskilde = Behandlingskilde(
-                    innsendt = LocalDateTime.parse(packet["kilde.innsendt"].asText()),
-                    registrert = LocalDateTime.parse(packet["kilde.registrert"].asText()),
+                    innsendt = packet["kilde.innsendt"].tidspunkt,
+                    registrert = packet["kilde.registrert"].tidspunkt,
                     avsender = Avsender(packet["kilde.avsender"].asText())
                 ),
                 behandlingstype = Behandlingstype(packet["type"].asText())

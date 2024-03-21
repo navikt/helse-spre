@@ -8,7 +8,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.*
 
 internal class V36UkjentMottakerBlirNullTest: BehandlingshendelseJsonMigreringTest(
@@ -25,7 +25,7 @@ internal class V36UkjentMottakerBlirNullTest: BehandlingshendelseJsonMigreringTe
             },
             hendelse = VedtakFattet(
                 id = behandlingId,
-                opprettet = LocalDateTime.now(),
+                opprettet = OffsetDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
                 behandlingId = UUID.randomUUID(),
                 tags = emptyList()

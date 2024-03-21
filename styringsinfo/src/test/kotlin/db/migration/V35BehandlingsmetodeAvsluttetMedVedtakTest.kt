@@ -2,12 +2,12 @@ package db.migration
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import junit.framework.TestCase.assertEquals
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJsonMigreringTest(
@@ -18,13 +18,13 @@ internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJs
     fun `skal skrive om revurderinger av førstegangsbehandlinger skal ha periodetype førstebehandling`() {
         val behandlingId = UUID.randomUUID()
         val sakId = UUID.randomUUID()
-        val førstegangsbehandlig = leggTilBehandlingshendelse(
+        leggTilBehandlingshendelse(
             sakId, behandlingId, true, Versjon.of("0.1.0"), false, data = {
                 it.put("periodetype", "FØRSTEGANGSBEHANDLING")
             },
             hendelse = VedtakFattet(
                 id = behandlingId,
-                opprettet = LocalDateTime.now(),
+                opprettet = OffsetDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
                 behandlingId = UUID.randomUUID()
             )
@@ -36,7 +36,7 @@ internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJs
             },
             hendelse = VedtakFattet(
                 id = behandlingId2,
-                opprettet = LocalDateTime.now(),
+                opprettet = OffsetDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
                 behandlingId = UUID.randomUUID()
             )

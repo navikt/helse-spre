@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 
 internal class BuilderTest {
@@ -43,7 +43,7 @@ internal class BuilderTest {
         assertEquals(Behandling.Metode.TOTRINNS, Behandling.Builder(behandlingsmetodeTotrinns).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.TOTRINNS)?.behandlingsmetode)
     }
 
-    private val nå = LocalDateTime.now()
+    private val nå = OffsetDateTime.now()
     private val etterpå = nå.plusDays(1)
     private fun lagBehandling() = Behandling(
         sakId = SakId(UUID.randomUUID()),

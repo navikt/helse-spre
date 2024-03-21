@@ -7,7 +7,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeGodkjent
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.*
 
 internal class V32BehandlingsstatusVedtaksperiodeGodkjentTest: BehandlingshendelseJsonMigreringTest(
@@ -23,7 +23,7 @@ internal class V32BehandlingsstatusVedtaksperiodeGodkjentTest: Behandlingshendel
             },
             hendelse = VedtaksperiodeGodkjent(
                 id = hendelseId,
-                opprettet = LocalDateTime.now(),
+                opprettet = OffsetDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
                 vedtaksperiodeId = UUID.randomUUID(),
                 saksbehandlerEnhet = null,

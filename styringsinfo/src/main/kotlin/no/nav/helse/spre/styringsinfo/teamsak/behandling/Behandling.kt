@@ -3,8 +3,8 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.lang.IllegalStateException
-import java.time.LocalDateTime
-import java.time.LocalDateTime.MIN
+import java.time.OffsetDateTime.MIN
+import java.time.OffsetDateTime
 import java.util.UUID
 
 internal data class SakId(val id: UUID) {
@@ -20,9 +20,9 @@ internal data class Behandling(
     internal val behandlingId: BehandlingId,
     internal val relatertBehandlingId: BehandlingId?,
     internal val aktørId: String,
-    internal val mottattTid: LocalDateTime,          // Tidspunktet da behandlingen oppstår (eks. søknad mottas). Dette er starten på beregning av saksbehandlingstid.
-    internal val registrertTid: LocalDateTime,       // Tidspunkt da behandlingen første gang ble registrert i fagsystemet. Ved digitale søknader bør denne være tilnærmet lik mottattTid.
-    internal val funksjonellTid: LocalDateTime,      // Tidspunkt for siste endring på behandlingen. Ved første melding vil denne være lik registrertTid.
+    internal val mottattTid: OffsetDateTime,          // Tidspunktet da behandlingen oppstår (eks. søknad mottas). Dette er starten på beregning av saksbehandlingstid.
+    internal val registrertTid: OffsetDateTime,       // Tidspunkt da behandlingen første gang ble registrert i fagsystemet. Ved digitale søknader bør denne være tilnærmet lik mottattTid.
+    internal val funksjonellTid: OffsetDateTime,      // Tidspunkt for siste endring på behandlingen. Ved første melding vil denne være lik registrertTid.
     internal val behandlingstatus: Behandlingstatus,
     internal val behandlingstype: Behandlingstype,
     internal val periodetype: Periodetype? = null,
@@ -110,7 +110,7 @@ internal data class Behandling(
             this.behandlingsresultat = behandlingsresultat
         }
 
-        internal fun build(funksjonellTid: LocalDateTime, hendelsesmetode: Metode): Behandling? {
+        internal fun build(funksjonellTid: OffsetDateTime, hendelsesmetode: Metode): Behandling? {
             val ny = Behandling(
                 funksjonellTid = funksjonellTid,
                 hendelsesmetode = hendelsesmetode,
