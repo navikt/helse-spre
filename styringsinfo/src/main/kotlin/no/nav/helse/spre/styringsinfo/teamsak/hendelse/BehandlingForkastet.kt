@@ -31,7 +31,6 @@ internal class BehandlingForkastet(
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val behandling = behandlingshendelseDao.hent(behandlingId) ?: return false
-        if (behandling.behandlingsresultat == ANNULLERT) return false // TODO: Denne kan vi fjern når Spleis ikke forkaster generasjon når det er blitt annullert
         val builder = Behandling.Builder(behandling)
         val ny = builder
             .avslutt(AVBRUTT)
@@ -39,6 +38,11 @@ internal class BehandlingForkastet(
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
+
+    // Per i dag sendes det ut 'behandling_forkastet' etter 'vedtaksperiode_annullert'.
+    // Derfor ignorerer vi forkastinger når behandlingen allerede er avsluttet som ANNULLERT
+    override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) =
+        behandlingshendelseDao.hent(behandlingId)?.behandlingsresultat == ANNULLERT
 
     internal companion object {
         private const val eventName = "behandling_forkastet"

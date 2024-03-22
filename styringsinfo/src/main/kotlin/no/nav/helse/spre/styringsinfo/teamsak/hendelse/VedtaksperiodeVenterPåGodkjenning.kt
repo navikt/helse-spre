@@ -20,17 +20,23 @@ internal class VedtaksperiodeVenterPåGodkjenning(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    private val vedtaksperiodeId: UUID,
+    vedtaksperiodeId: UUID,
     vedtaksperiodeIdSomVentesPå: UUID,
 ) : Hendelse {
     override val type = eventName
     private val behandlingsstatus = if (vedtaksperiodeId == vedtaksperiodeIdSomVentesPå) AVVENTER_GODKJENNING.name else "KOMPLETT_FAKTAGRUNNLAG"
+    private val sakId = SakId(vedtaksperiodeId)
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        behandlingshendelseDao.initialiser(SakId(vedtaksperiodeId)) ?: return false
+        behandlingshendelseDao.initialiser(sakId) ?: return false
         sikkerLogg.info("Denne tullegutten ville vi satt til behandlingsstatus $behandlingsstatus")
         return false
     }
+
+    // 'vedtaksperiode_venter' sendes veldig hyppig, så for unngå å lagre alle disse hendelsene
+    // når de bare sier det samme som før så ignoreres de
+    override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) =
+        behandlingshendelseDao.hent(sakId)?.behandlingstatus?.name == this.behandlingsstatus
 
     internal companion object {
         private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
