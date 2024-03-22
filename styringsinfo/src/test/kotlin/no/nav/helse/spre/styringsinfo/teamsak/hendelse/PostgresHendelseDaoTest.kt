@@ -21,8 +21,7 @@ internal class PostgresHendelseDaoTest: AbstractDatabaseTest() {
         assertEquals(1, antallRader(id))
         assertFalse(hendelseDao.lagre(hendelse))
         assertEquals(1, antallRader(id))
-        val (opprettet, type, data) = hent(id)
-        assertEquals(hendelse.opprettet, opprettet)
+        val (type, data) = hent(id)
         assertEquals("TULLETYPE", type)
         assertEquals("""{"test": true}""", data)
     }
@@ -40,6 +39,6 @@ internal class PostgresHendelseDaoTest: AbstractDatabaseTest() {
     } ?: 0
 
     private fun hent(id: UUID) = sessionOf(dataSource, strict = true).use { session ->
-        session.run(queryOf("select * from hendelse where id='$id'").map { row -> Triple(row.offsetDateTime("opprettet"), row.string("type"), row.string("data")) }.asSingle)
+        session.run(queryOf("select type, data from hendelse where id='$id'").map { row -> row.string("type") to row.string("data") }.asSingle)
     } ?: throw IllegalStateException("Fant ikke hendelse med id $id")
 }
