@@ -102,6 +102,7 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         private val objectMapper = jacksonObjectMapper()
         private val String.printbar get() = take(25).padEnd(25, ' ') + "   "
         private fun List<ObjectNode>.printTabell() {
+            if (isEmpty()) return
             println()
             println("********** Kul tabell til Team Sak **********")
             first().fieldNames().forEach { print(it.printbar) }
