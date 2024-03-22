@@ -113,6 +113,7 @@ internal fun launchApplication(dataSource: HikariDataSource, environment: Map<St
         VedtaksperiodeAvvist.river(this, hendelseDao, behandlingshendelseDao, nom)
         VedtaksperiodeGodkjent.river(this, hendelseDao, behandlingshendelseDao, nom)
         VedtaksperiodeAnnullert.river(this, hendelseDao, behandlingshendelseDao)
+        VedtaksperiodeVenterPåGodkjenning.river(this, hendelseDao, behandlingshendelseDao)
     }
 }
 
