@@ -130,7 +130,7 @@ internal class TeamSakTest: AbstractTeamSakTest() {
         assertEquals(sakIdRevurdering, sakIdFørstegang)
         behandlingOpprettetRevurdering.håndter(revurderingsbehandlingId)
         førstegangsHendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(revurderingsbehandlingId)
-        førstegangsHendelsefabrikk.vedtaksperiodeGodkjent().håndter(revurderingsbehandlingId)
+        førstegangsHendelsefabrikk.vedtaksperiodeGodkjent(behandlingId = revurderingsbehandlingId).håndter(revurderingsbehandlingId)
         val behandling3 = førstegangsHendelsefabrikk.vedtakFattet(revurderingsbehandlingId).håndter(revurderingsbehandlingId)
         // Dette blir strengt tatt en forlengelse, men vi har i skrivende stund ikke datagrunnlaget til å gjenkjenne et out-of-order-tilfelle
         // Vi forenkler derfor ved å si at en periode som på et eller annet tidligere tidspunkt har vært vilkårsprøvd er en førstegangsbehandling

@@ -26,6 +26,7 @@ internal class V32BehandlingsstatusVedtaksperiodeGodkjentTest: Behandlingshendel
                 opprettet = OffsetDateTime.now(),
                 data = jacksonObjectMapper().createObjectNode() as JsonNode,
                 vedtaksperiodeId = UUID.randomUUID(),
+                behandlingId = null,
                 saksbehandlerEnhet = null,
                 beslutterEnhet = null,
                 automatiskBehandling = true,

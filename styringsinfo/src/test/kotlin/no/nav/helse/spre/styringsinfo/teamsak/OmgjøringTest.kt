@@ -36,7 +36,7 @@ internal class OmgjøringTest: AbstractTeamSakTest() {
 
         hendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingId2)
         hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId2)
-        hendelsefabrikk.vedtaksperiodeGodkjent().håndter(behandlingId2)
+        hendelsefabrikk.vedtaksperiodeGodkjent(behandlingId = behandlingId2).håndter(behandlingId2)
         behandling2 = hendelsefabrikk.vedtakFattet(behandlingId2).håndter(behandlingId2)
 
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling2.behandlingstatus)
