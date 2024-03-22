@@ -91,8 +91,8 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
                 put("sekvensnummer", row.long("sekvensnummer"))
                 put("sakId", row.uuid("sakId").toString())
                 put("behandlingId", row.uuid("behandlingId").toString())
-                put("funksjonellTid", row.localDateTime("funksjonellTid").toString())
-                put("tekniskTid", row.localDateTime("tekniskTid").toString())
+                put("funksjonellTid", row.offsetDateTime("funksjonellTid").toString())
+                put("tekniskTid", row.offsetDateTime("tekniskTid").toString())
                 put("versjon", row.string("versjon"))
             }
         }.asList)

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -155,8 +156,8 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
         private data class Behandlingshendelse(
             val sekvensnummer: Long,
             val behandlingId: UUID,
-            val funksjonellTid: LocalDateTime,
-            val tekniskTid: LocalDateTime,
+            val funksjonellTid: OffsetDateTime,
+            val tekniskTid: OffsetDateTime,
             val siste: Boolean,
             val versjon: String,
             val erKorrigert: Boolean,
@@ -165,8 +166,8 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
             constructor(row: Row): this(
                 sekvensnummer = row.long("sekvensnummer"),
                 behandlingId = row.uuid("behandlingId"),
-                funksjonellTid = row.localDateTime("funksjonellTid"),
-                tekniskTid = row.localDateTime("tekniskTid"),
+                funksjonellTid = row.offsetDateTime("funksjonellTid"),
+                tekniskTid = row.offsetDateTime("tekniskTid"),
                 siste = row.boolean("siste"),
                 versjon = row.string("versjon"),
                 erKorrigert = row.boolean("er_korrigert"),

@@ -6,7 +6,6 @@ import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 import java.util.UUID
 
 internal class PostgresHendelseDaoTest: AbstractDatabaseTest() {
@@ -23,7 +22,7 @@ internal class PostgresHendelseDaoTest: AbstractDatabaseTest() {
         assertFalse(hendelseDao.lagre(hendelse))
         assertEquals(1, antallRader(id))
         val (opprettet, type, data) = hent(id)
-        assertEquals(LocalDate.EPOCH.atStartOfDay(), opprettet)
+        assertEquals(hendelse.opprettet, opprettet)
         assertEquals("TULLETYPE", type)
         assertEquals("""{"test": true}""", data)
     }
@@ -41,6 +40,6 @@ internal class PostgresHendelseDaoTest: AbstractDatabaseTest() {
     } ?: 0
 
     private fun hent(id: UUID) = sessionOf(dataSource, strict = true).use { session ->
-        session.run(queryOf("select * from hendelse where id='$id'").map { row -> Triple(row.localDateTime("opprettet"), row.string("type"), row.string("data")) }.asSingle)
+        session.run(queryOf("select * from hendelse where id='$id'").map { row -> Triple(row.offsetDateTime("opprettet"), row.string("type"), row.string("data")) }.asSingle)
     } ?: throw IllegalStateException("Fant ikke hendelse med id $id")
 }
