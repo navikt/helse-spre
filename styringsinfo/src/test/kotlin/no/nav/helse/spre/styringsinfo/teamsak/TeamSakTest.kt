@@ -1,12 +1,8 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
-import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk.Companion.nyBehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.*
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.*
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FORLENGELSE
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -47,52 +43,6 @@ internal class TeamSakTest: AbstractTeamSakTest() {
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Mottaker.ARBEIDSGIVER, behandling.mottaker)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
-    }
-
-    @Test
-    fun `periodetype blir førstegangsbehandling for perioder som vilkårsprøves`() {
-        val hendelsefabrikk = Hendelsefabrikk()
-        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
-        assertUkjentBehandling(behandlingId)
-        behandlingOpprettet.håndter(behandlingId)
-
-        val behandling = hendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingId)
-        assertEquals(VURDERER_INNGANGSVILKÅR, behandling.behandlingstatus)
-        assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
-    }
-
-    @Test
-    fun `peridodetype blir forlengelse ved godkjenning dersom ingen tidligere hendelse på behandlingen er markert som førstegangsbehandling`() {
-        val hendelsefabrikkFørstegangs = Hendelsefabrikk()
-        val (førstegangsbehandlingId, behandlingOpprettetFørstegang) = hendelsefabrikkFørstegangs.behandlingOpprettet()
-
-        behandlingOpprettetFørstegang.håndter(førstegangsbehandlingId)
-        hendelsefabrikkFørstegangs.vedtaksperiodeEndretTilVilkårsprøving().håndter(førstegangsbehandlingId)
-        hendelsefabrikkFørstegangs.vedtaksperiodeEndretTilGodkjenning().håndter(førstegangsbehandlingId)
-        hendelsefabrikkFørstegangs.vedtaksperiodeGodkjent().håndter(førstegangsbehandlingId)
-        hendelsefabrikkFørstegangs.vedtakFattet().håndter(førstegangsbehandlingId)
-
-        val hendelsefabrikkForlengelse = Hendelsefabrikk()
-
-        val (forlengelseBehandlingId, behandlingOpprettetForlengelse) = hendelsefabrikkForlengelse.behandlingOpprettet(behandlingId = nyBehandlingId())
-        behandlingOpprettetForlengelse.håndter(forlengelseBehandlingId)
-        val behandling = hendelsefabrikkForlengelse.vedtaksperiodeEndretTilGodkjenning().håndter(forlengelseBehandlingId)
-
-        assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
-        assertEquals(FORLENGELSE, behandling.periodetype)
-    }
-
-    @Test
-    fun `peridodetype blir førstegangsbehandling ved godkjenning dersom tidligere hendelse på behandlingen er markert som førstegangsbehandling`() {
-        val hendelsefabrikk = Hendelsefabrikk()
-        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
-        assertUkjentBehandling(behandlingId)
-        behandlingOpprettet.håndter(behandlingId)
-        hendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingId)
-        val behandling = hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId)
-
-        assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
-        assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
     }
 
     @Test
