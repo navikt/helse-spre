@@ -49,7 +49,7 @@ internal data class Behandling(
 
     internal enum class Behandlingstype {
         SØKNAD,
-        OMGJØRING,
+        GJENÅPNING,
         REVURDERING
     }
     
@@ -57,7 +57,7 @@ internal data class Behandling(
         INNVILGET,
         DELVIS_INNVILGET,
         AVSLAG,
-        HENLAGT,
+        IKKE_REALITETSBEHANDLET,
         AVBRUTT,
         ANNULLERT
     }

@@ -199,7 +199,7 @@ internal class TeamSakTest: AbstractTeamSakTest() {
         val avsluttetUtenVedtak = hendelsefabrikk.avsluttetUtenVedtak()
         behandling = avsluttetUtenVedtak.håndter(behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingsresultat.HENLAGT, behandling.behandlingsresultat)
+        assertEquals(Behandling.Behandlingsresultat.IKKE_REALITETSBEHANDLET, behandling.behandlingsresultat)
     }
 
     @Test

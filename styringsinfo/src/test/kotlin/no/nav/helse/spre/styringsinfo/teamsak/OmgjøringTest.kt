@@ -23,14 +23,14 @@ internal class OmgjøringTest: AbstractTeamSakTest() {
 
         behandling = avsluttetUtenVedtak.håndter(behandlingId)
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingsresultat.HENLAGT, behandling.behandlingsresultat)
+        assertEquals(Behandling.Behandlingsresultat.IKKE_REALITETSBEHANDLET, behandling.behandlingsresultat)
         assertNull(behandling.relatertBehandlingId)
 
         val (behandlingId2, behandlingOpprettet2) = hendelsefabrikk.behandlingOpprettet(behandlingId = Hendelsefabrikk.nyBehandlingId(), avsender = Hendelsefabrikk.Arbeidsgiver, behandlingstype = Hendelsefabrikk.Omgjøring)
         var behandling2 = behandlingOpprettet2.håndter(behandlingId2)
 
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling2.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.OMGJØRING, behandling2.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.GJENÅPNING, behandling2.behandlingstype)
         assertEquals(Behandling.Behandlingskilde.ARBEIDSGIVER, behandling2.behandlingskilde)
         assertEquals(behandlingId, behandling2.relatertBehandlingId)
 
@@ -40,7 +40,7 @@ internal class OmgjøringTest: AbstractTeamSakTest() {
         behandling2 = hendelsefabrikk.vedtakFattet(behandlingId2).håndter(behandlingId2)
 
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling2.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.OMGJØRING, behandling2.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.GJENÅPNING, behandling2.behandlingstype)
     }
 
     @Test
@@ -54,13 +54,13 @@ internal class OmgjøringTest: AbstractTeamSakTest() {
         val registrertOmgjøring = behandlingOpprettet.håndter(omgjøringBehandlingId)
 
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, registrertOmgjøring.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.OMGJØRING, registrertOmgjøring.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.GJENÅPNING, registrertOmgjøring.behandlingstype)
         assertEquals(Behandling.Behandlingskilde.ARBEIDSGIVER, registrertOmgjøring.behandlingskilde)
 
         val forkastetOmgjøring = hendelsefabrikk.behandlingForkastet(omgjøringBehandlingId).håndter(omgjøringBehandlingId)
 
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, forkastetOmgjøring.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.OMGJØRING, forkastetOmgjøring.behandlingstype)
+        assertEquals(Behandling.Behandlingstype.GJENÅPNING, forkastetOmgjøring.behandlingstype)
         assertEquals(Behandling.Behandlingskilde.ARBEIDSGIVER, forkastetOmgjøring.behandlingskilde)
         assertEquals(Behandling.Behandlingsresultat.AVBRUTT, forkastetOmgjøring.behandlingsresultat)
     }

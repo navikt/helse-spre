@@ -64,7 +64,8 @@ internal class Versjon private constructor(
             Minor("Slutter å forkaste tidligere behandlinger når en behandling forkastes, nå markerer vi kun siste behandling som AVBRUTT"),
             LeggTil("hendelsesmetode"),
             Patch("Setter alltid behandlingsmetode til automatisk ved behandling_opprettet"),
-            Patch("behandlingsmetode er alltid satt")
+            Patch("behandlingsmetode er alltid satt"),
+            Patch("HENLAGT på behandlingsresultat renames til IKKE_REALITETSBEHANDLET og OMGJØRING på behandlingstype renames til GJENÅPNING")
         ).genererVersjoner
 
         internal val List<Versjonsutleder>.genererVersjoner: Map<Set<String>, Versjon> get() {
