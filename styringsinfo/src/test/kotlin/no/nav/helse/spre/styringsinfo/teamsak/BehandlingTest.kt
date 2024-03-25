@@ -1,14 +1,16 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.IKKE_REALITETSBEHANDLET
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.INNVILGET
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.*
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Mottaker.ARBEIDSGIVER
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.Arbeidsgiverutbetaling
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.Innvilget
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
-internal class TeamSakTest: AbstractTeamSakTest() {
+internal class BehandlingTest: AbstractTeamSakTest() {
 
     @Test
     fun `funksjonell lik behandling`() {
@@ -33,16 +35,16 @@ internal class TeamSakTest: AbstractTeamSakTest() {
         val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertUkjentBehandling(behandlingId)
         var behandling = behandlingOpprettet.håndter(behandlingId)
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
+        assertEquals(REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
         behandling = hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId)
         assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
 
-        behandling = hendelsefabrikk.vedtakFattet(tags = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)).håndter(behandlingId)
+        behandling = hendelsefabrikk.vedtakFattet(tags = listOf(Arbeidsgiverutbetaling, Innvilget)).håndter(behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Mottaker.ARBEIDSGIVER, behandling.mottaker)
-        assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
+        assertEquals(ARBEIDSGIVER, behandling.mottaker)
+        assertEquals(INNVILGET, behandling.behandlingsresultat)
     }
 
     @Test
@@ -51,12 +53,12 @@ internal class TeamSakTest: AbstractTeamSakTest() {
         val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertUkjentBehandling(behandlingId)
         var behandling = behandlingOpprettet.håndter(behandlingId)
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
+        assertEquals(REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
         val avsluttetUtenVedtak = hendelsefabrikk.avsluttetUtenVedtak()
         behandling = avsluttetUtenVedtak.håndter(behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingsresultat.IKKE_REALITETSBEHANDLET, behandling.behandlingsresultat)
+        assertEquals(IKKE_REALITETSBEHANDLET, behandling.behandlingsresultat)
     }
 }
