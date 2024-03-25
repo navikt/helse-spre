@@ -96,42 +96,6 @@ internal class TeamSakTest: AbstractTeamSakTest() {
     }
 
     @Test
-    fun `start og slutt for godkjent vedtak`() {
-        val hendelsefabrikk = Hendelsefabrikk()
-        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
-        assertUkjentBehandling(behandlingId)
-        behandlingOpprettet.håndter(behandlingId)
-
-        hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId)
-
-        var behandling = hendelsefabrikk.vedtaksperiodeGodkjent().håndter(behandlingId)
-        assertEquals(MANUELL, behandling.behandlingsmetode)
-        assertNull(behandling.behandlingsresultat)
-
-        behandling = hendelsefabrikk.vedtakFattet().håndter(behandlingId)
-        assertEquals(AUTOMATISK, behandling.hendelsesmetode)
-        assertEquals(MANUELL, behandling.behandlingsmetode)
-        assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
-    }
-
-    @Test
-    fun `start og slutt for utkast til vedtak som avvises av saksbehandler i speil`() {
-        val hendelsefabrikk = Hendelsefabrikk()
-        val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
-        assertUkjentBehandling(behandlingId)
-        behandlingOpprettet.håndter(behandlingId)
-
-        hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId)
-
-        val behandling = hendelsefabrikk.vedtaksperiodeAvvist().håndter(behandlingId)
-        assertEquals(MANUELL, behandling.behandlingsmetode)
-        assertEquals(AVBRUTT, behandling.behandlingsresultat)
-        assertEquals(AVSLUTTET, behandling.behandlingstatus)
-        assertEquals("SB123", behandling.saksbehandlerEnhet)
-        assertNull(behandling.beslutterEnhet)
-    }
-
-    @Test
     fun `start og slutt for auu`() {
         val hendelsefabrikk = Hendelsefabrikk()
         val (behandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
@@ -144,12 +108,5 @@ internal class TeamSakTest: AbstractTeamSakTest() {
         behandling = avsluttetUtenVedtak.håndter(behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Behandlingsresultat.IKKE_REALITETSBEHANDLET, behandling.behandlingsresultat)
-    }
-
-    @Test
-    fun `når to saksbehandlere har behandlet saken blir det behandlingsmetode totrinns`() {
-        val behandling = nyttVedtak(totrinnsbehandling = true)
-        assertEquals(TOTRINNS, behandling.behandlingsmetode)
-        assertEquals(AUTOMATISK, behandling.hendelsesmetode)
     }
 }

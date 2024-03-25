@@ -7,7 +7,6 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingst
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.REVURDERING
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.BehandlingOpprettet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
