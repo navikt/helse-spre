@@ -1,13 +1,11 @@
 package db.migration
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
+import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeGodkjent
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.time.OffsetDateTime
 import java.util.*
 
 internal class V32BehandlingsstatusVedtaksperiodeGodkjentTest: BehandlingshendelseJsonMigreringTest(
@@ -16,21 +14,17 @@ internal class V32BehandlingsstatusVedtaksperiodeGodkjentTest: Behandlingshendel
 ) {
     @Test
     fun `skal skrive om alle vedtaksperiode_godkjent-hendelser sin behandlingsstatus fra AVSLUTTET til GODKJENT`() {
-        val hendelseId = UUID.randomUUID()
+        val behandlingId = UUID.randomUUID()
+        val hendelsefabrikk = Hendelsefabrikk(behandlingId = BehandlingId(behandlingId))
         val korrigertHendelse = leggTilBehandlingshendelse(
-            UUID.randomUUID(), hendelseId, true, Versjon.of("0.1.0"), false, data = {
+            sakId = UUID.randomUUID(),
+            behandlingId = behandlingId,
+            siste = true,
+            versjon = Versjon.of("0.1.0"),
+            erKorrigert = false, data = {
                 it.put("behandlingstatus", "AVSLUTTET")
             },
-            hendelse = VedtaksperiodeGodkjent(
-                id = hendelseId,
-                opprettet = OffsetDateTime.now(),
-                data = jacksonObjectMapper().createObjectNode() as JsonNode,
-                behandlingId = UUID.randomUUID(),
-                saksbehandlerEnhet = null,
-                beslutterEnhet = null,
-                automatiskBehandling = true,
-                totrinnsbehandling = false
-            )
+            hendelse = hendelsefabrikk.vedtaksperiodeGodkjent()
         )
 
         migrer()

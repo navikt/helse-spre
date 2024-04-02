@@ -1,14 +1,13 @@
 package db.migration
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
+import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.time.OffsetDateTime
 import java.util.*
 
 internal class V36UkjentMottakerBlirNullTest: BehandlingshendelseJsonMigreringTest(
@@ -17,19 +16,14 @@ internal class V36UkjentMottakerBlirNullTest: BehandlingshendelseJsonMigreringTe
 ) {
     @Test
     fun `skal skrive om revurderinger av førstegangsbehandlinger skal ha periodetype førstebehandling`() {
-        val behandlingId = UUID.randomUUID()
         val sakId = UUID.randomUUID()
+        val behandlingId = UUID.randomUUID()
+        val hendelsefabrikk = Hendelsefabrikk(SakId(sakId), BehandlingId(behandlingId))
         val behandling = leggTilBehandlingshendelse(
             sakId, behandlingId, true, Versjon.of("0.1.0"), false, data = {
                 it.put("mottaker", "UKJENT")
             },
-            hendelse = VedtakFattet(
-                id = behandlingId,
-                opprettet = OffsetDateTime.now(),
-                data = jacksonObjectMapper().createObjectNode() as JsonNode,
-                behandlingId = UUID.randomUUID(),
-                tags = emptyList()
-            )
+            hendelse = hendelsefabrikk.vedtakFattet()
         )
 
         migrer()

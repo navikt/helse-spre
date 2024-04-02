@@ -1,14 +1,14 @@
 package db.migration
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
+import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.BehandlingOpprettet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 internal class V31NavnEndringFørstegangsbehandlingTilSøknadTest: BehandlingshendelseJsonMigreringTest(
     migrering = V31__navnendring_førstegangsbehandling_til_søknad(),
@@ -18,14 +18,7 @@ internal class V31NavnEndringFørstegangsbehandlingTilSøknadTest: Behandlingshe
     @Test
     fun `endrer navn fra FØRSTEGANGSBEHANDLING til SØKNAD`() {
         val behandlingId1 = UUID.randomUUID()
-        val behandlingOpprettet = BehandlingOpprettet(
-            id = UUID.randomUUID(),
-            opprettet = OffsetDateTime.now(),
-            data = jacksonObjectMapper().createObjectNode(),
-            vedtaksperiodeId = UUID.randomUUID(),
-            behandlingId = UUID.randomUUID(),
-            aktørId = "aktør",
-            behandlingskilde = BehandlingOpprettet.Behandlingskilde(OffsetDateTime.now(), OffsetDateTime.now(), BehandlingOpprettet.Avsender("SYKMELDT")),
+        val (_, behandlingOpprettet) = Hendelsefabrikk(behandlingId = BehandlingId(behandlingId1)).behandlingOpprettet(
             behandlingstype = BehandlingOpprettet.Behandlingstype("FØRSTEGANGSBEHANDLING")
         )
 

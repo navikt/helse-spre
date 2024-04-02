@@ -1,14 +1,12 @@
 package db.migration
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
+import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import java.time.OffsetDateTime
 import java.util.*
 
 @Disabled("Vi lytter på vedtak_fattet i stedet for avsluttet_med_vedtak og testene kjører derfor ikke")
@@ -18,17 +16,17 @@ internal class V34BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJs
 ) {
     @Test
     fun `skal skrive om alle avsluttet_med_vedtak-hendelser sin behandlingsmetode fra null til AUTOMATISK`() {
-        val hendelseId = UUID.randomUUID()
+        val behandlingId = UUID.randomUUID()
+        val hendelsefabrikk = Hendelsefabrikk(behandlingId = BehandlingId(behandlingId))
         val korrigertHendelse = leggTilBehandlingshendelse(
-            UUID.randomUUID(), hendelseId, true, Versjon.of("0.1.0"), false, data = {
+            sakId = UUID.randomUUID(),
+            behandlingId = behandlingId,
+            siste = true,
+            versjon = Versjon.of("0.1.0"),
+            erKorrigert = false, data = {
                 it.putNull("behandlingsmetode")
             },
-            hendelse = VedtakFattet(
-                id = hendelseId,
-                opprettet = OffsetDateTime.now(),
-                data = jacksonObjectMapper().createObjectNode() as JsonNode,
-                behandlingId = UUID.randomUUID()
-            )
+            hendelse = hendelsefabrikk.vedtakFattet()
         )
 
         migrer()

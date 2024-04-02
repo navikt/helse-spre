@@ -1,14 +1,13 @@
 package db.migration
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
+import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJsonMigreringTest(
     migrering = V35__riktig_periodetype_for_revurderte_førstegangsbehandlinger(),
@@ -16,30 +15,29 @@ internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJs
 ) {
     @Test
     fun `skal skrive om revurderinger av førstegangsbehandlinger skal ha periodetype førstebehandling`() {
-        val behandlingId = UUID.randomUUID()
         val sakId = UUID.randomUUID()
+        val behandlingId = UUID.randomUUID()
+        val hendelsefabrikk = Hendelsefabrikk(SakId(sakId), BehandlingId(behandlingId))
         leggTilBehandlingshendelse(
-            sakId, behandlingId, true, Versjon.of("0.1.0"), false, data = {
+            sakId = sakId,
+            behandlingId = behandlingId,
+            siste = true,
+            versjon = Versjon.of("0.1.0"),
+            erKorrigert = false, data = {
                 it.put("periodetype", "FØRSTEGANGSBEHANDLING")
             },
-            hendelse = VedtakFattet(
-                id = behandlingId,
-                opprettet = OffsetDateTime.now(),
-                data = jacksonObjectMapper().createObjectNode() as JsonNode,
-                behandlingId = UUID.randomUUID()
-            )
+            hendelse = hendelsefabrikk.vedtakFattet()
         )
         val behandlingId2 = UUID.randomUUID()
         val revurdering = leggTilBehandlingshendelse(
-            sakId, behandlingId2, true, Versjon.of("0.1.0"), false, data = {
+            sakId = sakId,
+            behandlingId = behandlingId2,
+            siste = true,
+            versjon = Versjon.of("0.1.0"),
+            erKorrigert = false, data = {
                 it.put("periodetype", "FORLENGELSE")
             },
-            hendelse = VedtakFattet(
-                id = behandlingId2,
-                opprettet = OffsetDateTime.now(),
-                data = jacksonObjectMapper().createObjectNode() as JsonNode,
-                behandlingId = UUID.randomUUID()
-            )
+            hendelse = hendelsefabrikk.vedtakFattet(behandlingId = BehandlingId(behandlingId2))
         )
 
         migrer()

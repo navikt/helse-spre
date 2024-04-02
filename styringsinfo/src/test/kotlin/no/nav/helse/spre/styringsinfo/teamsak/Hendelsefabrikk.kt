@@ -28,8 +28,8 @@ internal class Hendelsefabrikk(
         return Triple(behandlingId, behandlingOpprettet, sakId)
     }
 
-    internal fun vedtakFattet(behandlingId: BehandlingId = this.behandlingId, tags: List<VedtakFattet.Companion.Tag> = listOf(VedtakFattet.Companion.Tag.Arbeidsgiverutbetaling, VedtakFattet.Companion.Tag.Innvilget)) = VedtakFattet(
-        id = UUID.randomUUID(),
+    internal fun vedtakFattet(behandlingId: BehandlingId = this.behandlingId, tags: List<VedtakFattet.Companion.Tag> = listOf(VedtakFattet.Companion.Tag.Arbeidsgiverutbetaling, VedtakFattet.Companion.Tag.Innvilget), id: UUID = UUID.randomUUID()) = VedtakFattet(
+        id = id,
         opprettet = nesteTidspunkt,
         data = blob,
         behandlingId = behandlingId.id,
