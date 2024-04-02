@@ -70,7 +70,7 @@ internal class Hendelsefabrikk(
         data = blob,
         behandlingId = behandlingId.id,
         saksbehandlerEnhet = "SB123",
-        beslutterEnhet = "SB456",
+        beslutterEnhet = "SB456".takeIf { totrinnsbehandling },
         automatiskBehandling = false,
         totrinnsbehandling = totrinnsbehandling
     )
