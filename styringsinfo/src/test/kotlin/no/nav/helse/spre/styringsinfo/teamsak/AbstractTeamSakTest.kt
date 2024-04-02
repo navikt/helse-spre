@@ -44,9 +44,6 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
-        behandling = hendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingId)
-        assertEquals(VURDERER_INNGANGSVILKÅR, behandling.behandlingstatus)
-
         behandling = hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId)
         assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
 

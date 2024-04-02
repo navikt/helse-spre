@@ -74,6 +74,7 @@ internal class VedtakFattetRiverTest {
       "@id": "${UUID.randomUUID()}",
       "@opprettet": "${LocalDateTime.now()}",
       "utbetalingId": "${utbetalingId}",
+      "vedtaksperiodeId": "${UUID.randomUUID()}",
       "behandlingId": "${behandlingId}",
       "sykepengegrunnlagsfakta": $sykepengegrunnlagFakta,
       "tags": ${tags.map { "\"$it\"" }}

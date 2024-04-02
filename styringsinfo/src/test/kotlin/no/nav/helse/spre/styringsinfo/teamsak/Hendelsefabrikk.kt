@@ -28,10 +28,20 @@ internal class Hendelsefabrikk(
         return Triple(behandlingId, behandlingOpprettet, sakId)
     }
 
-    internal fun vedtakFattet(behandlingId: BehandlingId = this.behandlingId, tags: List<VedtakFattet.Companion.Tag> = listOf(VedtakFattet.Companion.Tag.Arbeidsgiverutbetaling, VedtakFattet.Companion.Tag.Innvilget), id: UUID = UUID.randomUUID()) = VedtakFattet(
+    internal fun vedtakFattet(
+        sakId: SakId = this.sakId,
+        behandlingId: BehandlingId = this.behandlingId,
+        tags: List<VedtakFattet.Companion.Tag> = listOf(
+            VedtakFattet.Companion.Tag.Arbeidsgiverutbetaling,
+            VedtakFattet.Companion.Tag.Innvilget,
+            VedtakFattet.Companion.Tag.Førstegangsbehandling
+        ),
+        id: UUID = UUID.randomUUID()
+    ) = VedtakFattet(
         id = id,
         opprettet = nesteTidspunkt,
         data = blob,
+        vedtaksperiodeId = sakId.id,
         behandlingId = behandlingId.id,
         tags = tags
     )
@@ -51,13 +61,6 @@ internal class Hendelsefabrikk(
     )
 
     internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId = this.sakId) = VedtaksperiodeEndretTilGodkjenning(
-        id = UUID.randomUUID(),
-        opprettet = nesteTidspunkt,
-        data = blob,
-        vedtaksperiodeId = sakId.id
-    )
-
-    internal fun vedtaksperiodeEndretTilVilkårsprøving(sakId: SakId = this.sakId) = VedtaksperiodeEndretTilVilkårsprøving(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         data = blob,

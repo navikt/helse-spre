@@ -18,7 +18,6 @@ internal class RevurderingTest: AbstractTeamSakTest() {
         val (førstegangsbehandlingId, behandlingOpprettetFørstegang) = hendelsefabrikk.behandlingOpprettet()
         behandlingOpprettetFørstegang.håndter(førstegangsbehandlingId)
 
-        hendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(førstegangsbehandlingId)
         hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(førstegangsbehandlingId)
         hendelsefabrikk.vedtaksperiodeGodkjent().håndter(førstegangsbehandlingId)
         val behandling = hendelsefabrikk.vedtakFattet().håndter(førstegangsbehandlingId)

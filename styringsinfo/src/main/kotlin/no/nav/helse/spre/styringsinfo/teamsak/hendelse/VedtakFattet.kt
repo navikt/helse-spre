@@ -12,20 +12,15 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsr
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.DELVIS_INNVILGET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.Arbeidsgiverutbetaling
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.Avslag
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.DelvisInnvilget
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.IngenUtbetaling
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.Innvilget
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.NegativArbeidsgiverutbetaling
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.NegativPersonutbetaling
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.Personutbetaling
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.entries
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.*
 import java.lang.IllegalArgumentException
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -35,6 +30,7 @@ internal class VedtakFattet(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
+    private val vedtaksperiodeId: UUID,
     private val behandlingId: UUID,
     private val tags: List<Tag> = emptyList()
 ) : Hendelse {
@@ -42,11 +38,14 @@ internal class VedtakFattet(
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId)) ?: return false
+        val sakId = SakId(vedtaksperiodeId)
         val mottaker = mottaker(tags, behandlingId, id)
         val behandlingsresultat = behandlingsresultat(tags, behandlingId, id)
+        val periodetype = periodetype(tags, sakId, behandlingshendelseDao)
         val ny = builder
             .mottaker(mottaker)
             .avslutt(behandlingsresultat)
+            .periodetype(periodetype)
             .build(opprettet, AUTOMATISK)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
@@ -68,7 +67,9 @@ internal class VedtakFattet(
             FlereArbeidsgivere,
             `6GBegrenset`,
             SykepengegrunnlagUnder2G,
-            IngenNyArbeidsgiverperiode
+            IngenNyArbeidsgiverperiode,
+            Førstegangsbehandling,
+            Forlengelse
         }
 
         private fun valueOfOrNull(name: String): Tag? {
@@ -84,6 +85,13 @@ internal class VedtakFattet(
                     }
                 }
             }
+        }
+
+        private fun periodetype(tags: List<Tag>, sakId: SakId, behandlingshendelseDao: BehandlingshendelseDao): Behandling.Periodetype {
+            if (tags.contains(Førstegangsbehandling)) return Behandling.Periodetype.FØRSTEGANGSBEHANDLING
+            if (tags.contains(Forlengelse)) return Behandling.Periodetype.FORLENGELSE
+            // TODO: Denne (også funksjonen i DAO'en) kan vi fjerne når alle godkjenningsbehov er påminnet
+            return if (behandlingshendelseDao.erFørstegangsbehandling(sakId)) Behandling.Periodetype.FØRSTEGANGSBEHANDLING else Behandling.Periodetype.FORLENGELSE
         }
 
         private fun mottaker(tags: List<Tag>, behandlingId: UUID, hendelseId: UUID): Behandling.Mottaker {
@@ -115,6 +123,7 @@ internal class VedtakFattet(
             behandlingshendelseDao = behandlingshendelseDao,
             valider = {
                 packet ->
+                    packet.requireVedtaksperiodeId()
                     packet.requireBehandlingId()
                     packet.requireTags()
                     packet.demandSykepengegrunnlagfakta()
@@ -124,6 +133,7 @@ internal class VedtakFattet(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
+                vedtaksperiodeId = packet.vedtaksperiodeId,
                 behandlingId = packet.behandlingId,
                 tags = packet.tags.tilKjenteTags()
             )}

@@ -2,10 +2,8 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FORLENGELSE
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
@@ -27,10 +25,8 @@ internal class VedtaksperiodeEndretTilGodkjenning(
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val sakId = SakId(vedtaksperiodeId)
         val builder = behandlingshendelseDao.initialiser(sakId) ?: return false
-        val periodetype = if (behandlingshendelseDao.erFørstegangsbehandling(sakId)) FØRSTEGANGSBEHANDLING else FORLENGELSE
         val ny = builder
             .behandlingstatus(AVVENTER_GODKJENNING)
-            .periodetype(periodetype)
             .build(opprettet, AUTOMATISK)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)

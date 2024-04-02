@@ -34,10 +34,9 @@ internal class OmgjøringTest: AbstractTeamSakTest() {
         assertEquals(Behandling.Behandlingskilde.ARBEIDSGIVER, behandling2.behandlingskilde)
         assertEquals(behandlingId, behandling2.relatertBehandlingId)
 
-        hendelsefabrikk.vedtaksperiodeEndretTilVilkårsprøving().håndter(behandlingId2)
         hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId2)
         hendelsefabrikk.vedtaksperiodeGodkjent(behandlingId = behandlingId2).håndter(behandlingId2)
-        behandling2 = hendelsefabrikk.vedtakFattet(behandlingId2).håndter(behandlingId2)
+        behandling2 = hendelsefabrikk.vedtakFattet(behandlingId = behandlingId2).håndter(behandlingId2)
 
         assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling2.behandlingstatus)
         assertEquals(Behandling.Behandlingstype.GJENÅPNING, behandling2.behandlingstype)
