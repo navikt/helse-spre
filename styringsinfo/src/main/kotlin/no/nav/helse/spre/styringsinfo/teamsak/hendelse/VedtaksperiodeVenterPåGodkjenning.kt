@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import org.slf4j.Logger
@@ -21,14 +23,15 @@ internal class VedtaksperiodeVenterPåGodkjenning(
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     vedtaksperiodeId: UUID,
+    behandlingId: UUID,
     vedtaksperiodeIdSomVentesPå: UUID,
 ) : Hendelse {
     override val type = eventName
     private val behandlingsstatus = if (vedtaksperiodeId == vedtaksperiodeIdSomVentesPå) AVVENTER_GODKJENNING.name else "KOMPLETT_FAKTAGRUNNLAG"
-    private val sakId = SakId(vedtaksperiodeId)
+    private val behandlingId = BehandlingId(behandlingId)
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        behandlingshendelseDao.initialiser(sakId) ?: return false
+        behandlingshendelseDao.initialiser(behandlingId) ?: return false
         sikkerLogg.info("Denne tullegutten ville vi satt til behandlingsstatus $behandlingsstatus")
         return false
     }
@@ -36,7 +39,7 @@ internal class VedtaksperiodeVenterPåGodkjenning(
     // 'vedtaksperiode_venter' sendes veldig hyppig, så for unngå å lagre alle disse hendelsene
     // når de bare sier det samme som før så ignoreres de
     override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) =
-        behandlingshendelseDao.hent(sakId)?.behandlingstatus?.name == this.behandlingsstatus
+        behandlingshendelseDao.hent(behandlingId)?.behandlingstatus?.name == this.behandlingsstatus
 
     internal companion object {
         private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
@@ -54,6 +57,7 @@ internal class VedtaksperiodeVenterPåGodkjenning(
             valider = { packet ->
                 packet.demandVenterPåGodkjenning()
                 packet.requireVedtaksperiodeId()
+                packet.requireBehandlingId()
                 packet.requireVedtaksperiodeIdSomVentesPå()
             },
             opprett = { packet -> VedtaksperiodeVenterPåGodkjenning(
@@ -61,6 +65,7 @@ internal class VedtaksperiodeVenterPåGodkjenning(
                 data = packet.blob,
                 opprettet = packet.opprettet,
                 vedtaksperiodeId = packet.vedtaksperiodeId,
+                behandlingId = packet.behandlingId,
                 vedtaksperiodeIdSomVentesPå = packet.vedtaksperiodeIdSomVentesPå
             )}
         )
