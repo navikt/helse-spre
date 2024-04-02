@@ -64,11 +64,10 @@ internal class Hendelsefabrikk(
         vedtaksperiodeId = sakId.id
     )
 
-    internal fun vedtaksperiodeGodkjent(sakId: SakId = this.sakId, behandlingId: BehandlingId = this.behandlingId, totrinnsbehandling: Boolean = false) = VedtaksperiodeGodkjent(
+    internal fun vedtaksperiodeGodkjent(behandlingId: BehandlingId = this.behandlingId, totrinnsbehandling: Boolean = false) = VedtaksperiodeGodkjent(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         data = blob,
-        vedtaksperiodeId = sakId.id,
         behandlingId = behandlingId.id,
         saksbehandlerEnhet = "SB123",
         beslutterEnhet = "SB456",
@@ -76,11 +75,10 @@ internal class Hendelsefabrikk(
         totrinnsbehandling = totrinnsbehandling
     )
 
-    internal fun vedtaksperiodeAvvist(sakId: SakId = this.sakId, behandlingId: BehandlingId = this.behandlingId) = VedtaksperiodeAvvist(
+    internal fun vedtaksperiodeAvvist(behandlingId: BehandlingId = this.behandlingId) = VedtaksperiodeAvvist(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         data = blob,
-        vedtaksperiodeId = sakId.id,
         behandlingId = behandlingId.id,
         saksbehandlerEnhet = "SB123",
         automatiskBehandling = false
