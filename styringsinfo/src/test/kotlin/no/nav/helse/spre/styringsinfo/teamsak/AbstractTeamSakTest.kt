@@ -74,7 +74,8 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
 
     protected fun Hendelse.håndter(behandlingId: BehandlingId): Behandling {
         if (ignorer(behandlingshendelseDao)) return behandling(behandlingId)
-        if (!hendelseDao.lagre(this)) return behandling(behandlingId)
+        if (behandlingshendelseDao.harHåndtertHendelseTidligere(this.id)) return behandling(behandlingId)
+        hendelseDao.lagre(this)
         håndter(behandlingshendelseDao)
         return behandling(behandlingId)
     }

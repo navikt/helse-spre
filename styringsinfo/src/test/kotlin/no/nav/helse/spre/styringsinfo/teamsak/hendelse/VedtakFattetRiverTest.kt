@@ -90,9 +90,8 @@ internal class TestHendelseDao() : HendelseDao {
         lagretHendelse = false
     }
 
-    override fun lagre(hendelse: Hendelse): Boolean {
+    override fun lagre(hendelse: Hendelse) {
         lagretHendelse = true
-        return true
     }
 
 }
@@ -105,4 +104,5 @@ internal class TestBehandlingshendelseDao : BehandlingshendelseDao {
     override fun hent(sakId: SakId): Behandling? = null
     override fun sisteBehandlingId(sakId: SakId): BehandlingId? = null
     override fun erFørstegangsbehandling(sakId: SakId): Boolean = true
+    override fun harHåndtertHendelseTidligere(hendelseId: UUID): Boolean = false
 }

@@ -41,7 +41,8 @@ internal class HendelseRiver(
     private fun håndterHendelse(packet: JsonMessage) {
         val hendelse = opprett(packet)
         if (hendelse.ignorer(behandlingshendelseDao)) return packet.sikkerLogg("Ignorer ${packet.eventName}")
-        if (!hendelseDao.lagre(hendelse)) return packet.sikkerLogg("Har håndtert ${packet.eventName} tidligere")
+        if (behandlingshendelseDao.harHåndtertHendelseTidligere(hendelse.id)) return packet.sikkerLogg("Har håndtert ${packet.eventName} tidligere")
+        hendelseDao.lagre(hendelse)
         // Ikke registrert starten på behandlingen/har ikke noe ny info utover det vi allerede har lagret (funksjonelt lik)/hendelse kommer out of order
         if (!hendelse.håndter(behandlingshendelseDao)) return packet.sikkerLogg("Håndterer _ikke_ ${packet.eventName}")
         packet.sikkerLogg("Håndterte ${packet.eventName}")

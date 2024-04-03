@@ -151,6 +151,17 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         }) > 0
     }
 
+    override fun harHåndtertHendelseTidligere(hendelseId: UUID): Boolean {
+        val sql = """
+            select count(1) from behandlingshendelse where hendelseid='$hendelseId'
+        """.trimIndent()
+        return (sessionOf(dataSource).use { session ->
+            session.run(
+                queryOf(sql).map { it.int(1) }.asSingle
+            ) ?: 0
+        }) > 0
+    }
+
     private companion object {
         private val logger = LoggerFactory.getLogger(PostgresBehandlingshendelseDao::class.java)
         private val objectMapper = jacksonObjectMapper()
