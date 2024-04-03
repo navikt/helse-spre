@@ -30,18 +30,14 @@ internal class Hendelsefabrikk(
 
     internal fun vedtakFattet(
         behandlingId: BehandlingId = this.behandlingId,
-        tags: List<VedtakFattet.Companion.Tag> = listOf(
-            VedtakFattet.Companion.Tag.Arbeidsgiverutbetaling,
-            VedtakFattet.Companion.Tag.Innvilget,
-            VedtakFattet.Companion.Tag.Førstegangsbehandling
-        ),
+        tags: Set<Tag> = setOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget, Tag.Førstegangsbehandling),
         id: UUID = UUID.randomUUID()
     ) = VedtakFattet(
         id = id,
         opprettet = nesteTidspunkt,
         data = blob,
         behandlingId = behandlingId.id,
-        tags = tags
+        tags = Tags(tags)
     )
 
     internal fun avsluttetUtenVedtak(behandlingId: BehandlingId = this.behandlingId) = AvsluttetUtenVedtak(

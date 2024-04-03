@@ -1,0 +1,79 @@
+package no.nav.helse.spre.styringsinfo.teamsak.hendelse
+
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+internal enum class Tag {
+    IngenUtbetaling,
+    NegativPersonutbetaling,
+    Personutbetaling,
+    Arbeidsgiverutbetaling,
+    NegativArbeidsgiverutbetaling,
+    Innvilget,
+    DelvisInnvilget,
+    Avslag,
+    EnArbeidsgiver,
+    FlereArbeidsgivere,
+    `6GBegrenset`,
+    SykepengegrunnlagUnder2G,
+    IngenNyArbeidsgiverperiode,
+    Førstegangsbehandling,
+    Forlengelse
+}
+
+internal class Tags(private val tags: Set<Tag>) {
+    internal constructor(tags: List<String>) :this(tags.tilKjenteTags())
+
+    internal val periodetype get(): Behandling.Periodetype {
+        if (tags.contains(Tag.Førstegangsbehandling)) return Behandling.Periodetype.FØRSTEGANGSBEHANDLING
+        if (tags.contains(Tag.Forlengelse)) return Behandling.Periodetype.FORLENGELSE
+        throw UtledingFraTagsException("periodetype")
+    }
+
+    internal val mottaker get(): Behandling.Mottaker {
+        val sykmeldtErMottaker = tags.any { it in listOf(Tag.Personutbetaling, Tag.NegativPersonutbetaling) }
+        val arbeidsgiverErMottaker = tags.any { it in listOf(Tag.Arbeidsgiverutbetaling, Tag.NegativArbeidsgiverutbetaling) }
+        val ingenErMottaker = tags.contains(Tag.IngenUtbetaling)
+        return when {
+            ingenErMottaker -> Behandling.Mottaker.INGEN
+            sykmeldtErMottaker && arbeidsgiverErMottaker -> Behandling.Mottaker.SYKMELDT_OG_ARBEIDSGIVER
+            sykmeldtErMottaker -> Behandling.Mottaker.SYKMELDT
+            arbeidsgiverErMottaker -> Behandling.Mottaker.ARBEIDSGIVER
+            else -> throw UtledingFraTagsException("mottaker")
+        }
+    }
+
+    internal val behandlingsresultat get(): Behandling.Behandlingsresultat {
+        return when {
+            tags.any { it == Tag.Innvilget } -> Behandling.Behandlingsresultat.INNVILGET
+            tags.any { it == Tag.DelvisInnvilget } -> Behandling.Behandlingsresultat.DELVIS_INNVILGET
+            tags.any { it == Tag.Avslag } -> Behandling.Behandlingsresultat.AVSLAG
+            else -> throw UtledingFraTagsException("behandlingsresultat")
+        }
+    }
+
+    private companion object {
+        private fun valueOfOrNull(name: String) = Tag.entries.firstOrNull { it.name == name }
+
+        private fun List<String>.tilKjenteTags(): Set<Tag> {
+            return mapNotNull { streng ->
+                valueOfOrNull(streng).also {
+                    if (it == null) {
+                        log.warn("$streng er en ukjent Tag for spre-styringsinfo. Vurder å legge den inn, kanskje dette er nyttig data?")
+                        sikkerLogg.warn("$streng er en ukjent Tag for spre-styringsinfo. Vurder å legge den inn, kanskje dette er nyttig data?")
+                    }
+                }
+            }.toSet()
+        }
+
+        val log = LoggerFactory.getLogger(Tags::class.java)
+        val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
+
+        private class UtledingFraTagsException(felt: String): IllegalStateException("Nå kom det jaggu et event med en $felt jeg ikke klarte å tolke. Dette må være en feil. Ta en titt!") {
+            init {
+                sikkerLogg.error(message)
+            }
+        }
+    }
+}

@@ -4,12 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.isMissingOrNull
-import no.nav.helse.spre.styringsinfo.log
-import no.nav.helse.spre.styringsinfo.sikkerLogg
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVSLAG
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.DELVIS_INNVILGET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
@@ -17,29 +12,24 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.b
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.*
-import java.lang.IllegalArgumentException
 import java.time.OffsetDateTime
-import java.util.UUID
+import java.util.*
 
 internal class VedtakFattet(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     private val behandlingId: UUID,
-    private val tags: List<Tag> = emptyList()
+    private val tags: Tags
 ) : Hendelse {
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId)) ?: return false
-        val mottaker = mottaker(tags, behandlingId, id)
-        val behandlingsresultat = behandlingsresultat(tags, behandlingId, id)
-        val periodetype = periodetype(tags, behandlingId, id)
         val ny = builder
-            .mottaker(mottaker)
-            .avslutt(behandlingsresultat)
-            .periodetype(periodetype)
+            .mottaker(tags.mottaker)
+            .avslutt(tags.behandlingsresultat)
+            .periodetype(tags.periodetype)
             .build(opprettet, AUTOMATISK)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
@@ -47,67 +37,6 @@ internal class VedtakFattet(
 
     internal companion object {
         private const val eventName = "vedtak_fattet"
-
-        enum class Tag {
-            IngenUtbetaling,
-            NegativPersonutbetaling,
-            Personutbetaling,
-            Arbeidsgiverutbetaling,
-            NegativArbeidsgiverutbetaling,
-            Innvilget,
-            DelvisInnvilget,
-            Avslag,
-            EnArbeidsgiver,
-            FlereArbeidsgivere,
-            `6GBegrenset`,
-            SykepengegrunnlagUnder2G,
-            IngenNyArbeidsgiverperiode,
-            Førstegangsbehandling,
-            Forlengelse
-        }
-
-        private fun valueOfOrNull(name: String): Tag? {
-            return entries.firstOrNull { it.name == name }
-        }
-
-        private fun List<String>.tilKjenteTags(): List<Tag> {
-            return mapNotNull { streng ->
-                valueOfOrNull(streng).also {
-                    if (it == null) {
-                        log.warn("$streng er en ukjent Tag for spre-styringsinfo. Vurder å legge den inn, kanskje dette er nyttig data?")
-                        sikkerLogg.warn("$streng er en ukjent Tag for spre-styringsinfo. Vurder å legge den inn, kanskje dette er nyttig data?")
-                    }
-                }
-            }
-        }
-
-        private fun periodetype(tags: List<Tag>, behandlingId: UUID, hendelseId: UUID): Behandling.Periodetype {
-            if (tags.contains(Førstegangsbehandling)) return Behandling.Periodetype.FØRSTEGANGSBEHANDLING
-            if (tags.contains(Forlengelse)) return Behandling.Periodetype.FORLENGELSE
-            throw IllegalArgumentException("Nå kom det jaggu et vedtak_fattet-event med en periodetype jeg ikke klarte å tolke. Dette må være en feil. Ta en titt på behandling $behandlingId fra hendelse $hendelseId.")
-        }
-
-        private fun mottaker(tags: List<Tag>, behandlingId: UUID, hendelseId: UUID): Behandling.Mottaker {
-            val sykmeldtErMottaker = tags.any { it in listOf(Personutbetaling, NegativPersonutbetaling) }
-            val arbeidsgiverErMottaker = tags.any { it in listOf(Arbeidsgiverutbetaling, NegativArbeidsgiverutbetaling) }
-            val ingenErMottaker = tags.contains(IngenUtbetaling)
-            return when {
-                ingenErMottaker -> Behandling.Mottaker.INGEN
-                sykmeldtErMottaker && arbeidsgiverErMottaker -> Behandling.Mottaker.SYKMELDT_OG_ARBEIDSGIVER
-                sykmeldtErMottaker -> Behandling.Mottaker.SYKMELDT
-                arbeidsgiverErMottaker -> Behandling.Mottaker.ARBEIDSGIVER
-                else -> throw IllegalArgumentException("Nå kom det jaggu et vedtak_fattet-event med en mottaker jeg ikke klarte å tolke. Dette må være en feil. Ta en titt på behandling $behandlingId fra hendelse $hendelseId.")
-            }
-        }
-
-        private fun behandlingsresultat(tags: List<Tag>, behandlingId: UUID, hendelseId: UUID): Behandling.Behandlingsresultat {
-            return when {
-                tags.any { it == Innvilget } -> Behandling.Behandlingsresultat.INNVILGET
-                tags.any { it == DelvisInnvilget } -> DELVIS_INNVILGET
-                tags.any { it == Avslag } -> AVSLAG
-                else -> throw IllegalArgumentException("Nå kom det jaggu et vedtak_fattet-event med et behandlingsresultat jeg ikke klarte å tolke. Dette må være en feil. Ta en titt på behandling $behandlingId fra hendelse $hendelseId.")
-            }
-        }
 
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
@@ -127,7 +56,7 @@ internal class VedtakFattet(
                 opprettet = packet.opprettet,
                 data = packet.blob,
                 behandlingId = packet.behandlingId,
-                tags = packet.tags.tilKjenteTags()
+                tags = Tags(packet.tags)
             )}
         )
 
