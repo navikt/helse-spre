@@ -30,3 +30,4 @@ comment on column behandlingshendelse.tekniskTid is 'Tidspunktet da fagsystemet 
 
 create index idx_sisteBehandlingerPerSak on behandlingshendelse(sakId, siste);
 create index idx_sisteBehandling on behandlingshendelse(behandlingId, siste);
+create index idx_hendelseId on behandlingshendelse(hendelseId);
