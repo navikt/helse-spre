@@ -70,7 +70,7 @@ data class Utbetaling(
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
 
     companion object {
-        private val IkkeUtbetalingsdagtyper = listOf("AvvistDag", "Fridag", "Feriedag", "Permisjonsdag", "Arbeidsdag")
+        private val IkkeUtbetalingsdagtyper = listOf("AvvistDag", "Fridag", "Feriedag", "Permisjonsdag", "Arbeidsdag", "AndreYtelser")
 
         fun fromJson(packet: JsonMessage) = fromJson(objectMapper.readTree(packet.toJson()))
 

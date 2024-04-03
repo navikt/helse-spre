@@ -109,6 +109,7 @@ data class VedtakMessage(
                         "AvvistDag" -> "Avvist dag"
                         "Fridag" -> "Ferie/Permisjon"
                         "Feriedag" -> "Feriedag"
+                        "AndreYtelser" -> "Annen ytelse"
                         "Permisjonsdag" -> "Permisjonsdag"
                         "Arbeidsdag" -> "Arbeidsdag"
                         "Annullering" -> "Annullering"

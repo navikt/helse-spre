@@ -5,18 +5,7 @@ import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Linje
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.MottakerType
-import no.nav.helse.spre.testhelpers.arbeidsdager
-import no.nav.helse.spre.testhelpers.avvistDager
-import no.nav.helse.spre.testhelpers.desember
-import no.nav.helse.spre.testhelpers.februar
-import no.nav.helse.spre.testhelpers.feriedager
-import no.nav.helse.spre.testhelpers.fridager
-import no.nav.helse.spre.testhelpers.januar
-import no.nav.helse.spre.testhelpers.juni
-import no.nav.helse.spre.testhelpers.november
-import no.nav.helse.spre.testhelpers.oktober
-import no.nav.helse.spre.testhelpers.permisjonsdager
-import no.nav.helse.spre.testhelpers.utbetalingsdager
+import no.nav.helse.spre.testhelpers.*
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -414,6 +403,47 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                         erOpphørt = false
                     )
                 )
+            )
+        )
+    }
+    @Test
+    fun `Annen ytelse`() {
+        val utbetalingId = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
+        val sykdomstidslinje = andreYtelser(1.januar, 17.januar, begrunnelser = listOf("AndreYtelserSvangerskapspenger"))
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = sykdomstidslinje
+        )
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = sykdomstidslinje,
+            type = "REVURDERING"
+        )
+        assertJournalpost(
+            expected = expectedJournalpost(
+                journalpostTittel = "Vedtak om revurdering av sykepenger",
+                dokumentTittel = "Sykepenger revurdert i ny løsning, 01.01.2018 - 17.01.2018",
+                eksternReferanseId = utbetalingId,
+            )
+        )
+        assertVedtakPdf(
+            expectedPdfPayloadV2(
+                utbetalingstype = REVURDERING,
+                fom = 1.januar,
+                tom = 17.januar,
+                totaltTilUtbetaling = 0,
+                arbeidsgiverOppdrag = null,
+                ikkeUtbetalteDager = listOf(
+                    IkkeUtbetalteDager(
+                        fom = 1.januar,
+                        tom = 17.januar,
+                        grunn = "Annen ytelse",
+                        begrunnelser = listOf("Personen mottar Svangerskapspenger")
+                    )
+                ),
+                linjer = emptyList()
             )
         )
     }

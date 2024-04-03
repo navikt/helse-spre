@@ -9,6 +9,7 @@ fun utbetalingsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, to
 fun arbeidsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.ARBEIDSDAG)
 fun fridager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FRIDAG)
 fun feriedager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FERIEDAG)
+fun andreYtelser(fom: LocalDate, tom: LocalDate = fom, begrunnelser: List<String>) = dagerFraTil(fom, tom, Dagtype.ANDREYTELSER, begrunnelser)
 fun permisjonsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.PERMISJONSDAG)
 fun ukjentDager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.UKJENTDAG)
 fun foreldetDager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FORELDETDAG)
@@ -48,6 +49,7 @@ enum class Dagtype(val vanligNavn: String, val helgenavn: String = vanligNavn) {
     UKJENTDAG("UkjentDag"),
     AVVISTDAG("AvvistDag"),
     FERIEDAG("Feriedag"),
+    ANDREYTELSER("AndreYtelser"),
     PERMISJONSDAG("Permisjonsdag");
 
     companion object {
