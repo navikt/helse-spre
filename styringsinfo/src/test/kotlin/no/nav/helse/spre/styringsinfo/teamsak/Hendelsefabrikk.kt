@@ -29,7 +29,6 @@ internal class Hendelsefabrikk(
     }
 
     internal fun vedtakFattet(
-        sakId: SakId = this.sakId,
         behandlingId: BehandlingId = this.behandlingId,
         tags: List<VedtakFattet.Companion.Tag> = listOf(
             VedtakFattet.Companion.Tag.Arbeidsgiverutbetaling,
@@ -41,7 +40,6 @@ internal class Hendelsefabrikk(
         id = id,
         opprettet = nesteTidspunkt,
         data = blob,
-        vedtaksperiodeId = sakId.id,
         behandlingId = behandlingId.id,
         tags = tags
     )

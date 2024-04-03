@@ -49,7 +49,7 @@ internal class ManueltBehandletAvSaksbehandlerTest: AbstractTeamSakTest() {
 
     @Test
     fun `når to saksbehandlere har behandlet saken blir det behandlingsmetode totrinns`() {
-        val behandling = nyttVedtak(totrinnsbehandling = true)
+        val (behandling) = nyttVedtak(totrinnsbehandling = true)
         assertEquals(TOTRINNS, behandling.behandlingsmetode)
         assertEquals(AUTOMATISK, behandling.hendelsesmetode)
     }

@@ -12,25 +12,20 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsr
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.DELVIS_INNVILGET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtakFattet.Companion.Tag.*
 import java.lang.IllegalArgumentException
 import java.time.OffsetDateTime
 import java.util.UUID
 
-// Skal lese inn vedtak_fattet-event kun for perioder med vedtak, ikke AUU
 internal class VedtakFattet(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    private val vedtaksperiodeId: UUID,
     private val behandlingId: UUID,
     private val tags: List<Tag> = emptyList()
 ) : Hendelse {
@@ -38,10 +33,9 @@ internal class VedtakFattet(
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId)) ?: return false
-        val sakId = SakId(vedtaksperiodeId)
         val mottaker = mottaker(tags, behandlingId, id)
         val behandlingsresultat = behandlingsresultat(tags, behandlingId, id)
-        val periodetype = periodetype(tags, sakId, behandlingshendelseDao)
+        val periodetype = periodetype(tags, behandlingId, id)
         val ny = builder
             .mottaker(mottaker)
             .avslutt(behandlingsresultat)
@@ -87,11 +81,10 @@ internal class VedtakFattet(
             }
         }
 
-        private fun periodetype(tags: List<Tag>, sakId: SakId, behandlingshendelseDao: BehandlingshendelseDao): Behandling.Periodetype {
+        private fun periodetype(tags: List<Tag>, behandlingId: UUID, hendelseId: UUID): Behandling.Periodetype {
             if (tags.contains(Førstegangsbehandling)) return Behandling.Periodetype.FØRSTEGANGSBEHANDLING
             if (tags.contains(Forlengelse)) return Behandling.Periodetype.FORLENGELSE
-            // TODO: Denne (også funksjonen i DAO'en) kan vi fjerne når alle godkjenningsbehov er påminnet
-            return if (behandlingshendelseDao.erFørstegangsbehandling(sakId)) Behandling.Periodetype.FØRSTEGANGSBEHANDLING else Behandling.Periodetype.FORLENGELSE
+            throw IllegalArgumentException("Nå kom det jaggu et vedtak_fattet-event med en periodetype jeg ikke klarte å tolke. Dette må være en feil. Ta en titt på behandling $behandlingId fra hendelse $hendelseId.")
         }
 
         private fun mottaker(tags: List<Tag>, behandlingId: UUID, hendelseId: UUID): Behandling.Mottaker {
@@ -123,17 +116,16 @@ internal class VedtakFattet(
             behandlingshendelseDao = behandlingshendelseDao,
             valider = {
                 packet ->
-                    packet.requireVedtaksperiodeId()
                     packet.requireBehandlingId()
                     packet.requireTags()
+                    // Skal lese inn vedtak_fattet-event kun for perioder med vedtak, ikke AUU
                     packet.demandSykepengegrunnlagfakta()
                     packet.demandUtbetalingId()
             },
             opprett = { packet -> VedtakFattet(
                 id = packet.hendelseId,
-                data = packet.blob,
                 opprettet = packet.opprettet,
-                vedtaksperiodeId = packet.vedtaksperiodeId,
+                data = packet.blob,
                 behandlingId = packet.behandlingId,
                 tags = packet.tags.tilKjenteTags()
             )}

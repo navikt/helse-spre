@@ -103,6 +103,5 @@ internal class TestBehandlingshendelseDao : BehandlingshendelseDao {
     override fun hent(behandlingId: BehandlingId): Behandling? = null
     override fun hent(sakId: SakId): Behandling? = null
     override fun sisteBehandlingId(sakId: SakId): BehandlingId? = null
-    override fun erFørstegangsbehandling(sakId: SakId): Boolean = true
     override fun harHåndtertHendelseTidligere(hendelseId: UUID): Boolean = false
 }

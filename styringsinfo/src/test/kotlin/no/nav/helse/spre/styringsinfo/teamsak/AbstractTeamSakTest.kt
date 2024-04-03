@@ -36,7 +36,7 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         alleRader.printTabell()
     }
 
-    protected fun nyttVedtak(sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()), totrinnsbehandling: Boolean = false): Behandling {
+    protected fun nyttVedtak(sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()), totrinnsbehandling: Boolean = false): Pair<Behandling, Hendelsefabrikk> {
         val hendelsefabrikk = Hendelsefabrikk(sakId, behandlingId)
         val (_, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertNull(behandlingshendelseDao.hent(behandlingId))
@@ -50,11 +50,11 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         behandling = hendelsefabrikk.vedtaksperiodeGodkjent(totrinnsbehandling = totrinnsbehandling).håndter(behandlingId)
         assertEquals(GODKJENT, behandling.behandlingstatus)
 
-        behandling = hendelsefabrikk.vedtakFattet(tags = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget)).håndter(behandlingId)
+        behandling = hendelsefabrikk.vedtakFattet(tags = listOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget, Tag.Førstegangsbehandling)).håndter(behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(Behandling.Mottaker.ARBEIDSGIVER, behandling.mottaker)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
-        return behandling
+        return behandling to hendelsefabrikk
     }
 
     protected fun nyAuu(sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID())): Behandling {

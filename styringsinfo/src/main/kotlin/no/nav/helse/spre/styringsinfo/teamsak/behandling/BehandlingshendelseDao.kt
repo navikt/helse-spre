@@ -9,6 +9,5 @@ internal interface BehandlingshendelseDao {
     fun hent(behandlingId: BehandlingId): Behandling?
     fun hent(sakId: SakId): Behandling?
     fun sisteBehandlingId(sakId: SakId): BehandlingId?
-    fun erFørstegangsbehandling(sakId: SakId): Boolean
     fun harHåndtertHendelseTidligere(hendelseId: UUID): Boolean
 }
