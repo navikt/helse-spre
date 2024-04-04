@@ -15,6 +15,3 @@ internal fun String.offsetDateTime(fallbackZoneId: ZoneId) = try {
         OffsetDateTime.of(it, fallbackZoneId.rules.getOffset(it))
     }
 }
-
-// TODO: Slutte å bruke når vi endrer fra timestamp til timestamptz
-internal val OffsetDateTime.localDateTimeOslo get() = atZoneSameInstant(Oslo).toLocalDateTime()

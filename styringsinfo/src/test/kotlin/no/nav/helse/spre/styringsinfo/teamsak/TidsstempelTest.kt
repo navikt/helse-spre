@@ -4,7 +4,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import org.junit.jupiter.api.assertThrows
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeParseException
@@ -73,12 +73,10 @@ internal class TidsstempelTest: AbstractTeamSakTest() {
         val tidspunktUtenOffset = "2024-03-20T10:59:50.141422"
         val tidspunktMedOsloOffset = "2024-03-20T10:59:50.141422+01:00"
         val tidspunktMedUtcOffset = "2024-03-20T10:59:50.141422+00:00"
-        org.junit.jupiter.api.assertThrows<DateTimeParseException> { OffsetDateTime.parse(tidspunktUtenOffset) }
+        assertThrows<DateTimeParseException> { OffsetDateTime.parse(tidspunktUtenOffset) }
 
         assertEquals(OffsetDateTime.parse(tidspunktMedOsloOffset), tidspunktUtenOffset.offsetDateTimeOslo)
         assertEquals(OffsetDateTime.parse(tidspunktMedUtcOffset), tidspunktUtenOffset.offsetDateTime(ZoneId.of("UTC")))
-
-        assertEquals(LocalDateTime.parse("2024-03-20T11:59:50.141422"), OffsetDateTime.parse(tidspunktMedUtcOffset).localDateTimeOslo)
     }
 
     private val mottattTid get() = sessionOf(dataSource).use { session ->
