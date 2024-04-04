@@ -30,9 +30,6 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
     override fun initialiser(behandlingId: BehandlingId) =
         hent(behandlingId)?.let { Behandling.Builder(it) }
 
-    override fun initialiser(sakId: SakId) =
-        sisteBehandlingId(sakId)?.let { initialiser(it) }
-
     override fun lagre(behandling: Behandling, hendelseId: UUID): Boolean {
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
             if (!tx.kanLagres(behandling, hendelseId)) return false

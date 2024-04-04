@@ -93,6 +93,13 @@ internal class Hendelsefabrikk(
         behandlingId = behandlingId.id
     )
 
+    internal fun vedtaksperiodeVenterIndirektePåGodkjenning(behandlingId: BehandlingId = this.behandlingId) = VedtaksperiodeVenterIndirektePåGodkjenning(
+        id = UUID.randomUUID(),
+        opprettet = nesteTidspunkt,
+        data = blob,
+        behandlingId = behandlingId.id
+    )
+
     internal companion object {
         private val nå = OffsetDateTime.now()
         private var teller = 1L

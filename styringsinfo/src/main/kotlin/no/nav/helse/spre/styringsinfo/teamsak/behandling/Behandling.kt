@@ -36,6 +36,7 @@ internal data class Behandling(
 ) {
     internal enum class Behandlingstatus {
         REGISTRERT,
+        KOMPLETT_FAKTAGRUNNLAG,
         AVVENTER_GODKJENNING,
         GODKJENT,
         AVSLUTTET

@@ -3,7 +3,8 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.KOMPLETT_FAKTAGRUNNLAG
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
@@ -13,36 +14,30 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime
 import java.util.*
 
-internal class VedtaksperiodeVenterPåGodkjenning(
+internal class VedtaksperiodeVenterIndirektePåGodkjenning(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    vedtaksperiodeId: UUID,
     behandlingId: UUID,
-    vedtaksperiodeIdSomVentesPå: UUID,
 ) : Hendelse {
     override val type = eventName
-    private val behandlingsstatus = if (vedtaksperiodeId == vedtaksperiodeIdSomVentesPå) AVVENTER_GODKJENNING.name else "KOMPLETT_FAKTAGRUNNLAG"
     private val behandlingId = BehandlingId(behandlingId)
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        behandlingshendelseDao.initialiser(behandlingId) ?: return false
-        sikkerLogg.info("Denne tullegutten ville vi satt til behandlingsstatus $behandlingsstatus")
-        return false
+        val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
+        val ny = builder.behandlingstatus(KOMPLETT_FAKTAGRUNNLAG).build(opprettet, AUTOMATISK) ?: return false
+        return behandlingshendelseDao.lagre(ny, id)
     }
 
     // 'vedtaksperiode_venter' sendes veldig hyppig, så for unngå å lagre alle disse hendelsene
     // når de bare sier det samme som før så ignoreres de
     override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) =
-        behandlingshendelseDao.hent(behandlingId)?.behandlingstatus?.name == this.behandlingsstatus
+        behandlingshendelseDao.hent(behandlingId)?.behandlingstatus == KOMPLETT_FAKTAGRUNNLAG
 
     internal companion object {
-        private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
         private const val eventName = "vedtaksperiode_venter"
 
         internal fun river(
@@ -56,22 +51,23 @@ internal class VedtaksperiodeVenterPåGodkjenning(
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
                 packet.demandVenterPåGodkjenning()
-                packet.requireVedtaksperiodeId()
+                packet.demandVenterPåAnnenVedtaksperiode()
                 packet.requireBehandlingId()
-                packet.requireVedtaksperiodeIdSomVentesPå()
             },
-            opprett = { packet -> VedtaksperiodeVenterPåGodkjenning(
+            opprett = { packet -> VedtaksperiodeVenterIndirektePåGodkjenning(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
-                vedtaksperiodeId = packet.vedtaksperiodeId,
-                behandlingId = packet.behandlingId,
-                vedtaksperiodeIdSomVentesPå = packet.vedtaksperiodeIdSomVentesPå
+                behandlingId = packet.behandlingId
             )}
         )
 
         private fun JsonMessage.demandVenterPåGodkjenning() = demandValue("venterPå.venteårsak.hva", "GODKJENNING")
-        private fun JsonMessage.requireVedtaksperiodeIdSomVentesPå() = require("venterPå.vedtaksperiodeId") { id -> UUID.fromString(id.asText()) }
-        private val JsonMessage.vedtaksperiodeIdSomVentesPå get() = UUID.fromString(get("venterPå.vedtaksperiodeId").asText())
+        private fun JsonMessage.demandVenterPåAnnenVedtaksperiode() {
+            requireVedtaksperiodeId()
+            demand("venterPå.vedtaksperiodeId") { id ->
+                UUID.fromString(id.asText()) != vedtaksperiodeId
+            }
+        }
     }
 }
