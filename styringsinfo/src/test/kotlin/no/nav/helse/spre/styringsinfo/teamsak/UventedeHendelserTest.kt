@@ -30,7 +30,7 @@ internal class UventedeHendelserTest : AbstractTeamSakTest() {
         val (_, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         behandlingOpprettet.håndter(behandlingId)
 
-        hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId)
+        hendelsefabrikk.utkastTilVedtak().håndter(behandlingId)
         val vedtaksperiodeGodkjent = hendelsefabrikk.vedtaksperiodeGodkjent(totrinnsbehandling = false)
         vedtaksperiodeGodkjent.håndter(behandlingId)
 

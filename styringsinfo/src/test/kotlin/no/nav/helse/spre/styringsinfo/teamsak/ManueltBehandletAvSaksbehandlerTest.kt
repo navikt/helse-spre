@@ -17,7 +17,7 @@ internal class ManueltBehandletAvSaksbehandlerTest: AbstractTeamSakTest() {
         assertUkjentBehandling(behandlingId)
         behandlingOpprettet.håndter(behandlingId)
 
-        hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId)
+        hendelsefabrikk.utkastTilVedtak().håndter(behandlingId)
 
         val behandling = hendelsefabrikk.vedtaksperiodeAvvist().håndter(behandlingId)
         assertEquals(MANUELL, behandling.behandlingsmetode)
@@ -34,7 +34,7 @@ internal class ManueltBehandletAvSaksbehandlerTest: AbstractTeamSakTest() {
         assertUkjentBehandling(behandlingId)
         behandlingOpprettet.håndter(behandlingId)
 
-        hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId)
+        hendelsefabrikk.utkastTilVedtak().håndter(behandlingId)
 
         var behandling = hendelsefabrikk.vedtaksperiodeGodkjent().håndter(behandlingId)
         assertEquals(MANUELL, behandling.behandlingsmetode)

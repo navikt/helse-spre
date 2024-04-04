@@ -7,25 +7,19 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import com.zaxxer.hikari.HikariDataSource
-import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisasjonsmasterClient
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.datafortelling.SendtSøknadArbeidsgiverRiver
 import no.nav.helse.spre.styringsinfo.datafortelling.SendtSøknadNavRiver
 import no.nav.helse.spre.styringsinfo.datafortelling.VedtakFattetRiver
 import no.nav.helse.spre.styringsinfo.datafortelling.VedtakForkastetRiver
-import no.nav.helse.spre.styringsinfo.datafortelling.db.SendtSøknadDao
-import no.nav.helse.spre.styringsinfo.datafortelling.db.SendtSøknadPatcher
-import no.nav.helse.spre.styringsinfo.datafortelling.db.VedtakFattetDao
-import no.nav.helse.spre.styringsinfo.datafortelling.db.VedtakFattetPatcher
-import no.nav.helse.spre.styringsinfo.datafortelling.db.VedtakForkastetDao
-import no.nav.helse.spre.styringsinfo.datafortelling.db.VedtakForkastetPatcher
+import no.nav.helse.spre.styringsinfo.datafortelling.db.*
 import no.nav.helse.spre.styringsinfo.datafortelling.domain.SendtSøknadPatch
 import no.nav.helse.spre.styringsinfo.datafortelling.domain.VedtakFattetPatch
 import no.nav.helse.spre.styringsinfo.datafortelling.domain.VedtakForkastetPatch
+import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisasjonsmasterClient
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.LocalDateTime
@@ -108,11 +102,11 @@ internal fun launchApplication(dataSource: HikariDataSource, environment: Map<St
         VedtakFattet.river(this, hendelseDao, behandlingshendelseDao)
         AvsluttetUtenVedtak.river(this, hendelseDao, behandlingshendelseDao)
         BehandlingForkastet.river(this, hendelseDao, behandlingshendelseDao)
-        VedtaksperiodeEndretTilGodkjenning.river(this, hendelseDao, behandlingshendelseDao)
         VedtaksperiodeAvvist.river(this, hendelseDao, behandlingshendelseDao, nom)
         VedtaksperiodeGodkjent.river(this, hendelseDao, behandlingshendelseDao, nom)
         VedtaksperiodeAnnullert.river(this, hendelseDao, behandlingshendelseDao)
         VedtaksperiodeVenterPåGodkjenning.river(this, hendelseDao, behandlingshendelseDao)
+        UtkastTilVedtak.river(this, hendelseDao, behandlingshendelseDao)
     }
 }
 

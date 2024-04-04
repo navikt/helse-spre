@@ -40,6 +40,18 @@ internal class Hendelsefabrikk(
         tags = Tags(tags)
     )
 
+    internal fun utkastTilVedtak(
+        behandlingId: BehandlingId = this.behandlingId,
+        tags: Set<Tag> = setOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget, Tag.Førstegangsbehandling),
+        id: UUID = UUID.randomUUID()
+    ) = UtkastTilVedtak(
+        id = id,
+        opprettet = nesteTidspunkt,
+        data = blob,
+        behandlingId = behandlingId.id,
+        tags = Tags(tags)
+    )
+
     internal fun avsluttetUtenVedtak(behandlingId: BehandlingId = this.behandlingId) = AvsluttetUtenVedtak(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
@@ -52,13 +64,6 @@ internal class Hendelsefabrikk(
         opprettet = nesteTidspunkt,
         data = blob, behandlingId = behandlingId.id,
         automatiskBehandling = hendelsesmetode == Behandling.Metode.AUTOMATISK
-    )
-
-    internal fun vedtaksperiodeEndretTilGodkjenning(sakId: SakId = this.sakId) = VedtaksperiodeEndretTilGodkjenning(
-        id = UUID.randomUUID(),
-        opprettet = nesteTidspunkt,
-        data = blob,
-        vedtaksperiodeId = sakId.id
     )
 
     internal fun vedtaksperiodeGodkjent(behandlingId: BehandlingId = this.behandlingId, totrinnsbehandling: Boolean = false) = VedtaksperiodeGodkjent(

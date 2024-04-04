@@ -96,8 +96,6 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
 
     override fun hent(behandlingId: BehandlingId) = sessionOf(dataSource, strict = true).use { session -> session.hent(behandlingId) }
 
-    override fun hent(sakId: SakId) = sisteBehandlingId(sakId)?.let { hent(it) }
-
     private fun Session.hent(behandlingId: BehandlingId): Behandling? {
         val sql = """
             select * from behandlingshendelse where behandlingId='${behandlingId}' and siste=true

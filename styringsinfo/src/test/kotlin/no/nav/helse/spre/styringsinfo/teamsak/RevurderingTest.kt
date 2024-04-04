@@ -18,7 +18,7 @@ internal class RevurderingTest: AbstractTeamSakTest() {
         val (førstegangsbehandlingId, behandlingOpprettetFørstegang) = hendelsefabrikk.behandlingOpprettet()
         behandlingOpprettetFørstegang.håndter(førstegangsbehandlingId)
 
-        hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(førstegangsbehandlingId)
+        hendelsefabrikk.utkastTilVedtak().håndter(førstegangsbehandlingId)
         hendelsefabrikk.vedtaksperiodeGodkjent().håndter(førstegangsbehandlingId)
         val behandling = hendelsefabrikk.vedtakFattet().håndter(førstegangsbehandlingId)
 
@@ -27,7 +27,7 @@ internal class RevurderingTest: AbstractTeamSakTest() {
 
         val (revurderingbehandlingId, behandlingOpprettetRevurdering) = hendelsefabrikk.behandlingOpprettet(behandlingId = nyBehandlingId(), behandlingstype = Revurdering)
         behandlingOpprettetRevurdering.håndter(revurderingbehandlingId)
-        val behandlingRevurdering = hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(revurderingbehandlingId)
+        val behandlingRevurdering = hendelsefabrikk.utkastTilVedtak(behandlingId = revurderingbehandlingId).håndter(revurderingbehandlingId)
 
         assertEquals(AVVENTER_GODKJENNING, behandlingRevurdering.behandlingstatus)
         assertEquals(REVURDERING, behandlingRevurdering.behandlingstype)

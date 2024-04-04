@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 internal class VedtakFattetRiverTest {
     val hendelseDao = TestHendelseDao()
@@ -101,7 +101,6 @@ internal class TestBehandlingshendelseDao : BehandlingshendelseDao {
     override fun initialiser(sakId: SakId): Behandling.Builder? = null
     override fun lagre(behandling: Behandling, hendelseId: UUID) = true
     override fun hent(behandlingId: BehandlingId): Behandling? = null
-    override fun hent(sakId: SakId): Behandling? = null
     override fun sisteBehandlingId(sakId: SakId): BehandlingId? = null
     override fun harHåndtertHendelseTidligere(hendelseId: UUID): Boolean = false
 }

@@ -7,10 +7,11 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.*
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Mottaker.ARBEIDSGIVER
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Tag
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -44,15 +45,19 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
-        behandling = hendelsefabrikk.vedtaksperiodeEndretTilGodkjenning().håndter(behandlingId)
+        behandling = hendelsefabrikk.utkastTilVedtak().håndter(behandlingId)
         assertEquals(AVVENTER_GODKJENNING, behandling.behandlingstatus)
+        assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
+        assertEquals(ARBEIDSGIVER, behandling.mottaker)
+        assertNull(behandling.behandlingsresultat)
 
         behandling = hendelsefabrikk.vedtaksperiodeGodkjent(totrinnsbehandling = totrinnsbehandling).håndter(behandlingId)
         assertEquals(GODKJENT, behandling.behandlingstatus)
 
-        behandling = hendelsefabrikk.vedtakFattet(tags = setOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget, Tag.Førstegangsbehandling)).håndter(behandlingId)
+        behandling = hendelsefabrikk.vedtakFattet().håndter(behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Mottaker.ARBEIDSGIVER, behandling.mottaker)
+        assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
+        assertEquals(ARBEIDSGIVER, behandling.mottaker)
         assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
         return behandling to hendelsefabrikk
     }
