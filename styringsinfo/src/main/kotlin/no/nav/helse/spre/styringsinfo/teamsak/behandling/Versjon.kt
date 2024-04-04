@@ -67,7 +67,8 @@ internal class Versjon private constructor(
             Patch("behandlingsmetode er alltid satt"),
             Patch("HENLAGT på behandlingsresultat renames til IKKE_REALITETSBEHANDLET og OMGJØRING på behandlingstype renames til GJENÅPNING"),
             Minor("Fjerner behandlingstatus VURDERER_INNGANGSVILKÅR"),
-            Minor("Legger til behandlingstatus KOMPLETT_FAKTAGRUNNLAG")
+            Minor("Legger til behandlingstatus KOMPLETT_FAKTAGRUNNLAG"),
+            LeggTilOgFjern(setOf("behandlingstype"), setOf("behandlingtype"))
         ).genererVersjoner
 
         internal val List<Versjonsutleder>.genererVersjoner: Map<Set<String>, Versjon> get() {
