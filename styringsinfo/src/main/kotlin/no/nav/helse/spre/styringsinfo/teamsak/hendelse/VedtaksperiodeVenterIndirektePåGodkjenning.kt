@@ -66,7 +66,7 @@ internal class VedtaksperiodeVenterIndirektePåGodkjenning(
         private fun JsonMessage.demandVenterPåAnnenVedtaksperiode() {
             requireVedtaksperiodeId()
             demand("venterPå.vedtaksperiodeId") { id ->
-                UUID.fromString(id.asText()) != vedtaksperiodeId
+                check(UUID.fromString(id.asText()) != vedtaksperiodeId)
             }
         }
     }
