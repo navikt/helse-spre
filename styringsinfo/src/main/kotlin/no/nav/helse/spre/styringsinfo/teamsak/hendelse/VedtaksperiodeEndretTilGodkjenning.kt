@@ -2,6 +2,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
@@ -31,6 +32,9 @@ internal class VedtaksperiodeEndretTilGodkjenning(
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
+
+    override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) =
+        behandlingshendelseDao.hent(SakId(vedtaksperiodeId))?.behandlingstatus == AVSLUTTET
 
     internal companion object {
         private const val eventName = "vedtaksperiode_endret"
