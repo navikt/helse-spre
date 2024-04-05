@@ -56,7 +56,7 @@ internal class VedtakFattet(
                 opprettet = packet.opprettet,
                 data = packet.blob,
                 behandlingId = packet.behandlingId,
-                tags = Tags(packet.tags)
+                tags = packet.tagFix()
             )}
         )
 
@@ -65,6 +65,11 @@ internal class VedtakFattet(
         private fun JsonMessage.demandUtbetalingId() = demand("utbetalingId") { utbetalingId -> UUID.fromString(utbetalingId.asText()) }
         private fun JsonMessage.demandSykepengegrunnlagfakta() = demand("sykepengegrunnlagsfakta") {
             sykepengegrunnlagsfakta -> require(!sykepengegrunnlagsfakta.isMissingOrNull())
+        }
+
+        private fun JsonMessage.tagFix(): Tags {
+            if (tags.isEmpty() && behandlingId == UUID.fromString("a1c9bf6b-2a5c-4717-b939-29b9822a119c")) return Tags(setOf(Tag.Forlengelse, Tag.EnArbeidsgiver, Tag.IngenUtbetaling, Tag.Innvilget))
+            return Tags(tags)
         }
     }
 }
