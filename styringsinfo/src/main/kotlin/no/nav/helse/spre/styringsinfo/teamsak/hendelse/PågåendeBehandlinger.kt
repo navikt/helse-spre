@@ -84,11 +84,11 @@ internal class PågåendeBehandlinger(
                         vedtaksperiodeId = UUID.fromString(behandling.path("vedtaksperiodeId").asText()),
                         behandlingId = UUID.fromString(behandling.path("behandlingId").asText()),
                         behandlingskilde = BehandlingOpprettet.Behandlingskilde(
-                            innsendt = behandling["kilde.innsendt"].tidspunkt,
-                            registrert = behandling["kilde.registrert"].tidspunkt,
-                            avsender = BehandlingOpprettet.Avsender(behandling["kilde.avsender"].asText())
+                            innsendt = behandling.path("kilde").path("innsendt").tidspunkt,
+                            registrert = behandling.path("kilde").path("registrert").tidspunkt,
+                            avsender = BehandlingOpprettet.Avsender(behandling.path("kilde").path("avsender").asText())
                         ),
-                        behandlingstype = BehandlingOpprettet.Behandlingstype(behandling["type"].asText())
+                        behandlingstype = BehandlingOpprettet.Behandlingstype(behandling.path("type").asText())
                     )
                 }
             )}
