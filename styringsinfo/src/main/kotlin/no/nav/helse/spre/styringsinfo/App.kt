@@ -107,7 +107,7 @@ internal fun launchApplication(dataSource: HikariDataSource, environment: Map<St
         VedtaksperiodeAnnullert.river(this, hendelseDao, behandlingshendelseDao)
         VedtaksperiodeVenterIndirektePåGodkjenning.river(this, hendelseDao, behandlingshendelseDao)
         UtkastTilVedtak.river(this, hendelseDao, behandlingshendelseDao)
-        //PågåendeBehandlinger.river(this, hendelseDao, behandlingshendelseDao)
+        PågåendeBehandlinger.river(this, hendelseDao, behandlingshendelseDao)
     }
 }
 

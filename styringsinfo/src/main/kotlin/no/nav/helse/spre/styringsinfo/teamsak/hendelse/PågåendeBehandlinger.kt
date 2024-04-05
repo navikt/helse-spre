@@ -1,6 +1,7 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
+import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SAKSBEHANDLER
@@ -18,6 +19,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.tidspunkt
+import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -34,7 +36,9 @@ internal class PågåendeBehandlinger(
         behandlinger
             .sortedBy { it.behandlingskilde.registrert }
             .filter { behandlingshendelseDao.hent(BehandlingId(it.behandlingId)) == null }
-            .forEach { pågåendeBehandling ->
+            .takeUnless { it.isEmpty() }
+            ?.also { sikkerLogg.info("Lagrer ${it.size} pågående behandlinger for {}", keyValue("aktørId", aktørId)) }
+            ?.forEach { pågåendeBehandling ->
                 val sakId = SakId(pågåendeBehandling.vedtaksperiodeId)
                 val behandlingId = BehandlingId(pågåendeBehandling.behandlingId)
                 val behandlingskilde = pågåendeBehandling.behandlingskilde.avsender.behandlingskilde
@@ -60,6 +64,7 @@ internal class PågåendeBehandlinger(
 
     internal companion object {
         private const val eventName = "pågående_behandlinger"
+        private val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
 
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
