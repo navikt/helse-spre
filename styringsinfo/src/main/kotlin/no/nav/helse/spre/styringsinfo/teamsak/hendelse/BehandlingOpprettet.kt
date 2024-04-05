@@ -56,16 +56,12 @@ internal class BehandlingOpprettet(
         return behandlingshendelseDao.lagre(behandling, this.id)
     }
 
-    // TODO: Midlertidig ignorering mens vi migrerer inn pågående behandlinger
-    override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) =
-        behandlingshendelseDao.hent(BehandlingId(behandlingId)) != null
-
     internal class Behandlingskilde(internal val innsendt: OffsetDateTime, internal val registrert: OffsetDateTime, internal val avsender: Avsender)
     internal class Avsender(val verdi: String)
     internal class Behandlingstype(val verdi: String)
 
     internal companion object {
-        internal val Avsender.behandlingskilde get() = when (verdi) {
+        private val Avsender.behandlingskilde get() = when (verdi) {
             "SYKMELDT" -> Behandling.Behandlingskilde.SYKMELDT
             "ARBEIDSGIVER" -> Behandling.Behandlingskilde.ARBEIDSGIVER
             "SAKSBEHANDLER" -> SAKSBEHANDLER
@@ -73,7 +69,7 @@ internal class BehandlingOpprettet(
             else -> throw IllegalStateException("Kjenner ikke til kildeavsender $verdi")
         }
 
-        internal val Behandlingstype.behandlingstype get() = when (verdi) {
+        private val Behandlingstype.behandlingstype get() = when (verdi) {
             "Søknad" -> Behandling.Behandlingstype.SØKNAD
             "Omgjøring" -> Behandling.Behandlingstype.GJENÅPNING
             "Revurdering" -> Behandling.Behandlingstype.REVURDERING
