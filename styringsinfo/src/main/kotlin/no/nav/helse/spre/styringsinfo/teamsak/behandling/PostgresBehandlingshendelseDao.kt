@@ -13,8 +13,10 @@ import javax.sql.DataSource
 
 internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource): BehandlingshendelseDao {
 
-    override fun initialiser(behandlingId: BehandlingId) =
-        hent(behandlingId)?.let { Behandling.Builder(it) }
+    override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? {
+        val behandling = hent(behandlingId) ?: return sikkerLogg.warn("Fant ikke behandling å bygge videre på! Dette burde ikke skje nå som vi har migrert inn pågående behandlinger...").let { null }
+        return Behandling.Builder(behandling)
+    }
 
     override fun lagre(behandling: Behandling, hendelseId: UUID): Boolean {
         sessionOf(dataSource, strict = true).use { it.transaction { tx ->
@@ -34,7 +36,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             "funksjonellTid" to behandling.funksjonellTid)
         ).map { it.int(1) }.asSingle) ?: 0
         val kanLagres = antallRaderMedLikEllerSenereFunksjonellTid == 0
-        if (!kanLagres) logger.warn("Lagrer _ikke_ ny rad for sak ${behandling.sakId}, behandling ${behandling.behandlingId} fra hendelse $hendelseId. Det finnes allerede $antallRaderMedLikEllerSenereFunksjonellTid rader med funksjonellTid >= ${behandling.funksjonellTid}")
+        if (!kanLagres) sikkerLogg.warn("Lagrer _ikke_ ny rad for sak ${behandling.sakId}, behandling ${behandling.behandlingId} fra hendelse $hendelseId. Det finnes allerede $antallRaderMedLikEllerSenereFunksjonellTid rader med funksjonellTid >= ${behandling.funksjonellTid}")
         return kanLagres
     }
 
@@ -136,7 +138,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
     }
 
     private companion object {
-        private val logger = LoggerFactory.getLogger(PostgresBehandlingshendelseDao::class.java)
+        private val sikkerLogg = LoggerFactory.getLogger("tjenestekall")
         private val objectMapper = jacksonObjectMapper()
 
         private val JsonNode.textOrNull get() = takeIf { it.isTextual }?.asText()

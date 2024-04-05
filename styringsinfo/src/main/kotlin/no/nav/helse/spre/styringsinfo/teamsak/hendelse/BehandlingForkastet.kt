@@ -3,7 +3,6 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.ANNULLERT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
@@ -30,8 +29,7 @@ internal class BehandlingForkastet(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val behandling = behandlingshendelseDao.hent(behandlingId) ?: return false
-        val builder = Behandling.Builder(behandling)
+        val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
         val ny = builder
             .avslutt(AVBRUTT)
             .build(opprettet, hendelsesmetode)
