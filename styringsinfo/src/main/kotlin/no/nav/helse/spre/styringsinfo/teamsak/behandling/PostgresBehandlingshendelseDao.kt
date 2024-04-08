@@ -14,7 +14,7 @@ import javax.sql.DataSource
 internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource): BehandlingshendelseDao {
 
     override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? {
-        val behandling = hent(behandlingId) ?: return sikkerLogg.warn("Fant ikke behandling å bygge videre på! Dette burde ikke skje nå som vi har migrert inn pågående behandlinger...").let { null }
+        val behandling = hent(behandlingId) ?: error("Fant ikke behandling $behandlingId å bygge videre på! Dette burde ikke skje nå som vi har migrert inn pågående behandlinger...")
         return Behandling.Builder(behandling)
     }
 

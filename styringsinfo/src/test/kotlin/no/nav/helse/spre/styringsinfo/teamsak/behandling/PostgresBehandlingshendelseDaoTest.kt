@@ -15,6 +15,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.lang.IllegalStateException
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -29,6 +30,13 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
     private val før = OffsetDateTime.parse("2024-03-01T13:52:53.123455+01:00")
     private val nå = OffsetDateTime.parse("2024-03-01T13:52:53.123456+01:00")
     private val etter = OffsetDateTime.parse("2024-03-01T13:52:53.123457+01:00")
+
+    @Test
+    fun `kaster exception dersom behandling ikke finnes`() {
+        org.junit.jupiter.api.assertThrows<IllegalStateException> {
+            behandlingshendelseDao.initialiser(BehandlingId(UUID.randomUUID()))
+        }
+    }
 
     @Test
     fun `lagrer ikke ny rad som har lik funksjonell tid, selv om behandlingen har annen info (korringering)`() {
