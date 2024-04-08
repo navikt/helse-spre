@@ -24,5 +24,3 @@ env:
     value: http://nom-api.nom.svc.cluster.local
   - name: NOM_API_OAUTH_SCOPE
     value: api://prod-gcp.nom.nom-api/.default
-  - name: KAFKA_EXTRA_TOPIC
-    value: tbd.teknisk.v1
