@@ -13,8 +13,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import java.lang.System.getenv
 import java.util.*
@@ -40,8 +39,9 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
     protected fun nyttVedtak(sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()), totrinnsbehandling: Boolean = false): Pair<Behandling, Hendelsefabrikk> {
         val hendelsefabrikk = Hendelsefabrikk(sakId, behandlingId)
         val (_, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
-        assertNull(behandlingshendelseDao.hent(behandlingId))
+        assertFalse(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
         var behandling = behandlingOpprettet.håndter(behandlingId)
+        assertTrue(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
         assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
@@ -87,7 +87,7 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
 
     protected fun behandling(behandlingId: BehandlingId) = checkNotNull(behandlingshendelseDao.hent(behandlingId)) { "Fant ingn behandling for behandlingId $behandlingId" }
 
-    protected fun assertUkjentBehandling(behandlingId: BehandlingId) = assertNull(behandlingshendelseDao.hent(behandlingId))
+    protected fun assertUkjentBehandling(behandlingId: BehandlingId) = assertFalse(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
 
     private val alleRader get() = sessionOf(dataSource).use { session ->
         session.run(queryOf("select * from behandlingshendelse").map { row ->

@@ -92,7 +92,8 @@ internal class TestHendelseDao() : HendelseDao {
 internal class TestBehandlingshendelseDao : BehandlingshendelseDao {
     override fun initialiser(behandlingId: BehandlingId): Behandling.Builder = mockk<Behandling.Builder>(relaxed = true)
     override fun lagre(behandling: Behandling, hendelseId: UUID) = true
-    override fun hent(behandlingId: BehandlingId): Behandling? = null
+    override fun hent(behandlingId: BehandlingId): Behandling = throw NotImplementedError()
+    override fun harLagretBehandingshendelseFor(behandlingId: BehandlingId) = true
     override fun sisteBehandlingId(sakId: SakId): BehandlingId? = null
     override fun harHåndtertHendelseTidligere(hendelseId: UUID): Boolean = false
 }

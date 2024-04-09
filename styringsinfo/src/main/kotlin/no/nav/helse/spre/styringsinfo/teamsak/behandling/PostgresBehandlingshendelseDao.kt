@@ -14,8 +14,7 @@ import javax.sql.DataSource
 internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource): BehandlingshendelseDao {
 
     override fun initialiser(behandlingId: BehandlingId): Behandling.Builder {
-        val behandling = hent(behandlingId) ?: error("Fant ikke behandling $behandlingId å bygge videre på! Dette burde ikke skje nå som vi har migrert inn pågående behandlinger...")
-        return Behandling.Builder(behandling)
+        return Behandling.Builder(hent(behandlingId))
     }
 
     override fun lagre(behandling: Behandling, hendelseId: UUID): Boolean {
@@ -82,7 +81,12 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         )).asUpdate) == 1) { "Forventet at en rad skulle legges til" }
     }
 
-    override fun hent(behandlingId: BehandlingId) = sessionOf(dataSource, strict = true).use { session -> session.hent(behandlingId) }
+    override fun hent(behandlingId: BehandlingId) = sessionOf(dataSource, strict = true)
+        .use { session -> session.hent(behandlingId) }
+            ?: error("Fant ikke behandling $behandlingId å bygge videre på! Dette burde ikke skje nå som vi har migrert inn pågående behandlinger...")
+
+    override fun harLagretBehandingshendelseFor(behandlingId: BehandlingId) = sessionOf(dataSource, strict = true)
+        .use { session -> session.hent(behandlingId) } != null
 
     private fun Session.hent(behandlingId: BehandlingId): Behandling? {
         val sql = """
