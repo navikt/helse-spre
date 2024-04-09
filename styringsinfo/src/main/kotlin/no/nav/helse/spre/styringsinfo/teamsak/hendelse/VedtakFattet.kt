@@ -25,7 +25,7 @@ internal class VedtakFattet(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId)) ?: return false
+        val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
         val ny = builder
             .mottaker(tags.mottaker)
             .avslutt(tags.behandlingsresultat)

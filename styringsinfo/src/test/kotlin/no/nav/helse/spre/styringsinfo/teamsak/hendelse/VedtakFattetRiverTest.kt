@@ -1,5 +1,6 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
+import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
@@ -51,15 +52,7 @@ internal class VedtakFattetRiverTest {
 
     @Test
     fun tags() {
-        testRapid.sendTestMessage(
-            vedtakFattet(
-                tags = listOf(
-                    "EnArbeidsgiver",
-                    "Arbeidsgiverutbetaling",
-                    "SykepengegrunnlagUnder2G"
-                )
-            )
-        )
+        testRapid.sendTestMessage(vedtakFattet())
         assertTrue(hendelseDao.harLagretHendelsen())
     }
 
@@ -68,7 +61,7 @@ internal class VedtakFattetRiverTest {
         utbetalingId: UUID? = UUID.randomUUID(),
         behandlingId: UUID? = UUID.randomUUID(),
         sykepengegrunnlagFakta: String? = """{ "fastsatt": "EtterHovedregel" }""",
-        tags: List<String> = emptyList()
+        tags: List<String> = listOf("EnArbeidsgiver", "Arbeidsgiverutbetaling", "Innvilget", "Førstegangsbehandling")
     ) = """{
       "@event_name": "vedtak_fattet",
       "@id": "${UUID.randomUUID()}",
@@ -97,7 +90,7 @@ internal class TestHendelseDao() : HendelseDao {
 }
 
 internal class TestBehandlingshendelseDao : BehandlingshendelseDao {
-    override fun initialiser(behandlingId: BehandlingId): Behandling.Builder? = null
+    override fun initialiser(behandlingId: BehandlingId): Behandling.Builder = mockk<Behandling.Builder>(relaxed = true)
     override fun lagre(behandling: Behandling, hendelseId: UUID) = true
     override fun hent(behandlingId: BehandlingId): Behandling? = null
     override fun sisteBehandlingId(sakId: SakId): BehandlingId? = null

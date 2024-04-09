@@ -4,6 +4,7 @@ val postgresqlVersion: String by project
 val kotliqueryVersion: String by project
 val flywayCoreVersion: String by project
 val tbdLibsVersion: String by project
+val mockkVersion: String by project
 
 val skyscreamerVersion = "1.5.1"
 
@@ -17,4 +18,5 @@ dependencies {
 
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("org.skyscreamer:jsonassert:$skyscreamerVersion")
+    testImplementation("io.mockk:mockk:$mockkVersion")
 }
