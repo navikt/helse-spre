@@ -1,8 +1,8 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.lang.IllegalStateException
 import java.time.OffsetDateTime.MIN
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -96,7 +96,7 @@ internal data class Behandling(
         private var beslutterEnhet: String? = null
 
         internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply {
-            check(behandlingstatus != Behandlingstatus.AVSLUTTET) { "Bruk funksjonen for å avslutte med behandingsresultat" }
+            check(behandlingstatus != AVSLUTTET) { "Bruk funksjonen for å avslutte med behandingsresultat" }
             this.behandlingstatus = behandlingstatus
         }
         internal fun periodetype(periodetype: Periodetype) = apply { this.periodetype = periodetype }
@@ -106,7 +106,7 @@ internal data class Behandling(
         internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
 
         internal fun avslutt(behandlingsresultat: Behandlingsresultat) = apply {
-            this.behandlingstatus = Behandlingstatus.AVSLUTTET
+            this.behandlingstatus = AVSLUTTET
             this.behandlingsresultat = behandlingsresultat
         }
 
@@ -136,7 +136,10 @@ internal data class Behandling(
                 return null
             }
 
-            valider(forrige)
+            if (forrige.behandlingstatus == AVSLUTTET) {
+                sikkerLogg.warn("Lagrer _ikke_ ny rad. Behandlingen er allerede avsluttet")
+                return null
+            }
 
             return ny
         }
@@ -148,15 +151,6 @@ internal data class Behandling(
                 Metode.AUTOMATISK -> ny
                 Metode.MANUELL -> if (ny == Metode.TOTRINNS) Metode.TOTRINNS else Metode.MANUELL
                 Metode.TOTRINNS -> Metode.TOTRINNS
-            }
-
-            private fun valider(forrige: Behandling) {
-                if (forrige.behandlingstatus == Behandlingstatus.AVSLUTTET) {
-                    "Nå prøvde jeg å lagre en ny rad på samme behandling, selv om status er AVSLUTTET. Det må være en feil, ta en titt!".let { feilmelding ->
-                        sikkerLogg.error(feilmelding)
-                        throw IllegalStateException(feilmelding)
-                    }
-                }
             }
         }
     }

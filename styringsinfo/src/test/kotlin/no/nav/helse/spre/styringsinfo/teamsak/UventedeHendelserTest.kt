@@ -5,23 +5,9 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Tag
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.util.*
 
 internal class UventedeHendelserTest : AbstractTeamSakTest() {
-
-    @Test
-    fun `feiler når vi bygger videre på en avsluttet behandling`() {
-        val behandlingId = BehandlingId(UUID.randomUUID())
-        val (_, hendelsefabrikk) = nyttVedtak(behandlingId = behandlingId)
-        val godkjenthendelse = hendelsefabrikk.vedtaksperiodeGodkjent()
-        assertThrows<IllegalStateException> {
-            godkjenthendelse.håndter(behandlingId)
-        }
-        assertThrows<IllegalStateException> {
-            godkjenthendelse.håndter(behandlingId)
-        }
-    }
 
     @Test
     fun `ignorerer hendelse vi har håndtert tidligere`() {

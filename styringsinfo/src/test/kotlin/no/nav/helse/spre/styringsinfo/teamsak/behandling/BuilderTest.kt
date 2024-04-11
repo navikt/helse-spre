@@ -3,7 +3,6 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -20,9 +19,9 @@ internal class BuilderTest {
     }
 
     @Test
-    fun `får en feil om man prøver å legge til ny rad etter at noe er avsluttet`() {
+    fun `får ikke en feil om man prøver å legge til ny rad etter at noe er avsluttet`() {
         val forrige = lagBehandling().copy(behandlingsresultat = Behandling.Behandlingsresultat.INNVILGET, behandlingstatus = Behandling.Behandlingstatus.AVSLUTTET)
-        assertThrows<IllegalStateException> { Behandling.Builder(forrige).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.MANUELL) }
+        assertNull(Behandling.Builder(forrige).saksbehandlerEnhet("1234").build(etterpå, Behandling.Metode.MANUELL))
     }
 
     @Test
