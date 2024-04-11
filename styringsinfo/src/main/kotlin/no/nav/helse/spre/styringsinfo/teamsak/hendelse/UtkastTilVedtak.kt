@@ -25,7 +25,7 @@ internal class UtkastTilVedtak(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId)) ?: return false
+        val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
         val ny = builder
             .behandlingstatus(AVVENTER_GODKJENNING)
             .mottaker(tags.mottaker)
@@ -35,6 +35,11 @@ internal class UtkastTilVedtak(
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 
+    private val ignorer = setOf(
+        UUID.fromString("0ba60c1f-f56d-48e3-aa55-a2e190c1c52c"),
+        UUID.fromString("4d215587-488a-4f0e-a41d-c8a957757fae")
+    )
+    override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) = id in ignorer
     internal companion object {
         private const val eventName = "utkast_til_vedtak"
 
