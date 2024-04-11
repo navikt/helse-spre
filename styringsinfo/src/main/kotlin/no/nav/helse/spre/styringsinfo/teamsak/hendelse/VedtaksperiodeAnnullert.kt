@@ -24,7 +24,7 @@ internal class VedtaksperiodeAnnullert(
     private val behandlingId = BehandlingId(behandlingId)
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
+        val builder = behandlingshendelseDao.initialiser(behandlingId)
         val ny = builder
             .avslutt(ANNULLERT)
             .build(opprettet, MANUELL)

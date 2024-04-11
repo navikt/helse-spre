@@ -23,7 +23,7 @@ internal class AvsluttetUtenVedtak(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId)) ?: return false
+        val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
         val ny = builder
             .avslutt(IKKE_REALITETSBEHANDLET)
             .build(opprettet, AUTOMATISK)

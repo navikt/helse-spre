@@ -27,7 +27,7 @@ internal class VedtaksperiodeVenterIndirektePåGodkjenning(
     private val behandlingId = BehandlingId(behandlingId)
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
+        val builder = behandlingshendelseDao.initialiser(behandlingId)
         val ny = builder.behandlingstatus(KOMPLETT_FAKTAGRUNNLAG).build(opprettet, AUTOMATISK) ?: return false
         return behandlingshendelseDao.lagre(ny, id)
     }
@@ -35,7 +35,7 @@ internal class VedtaksperiodeVenterIndirektePåGodkjenning(
     // 'vedtaksperiode_venter' sendes veldig hyppig, så for unngå å lagre alle disse hendelsene
     // når de bare sier det samme som før så ignoreres de
     override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) =
-        behandlingshendelseDao.hent(behandlingId)?.behandlingstatus == KOMPLETT_FAKTAGRUNNLAG
+        behandlingshendelseDao.hent(behandlingId).behandlingstatus == KOMPLETT_FAKTAGRUNNLAG
 
     internal companion object {
         private const val eventName = "vedtaksperiode_venter"

@@ -29,7 +29,7 @@ internal class BehandlingForkastet(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val builder = behandlingshendelseDao.initialiser(behandlingId) ?: return false
+        val builder = behandlingshendelseDao.initialiser(behandlingId)
         val ny = builder
             .avslutt(AVBRUTT)
             .build(opprettet, hendelsesmetode)
@@ -40,7 +40,7 @@ internal class BehandlingForkastet(
     // Per i dag sendes det ut 'behandling_forkastet' etter 'vedtaksperiode_annullert'.
     // Derfor ignorerer vi forkastinger når behandlingen allerede er avsluttet som ANNULLERT
     override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) =
-        behandlingshendelseDao.hent(behandlingId)?.behandlingsresultat == ANNULLERT
+        behandlingshendelseDao.hent(behandlingId).behandlingsresultat == ANNULLERT
 
     internal companion object {
         private const val eventName = "behandling_forkastet"
