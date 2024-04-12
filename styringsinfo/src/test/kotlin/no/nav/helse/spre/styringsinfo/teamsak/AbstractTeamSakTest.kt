@@ -6,7 +6,11 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.INNVILGET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.*
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.TOTRINNS
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Mottaker.ARBEIDSGIVER
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Periodetype.FØRSTEGANGSBEHANDLING
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
@@ -36,13 +40,15 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         alleRader.printTabell()
     }
 
-    protected fun nyttVedtak(sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()), totrinnsbehandling: Boolean = false): Pair<Behandling, Hendelsefabrikk> {
+    protected fun nyttVedtak(sakId: SakId = SakId(UUID.randomUUID()),
+                             behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()),
+                             totrinnsbehandling: Boolean = false): Pair<Behandling, Hendelsefabrikk> {
         val hendelsefabrikk = Hendelsefabrikk(sakId, behandlingId)
         val (_, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertFalse(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
         var behandling = behandlingOpprettet.håndter(behandlingId)
         assertTrue(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
+        assertEquals(REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
 
         behandling = hendelsefabrikk.utkastTilVedtak().håndter(behandlingId)
@@ -53,12 +59,15 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
 
         behandling = hendelsefabrikk.vedtaksperiodeGodkjent(totrinnsbehandling = totrinnsbehandling).håndter(behandlingId)
         assertEquals(GODKJENT, behandling.behandlingstatus)
+        assertEquals(if (totrinnsbehandling) TOTRINNS else MANUELL, behandling.behandlingsmetode)
+        assertNull(behandling.behandlingsresultat)
 
         behandling = hendelsefabrikk.vedtakFattet().håndter(behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(FØRSTEGANGSBEHANDLING, behandling.periodetype)
         assertEquals(ARBEIDSGIVER, behandling.mottaker)
-        assertEquals(Behandling.Behandlingsresultat.INNVILGET, behandling.behandlingsresultat)
+        assertEquals(SØKNAD, behandling.behandlingstype)
+        assertEquals(INNVILGET, behandling.behandlingsresultat)
         return behandling to hendelsefabrikk
     }
 
@@ -66,15 +75,18 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         val hendelsefabrikk = Hendelsefabrikk(sakId, behandlingId)
         val (_, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         val behandling = behandlingOpprettet.håndter(behandlingId)
-        assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
+        assertEquals(SØKNAD, behandling.behandlingstype)
+        assertEquals(REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
         assertNull(behandling.relatertBehandlingId)
         return behandling
     }
 
     protected val BehandlingId.rader get() =  sessionOf(dataSource).use { session ->
-        session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
+        session.run(
+            queryOf("select count(1) from behandlingshendelse where behandlingId='$this'")
+                .map { row -> row.int(1) }
+                .asSingle)
     } ?: 0
 
     protected fun Hendelse.håndter(behandlingId: BehandlingId): Behandling {
@@ -85,9 +97,11 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         return behandling(behandlingId)
     }
 
-    protected fun behandling(behandlingId: BehandlingId) = checkNotNull(behandlingshendelseDao.hent(behandlingId)) { "Fant ingn behandling for behandlingId $behandlingId" }
+    protected fun behandling(behandlingId: BehandlingId) =
+        checkNotNull(behandlingshendelseDao.hent(behandlingId)) { "Fant ingn behandling for behandlingId $behandlingId" }
 
-    protected fun assertUkjentBehandling(behandlingId: BehandlingId) = assertFalse(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
+    protected fun assertUkjentBehandling(behandlingId: BehandlingId) =
+        assertFalse(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
 
     private val alleRader get() = sessionOf(dataSource).use { session ->
         session.run(queryOf("select * from behandlingshendelse").map { row ->

@@ -1,6 +1,12 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.ARBEIDSGIVER
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.IKKE_REALITETSBEHANDLET
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.GJENÅPNING
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -16,30 +22,33 @@ internal class OmgjøringTest: AbstractTeamSakTest() {
 
         assertUkjentBehandling(behandlingId)
         var behandling = behandlingOpprettet.håndter(behandlingId)
-        assertEquals(Behandling.Behandlingstype.SØKNAD, behandling.behandlingstype)
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
+        assertEquals(SØKNAD, behandling.behandlingstype)
+        assertEquals(REGISTRERT, behandling.behandlingstatus)
         assertNull(behandling.behandlingsresultat)
         assertNull(behandling.relatertBehandlingId)
 
         behandling = avsluttetUtenVedtak.håndter(behandlingId)
-        assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingsresultat.IKKE_REALITETSBEHANDLET, behandling.behandlingsresultat)
+        assertEquals(AVSLUTTET, behandling.behandlingstatus)
+        assertEquals(IKKE_REALITETSBEHANDLET, behandling.behandlingsresultat)
         assertNull(behandling.relatertBehandlingId)
 
-        val (behandlingId2, behandlingOpprettet2) = hendelsefabrikk.behandlingOpprettet(behandlingId = Hendelsefabrikk.nyBehandlingId(), avsender = Hendelsefabrikk.Arbeidsgiver, behandlingstype = Hendelsefabrikk.Omgjøring)
+        val (behandlingId2, behandlingOpprettet2) = hendelsefabrikk.behandlingOpprettet(
+            behandlingId = Hendelsefabrikk.nyBehandlingId(),
+            avsender = Hendelsefabrikk.Arbeidsgiver,
+            behandlingstype = Hendelsefabrikk.Omgjøring)
         var behandling2 = behandlingOpprettet2.håndter(behandlingId2)
 
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling2.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.GJENÅPNING, behandling2.behandlingstype)
-        assertEquals(Behandling.Behandlingskilde.ARBEIDSGIVER, behandling2.behandlingskilde)
+        assertEquals(REGISTRERT, behandling2.behandlingstatus)
+        assertEquals(GJENÅPNING, behandling2.behandlingstype)
+        assertEquals(ARBEIDSGIVER, behandling2.behandlingskilde)
         assertEquals(behandlingId, behandling2.relatertBehandlingId)
 
         hendelsefabrikk.utkastTilVedtak(behandlingId = behandlingId2).håndter(behandlingId2)
         hendelsefabrikk.vedtaksperiodeGodkjent(behandlingId = behandlingId2).håndter(behandlingId2)
         behandling2 = hendelsefabrikk.vedtakFattet(behandlingId = behandlingId2).håndter(behandlingId2)
 
-        assertEquals(Behandling.Behandlingstatus.AVSLUTTET, behandling2.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.GJENÅPNING, behandling2.behandlingstype)
+        assertEquals(AVSLUTTET, behandling2.behandlingstatus)
+        assertEquals(GJENÅPNING, behandling2.behandlingstype)
     }
 
     @Test
@@ -52,15 +61,15 @@ internal class OmgjøringTest: AbstractTeamSakTest() {
         val (omgjøringBehandlingId, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet(behandlingstype = Hendelsefabrikk.Omgjøring, avsender = Hendelsefabrikk.Arbeidsgiver)
         val registrertOmgjøring = behandlingOpprettet.håndter(omgjøringBehandlingId)
 
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, registrertOmgjøring.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.GJENÅPNING, registrertOmgjøring.behandlingstype)
-        assertEquals(Behandling.Behandlingskilde.ARBEIDSGIVER, registrertOmgjøring.behandlingskilde)
+        assertEquals(REGISTRERT, registrertOmgjøring.behandlingstatus)
+        assertEquals(GJENÅPNING, registrertOmgjøring.behandlingstype)
+        assertEquals(ARBEIDSGIVER, registrertOmgjøring.behandlingskilde)
 
         val forkastetOmgjøring = hendelsefabrikk.behandlingForkastet(omgjøringBehandlingId).håndter(omgjøringBehandlingId)
 
-        assertEquals(Behandling.Behandlingstatus.AVSLUTTET, forkastetOmgjøring.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.GJENÅPNING, forkastetOmgjøring.behandlingstype)
-        assertEquals(Behandling.Behandlingskilde.ARBEIDSGIVER, forkastetOmgjøring.behandlingskilde)
-        assertEquals(Behandling.Behandlingsresultat.AVBRUTT, forkastetOmgjøring.behandlingsresultat)
+        assertEquals(AVSLUTTET, forkastetOmgjøring.behandlingstatus)
+        assertEquals(GJENÅPNING, forkastetOmgjøring.behandlingstype)
+        assertEquals(ARBEIDSGIVER, forkastetOmgjøring.behandlingskilde)
+        assertEquals(AVBRUTT, forkastetOmgjøring.behandlingsresultat)
     }
 }

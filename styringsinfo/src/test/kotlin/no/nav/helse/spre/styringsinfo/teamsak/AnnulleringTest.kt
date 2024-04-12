@@ -1,6 +1,14 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SAKSBEHANDLER
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.ANNULLERT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.INNVILGET
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.REVURDERING
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -16,19 +24,19 @@ internal class AnnulleringTest: AbstractTeamSakTest() {
         val (behandlingIdAnnullert, behandlingOpprettet) = annulleringHendelsefabrikk.behandlingOpprettet(sakId = sakId, behandlingstype = Hendelsefabrikk.Revurdering)
 
         val registrertAnnullering= behandlingOpprettet.håndter(behandlingIdAnnullert)
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, registrertAnnullering.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.REVURDERING, registrertAnnullering.behandlingstype)
+        assertEquals(REGISTRERT, registrertAnnullering.behandlingstatus)
+        assertEquals(REVURDERING, registrertAnnullering.behandlingstype)
         assertNull(registrertAnnullering.behandlingsresultat)
 
         val annullertBehandling = annulleringHendelsefabrikk.vedtaksperiodeAnnullert(behandlingIdAnnullert).håndter(behandlingIdAnnullert)
-        assertEquals(Behandling.Behandlingstatus.AVSLUTTET, annullertBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.REVURDERING, annullertBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.ANNULLERT, annullertBehandling.behandlingsresultat)
+        assertEquals(AVSLUTTET, annullertBehandling.behandlingstatus)
+        assertEquals(REVURDERING, annullertBehandling.behandlingstype)
+        assertEquals(ANNULLERT, annullertBehandling.behandlingsresultat)
 
         val forkastetBehandling = annulleringHendelsefabrikk.behandlingForkastet(behandlingIdAnnullert).håndter(behandlingIdAnnullert)
-        assertEquals(Behandling.Behandlingstatus.AVSLUTTET, forkastetBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.REVURDERING, forkastetBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.ANNULLERT, forkastetBehandling.behandlingsresultat)
+        assertEquals(AVSLUTTET, forkastetBehandling.behandlingstatus)
+        assertEquals(REVURDERING, forkastetBehandling.behandlingstype)
+        assertEquals(ANNULLERT, forkastetBehandling.behandlingsresultat)
     }
 
     @Test
@@ -37,25 +45,25 @@ internal class AnnulleringTest: AbstractTeamSakTest() {
         val (januarBehandlingId, januarBehandlingOpprettet) = hendelsefabrikk.behandlingOpprettet(avsender = Hendelsefabrikk.Saksbehandler)
 
         var utbetaltBehandling = januarBehandlingOpprettet.håndter(januarBehandlingId)
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, utbetaltBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
+        assertEquals(REGISTRERT, utbetaltBehandling.behandlingstatus)
+        assertEquals(SØKNAD, utbetaltBehandling.behandlingstype)
         assertNull(utbetaltBehandling.behandlingsresultat)
-        assertEquals(utbetaltBehandling.behandlingsmetode, Behandling.Metode.AUTOMATISK)
-        assertEquals(utbetaltBehandling.hendelsesmetode, Behandling.Metode.MANUELL)
+        assertEquals(utbetaltBehandling.behandlingsmetode, AUTOMATISK)
+        assertEquals(utbetaltBehandling.hendelsesmetode, MANUELL)
 
 
         val januarVedtakFattet = hendelsefabrikk.vedtakFattet()
         utbetaltBehandling = januarVedtakFattet.håndter(januarBehandlingId)
-        assertEquals(Behandling.Behandlingstatus.AVSLUTTET, utbetaltBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.INNVILGET, utbetaltBehandling.behandlingsresultat)
-        assertEquals(Behandling.Metode.AUTOMATISK, utbetaltBehandling.behandlingsmetode)
+        assertEquals(AVSLUTTET, utbetaltBehandling.behandlingstatus)
+        assertEquals(SØKNAD, utbetaltBehandling.behandlingstype)
+        assertEquals(INNVILGET, utbetaltBehandling.behandlingsresultat)
+        assertEquals(AUTOMATISK, utbetaltBehandling.behandlingsmetode)
 
         val (annulleringBehandlingId, januarAnnullertBehandlingOpprettet) = hendelsefabrikk.behandlingOpprettet(behandlingId = Hendelsefabrikk.nyBehandlingId(), behandlingstype = Hendelsefabrikk.Revurdering, avsender = Hendelsefabrikk.Saksbehandler)
         var annullertBehandling = januarAnnullertBehandlingOpprettet.håndter(annulleringBehandlingId)
-        assertEquals(Behandling.Behandlingstatus.REGISTRERT, annullertBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.REVURDERING, annullertBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingskilde.SAKSBEHANDLER, annullertBehandling.behandlingskilde)
+        assertEquals(REGISTRERT, annullertBehandling.behandlingstatus)
+        assertEquals(REVURDERING, annullertBehandling.behandlingstype)
+        assertEquals(SAKSBEHANDLER, annullertBehandling.behandlingskilde)
         assertNull(annullertBehandling.behandlingsresultat)
 
         hendelsefabrikk.vedtaksperiodeAnnullert(annulleringBehandlingId).håndter(annulleringBehandlingId)
@@ -67,14 +75,14 @@ internal class AnnulleringTest: AbstractTeamSakTest() {
         assertEquals(2, januarBehandlingId.rader) // Registrert, Vedtatt
         assertEquals(2, annulleringBehandlingId.rader) // Registrert, Avbrutt
 
-        assertEquals(Behandling.Behandlingstatus.AVSLUTTET, utbetaltBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.SØKNAD, utbetaltBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.INNVILGET, utbetaltBehandling.behandlingsresultat)
-        assertEquals(Behandling.Metode.AUTOMATISK, utbetaltBehandling.behandlingsmetode)
+        assertEquals(AVSLUTTET, utbetaltBehandling.behandlingstatus)
+        assertEquals(SØKNAD, utbetaltBehandling.behandlingstype)
+        assertEquals(INNVILGET, utbetaltBehandling.behandlingsresultat)
+        assertEquals(AUTOMATISK, utbetaltBehandling.behandlingsmetode)
 
-        assertEquals(Behandling.Behandlingstatus.AVSLUTTET, annullertBehandling.behandlingstatus)
-        assertEquals(Behandling.Behandlingstype.REVURDERING, annullertBehandling.behandlingstype)
-        assertEquals(Behandling.Behandlingsresultat.ANNULLERT, annullertBehandling.behandlingsresultat)
-        assertEquals(Behandling.Metode.MANUELL, annullertBehandling.behandlingsmetode)
+        assertEquals(AVSLUTTET, annullertBehandling.behandlingstatus)
+        assertEquals(REVURDERING, annullertBehandling.behandlingstype)
+        assertEquals(ANNULLERT, annullertBehandling.behandlingsresultat)
+        assertEquals(MANUELL, annullertBehandling.behandlingsmetode)
     }
 }

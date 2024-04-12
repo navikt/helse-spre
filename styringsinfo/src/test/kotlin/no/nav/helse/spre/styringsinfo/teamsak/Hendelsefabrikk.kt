@@ -2,6 +2,7 @@ package no.nav.helse.spre.styringsinfo.teamsak
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
@@ -63,7 +64,7 @@ internal class Hendelsefabrikk(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         data = blob, behandlingId = behandlingId.id,
-        automatiskBehandling = hendelsesmetode == Behandling.Metode.AUTOMATISK
+        automatiskBehandling = hendelsesmetode == AUTOMATISK
     )
 
     internal fun vedtaksperiodeGodkjent(behandlingId: BehandlingId = this.behandlingId, totrinnsbehandling: Boolean = false) = VedtaksperiodeGodkjent(
@@ -87,13 +88,6 @@ internal class Hendelsefabrikk(
     )
 
     internal fun vedtaksperiodeAnnullert(behandlingId: BehandlingId = this.behandlingId) = VedtaksperiodeAnnullert(
-        id = UUID.randomUUID(),
-        opprettet = nesteTidspunkt,
-        data = blob,
-        behandlingId = behandlingId.id
-    )
-
-    internal fun vedtaksperiodeVenterIndirektePåGodkjenning(behandlingId: BehandlingId = this.behandlingId) = VedtaksperiodeVenterIndirektePåGodkjenning(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         data = blob,
