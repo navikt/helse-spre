@@ -3,4 +3,3 @@ gcp:
   type: POSTGRES_14
   databaseName: spre-oppgaver
   envVarPrefix: DATABASE
-  sqlInstanceTier: db-custom-32-32768
