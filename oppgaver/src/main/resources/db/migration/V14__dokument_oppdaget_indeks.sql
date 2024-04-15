@@ -1,0 +1,1 @@
+create index dokument_oppdaget_indeks on oppgave_tilstand(fodselsnummer) where tilstand='DokumentOppdaget';
