@@ -66,7 +66,7 @@ class OppgaveDAO(private val dataSource: DataSource) {
     ) = sessionOf(dataSource).use { session ->
         session.run(
             queryOf(
-                "SELECT * FROM oppgave_tilstand WHERE tilstand = 'DokumentOppdaget' AND orgnummer=? AND fodselsnummer = ? AND hendelse_id NOT IN (${hendelser.joinToString { "?" }});",
+                "SELECT * FROM oppgave_tilstand WHERE tilstand = 'DokumentOppdaget' AND orgnummer=? AND fodselsnummer = ? AND ${hendelser.joinToString(separator = " AND ") { "hendelse_id != ?" }};",
                 orgnummer,
                 fødselsnummer,
                 *hendelser.toTypedArray()
