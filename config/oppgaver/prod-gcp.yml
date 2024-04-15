@@ -1,5 +1,5 @@
 kafkaPool: nav-prod
 gcp:
-  type: POSTGRES_14
+  type: POSTGRES_15
   databaseName: spre-oppgaver
   envVarPrefix: DATABASE
