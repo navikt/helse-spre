@@ -52,16 +52,12 @@ internal class UtkastTilVedtak(
                 data = packet.blob,
                 opprettet = packet.opprettet,
                 behandlingId = packet.behandlingId,
-                tags = manuelleTags[packet.hendelseId] ?: Tags(packet.tags)
+                tags = Tags(packet.tags)
             )}
         )
 
         private val JsonMessage.tags get() = this["tags"].map { it.asText() }
 
         private fun JsonMessage.requireTags() = requireKey("tags")
-
-        private val manuelleTags = mapOf(
-            UUID.fromString("c311d2b6-7452-4832-8d6f-8ae93b9f02ee") to Tags(setOf(Tag.Forlengelse, Tag.FlereArbeidsgivere, Tag.IngenUtbetaling, Tag.Innvilget))
-        )
     }
 }
