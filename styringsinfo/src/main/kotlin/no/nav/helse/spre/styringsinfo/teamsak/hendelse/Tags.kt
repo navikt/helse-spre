@@ -59,15 +59,10 @@ internal class Tags(private val tags: Set<Tag>) {
         private fun List<String>.tilKjenteTags(): Set<Tag> {
             return mapNotNull { streng ->
                 valueOfOrNull(streng).also {
-                    if (it == null) {
-                        log.warn("$streng er en ukjent Tag for spre-styringsinfo. Vurder å legge den inn, kanskje dette er nyttig data?")
-                        sikkerLogg.warn("$streng er en ukjent Tag for spre-styringsinfo. Vurder å legge den inn, kanskje dette er nyttig data?")
-                    }
-                }
+                    if (it == null) sikkerLogg.info("$streng er en ukjent tag.") }
             }.toSet()
         }
 
-        val log = LoggerFactory.getLogger(Tags::class.java)
         val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
         private class UtledingFraTagsException(felt: String): IllegalStateException("Nå kom det jaggu et event med en $felt jeg ikke klarte å tolke. Dette må være en feil. Ta en titt!") {
