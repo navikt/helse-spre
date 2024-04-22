@@ -32,7 +32,7 @@ abstract class AbstractDatabaseTest {
     }
 
     companion object {
-        private val postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {
+        internal val postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {
             // Cloud SQL har wal_level = 'logical' på grunn av flagget cloudsql.logical_decoding i
             // naiserator.yaml. Vi må sette det samme lokalt for at flyway migrering skal fungere.
             withCommand("postgres", "-c", "wal_level=logical")
