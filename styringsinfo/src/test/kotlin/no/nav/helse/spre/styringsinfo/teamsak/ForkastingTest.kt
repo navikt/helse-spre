@@ -1,9 +1,12 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -23,6 +26,8 @@ internal class ForkastingTest: AbstractTeamSakTest() {
         behandling = behandlingForkastet.håndter(behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
+        assertEquals(MANUELL, behandling.hendelsesmetode)
+        assertEquals(AUTOMATISK, behandling.behandlingsmetode)
     }
 
     @Test
@@ -34,10 +39,12 @@ internal class ForkastingTest: AbstractTeamSakTest() {
         assertEquals(SØKNAD, behandling.behandlingstype)
         assertNull(behandling.behandlingsresultat)
 
-        val behandlingForkastet = hendelsefabrikk.behandlingForkastet()
+        val behandlingForkastet = hendelsefabrikk.behandlingForkastet(hendelsesmetode = AUTOMATISK)
         behandling = behandlingForkastet.håndter(behandlingId)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals(SØKNAD, behandling.behandlingstype)
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
+        assertEquals(AUTOMATISK, behandling.hendelsesmetode)
+        assertEquals(AUTOMATISK, behandling.behandlingsmetode)
     }
 }

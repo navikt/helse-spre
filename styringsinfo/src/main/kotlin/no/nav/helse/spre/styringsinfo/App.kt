@@ -17,7 +17,7 @@ import no.nav.helse.spre.styringsinfo.datafortelling.db.*
 import no.nav.helse.spre.styringsinfo.datafortelling.domain.SendtSøknadPatch
 import no.nav.helse.spre.styringsinfo.datafortelling.domain.VedtakFattetPatch
 import no.nav.helse.spre.styringsinfo.datafortelling.domain.VedtakForkastetPatch
-import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisasjonsmasterClient
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.NavOrganisasjonsmasterClient
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
 import org.slf4j.Logger

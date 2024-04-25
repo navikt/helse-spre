@@ -5,6 +5,8 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskEnhet
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetEnhet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -72,8 +74,8 @@ internal class Hendelsefabrikk(
         opprettet = nesteTidspunkt,
         data = blob,
         behandlingId = behandlingId.id,
-        saksbehandlerEnhet = "SB123",
-        beslutterEnhet = "SB456".takeIf { totrinnsbehandling },
+        saksbehandlerEnhet = FunnetEnhet("SB123"),
+        beslutterEnhet = FunnetEnhet("SB456").takeIf { totrinnsbehandling } ?: AutomatiskEnhet,
         automatiskBehandling = false,
         totrinnsbehandling = totrinnsbehandling
     )
@@ -83,7 +85,7 @@ internal class Hendelsefabrikk(
         opprettet = nesteTidspunkt,
         data = blob,
         behandlingId = behandlingId.id,
-        saksbehandlerEnhet = "SB123",
+        saksbehandlerEnhet = FunnetEnhet("SB123"),
         automatiskBehandling = false
     )
 

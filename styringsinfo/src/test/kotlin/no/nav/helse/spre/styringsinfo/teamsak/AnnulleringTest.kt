@@ -23,7 +23,7 @@ internal class AnnulleringTest: AbstractTeamSakTest() {
         val annulleringHendelsefabrikk = Hendelsefabrikk(sakId = sakId)
         val (behandlingIdAnnullert, behandlingOpprettet) = annulleringHendelsefabrikk.behandlingOpprettet(sakId = sakId, behandlingstype = Hendelsefabrikk.Revurdering)
 
-        val registrertAnnullering= behandlingOpprettet.håndter(behandlingIdAnnullert)
+        val registrertAnnullering = behandlingOpprettet.håndter(behandlingIdAnnullert)
         assertEquals(REGISTRERT, registrertAnnullering.behandlingstatus)
         assertEquals(REVURDERING, registrertAnnullering.behandlingstype)
         assertNull(registrertAnnullering.behandlingsresultat)
@@ -37,6 +37,9 @@ internal class AnnulleringTest: AbstractTeamSakTest() {
         assertEquals(AVSLUTTET, forkastetBehandling.behandlingstatus)
         assertEquals(REVURDERING, forkastetBehandling.behandlingstype)
         assertEquals(ANNULLERT, forkastetBehandling.behandlingsresultat)
+
+        assertEquals(MANUELL, forkastetBehandling.behandlingsmetode)
+        assertNull(forkastetBehandling.saksbehandlerEnhet)
     }
 
     @Test

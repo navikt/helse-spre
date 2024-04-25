@@ -1,4 +1,4 @@
-package no.nav.helse.spre.styringsinfo.teamsak
+package no.nav.helse.spre.styringsinfo.teamsak.enhet
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
@@ -13,9 +13,6 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.LocalDate
-
-typealias Saksbehandler = String
-typealias Enhet = String
 
 internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private val scope: String, private val azureClient: AzureTokenProvider) {
 
@@ -48,7 +45,7 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
             val enhet: String
         )
     }
-    internal fun hentEnhet(ident: Saksbehandler, gyldigPåDato: LocalDate, hendelseId: String): Enhet? {
+    internal fun hentEnhet(ident: String, gyldigPåDato: LocalDate, hendelseId: String): Enhet {
         try {
             val accessToken = azureClient.bearerToken(scope).token
 
@@ -76,10 +73,10 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
             if (responseBody.containsErrors()) {
                 throw RuntimeException("errors from NOM: ${responseBody["errors"].errorMsgs()}")
             }
-            return responseBody.enhet(gyldigPåDato = gyldigPåDato)
+            return responseBody.enhet(gyldigPåDato = gyldigPåDato)?.let { FunnetEnhet(it) } ?: ManglendeEnhet
         } catch (exception: Exception) {
             sikkerLogg.error("Feil oppsto ved kall mot NOM for ident $ident og hendelse $hendelseId", exception)
-            return null
+            return ManglendeEnhet
         }
     }
 

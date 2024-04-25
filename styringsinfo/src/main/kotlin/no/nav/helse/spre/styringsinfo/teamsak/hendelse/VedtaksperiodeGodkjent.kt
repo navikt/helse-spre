@@ -3,13 +3,13 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.Enhet
-import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisasjonsmasterClient
-import no.nav.helse.spre.styringsinfo.teamsak.Saksbehandler
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.NavOrganisasjonsmasterClient
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.GODKJENT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskEnhet
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.Enhet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
@@ -24,8 +24,8 @@ internal class VedtaksperiodeGodkjent(
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     private val behandlingId: UUID,
-    private val saksbehandlerEnhet: String?,
-    private val beslutterEnhet: String?,
+    private val saksbehandlerEnhet: Enhet,
+    private val beslutterEnhet: Enhet,
     private val automatiskBehandling: Boolean,
     private val totrinnsbehandling: Boolean
 ) : Hendelse {
@@ -37,8 +37,7 @@ internal class VedtaksperiodeGodkjent(
 
         val ny = builder
             .behandlingstatus(GODKJENT)
-            .saksbehandlerEnhet(saksbehandlerEnhet)
-            .beslutterEnhet(beslutterEnhet)
+            .enheter(saksbehandlerEnhet, beslutterEnhet)
             .build(opprettet, hendelsesmetode)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
@@ -75,8 +74,8 @@ internal class VedtaksperiodeGodkjent(
             )}
         )
 
-        private fun JsonMessage.enhet(nom: NavOrganisasjonsmasterClient, ident: Saksbehandler?): Enhet? {
-            if (automatiskBehandling || ident == null) return null
+        private fun JsonMessage.enhet(nom: NavOrganisasjonsmasterClient, ident: String?): Enhet {
+            if (automatiskBehandling || ident == null) return AutomatiskEnhet
             return nom.hentEnhet(ident, LocalDate.now(), hendelseId.toString())
         }
 

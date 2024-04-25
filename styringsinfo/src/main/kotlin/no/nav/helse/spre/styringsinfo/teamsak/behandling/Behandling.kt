@@ -1,6 +1,10 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskEnhet
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.Enhet
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetEnhet
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.ManglendeEnhet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.OffsetDateTime.MIN
@@ -94,6 +98,7 @@ internal data class Behandling(
         private var mottaker: Mottaker? = null
         private var saksbehandlerEnhet: String? = null
         private var beslutterEnhet: String? = null
+        private var behandlingsmetode: Metode = Metode.AUTOMATISK
 
         internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply {
             check(behandlingstatus != AVSLUTTET) { "Bruk funksjonen for å avslutte med behandingsresultat" }
@@ -102,9 +107,15 @@ internal data class Behandling(
         internal fun periodetype(periodetype: Periodetype) = apply { this.periodetype = periodetype }
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat?) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun mottaker(mottaker: Mottaker?) = apply { this.mottaker = mottaker }
-        internal fun saksbehandlerEnhet(saksbehandlerEnhet: String?) = apply { this.saksbehandlerEnhet = saksbehandlerEnhet }
-        internal fun beslutterEnhet(beslutterEnhet: String?) = apply { this.beslutterEnhet = beslutterEnhet }
-
+        internal fun enheter(saksbehandler: Enhet = AutomatiskEnhet, beslutter: Enhet = AutomatiskEnhet) = apply {
+            if (saksbehandler is AutomatiskEnhet && beslutter is AutomatiskEnhet) return@apply
+            this.behandlingsmetode = when (beslutter) {
+                is FunnetEnhet, ManglendeEnhet -> Metode.TOTRINNS
+                is AutomatiskEnhet -> Metode.MANUELL
+            }
+            this.saksbehandlerEnhet = saksbehandler.id
+            this.beslutterEnhet = beslutter.id
+        }
         internal fun avslutt(behandlingsresultat: Behandlingsresultat) = apply {
             this.behandlingstatus = AVSLUTTET
             this.behandlingsresultat = behandlingsresultat
@@ -114,7 +125,7 @@ internal data class Behandling(
             val ny = Behandling(
                 funksjonellTid = funksjonellTid,
                 hendelsesmetode = hendelsesmetode,
-                behandlingsmetode = forrige.behandlingsmetode + hendelsesmetode,
+                behandlingsmetode = forrige.behandlingsmetode + behandlingsmetode,
                 sakId = forrige.sakId,
                 behandlingId = forrige.behandlingId,
                 relatertBehandlingId = forrige.relatertBehandlingId,
@@ -146,6 +157,10 @@ internal data class Behandling(
 
         private companion object {
             private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
+            private val Enhet.id get() = when (this) {
+                is FunnetEnhet -> id
+                is ManglendeEnhet, AutomatiskEnhet -> null
+            }
 
             private operator fun Metode.plus(ny: Metode) = when (this) {
                 Metode.AUTOMATISK -> ny

@@ -1,6 +1,6 @@
-package no.nav.helse.spre.styringsinfo.teamsak
+package no.nav.helse.spre.styringsinfo.teamsak.enhet
 
-import no.nav.helse.spre.styringsinfo.teamsak.NavOrganisasjonsmasterClient.Companion.enhet
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.NavOrganisasjonsmasterClient.Companion.enhet
 import no.nav.helse.spre.styringsinfo.objectMapper
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.*
