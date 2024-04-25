@@ -68,7 +68,8 @@ internal class Versjon private constructor(
             Patch("HENLAGT på behandlingsresultat renames til IKKE_REALITETSBEHANDLET og OMGJØRING på behandlingstype renames til GJENÅPNING"),
             Minor("Fjerner behandlingstatus VURDERER_INNGANGSVILKÅR"),
             Minor("Legger til behandlingstatus KOMPLETT_FAKTAGRUNNLAG"),
-            LeggTilOgFjern(setOf("behandlingstype"), setOf("behandlingtype"))
+            LeggTilOgFjern(setOf("behandlingstype"), setOf("behandlingtype")),
+            Patch("Setter kun MANUELL/TOTRINNS når vi har eller har forsøkt å slå opp enhet")
         ).genererVersjoner
 
         internal val List<Versjonsutleder>.genererVersjoner: Map<Set<String>, Versjon> get() {
