@@ -15,6 +15,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
     implementation("com.github.navikt.tbd-libs:azure-token-client-default:$tbdLibsVersion")
+    implementation("com.github.navikt.tbd-libs:retry:$tbdLibsVersion")
 
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("org.skyscreamer:jsonassert:$skyscreamerVersion")

@@ -3,6 +3,8 @@ package no.nav.helse.spre.styringsinfo.teamsak.enhet
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
+import com.github.navikt.tbd_libs.retry.PredefinerteUtsettelser
+import com.github.navikt.tbd_libs.retry.retryBlocking
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asOptionalLocalDate
 import no.nav.helse.spre.styringsinfo.objectMapper
@@ -12,6 +14,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Duration.ofSeconds
 import java.time.LocalDate
 
 internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private val scope: String, private val azureClient: AzureTokenProvider) {
@@ -46,38 +49,41 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
         )
     }
     internal fun hentEnhet(ident: String, gyldigPåDato: LocalDate, hendelseId: String): Enhet {
-        try {
-            val accessToken = azureClient.bearerToken(scope).token
-
-            val body =
-                objectMapper.writeValueAsString(
-                    NomQuery(query = finnEnhetQuery.onOneLine(), variables = Variables(ident))
-                )
-
-            val request = HttpRequest.newBuilder(URI.create("$baseUrl/graphql"))
-                .header("Authorization", "Bearer $accessToken")
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .header("Nav-Call-Id", hendelseId)
-                .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build()
-
-            val newHttpClient = HttpClient.newHttpClient()
-            val responseHandler = HttpResponse.BodyHandlers.ofString()
-            val response = newHttpClient.send(request, responseHandler)
-
-            if (response.statusCode() != 200) {
-                throw RuntimeException("error (responseCode=${response.statusCode()}) from NOM")
-            }
-            val responseBody = objectMapper.readTree(response.body())
-            if (responseBody.containsErrors()) {
-                throw RuntimeException("errors from NOM: ${responseBody["errors"].errorMsgs()}")
-            }
-            return responseBody.enhet(gyldigPåDato = gyldigPåDato)?.let { FunnetEnhet(it) } ?: ManglendeEnhet
+        return try {
+            retryBlocking(utsettelser = NomUtsettelser()) { requestEnhet(ident, gyldigPåDato, hendelseId) }
         } catch (exception: Exception) {
             sikkerLogg.error("Feil oppsto ved kall mot NOM for ident $ident og hendelse $hendelseId", exception)
-            return ManglendeEnhet
+            ManglendeEnhet
         }
+    }
+    private fun requestEnhet(ident: String, gyldigPåDato: LocalDate, hendelseId: String): Enhet {
+        val accessToken = azureClient.bearerToken(scope).token
+
+        val body =
+            objectMapper.writeValueAsString(
+                NomQuery(query = finnEnhetQuery.onOneLine(), variables = Variables(ident))
+            )
+
+        val request = HttpRequest.newBuilder(URI.create("$baseUrl/graphql"))
+            .header("Authorization", "Bearer $accessToken")
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json")
+            .header("Nav-Call-Id", hendelseId)
+            .POST(HttpRequest.BodyPublishers.ofString(body))
+            .build()
+
+        val newHttpClient = HttpClient.newHttpClient()
+        val responseHandler = HttpResponse.BodyHandlers.ofString()
+        val response = newHttpClient.send(request, responseHandler)
+
+        if (response.statusCode() != 200) {
+            throw RuntimeException("error (responseCode=${response.statusCode()}) from NOM")
+        }
+        val responseBody = objectMapper.readTree(response.body())
+        if (responseBody.containsErrors()) {
+            throw RuntimeException("errors from NOM: ${responseBody["errors"].errorMsgs()}")
+        }
+        return responseBody.enhet(gyldigPåDato = gyldigPåDato)?.let { FunnetEnhet(it) } ?: ManglendeEnhet
     }
 
     private data class NomQuery(
@@ -96,6 +102,8 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
         val extensions = this.map { it["extensions"]?.get("details")?.asText() ?: "extension details unknown" }
         "$errorMsgs -- $extensions"
     }
+
+    private class NomUtsettelser: PredefinerteUtsettelser(ofSeconds(1), ofSeconds(3), ofSeconds(10))
 
     private val finnEnhetQuery: String = """
     query enhet(${dollar}navIdent: String!) {
