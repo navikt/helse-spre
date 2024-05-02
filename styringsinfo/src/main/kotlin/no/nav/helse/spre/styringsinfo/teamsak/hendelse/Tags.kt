@@ -28,7 +28,7 @@ internal class Tags(private val tags: Set<Tag>) {
     internal val periodetype get(): Behandling.Periodetype {
         if (tags.contains(Tag.Førstegangsbehandling)) return Behandling.Periodetype.FØRSTEGANGSBEHANDLING
         if (tags.contains(Tag.Forlengelse)) return Behandling.Periodetype.FORLENGELSE
-        throw UtledingFraTagsException("periodetype")
+        throw UtledingFraTagsException("periodetype", tags)
     }
 
     internal val mottaker get(): Behandling.Mottaker {
@@ -40,7 +40,7 @@ internal class Tags(private val tags: Set<Tag>) {
             sykmeldtErMottaker && arbeidsgiverErMottaker -> Behandling.Mottaker.SYKMELDT_OG_ARBEIDSGIVER
             sykmeldtErMottaker -> Behandling.Mottaker.SYKMELDT
             arbeidsgiverErMottaker -> Behandling.Mottaker.ARBEIDSGIVER
-            else -> throw UtledingFraTagsException("mottaker")
+            else -> throw UtledingFraTagsException("mottaker", tags)
         }
     }
 
@@ -49,7 +49,7 @@ internal class Tags(private val tags: Set<Tag>) {
             tags.any { it == Tag.Innvilget } -> Behandling.Behandlingsresultat.INNVILGET
             tags.any { it == Tag.DelvisInnvilget } -> Behandling.Behandlingsresultat.DELVIS_INNVILGET
             tags.any { it == Tag.Avslag } -> Behandling.Behandlingsresultat.AVSLAG
-            else -> throw UtledingFraTagsException("behandlingsresultat")
+            else -> throw UtledingFraTagsException("behandlingsresultat", tags)
         }
     }
 
@@ -65,7 +65,7 @@ internal class Tags(private val tags: Set<Tag>) {
 
         val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
-        private class UtledingFraTagsException(felt: String): IllegalStateException("Nå kom det jaggu et event med en $felt jeg ikke klarte å tolke. Dette må være en feil. Ta en titt!") {
+        class UtledingFraTagsException(felt: String, tags: Set<Tag>): IllegalStateException("Nå kom det jaggu et event med en $felt jeg ikke klarte å tolke. Dette må være en feil. Ta en titt! Tagger: $tags") {
             init {
                 sikkerLogg.error(message)
             }
