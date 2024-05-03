@@ -42,6 +42,7 @@ internal class VedtakFattetRiver(
                 message.require("@opprettet", JsonNode::asLocalDateTime)
                 message.interestedIn("utbetalingId") { id -> UUID.fromString(id.asText()) }
                 message.interestedIn("begrunnelser")
+                message.interestedIn("avslag")
             }
         }.register(this)
     }

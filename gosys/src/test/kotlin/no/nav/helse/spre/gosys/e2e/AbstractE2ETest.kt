@@ -22,11 +22,8 @@ import no.nav.helse.spre.gosys.pdl.pdlResponse
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
-import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
-import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
+import no.nav.helse.spre.gosys.vedtakFattet.*
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
-import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingårsak
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.testhelpers.*
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
 import org.intellij.lang.annotations.Language
@@ -191,6 +188,7 @@ internal abstract class AbstractE2ETest {
             )
         ),
         begrunnelser: Map<String, String>? = null,
+        avslag: Avslag? = null,
     ) =
         VedtakPdfPayloadV2(
             fødselsnummer = "12345678910",
@@ -228,6 +226,11 @@ internal abstract class AbstractE2ETest {
             },
             arbeidsgivere = arbeidsgivere,
             begrunnelser = begrunnelser,
+            avslagstype = avslag?.let { when (it.type) {
+                Avslagstype.DELVIS_AVSLAG -> "Delvis avslag"
+                Avslagstype.AVSLAG -> "Avslag"
+            }},
+            avslagsbegrunnelse = avslag?.begrunnelse
         )
 
     protected fun expectedJournalpost(

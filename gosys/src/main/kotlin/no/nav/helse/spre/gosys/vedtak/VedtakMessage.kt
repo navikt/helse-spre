@@ -5,10 +5,8 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Oppdrag
-import no.nav.helse.spre.gosys.vedtakFattet.Begrunnelse
+import no.nav.helse.spre.gosys.vedtakFattet.*
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
-import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingårsak
-import no.nav.helse.spre.gosys.vedtakFattet.SykepengegrunnlagsfaktaData
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -35,6 +33,7 @@ data class VedtakMessage(
     private val sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>,
     private val begrunnelser: List<Begrunnelse>?,
+    private val avslag: Avslag?,
 ) {
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
@@ -49,6 +48,7 @@ data class VedtakMessage(
         utbetaling: Utbetaling,
         sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
         begrunnelser: List<Begrunnelse>?,
+        avslag: Avslag?
     ) : this(
         utbetalingId = utbetaling.utbetalingId,
         opprettet = utbetaling.opprettet,
@@ -77,6 +77,7 @@ data class VedtakMessage(
             },
         sykepengegrunnlagsfakta = sykepengegrunnlagsfakta,
         begrunnelser = begrunnelser,
+        avslag = avslag,
     )
 
     internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
@@ -143,7 +144,12 @@ data class VedtakMessage(
                 "SkjønnsfastsattSykepengegrunnlagKonklusjon" -> "begrunnelseFraKonklusjon" to it.begrunnelse
                 else -> error("Ukjent begrunnelsetype: ${it.type}")
             }
-        }
+        },
+        avslagstype = avslag?.let { when (it.type) {
+            Avslagstype.DELVIS_AVSLAG -> "Delvis avslag"
+            Avslagstype.AVSLAG -> "Avslag"
+        }},
+        avslagsbegrunnelse = avslag?.begrunnelse,
     )
 
     private fun personOppdrag() =

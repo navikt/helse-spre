@@ -30,6 +30,8 @@ data class VedtakPdfPayloadV2(
     val skjønnsfastsettingårsak: String?,
     val arbeidsgivere: List<ArbeidsgiverData>?,
     val begrunnelser: Map<String, String>?,
+    val avslagstype: String?,
+    val avslagsbegrunnelse: String?,
 ) {
     data class Oppdrag(
         val fagsystemId: String
