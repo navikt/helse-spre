@@ -43,12 +43,19 @@ internal class HendelseRiver(
         if (hendelse.ignorer(behandlingshendelseDao)) return packet.sikkerLogg("Ignorer ${packet.eventName}")
         if (behandlingshendelseDao.harHåndtertHendelseTidligere(hendelse.id)) return packet.sikkerLogg("Har håndtert ${packet.eventName} tidligere")
         hendelseDao.lagre(hendelse)
+        // Logger og kaster eventuelle feil videre slik at vi ikke commiter offset. Men blir stående på den feilende meldingen.
+        val håndtert = try { hendelse.håndter(behandlingshendelseDao) } catch (throwable: Throwable) {
+            packet.sikkerLogg("Feil ved håndtering av ${packet.eventName}", throwable)
+            throw throwable
+        }
         // Har ikke noe ny info utover det vi allerede har lagret (funksjonelt lik)/hendelse kommer out of order
-        if (!hendelse.håndter(behandlingshendelseDao)) return packet.sikkerLogg("Håndterer _ikke_ ${packet.eventName}")
+        if (!håndtert) return packet.sikkerLogg("Håndterer _ikke_ ${packet.eventName}")
         packet.sikkerLogg("Håndterte ${packet.eventName}")
     }
 
-    private fun JsonMessage.sikkerLogg(melding: String) = sikkerLogg.info("$melding\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()))
+    private fun JsonMessage.sikkerLogg(melding: String, throwable: Throwable? = null) =
+        if (throwable == null) sikkerLogg.info("$melding\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()))
+        else sikkerLogg.error("$melding\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()), throwable)
 
     private val JsonMessage.mdcValues get() = listOf("vedtaksperiodeId", "behandlingId", "@id", "@event_name")
         .associate { key -> key.removePrefix("@") to get(key) }
