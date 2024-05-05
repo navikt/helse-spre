@@ -19,7 +19,8 @@ internal enum class Tag {
     SykepengegrunnlagUnder2G,
     IngenNyArbeidsgiverperiode,
     Førstegangsbehandling,
-    Forlengelse
+    Forlengelse,
+    InngangsvilkårFraInfotrygd
 }
 
 internal class Tags(private val tags: Set<Tag>) {
