@@ -35,7 +35,14 @@ internal class HendelseRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        withMDC(packet.mdcValues) { håndterHendelse(packet) }
+        withMDC(packet.mdcValues) {
+            try { håndterHendelse(packet) }
+            catch (throwable: Throwable) {
+                // Logger og kaster feil videre slik at vi ikke commiter offset. Men blir stående på den feilende meldingen.
+                packet.sikkerLogg("Feil ved håndtering av ${packet.eventName}: ${throwable.message}", throwable)
+                throw throwable
+            }
+        }
     }
 
     private fun håndterHendelse(packet: JsonMessage) {
@@ -48,7 +55,9 @@ internal class HendelseRiver(
         packet.sikkerLogg("Håndterte ${packet.eventName}")
     }
 
-    private fun JsonMessage.sikkerLogg(melding: String) = sikkerLogg.info("$melding\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()))
+    private fun JsonMessage.sikkerLogg(melding: String, throwable: Throwable? = null) =
+        if (throwable == null) sikkerLogg.info("$melding\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()))
+        else sikkerLogg.error("$melding\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()), throwable)
 
     private val JsonMessage.mdcValues get() = listOf("vedtaksperiodeId", "behandlingId", "@id", "@event_name")
         .associate { key -> key.removePrefix("@") to get(key) }

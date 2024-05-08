@@ -66,10 +66,6 @@ internal class Tags(private val tags: Set<Tag>) {
 
         val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
-        class UtledingFraTagsException(felt: String, tags: Set<Tag>): IllegalStateException("Nå kom det jaggu et event med en $felt jeg ikke klarte å tolke. Dette må være en feil. Ta en titt! Tagger: $tags") {
-            init {
-                sikkerLogg.error(message)
-            }
-        }
+        class UtledingFraTagsException(felt: String, tags: Set<Tag>): IllegalStateException("Nå kom det jaggu et event med en $felt jeg ikke klarte å tolke. Dette må være en feil. Ta en titt! Tagger: $tags")
     }
 }
