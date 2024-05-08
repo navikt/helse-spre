@@ -83,7 +83,11 @@ data class VedtakMessage(
     internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
-        type = lesbarTittel(),
+        type = avslag?.let { when (it.type) {
+            Avslagstype.DELVIS_AVSLAG -> "Delvis innvilgelse av"
+            Avslagstype.AVSLAG -> "Avslag av"
+        }}
+            ?: lesbarTittel(),
         linjer = utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver, navn)
             .slåSammen(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person, navn)),
         personOppdrag = personOppdrag(),
@@ -146,8 +150,8 @@ data class VedtakMessage(
             }
         },
         avslagstype = avslag?.let { when (it.type) {
-            Avslagstype.DELVIS_AVSLAG -> "Delvis avslag"
-            Avslagstype.AVSLAG -> "Avslag"
+            Avslagstype.DELVIS_AVSLAG -> "delvis innvilget"
+            Avslagstype.AVSLAG -> "avslått"
         }},
         avslagsbegrunnelse = avslag?.begrunnelse,
     )
