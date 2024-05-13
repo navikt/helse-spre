@@ -73,9 +73,9 @@ class VedtakMediator(
 
     private fun dokumentTittel(vedtakMessage: VedtakMessage): String {
         return when (vedtakMessage.type) {
-            Utbetaling.Utbetalingtype.UTBETALING -> "Sykepenger behandlet i ny løsning, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
-            Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Sykepenger etterutbetalt i ny løsning, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
-            Utbetaling.Utbetalingtype.REVURDERING -> "Sykepenger revurdert i ny løsning, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
+            Utbetaling.Utbetalingtype.UTBETALING -> "Sykepenger behandlet, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
+            Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Sykepenger etterutbetalt, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
+            Utbetaling.Utbetalingtype.REVURDERING -> "Sykepenger revurdert, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
             Utbetaling.Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
         }
     }

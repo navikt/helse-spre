@@ -372,7 +372,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertJournalpost(
             expected = expectedJournalpost(
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
-                dokumentTittel = "Sykepenger revurdert i ny løsning, 01.01.2018 - 17.01.2018",
+                dokumentTittel = "Sykepenger revurdert, 01.01.2018 - 17.01.2018",
                 eksternReferanseId = utbetalingId,
             )
         )
@@ -424,7 +424,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertJournalpost(
             expected = expectedJournalpost(
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
-                dokumentTittel = "Sykepenger revurdert i ny løsning, 01.01.2018 - 17.01.2018",
+                dokumentTittel = "Sykepenger revurdert, 01.01.2018 - 17.01.2018",
                 eksternReferanseId = utbetalingId,
             )
         )
@@ -590,7 +590,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertJournalpost(
             expectedJournalpost(
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
-                dokumentTittel = "Sykepenger revurdert i ny løsning, 06.11.2021 - 19.11.2021",
+                dokumentTittel = "Sykepenger revurdert, 06.11.2021 - 19.11.2021",
                 fom = 6.november(2021),
                 tom = 19.november(2021),
                 eksternReferanseId = utbetalingId
@@ -656,7 +656,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertJournalpost(
             expectedJournalpost(
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
-                dokumentTittel = "Sykepenger revurdert i ny løsning, 04.06.2023 - 05.06.2023",
+                dokumentTittel = "Sykepenger revurdert, 04.06.2023 - 05.06.2023",
                 eksternReferanseId = utbetalingId,
             )
         )
@@ -694,7 +694,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertJournalpost(
             expectedJournalpost(
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
-                dokumentTittel = "Sykepenger revurdert i ny løsning, 06.11.2021 - 19.11.2021",
+                dokumentTittel = "Sykepenger revurdert, 06.11.2021 - 19.11.2021",
                 fom = 6.november(2021),
                 tom = 19.november(2021),
                 eksternReferanseId = utbetalingId,
