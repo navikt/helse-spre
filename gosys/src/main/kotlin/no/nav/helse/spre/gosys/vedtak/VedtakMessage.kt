@@ -33,7 +33,6 @@ data class VedtakMessage(
     private val sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>,
     private val begrunnelser: List<Begrunnelse>?,
-    private val avslag: Avslag?,
 ) {
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
@@ -48,7 +47,6 @@ data class VedtakMessage(
         utbetaling: Utbetaling,
         sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
         begrunnelser: List<Begrunnelse>?,
-        avslag: Avslag?
     ) : this(
         utbetalingId = utbetaling.utbetalingId,
         opprettet = utbetaling.opprettet,
@@ -77,15 +75,15 @@ data class VedtakMessage(
             },
         sykepengegrunnlagsfakta = sykepengegrunnlagsfakta,
         begrunnelser = begrunnelser,
-        avslag = avslag,
     )
 
     internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
-        type = avslag?.let { when (it.type) {
-            Avslagstype.DELVIS_AVSLAG -> "Delvis innvilgelse av"
-            Avslagstype.AVSLAG -> "Avslag av"
+        type = begrunnelser?.find { it.type == "DelvisAvslag" || it.type == "Avslag" }?.let { when (it.type) {
+            "DelvisAvslag" -> "Delvis innvilgelse av"
+            "Avslag" -> "Avslag av"
+            else -> null
         }}
             ?: lesbarTittel(),
         linjer = utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver, navn)
@@ -146,14 +144,11 @@ data class VedtakMessage(
                 "SkjønnsfastsattSykepengegrunnlagMal" -> "begrunnelseFraMal" to it.begrunnelse
                 "SkjønnsfastsattSykepengegrunnlagFritekst" -> "begrunnelseFraFritekst" to it.begrunnelse
                 "SkjønnsfastsattSykepengegrunnlagKonklusjon" -> "begrunnelseFraKonklusjon" to it.begrunnelse
+                "DelvisAvslag" -> "delvisAvslag" to it.begrunnelse
+                "Avslag" -> "avslag" to it.begrunnelse
                 else -> error("Ukjent begrunnelsetype: ${it.type}")
             }
-        },
-        avslagstype = avslag?.let { when (it.type) {
-            Avslagstype.DELVIS_AVSLAG -> "delvis innvilget"
-            Avslagstype.AVSLAG -> "avslått"
-        }},
-        avslagsbegrunnelse = avslag?.begrunnelse,
+        }
     )
 
     private fun personOppdrag() =

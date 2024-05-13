@@ -188,7 +188,6 @@ internal abstract class AbstractE2ETest {
             )
         ),
         begrunnelser: Map<String, String>? = null,
-        avslag: Avslag? = null,
     ) =
         VedtakPdfPayloadV2(
             fødselsnummer = "12345678910",
@@ -226,11 +225,6 @@ internal abstract class AbstractE2ETest {
             },
             arbeidsgivere = arbeidsgivere,
             begrunnelser = begrunnelser,
-            avslagstype = avslag?.let { when (it.type) {
-                Avslagstype.DELVIS_AVSLAG -> "Delvis avslag"
-                Avslagstype.AVSLAG -> "Avslag"
-            }},
-            avslagsbegrunnelse = avslag?.begrunnelse
         )
 
     protected fun expectedJournalpost(
