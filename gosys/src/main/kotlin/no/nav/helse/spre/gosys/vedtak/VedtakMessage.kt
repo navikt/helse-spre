@@ -80,8 +80,8 @@ data class VedtakMessage(
     internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
-        type = begrunnelser?.find { it.type == "DelvisAvslag" || it.type == "Avslag" }?.let { when (it.type) {
-            "DelvisAvslag" -> "Delvis innvilgelse av"
+        type = begrunnelser?.find { it.type == "DelvisInnvilgelse" || it.type == "Avslag" }?.let { when (it.type) {
+            "DelvisInnvilgelse" -> "Delvis innvilgelse av"
             "Avslag" -> "Avslag av"
             else -> null
         }}
@@ -144,7 +144,7 @@ data class VedtakMessage(
                 "SkjønnsfastsattSykepengegrunnlagMal" -> "begrunnelseFraMal" to it.begrunnelse
                 "SkjønnsfastsattSykepengegrunnlagFritekst" -> "begrunnelseFraFritekst" to it.begrunnelse
                 "SkjønnsfastsattSykepengegrunnlagKonklusjon" -> "begrunnelseFraKonklusjon" to it.begrunnelse
-                "DelvisAvslag" -> "delvisAvslag" to it.begrunnelse
+                "DelvisInnvilgelse" -> "delvisInnvilgelse" to it.begrunnelse
                 "Avslag" -> "avslag" to it.begrunnelse
                 else -> error("Ukjent begrunnelsetype: ${it.type}")
             }
