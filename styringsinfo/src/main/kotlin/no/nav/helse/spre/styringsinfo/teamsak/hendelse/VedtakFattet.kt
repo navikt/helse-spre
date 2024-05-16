@@ -67,7 +67,9 @@ internal class VedtakFattet(
             sykepengegrunnlagsfakta -> require(!sykepengegrunnlagsfakta.isMissingOrNull())
         }
         private val manuelleTags = mapOf(
-            UUID.fromString("8cd20edf-8a9e-493d-87f0-7c117065397b") to Tags(setOf(Tag.Forlengelse, Tag.EnArbeidsgiver, Tag.Arbeidsgiverutbetaling, Tag.Innvilget))
+            UUID.fromString("4c2fb8ca-a592-4dc0-a094-617d14397f50") to Tags(setOf(Tag.Førstegangsbehandling,
+                Tag.EnArbeidsgiver, Tag.`6GBegrenset`, Tag.IngenUtbetaling, Tag.Avslag, Tag.IngenNyArbeidsgiverperiode
+            ))
         )
     }
 }
