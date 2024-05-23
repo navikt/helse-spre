@@ -228,6 +228,60 @@ class EndToEndTest {
     }
 
     @Test
+    fun `utsetter når vi venter på inntektsmelding på annen arbeidsgiver`() {
+        val periode = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        sendSøknad(søknadId)
+        sendSøknadHåndtert(søknadId)
+        sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
+        sendInntektsmeldingHåndtert(inntektsmeldingId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadId),
+            tilstand = "AVVENTER_BLOKKERENDE_PERIODE",
+            vedtaksperiodeId = periode
+        )
+
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+
+        sendVedtaksperiodeVenter(listOf(søknadId, inntektsmeldingId), "INNTEKTSMELDING", venterPåOrganisasjonsnummer = "annen")
+
+        assertEquals(4, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[3].oppdateringstype)
+    }
+
+    @Test
+    fun `utsetter ikke når vi venter på inntektsmelding på samme arbeidsgiver`() {
+        val periode = UUID.randomUUID()
+        val søknadId = UUID.randomUUID()
+        val inntektsmeldingId = UUID.randomUUID()
+
+        sendSøknad(søknadId)
+        sendSøknadHåndtert(søknadId)
+        sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
+        sendInntektsmeldingHåndtert(inntektsmeldingId)
+        sendVedtaksperiodeEndret(
+            hendelseIder = listOf(søknadId),
+            tilstand = "AVVENTER_BLOKKERENDE_PERIODE",
+            vedtaksperiodeId = periode
+        )
+
+        assertEquals(2, publiserteOppgaver.size)
+        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
+        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
+
+        sendVedtaksperiodeVenter(listOf(søknadId, inntektsmeldingId), "INNTEKTSMELDING")
+
+        assertEquals(2, publiserteOppgaver.size)
+    }
+
+    @Test
     fun `utsetter når vi venter på overlappende søknad`() {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
@@ -951,8 +1005,8 @@ class EndToEndTest {
         )
     }
 
-    private fun sendVedtaksperiodeVenter(hendelseIder: List<UUID>, venterPåHva: String, venterPåHvorfor: String? = null) {
-        rapid.sendTestMessage(vedtaksperiodeVenter(hendelseIder, venterPåHva, venterPåHvorfor))
+    private fun sendVedtaksperiodeVenter(hendelseIder: List<UUID>, venterPåHva: String, venterPåHvorfor: String? = null, venterPåOrganisasjonsnummer: String = "999999999") {
+        rapid.sendTestMessage(vedtaksperiodeVenter(hendelseIder, venterPåHva, venterPåHvorfor, venterPåOrganisasjonsnummer))
     }
 
     private fun sendAvsluttetMedVedtak(
@@ -1014,7 +1068,7 @@ class EndToEndTest {
 
     private fun inntektsmeldingIkkeHåndtert(inntektsmeldingId: UUID, harPeriodeInnenfor16Dager: Boolean = false, organisasjonsnummer: String = ORGNUMMER, fødselsnummer: String = FØDSELSNUMMER) {
         rapid.sendTestMessage(
-            no.nav.helse.spre.oppgaver.inntektsmeldingIkkeHåndtert(
+            inntektsmeldingIkkeHåndtert(
                 inntektsmeldingId,
                 organisasjonsnummer,
                 fødselsnummer,
@@ -1033,30 +1087,26 @@ private fun TestRapid.RapidInspector.events(eventnavn: String, hendelseId: UUID)
         .filter { it["hendelseId"].textValue() == hendelseId.toString() }
 
 
-
+@Language("JSON")
 fun vedtaksperiodeVenter(
     hendelseIder: List<UUID>,
     venterPåHva: String,
-    venterPåHvorfor: String?
+    venterPåHvorfor: String?,
+    venterPåOrganisasjonsnummer: String
 ) =
     """{
             "@event_name": "vedtaksperiode_venter",
             "@id": "${UUID.randomUUID()}",
+            "organisasjonsnummer": "999999999",
             "hendelser": ${hendelseIder.tilJSONStringArray()},
             "venterPå": {
+                "organisasjonsnummer": "$venterPåOrganisasjonsnummer",
                 "venteårsak": {
                   "hva": "$venterPåHva",
-                  ${venterPåHvorfor.hvorfor()}
+                  "hvorfor": ${venterPåHvorfor?.let { "\"$it\"" }}
                 }
              }
         }"""
-
-private fun String?.hvorfor(): String? {
-    return if (this == null) {
-        "\"hvorfor\": ${null} "
-    }
-    else "\"hvorfor\": \"${this}\""
-}
 
 private fun Iterable<Any>.tilJSONStringArray() = joinToString(prefix = "[", postfix = "]") { "\"$it\"" }
 
