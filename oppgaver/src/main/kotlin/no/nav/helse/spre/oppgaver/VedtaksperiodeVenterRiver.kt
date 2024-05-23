@@ -24,8 +24,6 @@ class VedtaksperiodeVenterRiver(
                 it.demandAny(
                     "venterPå.venteårsak.hvorfor",
                     listOf(
-                        "MANGLER_REFUSJONSOPPLYSNINGER_PÅ_ANDRE_ARBEIDSGIVERE",
-                        "MANGLER_INNTEKT_FOR_VILKÅRSPRØVING_PÅ_ANDRE_ARBEIDSGIVERE",
                         "MANGLER_TILSTREKKELIG_INFORMASJON_TIL_UTBETALING_ANDRE_ARBEIDSGIVERE",
                         "HAR_SYKMELDING_SOM_OVERLAPPER_PÅ_ANDRE_ARBEIDSGIVERE"
                     )
