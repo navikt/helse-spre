@@ -14,20 +14,13 @@ class VedtaksperiodeVenterRiver(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "vedtaksperiode_venter") }
-            validate { it.demandValue("venterPå.venteårsak.hva", "GODKJENNING") }
+            validate { it.demandAny("venterPå.venteårsak.hva", listOf("GODKJENNING", "SØKNAD")) }
             validate { it.requireKey("hendelser", "@id") }
         }.register(this)
 
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "vedtaksperiode_venter") }
-            validate {
-                it.demandAny(
-                    "venterPå.venteårsak.hvorfor",
-                    listOf(
-                        "MANGLER_TILSTREKKELIG_INFORMASJON_TIL_UTBETALING_ANDRE_ARBEIDSGIVERE",
-                        "HAR_SYKMELDING_SOM_OVERLAPPER_PÅ_ANDRE_ARBEIDSGIVERE"
-                    )
-                ) }
+            validate { it.demandValue("venterPå.venteårsak.hvorfor", "MANGLER_TILSTREKKELIG_INFORMASJON_TIL_UTBETALING_ANDRE_ARBEIDSGIVERE") }
             validate { it.requireKey("hendelser", "@id") }
         }.register(this)
     }

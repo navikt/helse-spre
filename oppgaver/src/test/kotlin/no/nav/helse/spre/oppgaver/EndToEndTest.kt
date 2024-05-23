@@ -228,7 +228,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter når vi venter på overlappende abeidsgiver - HAR_SYKMELDING_SOM_OVERLAPPER_PÅ_ANDRE_ARBEIDSGIVERE`() {
+    fun `utsetter når vi venter på overlappende søknad`() {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val inntektsmeldingId = UUID.randomUUID()
@@ -247,7 +247,7 @@ class EndToEndTest {
         assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
         assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
 
-        sendVedtaksperiodeVenter(listOf(søknadId, inntektsmeldingId), "INNTEKTSMELDING", "HAR_SYKMELDING_SOM_OVERLAPPER_PÅ_ANDRE_ARBEIDSGIVERE")
+        sendVedtaksperiodeVenter(listOf(søknadId, inntektsmeldingId), "SØKNAD")
 
         assertEquals(4, publiserteOppgaver.size)
         assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
