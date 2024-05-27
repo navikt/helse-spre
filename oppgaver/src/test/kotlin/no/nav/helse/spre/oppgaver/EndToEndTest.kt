@@ -199,35 +199,6 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter når vi venter på overlappende abeidsgiver - MANGLER_TILSTREKKELIG_INFORMASJON_TIL_UTBETALING_ANDRE_ARBEIDSGIVERE`() {
-        val periode = UUID.randomUUID()
-        val søknadId = UUID.randomUUID()
-        val inntektsmeldingId = UUID.randomUUID()
-
-        sendSøknad(søknadId)
-        sendSøknadHåndtert(søknadId)
-        sendInntektsmelding(inntektsmeldingId, UUID.randomUUID())
-        sendInntektsmeldingHåndtert(inntektsmeldingId)
-        sendVedtaksperiodeEndret(
-            hendelseIder = listOf(søknadId),
-            tilstand = "AVVENTER_BLOKKERENDE_PERIODE",
-            vedtaksperiodeId = periode
-        )
-
-        assertEquals(2, publiserteOppgaver.size)
-        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
-
-        sendVedtaksperiodeVenter(listOf(søknadId, inntektsmeldingId), "INNTEKTSMELDING", "MANGLER_TILSTREKKELIG_INFORMASJON_TIL_UTBETALING_ANDRE_ARBEIDSGIVERE")
-
-        assertEquals(4, publiserteOppgaver.size)
-        assertEquals(Utsett, publiserteOppgaver[0].oppdateringstype)
-        assertEquals(Utsett, publiserteOppgaver[1].oppdateringstype)
-        assertEquals(Utsett, publiserteOppgaver[2].oppdateringstype)
-        assertEquals(Utsett, publiserteOppgaver[3].oppdateringstype)
-    }
-
-    @Test
     fun `utsetter når vi venter på inntektsmelding på annen arbeidsgiver`() {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
@@ -1200,7 +1171,7 @@ fun inntektsmeldingFørSøknad(
             "inntektsmeldingId": "$inntektsmeldingId",
             "organisasjonsnummer": "$organisasjonsnummer",
             "fødselsnummer": "$fødselsnummer",
-            "overlappende_sykmeldingsperioder": [
+            "relevante_sykmeldingsperioder": [
                 {
                     "fom":"2018-01-01",
                     "tom":"2018-01-16"
