@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.*
 internal class SykemeldingRiver(
     rapidsConnection: RapidsConnection,
     private val mappingDao: MappingDao,
-    private val idValidation: IdValidation
 ) : River.PacketListener {
 
 
@@ -22,10 +21,6 @@ internal class SykemeldingRiver(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val id = packet["@id"].toUUID()
         val sykmeldingId = packet["sykmeldingId"]
-        if (idValidation.isPoisonous(sykmeldingId.asText())) {
-            sikkerLogg.warn("Fant poison pill, lagrer ikke sykmelding. HendelseId: $id, [poisonous] dokumentId: $sykmeldingId")
-            return
-        }
         mappingDao.lagre(
             id,
             sykmeldingId.toUUID(),

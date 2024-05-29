@@ -43,7 +43,7 @@ internal class SubsumsjonTest {
 
         mappingDao = MappingDao(dataSourceBuilder.datasource())
 
-        sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao, IdValidation(emptyList()))
+        sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao)
         søknadRiver = SøknadRiver(testRapid, mappingDao)
         inntektsmeldingRiver = InntektsmeldingRiver(testRapid, mappingDao)
         SubsumsjonRiver(testRapid, mappingDao) { fnr, melding ->

@@ -6,5 +6,3 @@ kafkaResetPolicy: earliest
 env:
   - name: SUBSUMSJON_TOPIC
     value: flex.omrade-helse-etterlevelse
-  - name: POISON_PILLS
-    value: '1609281525aske98758.1'
