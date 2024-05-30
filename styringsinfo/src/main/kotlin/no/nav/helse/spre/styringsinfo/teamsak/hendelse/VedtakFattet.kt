@@ -69,6 +69,9 @@ internal class VedtakFattet(
         private val manuelleTags = mapOf(
             UUID.fromString("4ee30b61-5432-45f2-aa81-6f31726fa222") to Tags(setOf(
                 Tag.Førstegangsbehandling, Tag.EnArbeidsgiver, Tag.Arbeidsgiverutbetaling, Tag.Innvilget
+            )),
+            UUID.fromString("284bd7a1-b324-4128-932f-e0daf3f47f66") to Tags(setOf(
+                Tag.Forlengelse, Tag.FlereArbeidsgivere, Tag.IngenUtbetaling, Tag.Innvilget
             ))
         )
     }
