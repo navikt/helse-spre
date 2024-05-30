@@ -75,6 +75,9 @@ internal class VedtakFattet(
             )),
             UUID.fromString("cf923f26-f39d-4346-bab3-2688f0b43468") to Tags(setOf(
                 Tag.Forlengelse, Tag.FlereArbeidsgivere, Tag.NegativArbeidsgiverutbetaling, Tag.Personutbetaling, Tag.Innvilget
+            )),
+            UUID.fromString("740fd22e-1390-467d-b782-7043e129e862") to Tags(setOf(
+                Tag.Forlengelse, Tag.FlereArbeidsgivere, Tag.Arbeidsgiverutbetaling, Tag.Personutbetaling, Tag.Innvilget
             ))
         )
     }
