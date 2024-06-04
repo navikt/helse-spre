@@ -20,7 +20,8 @@ internal enum class Tag {
     IngenNyArbeidsgiverperiode,
     Førstegangsbehandling,
     Forlengelse,
-    InngangsvilkårFraInfotrygd
+    InngangsvilkårFraInfotrygd,
+    TilkommenInntekt
 }
 
 internal class Tags(private val tags: Set<Tag>) {
