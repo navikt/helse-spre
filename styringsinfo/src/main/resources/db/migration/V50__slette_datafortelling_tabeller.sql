@@ -1,0 +1,1 @@
+drop table if exists sendt_soknad, vedtak_fattet, vedtak_forkastet, vedtak_dokument_mapping;
