@@ -56,7 +56,7 @@ internal class VedtakFattet(
                 opprettet = packet.opprettet,
                 data = packet.blob,
                 behandlingId = packet.behandlingId,
-                tags = manuelleTags[packet.hendelseId] ?: Tags(packet.tags)
+                tags = Tags(packet.tags)
             )}
         )
 
@@ -66,19 +66,5 @@ internal class VedtakFattet(
         private fun JsonMessage.demandSykepengegrunnlagfakta() = demand("sykepengegrunnlagsfakta") {
             sykepengegrunnlagsfakta -> require(!sykepengegrunnlagsfakta.isMissingOrNull())
         }
-        private val manuelleTags = mapOf(
-            UUID.fromString("4ee30b61-5432-45f2-aa81-6f31726fa222") to Tags(setOf(
-                Tag.Førstegangsbehandling, Tag.EnArbeidsgiver, Tag.Arbeidsgiverutbetaling, Tag.Innvilget
-            )),
-            UUID.fromString("a3f93a97-2d43-4060-8117-4320ab2166f3") to Tags(setOf(
-                Tag.Forlengelse, Tag.FlereArbeidsgivere, Tag.IngenUtbetaling, Tag.Innvilget
-            )),
-            UUID.fromString("cf923f26-f39d-4346-bab3-2688f0b43468") to Tags(setOf(
-                Tag.Forlengelse, Tag.FlereArbeidsgivere, Tag.NegativArbeidsgiverutbetaling, Tag.Personutbetaling, Tag.Innvilget
-            )),
-            UUID.fromString("740fd22e-1390-467d-b782-7043e129e862") to Tags(setOf(
-                Tag.Forlengelse, Tag.FlereArbeidsgivere, Tag.Arbeidsgiverutbetaling, Tag.Personutbetaling, Tag.Innvilget
-            ))
-        )
     }
 }
