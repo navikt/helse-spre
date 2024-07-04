@@ -53,7 +53,6 @@ internal class BehandlingForkastet(
             valider = { packet ->
                 packet.requireBehandlingId()
                 packet.require("automatiskBehandling", JsonNode::isBoolean)
-                packet.rejectValue("behandlingId", "c5133527-2fe5-401b-8d62-80095ae9a5e6")
             },
             opprett = { packet -> BehandlingForkastet(
                 id = packet.hendelseId,
