@@ -327,10 +327,15 @@ class EndToEndTest {
         val søknad1DokumentId = UUID.randomUUID()
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
+        sendSøknadHåndtert(søknad1HendelseId)
         vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId), behandletIInfotrygd = true)
 
-        assertEquals(0, publiserteOppgaver.size)
-        assertEquals(0, rapid.inspektør.size)
+        assertEquals(2, publiserteOppgaver.size)
+        publiserteOppgaver[0].assertInnhold(Utsett, søknad1DokumentId, Søknad)
+        publiserteOppgaver[1].assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
+        assertEquals(2, rapid.inspektør.size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", søknad1HendelseId).size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_ferdigbehandlet", søknad1HendelseId).size)
     }
 
     @Test

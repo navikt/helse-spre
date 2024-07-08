@@ -54,7 +54,13 @@ class VedtaksperiodeForkastetRiver(
             "erGammelPeriode" to erGammelPeriode.utfall()
         )) {
             if (oppgaver.isEmpty()) return@withMDC sikkerLog.info("Ignorerer vedtaksperiode_forkastet fordi ingen hendelser kan mappes til oppgaver i databasen", kv("fødselsnummer", fødselsnummer))
-            if (behandletIInfotrygd) return@withMDC sikkerLog.info("Ignorerer vedtaksperiode_forkastet fordi perioden er allerede behandlet i Infotrygd", kv("fødselsnummer", fødselsnummer))
+            if (behandletIInfotrygd) {
+                oppgaver.forEach { oppgave -> oppgave.håndter(Hendelse.Avsluttet) }
+                return@withMDC sikkerLog.info(
+                    "Avslutter oppgave etter vedtaksperiode_forkastet fordi perioden er allerede behandlet i Infotrygd",
+                    kv("fødselsnummer", fødselsnummer)
+                )
+            }
             oppgaver.forEach { oppgave ->
                 if (speilRelatert) oppgave.lagOppgavePåSpeilKø()
                 else oppgave.lagOppgave()
