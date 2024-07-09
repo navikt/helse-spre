@@ -322,7 +322,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `oppretter ikke oppgave dersom perioden er behandlet i Infotrygd`() {
+    fun `dersom perioden er behandlet i Infotrygd`() {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
 
@@ -332,10 +332,10 @@ class EndToEndTest {
 
         assertEquals(2, publiserteOppgaver.size)
         publiserteOppgaver[0].assertInnhold(Utsett, søknad1DokumentId, Søknad)
-        publiserteOppgaver[1].assertInnhold(Ferdigbehandlet, søknad1DokumentId, Søknad)
+        publiserteOppgaver[1].assertInnhold(Opprett, søknad1DokumentId, Søknad)
         assertEquals(2, rapid.inspektør.size)
         assertEquals(1, rapid.inspektør.events("oppgavestyring_utsatt", søknad1HendelseId).size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_ferdigbehandlet", søknad1HendelseId).size)
+        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett", søknad1HendelseId).size)
     }
 
     @Test
