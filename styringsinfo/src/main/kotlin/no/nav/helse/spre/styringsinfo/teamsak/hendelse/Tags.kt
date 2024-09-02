@@ -14,6 +14,7 @@ internal enum class Tag {
     DelvisInnvilget,
     Avslag,
     EnArbeidsgiver,
+    Grunnbeløpsregulering,
     FlereArbeidsgivere,
     `6GBegrenset`,
     SykepengegrunnlagUnder2G,
