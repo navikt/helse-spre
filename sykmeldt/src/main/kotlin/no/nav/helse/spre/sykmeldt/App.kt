@@ -1,18 +1,20 @@
 package no.nav.helse.spre.sykmeldt
 
-import io.ktor.server.application.*
-import io.ktor.server.cio.*
-import io.ktor.server.engine.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helse.rapids_rivers.RapidsConnection
+import org.slf4j.LoggerFactory
+
+internal val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
 
 fun main() {
 
-    embeddedServer(CIO, port = 8080) {
-        routing {
-            get("/isalive") { call.respondText("ALIVE!") }
-            get("/isready") { call.respondText("READY!") }
-        }
-    }.start(wait = true)
+    val rapidsConnection = launchApplication()
+    rapidsConnection.start()
+}
 
+private fun launchApplication(): RapidsConnection {
+    val env = System.getenv()
+    val rapidsConnection = RapidApplication.create(env)
+    rapidsConnection.apply { SkatteinntekterLagtTilGrunnRiver(this) }
+    return rapidsConnection
 }
