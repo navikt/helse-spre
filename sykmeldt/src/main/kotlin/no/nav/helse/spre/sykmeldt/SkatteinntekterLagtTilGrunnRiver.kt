@@ -10,7 +10,7 @@ class SkatteinntekterLagtTilGrunnRiver(rapidsConnection: RapidsConnection, priva
         River(rapidsConnection).apply {
             validate {
                 it.demandValue("@event_name", "skatteinntekter_lagt_til_grunn")
-                it.requireKey("vedtaksperiodeId", "behandlingId", "skatteinntekter")
+                it.requireKey("vedtaksperiodeId", "behandlingId", "skatteinntekter", "omregnetÅrsinntekt")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
             }
         }.register(this)
@@ -33,6 +33,7 @@ private fun JsonMessage.toForelagteOpplysninger(): ForelagteOpplysningerMelding 
         vedtaksperiodeId = this["vedtaksperiodeId"].asText().let { UUID.fromString(it) },
         behandlingId = this["behandlingId"].asText().let { UUID.fromString(it) },
         tidsstempel = this["@opprettet"].asLocalDateTime(),
+        omregnetÅrsinntekt = this["omregnetÅrsinntekt"].asDouble(),
         skatteinntekter = this["skatteinntekter"].map {
             ForelagteOpplysningerMelding.Skatteinntekt(
                 måned = it["måned"].asYearMonth(),

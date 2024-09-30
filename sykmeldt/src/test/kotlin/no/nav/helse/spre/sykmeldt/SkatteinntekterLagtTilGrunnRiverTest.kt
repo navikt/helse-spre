@@ -2,9 +2,11 @@ package no.nav.helse.spre.sykmeldt
 
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.*
 
 class SkatteinntekterLagtTilGrunnRiverTest {
@@ -25,6 +27,18 @@ class SkatteinntekterLagtTilGrunnRiverTest {
         testRapid.sendTestMessage(message)
 
         assertTrue(publisher.harSendtMelding(vedtaksperiodeId))
+    }
+
+    @Test
+    fun `Dataelementer som vi sender videre`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val message = skatteinntekterLagtTilGrunnEvent(vedtaksperiodeId)
+        testRapid.sendTestMessage(message)
+
+        assertEquals(1, publisher.sendteMeldinger.size)
+        val sendtMelding = publisher.sendteMeldinger.single()
+        val datafelter = listOf("skatteinntekter", "vedtaksperiodeId", "behandlingId", "tidsstempel", "omregnetÅrsinntekt")
+        assertDoesNotThrow { datafelter.forEach { sendtMelding.javaClass.getDeclaredField(it) } }
     }
 
     @Language("JSON")
