@@ -15,6 +15,7 @@ fun main() {
 private fun launchApplication(): RapidsConnection {
     val env = System.getenv()
     val rapidsConnection = RapidApplication.create(env)
-    rapidsConnection.apply { SkatteinntekterLagtTilGrunnRiver(this) }
+    val publisher = TestForelagteOpplysningerPublisher()
+    rapidsConnection.apply { SkatteinntekterLagtTilGrunnRiver(this, publisher) }
     return rapidsConnection
 }
