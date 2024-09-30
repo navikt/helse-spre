@@ -5,10 +5,6 @@ on:
     branches:
     - main
     paths:
-    - 'config/saksbehandlingsstatistikk/aiven-dev.yml'
-    - 'config/saksbehandlingsstatistikk/aiven-temp-dokumenter-dev.yml'
-    - 'config/saksbehandlingsstatistikk/aiven-prod.yml'
-    - 'config/saksbehandlingsstatistikk/aiven-temp-dokumenter-prod.yml'
     - 'config/oppgaver/aiven-dev-spre-oppgaver.yml'
     - 'config/oppgaver/aiven-prod-spre-oppgaver.yml'
     - 'config/sykmeldt/aiven-dev-forelagte-opplysninger.yml'
@@ -19,11 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: nais/deploy/actions/deploy@v2
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: dev-gcp
-          RESOURCE: config/saksbehandlingsstatistikk/aiven-dev.yml,config/saksbehandlingsstatistikk/aiven-temp-dokumenter-dev.yml
       - uses: nais/deploy/actions/deploy@v2
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
@@ -40,11 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: nais/deploy/actions/deploy@v2
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-          CLUSTER: prod-gcp
-          RESOURCE: config/saksbehandlingsstatistikk/aiven-prod.yml,config/saksbehandlingsstatistikk/aiven-temp-dokumenter-prod.yml
       - uses: nais/deploy/actions/deploy@v2
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
