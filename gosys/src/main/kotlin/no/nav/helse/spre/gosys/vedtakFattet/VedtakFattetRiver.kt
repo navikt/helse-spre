@@ -24,6 +24,7 @@ internal class VedtakFattetRiver(
         River(rapidsConnection).apply {
             validate { message ->
                 message.demandValue("@event_name", "vedtak_fattet")
+                message.demandKey("sykepengegrunnlagsfakta")
                 message.requireKey(
                     "aktørId",
                     "fødselsnummer",
@@ -34,7 +35,6 @@ internal class VedtakFattetRiver(
                     "sykepengegrunnlag",
                     "inntekt",
                     "grunnlagForSykepengegrunnlagPerArbeidsgiver",
-                    "sykepengegrunnlagsfakta",
                 )
                 message.require("fom", JsonNode::asLocalDate)
                 message.require("tom", JsonNode::asLocalDate)

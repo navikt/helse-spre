@@ -87,7 +87,7 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `oppretter kun en journalpost ved duplikat`() {
+    fun `oppretter ikke ny journalpost ved behandling av duplikat melding`() {
         val annullering = annullering()
         testRapid.sendTestMessage(annullering)
         testRapid.sendTestMessage(annullering)

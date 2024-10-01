@@ -11,6 +11,8 @@ import io.ktor.serialization.jackson.*
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import kotliquery.queryOf
+import kotliquery.sessionOf
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.gosys.*
 import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
@@ -536,6 +538,17 @@ internal abstract class AbstractE2ETest {
                 tom = sykdomstidslinje.last().dato
             )
         )
+    }
+
+    protected fun harLagretTilDuplikattabellen(hendelseId: UUID): Boolean =
+        antallRaderIDuplikattabellen(hendelseId) == 1
+
+    protected fun harIkkeLagretTilDuplikattabellen(hendelseId: UUID): Boolean =
+        antallRaderIDuplikattabellen(hendelseId) == 0
+
+    private fun antallRaderIDuplikattabellen(hendelseId: UUID) = sessionOf(dataSource).use { session ->
+        @Language("PostgreSQL") val query = "SELECT COUNT(1) FROM duplikatsjekk WHERE id=?"
+        session.run(queryOf(query, hendelseId).map { it.int(1) }.asSingle)
     }
 
     enum class Utbetalingstype(
