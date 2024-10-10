@@ -102,8 +102,6 @@ jobs:
         if: steps.app_jar.outputs.files_exists == 'true'
         uses: nais/docker-build-push@v0
         id: docker-build-push
-        env:
-          TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-java-db:1"
         with:
           team: ${{ needs.generate_vars.outputs.team }}
           image_suffix: ${{ matrix.project }}
