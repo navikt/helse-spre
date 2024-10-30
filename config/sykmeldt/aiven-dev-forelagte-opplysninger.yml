@@ -24,3 +24,6 @@ spec:
         - team: tbd
           application: spre-sykmeldt
           access: readwrite
+        - team: flex
+          application: flex-inntektsmelding-status
+          access: read
