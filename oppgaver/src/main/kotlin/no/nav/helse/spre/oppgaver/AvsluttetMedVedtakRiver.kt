@@ -6,10 +6,8 @@ import java.util.*
 class AvsluttetMedVedtakRiver(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
-    publisist: Publisist,
+    private val publisist: Publisist,
 ) : River.PacketListener {
-
-    private val observer = OppgaveObserver(oppgaveDAO, publisist, rapidsConnection)
 
     init {
         River(rapidsConnection).apply {
@@ -23,6 +21,7 @@ class AvsluttetMedVedtakRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         withMDC(mapOf("event" to "avsluttet_med_vedtak")) {
             packet["hendelser"]
                 .map { UUID.fromString(it.asText()) }

@@ -6,10 +6,8 @@ import java.util.*
 class InntektsmeldingIkkeHåndtertRiver(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
-    publisist: Publisist,
+    private val publisist: Publisist,
 ) : River.PacketListener {
-
-    private val observer = OppgaveObserver(oppgaveDAO, publisist, rapidsConnection)
 
     init {
         River(rapidsConnection).apply {
@@ -23,6 +21,7 @@ class InntektsmeldingIkkeHåndtertRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         val inntektsmeldingId = packet["inntektsmeldingId"].asText().let { UUID.fromString(it) }
         val harPeriodeInnenfor16Dager = packet["harPeriodeInnenfor16Dager"].asBoolean()
 

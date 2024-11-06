@@ -6,10 +6,8 @@ import java.util.*
 class InntektsmeldingerFørSøknadRiver(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
-    publisist: Publisist,
+    private val publisist: Publisist,
 ) : River.PacketListener {
-
-    private val observer = OppgaveObserver(oppgaveDAO, publisist, rapidsConnection)
 
     init {
         River(rapidsConnection).apply {
@@ -23,6 +21,7 @@ class InntektsmeldingerFørSøknadRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         val hendelseId = UUID.fromString(packet["inntektsmeldingId"].asText())
         val oppgave = oppgaveDAO.finnOppgave(hendelseId, observer) ?: return
         withMDC(mapOf("event" to "inntektsmelding_før_søknad")) {

@@ -13,11 +13,11 @@ import java.util.*
 class OppgaveObserver(
     private val oppgaveDAO: OppgaveDAO,
     private val publisist: Publisist,
-    private val rapidsConnection: MessageContext
+    private val messageContext: MessageContext
 ) : Oppgave.Observer {
     private companion object {
         private val sikkerlogg: Logger = LoggerFactory.getLogger("tjenestekall")
-        private val publiclogg: Logger = LoggerFactory.getLogger(OppgaveObserver::class.java)
+        private val publiclogg: Logger = LoggerFactory.getLogger(this::class.java)
         private val LocalDateTime?.timeoutToString get() = if (this == null) "" else "Forlenger timeout med ${Duration.between(LocalDateTime.now().minusSeconds(1), this).toDays()} dager"
 
         /* utsettelseregler, verdi oppgitt i antall dager fra *nå* */
@@ -149,7 +149,7 @@ class OppgaveObserver(
             oppgaveDAO.lagreTimeout(dto.dokumentId, dto.timeout)
         }
         publisist.publiser("${dto.dokumentId}", dto)
-        rapidsConnection.publish(JsonMessage.newMessage(mapOf(
+        messageContext.publish(JsonMessage.newMessage(mapOf(
             "@event_name" to rapidEventName,
             "@id" to UUID.randomUUID(),
             "dokumentId" to dto.dokumentId,

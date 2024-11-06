@@ -6,10 +6,8 @@ import java.util.*
 class VedtaksperiodeEndretRiver(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
-    publisist: Publisist,
+    private val publisist: Publisist,
 ) : River.PacketListener {
-
-    private val observer = OppgaveObserver(oppgaveDAO, publisist, rapidsConnection)
 
     init {
         River(rapidsConnection).apply {
@@ -25,6 +23,7 @@ class VedtaksperiodeEndretRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         val forrigeTilstand = packet["forrigeTilstand"].asText()
         val gjeldendeTilstand = packet["gjeldendeTilstand"].asText()
         packet["hendelser"]

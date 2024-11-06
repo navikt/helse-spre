@@ -6,10 +6,8 @@ import java.util.*
 class VedtaksperiodeVenterRiver(
     rapidsConnection: RapidsConnection,
     private val oppgaveDAO: OppgaveDAO,
-    publisist: Publisist,
+    private val publisist: Publisist,
 ) : River.PacketListener {
-
-    private val observer = OppgaveObserver(oppgaveDAO, publisist, rapidsConnection)
 
     init {
         River(rapidsConnection).apply {
@@ -27,12 +25,13 @@ class VedtaksperiodeVenterRiver(
         if (packet["venterPå.venteårsak.hva"].asText() == "INNTEKTSMELDING") {
             val organisasjonsnummer = packet["organisasjonsnummer"].asText()
             val venterPåOrganisasjonsnummer = packet["venterPå.organisasjonsnummer"].asText()
-            if (organisasjonsnummer != venterPåOrganisasjonsnummer) håndter(packet) // Utsetter kun om vi venter på IM annen AG
+            if (organisasjonsnummer != venterPåOrganisasjonsnummer) håndter(packet, context) // Utsetter kun om vi venter på IM annen AG
         }
-        else håndter(packet) // Når vi venter på GODKJENNING/SØKNAD så håndterer vi alltid
+        else håndter(packet, context) // Når vi venter på GODKJENNING/SØKNAD så håndterer vi alltid
     }
 
-    private fun håndter(packet: JsonMessage) {
+    private fun håndter(packet: JsonMessage, context: MessageContext) {
+        val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         val vedtaksperiodeVenterId = packet["@id"].asText()
         packet["hendelser"]
             .map { UUID.fromString(it.asText()) }
