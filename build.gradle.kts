@@ -3,20 +3,20 @@ import com.fasterxml.jackson.databind.ObjectMapper
 val jvmTarget = 21
 
 plugins {
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "2.0.21"
 }
 
-val gradlewVersion = "8.5"
+val gradlewVersion = "8.10.2"
 val junitJupiterVersion = "5.10.2"
-val rapidsAndRiversVersion = "2024020507581707116327.1c34df474331"
-val ktorVersion = "2.3.12" // should be set to same value as rapids and rivers
-val mockkVersion = "1.13.9"
-val testcontainersVersion = "1.19.5"
+val rapidsAndRiversVersion = "2024110520091730833744.40f3b6aa7090"
+val ktorVersion = "3.0.1" // should be set to same value as rapids and rivers
+val mockkVersion = "1.13.13"
+val testcontainersVersion = "1.20.3"
 val hikariCPVersion = "5.1.0"
 val kotliqueryVersion = "1.9.0"
 val postgresqlVersion = "42.7.2"
 val flywayCoreVersion = "10.5.0"
-val tbdLibsVersion = "2024.04.22-17.17-1605626f"
+val tbdLibsVersion = "2024.11.06-07.24-c0fd9f5e"
 
 buildscript {
     repositories { mavenCentral() }

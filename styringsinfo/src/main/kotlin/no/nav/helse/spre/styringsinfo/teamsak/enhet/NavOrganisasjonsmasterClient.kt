@@ -3,10 +3,11 @@ package no.nav.helse.spre.styringsinfo.teamsak.enhet
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
+import com.github.navikt.tbd_libs.rapids_and_rivers.asOptionalLocalDate
+import com.github.navikt.tbd_libs.result_object.getOrThrow
 import com.github.navikt.tbd_libs.retry.PredefinerteUtsettelser
 import com.github.navikt.tbd_libs.retry.retryBlocking
-import no.nav.helse.rapids_rivers.asLocalDate
-import no.nav.helse.rapids_rivers.asOptionalLocalDate
 import no.nav.helse.spre.styringsinfo.objectMapper
 import no.nav.helse.spre.styringsinfo.sikkerLogg
 import java.lang.Exception
@@ -57,7 +58,7 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
         }
     }
     private fun requestEnhet(ident: String, gyldigPåDato: LocalDate, hendelseId: String): Enhet {
-        val accessToken = azureClient.bearerToken(scope).token
+        val accessToken = azureClient.bearerToken(scope).getOrThrow().token
 
         val body =
             objectMapper.writeValueAsString(

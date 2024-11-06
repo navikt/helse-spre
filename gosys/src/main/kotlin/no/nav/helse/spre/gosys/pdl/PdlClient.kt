@@ -1,6 +1,7 @@
 package no.nav.helse.spre.gosys.pdl
 
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
+import com.github.navikt.tbd_libs.result_object.getOrThrow
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -34,7 +35,7 @@ class PdlClient(
 
         return httpClient.preparePost(Url("$baseUrl/graphql")) {
             header("TEMA", "SYK")
-            bearerAuth(azureClient.bearerToken(scope).token)
+            bearerAuth(azureClient.bearerToken(scope).getOrThrow().token)
             header("Content-Type", "application/json")
             header("Accept", "application/json")
             header("behandlingsnummer", "B139")

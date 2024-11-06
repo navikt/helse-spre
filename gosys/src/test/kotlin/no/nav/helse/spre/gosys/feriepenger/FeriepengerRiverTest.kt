@@ -1,7 +1,7 @@
 package no.nav.helse.spre.gosys.feriepenger
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.*
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.PdfClient

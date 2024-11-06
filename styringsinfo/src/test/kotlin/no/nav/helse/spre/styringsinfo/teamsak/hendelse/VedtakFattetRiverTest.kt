@@ -1,7 +1,7 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.mockk
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao

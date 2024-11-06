@@ -1,7 +1,12 @@
 package no.nav.helse.spre.subsumsjon
 
 import com.fasterxml.jackson.databind.JsonNode
-import no.nav.helse.rapids_rivers.*
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 
 class InntektsmeldingRiver (
     rapidsConnection: RapidsConnection,
@@ -11,7 +16,7 @@ class InntektsmeldingRiver (
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "inntektsmelding") }
+            validate {  it.demandValue("@event_name", "inntektsmelding") }
             validate { it.requireKey("@id") }
             validate { it.requireKey("inntektsmeldingId") }
             validate { it.require("@opprettet", JsonNode::asLocalDateTime) }

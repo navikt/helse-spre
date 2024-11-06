@@ -2,12 +2,12 @@ package no.nav.helse.spre.gosys
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import net.logstash.logback.argument.StructuredArguments.kv
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.util.*
 
 class EregClient(

@@ -1,8 +1,8 @@
 package no.nav.helse.spre.oppgaver
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import net.logstash.logback.argument.StructuredArguments.keyValue
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.Utsett
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

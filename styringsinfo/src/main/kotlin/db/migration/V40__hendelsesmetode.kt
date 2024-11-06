@@ -1,7 +1,7 @@
 package db.migration
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import no.nav.helse.rapids_rivers.isMissingOrNull
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 
 internal class V40__hendelsesmetode: BehandlingshendelseJsonMigrering() {

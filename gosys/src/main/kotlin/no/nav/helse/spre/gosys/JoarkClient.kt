@@ -1,6 +1,7 @@
 package no.nav.helse.spre.gosys
 
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
+import com.github.navikt.tbd_libs.result_object.getOrThrow
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -21,7 +22,7 @@ class JoarkClient(
         return httpClient.preparePost("$baseUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
             System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
             header("Nav-Consumer-Token", hendelseId.toString())
-            bearerAuth(azureClient.bearerToken(joarkScope).token)
+            bearerAuth(azureClient.bearerToken(joarkScope).getOrThrow().token)
             contentType(ContentType.Application.Json)
             setBody(journalpostPayload)
         }

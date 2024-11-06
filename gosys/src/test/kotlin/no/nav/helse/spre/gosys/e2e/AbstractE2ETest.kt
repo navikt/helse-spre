@@ -2,6 +2,8 @@ package no.nav.helse.spre.gosys.e2e
 
 import com.github.navikt.tbd_libs.azure.AzureToken
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import com.github.navikt.tbd_libs.result_object.ok
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -13,7 +15,6 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.gosys.*
 import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
@@ -48,12 +49,12 @@ internal abstract class AbstractE2ETest {
     private val mockClient = httpclient()
     protected val pdfClient = PdfClient(mockClient, "http://url.no")
     private val azureMock: AzureTokenProvider = mockk {
-        every { bearerToken("scope") }.returns(AzureToken("token", LocalDateTime.MAX))
+        every { bearerToken("scope") }.returns(AzureToken("token", LocalDateTime.MAX).ok())
         every { bearerToken("JOARK_SCOPE") }.returns(
             AzureToken(
                 "6B70C162-8AAB-4B56-944D-7F092423FE4B",
                 LocalDateTime.MAX
-            )
+            ).ok()
         )
     }
     protected val joarkClient = JoarkClient("https://url.no", azureMock, "JOARK_SCOPE", mockClient)

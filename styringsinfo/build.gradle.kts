@@ -17,6 +17,7 @@ dependencies {
     implementation("com.github.navikt.tbd-libs:azure-token-client-default:$tbdLibsVersion")
     implementation("com.github.navikt.tbd-libs:retry:$tbdLibsVersion")
 
+    testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("org.skyscreamer:jsonassert:$skyscreamerVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")

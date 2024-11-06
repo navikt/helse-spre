@@ -1,6 +1,6 @@
 package db.migration
 
-import no.nav.helse.rapids_rivers.isMissingOrNull
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId

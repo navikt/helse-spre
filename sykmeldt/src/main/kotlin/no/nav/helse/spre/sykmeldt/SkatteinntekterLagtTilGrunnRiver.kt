@@ -1,7 +1,13 @@
 package no.nav.helse.spre.sykmeldt
 
 import com.fasterxml.jackson.databind.JsonNode
-import no.nav.helse.rapids_rivers.*
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
+import com.github.navikt.tbd_libs.rapids_and_rivers.asYearMonth
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import java.util.UUID
 
 class SkatteinntekterLagtTilGrunnRiver(rapidsConnection: RapidsConnection, private val forelagteOpplysningerPublisher: ForelagteOpplysningerPublisher) : River.PacketListener {

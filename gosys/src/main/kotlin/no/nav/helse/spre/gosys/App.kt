@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.github.navikt.tbd_libs.retry.retry
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -16,7 +17,6 @@ import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.statement.*
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
 import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
@@ -89,7 +89,7 @@ fun launchApplication(
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val utbetalingDao = UtbetalingDao(dataSource)
 
-    return RapidApplication.Builder(RapidApplication.RapidApplicationConfig.fromEnv(environment)).build()
+    return RapidApplication.create(environment)
         .apply {
             settOppRivers(duplikatsjekkDao, annulleringMediator, feriepengerMediator, vedtakFattetDao, utbetalingDao, vedtakMediator)
         }

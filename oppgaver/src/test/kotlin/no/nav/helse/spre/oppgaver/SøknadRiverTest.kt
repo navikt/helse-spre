@@ -1,7 +1,7 @@
 package no.nav.helse.spre.oppgaver
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import java.util.*
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test

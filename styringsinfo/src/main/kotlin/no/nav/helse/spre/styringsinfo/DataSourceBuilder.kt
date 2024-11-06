@@ -3,9 +3,9 @@ package no.nav.helse.spre.styringsinfo
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.micrometer.core.instrument.Clock
-import io.micrometer.prometheus.PrometheusConfig
-import io.micrometer.prometheus.PrometheusMeterRegistry
-import io.prometheus.client.CollectorRegistry
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import io.prometheus.metrics.model.registry.PrometheusRegistry
 import java.time.Duration
 import javax.sql.DataSource
 import org.flywaydb.core.Flyway
@@ -34,7 +34,7 @@ internal class DataSourceBuilder(env: Map<String, String>) {
         leakDetectionThreshold = Duration.ofSeconds(10).toMillis()
         metricRegistry = PrometheusMeterRegistry(
             PrometheusConfig.DEFAULT,
-            CollectorRegistry.defaultRegistry,
+            PrometheusRegistry.defaultRegistry,
             Clock.SYSTEM
         )
     }

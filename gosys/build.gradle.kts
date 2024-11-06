@@ -5,9 +5,9 @@ val hikariCPVersion: String by project
 val postgresqlVersion: String by project
 val kotliqueryVersion: String by project
 val flywayCoreVersion: String by project
+val tbdLibsVersion: String by project
 
 val jsonassertVersion = "1.5.0"
-val tbdLibsVersion = "2024.02.09-10.44-24d5802f"
 
 val kotlinxSerializationJsonVersion = "1.6.0"
 
@@ -32,6 +32,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
+    testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("org.skyscreamer:jsonassert:$jsonassertVersion")
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")

@@ -1,9 +1,9 @@
 package no.nav.helse.spre.oppgaver
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import kotlinx.coroutines.runBlocking
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Søknad
 import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
