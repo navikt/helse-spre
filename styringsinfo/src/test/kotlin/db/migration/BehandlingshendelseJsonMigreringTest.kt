@@ -2,9 +2,11 @@ package db.migration
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.test_support.TestDataSource
 import kotliquery.Row
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import no.nav.helse.spre.styringsinfo.databaseContainer
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
@@ -14,39 +16,39 @@ import org.flywaydb.core.api.MigrationVersion
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.TestInstance
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID
-import javax.sql.DataSource
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal abstract class BehandlingshendelseJsonMigreringTest(
     private val migrering: BehandlingshendelseJsonMigrering,
-    private val forrigeVersjon: MigrationVersion,
-    private val dataSource: DataSource
+    private val forrigeVersjon: MigrationVersion
 ) {
-    internal constructor(migrering: BehandlingshendelseJsonMigrering, dataSource: DataSource): this(
+    internal constructor(migrering: BehandlingshendelseJsonMigrering): this(
         migrering = migrering,
-        forrigeVersjon = migrering.forrigeVersjon,
-        dataSource = dataSource
+        forrigeVersjon = migrering.forrigeVersjon
     )
 
-    private val hendelseDao = PostgresHendelseDao(dataSource)
+    protected lateinit var dataSource: TestDataSource
+    private lateinit var hendelseDao: PostgresHendelseDao
+
     private var hendelserFørMigrering = listOf<Behandlingshendelse>()
     private var nyeEllerEndredeHendelserEtterMigrering = mutableListOf<Behandlingshendelse>()
 
     @BeforeEach
     fun beforeEach() {
+        dataSource = databaseContainer.nyTilkobling()
+        hendelseDao = PostgresHendelseDao(dataSource.ds)
+
         val cleanupQuery = """
             drop publication if exists spre_styringsinfo_publication; 
             select pg_drop_replication_slot('spre_styringsinfo_replication');
         """
-        kotlin.runCatching { sessionOf(dataSource).use { session ->
+        kotlin.runCatching { sessionOf(dataSource.ds).use { session ->
             session.run(queryOf(cleanupQuery).asExecute)
         }}
         Flyway.configure()
-            .dataSource(dataSource)
+            .dataSource(dataSource.ds)
             .cleanDisabled(false)
             .target(forrigeVersjon)
             .load().let {
@@ -57,6 +59,7 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
 
     @AfterEach
     fun afterEach() {
+        databaseContainer.droppTilkobling(dataSource)
         assertEquals(emptyList<Behandlingshendelse>(), nyeEllerEndredeHendelserEtterMigrering)
     }
 
@@ -64,7 +67,7 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
         val raderFør = antallRader()
         hendelserFørMigrering = alleBehandlingshendelser()
 
-        Flyway.configure().dataSource(dataSource).javaMigrations(migrering).target(migrering.version).load().migrate()
+        Flyway.configure().dataSource(dataSource.ds).javaMigrations(migrering).target(migrering.version).load().migrate()
         val raderEtter = antallRader()
         val hendelserEtter = alleBehandlingshendelser()
 
@@ -123,7 +126,7 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
     ): Rad {
         hendelseDao.lagre(hendelse)
 
-        sessionOf(dataSource, returnGeneratedKey = true).use { session ->
+        sessionOf(dataSource.ds, returnGeneratedKey = true).use { session ->
             val sql = """
             insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste, hendelseId, er_korrigert) 
             values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste, :hendelseId, :erKorrigert)
@@ -143,10 +146,10 @@ internal abstract class BehandlingshendelseJsonMigreringTest(
         }
     }
 
-    private fun alleBehandlingshendelser() = sessionOf(dataSource).use { session ->
+    private fun alleBehandlingshendelser() = sessionOf(dataSource.ds).use { session ->
         session.run(queryOf("select * from behandlingshendelse order by tekniskTid").map { row -> Behandlingshendelse(row) }.asList)
     }
-    private fun antallRader() = sessionOf(dataSource).use { session ->
+    private fun antallRader() = sessionOf(dataSource.ds).use { session ->
         session.run(queryOf("select count(1) from behandlingshendelse").map { row -> row.int(1) }.asSingle)
     } ?: 0
 

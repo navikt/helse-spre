@@ -2,53 +2,48 @@ package no.nav.helse.spre.subsumsjon
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import com.github.navikt.tbd_libs.test_support.TestDataSource
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
 import com.networknt.schema.ValidationMessage
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.slf4j.LoggerFactory
-import org.testcontainers.containers.PostgreSQLContainer
 import java.net.URI
 import java.time.LocalDateTime
 import java.util.*
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SubsumsjonTest {
     private val testRapid = TestRapid()
     private val resultater = mutableListOf<Pair<String, JsonNode>>()
-    private lateinit var postgres: PostgreSQLContainer<Nothing>
+    private lateinit var testDataSource: TestDataSource
     private lateinit var mappingDao: MappingDao
     private lateinit var sykemeldingRiver: SykemeldingRiver
     private lateinit var søknadRiver: SøknadRiver
     private lateinit var inntektsmeldingRiver: InntektsmeldingRiver
 
-    @BeforeAll
-    fun setup() {
-        postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {
-            withLabel("app-navn", "spre-subsumsjon")
-            withReuse(true)
-            start()
-        }
-
-        val dataSourceBuilder = DataSourceBuilder(postgres.jdbcUrl, postgres.username, postgres.password)
-        dataSourceBuilder.migrate()
-
-        mappingDao = MappingDao(dataSourceBuilder.datasource())
-
+    @BeforeEach
+    fun before() {
+        testDataSource = databaseContainer.nyTilkobling()
+        mappingDao = MappingDao(testDataSource.ds)
         sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao)
         søknadRiver = SøknadRiver(testRapid, mappingDao)
         inntektsmeldingRiver = InntektsmeldingRiver(testRapid, mappingDao)
         SubsumsjonRiver(testRapid, mappingDao) { fnr, melding ->
             resultater.add(fnr to objectMapper.readTree(melding))
         }
+    }
+
+    @AfterEach
+    fun after() {
+        databaseContainer.droppTilkobling(testDataSource)
     }
 
     @Test

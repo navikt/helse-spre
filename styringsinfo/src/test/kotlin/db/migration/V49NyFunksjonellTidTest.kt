@@ -2,11 +2,10 @@ package db.migration
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
+import com.github.navikt.tbd_libs.test_support.TestDataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
+import no.nav.helse.spre.styringsinfo.databaseContainer
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Hendelse
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
@@ -14,6 +13,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
 import no.nav.helse.spre.testhelpers.januar
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,33 +24,34 @@ import java.util.*
 
 class V49NyFunksjonellTidTest {
 
-    private val dataSource =
-        HikariDataSource(HikariConfig().apply {
-            jdbcUrl = AbstractDatabaseTest.postgres.jdbcUrl
-            username = AbstractDatabaseTest.postgres.username
-            password = AbstractDatabaseTest.postgres.password
-            maximumPoolSize = 5
-            initializationFailTimeout = Duration.ofMinutes(15).toMillis()
-        })
-    private val hendelseDao = PostgresHendelseDao(dataSource)
+    private lateinit var dataSource: TestDataSource
+    private lateinit var hendelseDao: PostgresHendelseDao
     private val objectMapper = jacksonObjectMapper()
+
     @BeforeEach
     fun beforeEach() {
+        dataSource = databaseContainer.nyTilkobling()
+        hendelseDao = PostgresHendelseDao(dataSource.ds)
+
         val cleanupQuery = """
             drop publication if exists spre_styringsinfo_publication; 
             select pg_drop_replication_slot('spre_styringsinfo_replication');
         """
-        kotlin.runCatching { sessionOf(dataSource).use { session ->
+        kotlin.runCatching { sessionOf(dataSource.ds).use { session ->
             session.run(queryOf(cleanupQuery).asExecute)
         }}
         Flyway.configure()
-            .dataSource(dataSource)
+            .dataSource(dataSource.ds)
             .cleanDisabled(false)
             .target(MigrationVersion.fromVersion("48"))
             .load().let {
                 it.clean()
                 it.migrate()
             }
+    }
+    @AfterEach
+    fun tearDown() {
+        databaseContainer.droppTilkobling(dataSource)
     }
 
     @Test
@@ -75,13 +76,13 @@ class V49NyFunksjonellTidTest {
         )
 
         // kjøre migrering
-        Flyway.configure().dataSource(dataSource).target("49").load().migrate()
+        Flyway.configure().dataSource(dataSource.ds).target("49").load().migrate()
 
         // se at registrert tid og funksjonell tid er lik på de radene de skal være like på, men ikke på de andre.
         val henteSQL1 = """select funksjonellTid from behandlingshendelse where sekvensnummer = $skalEndres"""
         val henteSQL2 = """select funksjonellTid from behandlingshendelse where sekvensnummer = $skalIkkeEndres"""
 
-        sessionOf(dataSource).use { session ->
+        sessionOf(dataSource.ds).use { session ->
             val skulleVærtEndra= session.run(queryOf(henteSQL1).map { it.zonedDateTime("funksjonellTid") }.asSingle)!!
             assertTidssonerMedBareMikrosekunder(andreJanuar, skulleVærtEndra, "skulle skrive om; gjorde det ikke")
             val skulleIkkeVærtEndra= session.run(queryOf(henteSQL2).map { it.zonedDateTime("funksjonellTid") }.asSingle)!!
@@ -102,7 +103,7 @@ class V49NyFunksjonellTidTest {
     ): Long {
         hendelseDao.lagre(hendelse)
 
-        sessionOf(dataSource, returnGeneratedKey = true).use { session ->
+        sessionOf(dataSource.ds, returnGeneratedKey = true).use { session ->
             val sql = """
             insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste, hendelseId, er_korrigert) 
             values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste, :hendelseId, :erKorrigert)

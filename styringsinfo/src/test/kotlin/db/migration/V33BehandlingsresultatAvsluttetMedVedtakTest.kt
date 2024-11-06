@@ -1,6 +1,5 @@
 package db.migration
 
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
@@ -11,8 +10,7 @@ import java.util.*
 
 @Disabled("Vi lytter på vedtak_fattet i stedet for avsluttet_med_vedtak og testene kjører derfor ikke")
 internal class V33BehandlingsresultatAvsluttetMedVedtakTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V33__behandlingsresultat_avsluttet_med_vedtak(),
-    dataSource = dataSource
+    migrering = V33__behandlingsresultat_avsluttet_med_vedtak()
 ) {
     @Test
     fun `skal skrive om alle avsluttet_med_vedtak-hendelser sitt behandlingsresultat fra VEDTATT til VEDTAK_IVERKSATT`() {

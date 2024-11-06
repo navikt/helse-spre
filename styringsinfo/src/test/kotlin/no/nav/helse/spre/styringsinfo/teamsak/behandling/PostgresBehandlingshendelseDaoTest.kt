@@ -24,12 +24,18 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
     private val hendelseId = UUID.randomUUID()
     private val testehendelse = Testhendelse(hendelseId)
 
-    private val behandlingshendelseDao: BehandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
-    private val hendelseDao: HendelseDao = PostgresHendelseDao(dataSource)
+    private lateinit var behandlingshendelseDao: BehandlingshendelseDao
+    private lateinit var hendelseDao: HendelseDao
 
     private val før = OffsetDateTime.parse("2024-03-01T13:52:53.123455+01:00")
     private val nå = OffsetDateTime.parse("2024-03-01T13:52:53.123456+01:00")
     private val etter = OffsetDateTime.parse("2024-03-01T13:52:53.123457+01:00")
+
+    @BeforeEach
+    fun setup() {
+        behandlingshendelseDao = PostgresBehandlingshendelseDao(testDataSource.ds)
+        hendelseDao = PostgresHendelseDao(testDataSource.ds)
+    }
 
     @Test
     fun `kaster exception dersom behandling ikke finnes`() {
@@ -76,13 +82,10 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
 
     @BeforeEach
     fun beforeEach() {
-        sessionOf(dataSource).use { session ->
-            session.run(queryOf("truncate table behandlingshendelse cascade;").asExecute)
-        }
         hendelseDao.lagre(testehendelse)
     }
 
-    private val BehandlingId.rader get() = sessionOf(dataSource).use { session ->
+    private val BehandlingId.rader get() = sessionOf(testDataSource.ds).use { session ->
         session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
     } ?: 0
 

@@ -1,4 +1,3 @@
-val testcontainersVersion: String by project
 val hikariCPVersion: String by project
 val postgresqlVersion: String by project
 val kotliqueryVersion: String by project
@@ -16,7 +15,7 @@ dependencies {
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
+    testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:$tbdLibsVersion")
     testImplementation("com.networknt:json-schema-validator:$jsonSchemaValidatorVersion")
-    testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestAssertionsCoreVersion")
 }

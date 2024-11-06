@@ -10,7 +10,7 @@ import java.util.UUID
 
 internal class PostgresHendelseDaoTest: AbstractDatabaseTest() {
 
-    private val hendelseDao = PostgresHendelseDao(dataSource)
+    private lateinit var hendelseDao: PostgresHendelseDao
 
     @Test
     fun `lagrer en hendelse i hendelsestabellen`() {
@@ -29,16 +29,14 @@ internal class PostgresHendelseDaoTest: AbstractDatabaseTest() {
 
     @BeforeEach
     fun beforeEach() {
-        sessionOf(dataSource).use { session ->
-            session.run(queryOf("truncate table hendelse cascade;").asExecute)
-        }
+        hendelseDao = PostgresHendelseDao(testDataSource.ds)
     }
 
-    private fun antallRader(id: UUID) = sessionOf(dataSource).use { session ->
+    private fun antallRader(id: UUID) = sessionOf(testDataSource.ds).use { session ->
         session.run(queryOf("select count(1) from hendelse where id='$id'").map { row -> row.int(1) }.asSingle)
     } ?: 0
 
-    private fun hent(id: UUID) = sessionOf(dataSource, strict = true).use { session ->
+    private fun hent(id: UUID) = sessionOf(testDataSource.ds, strict = true).use { session ->
         session.run(queryOf("select type, data from hendelse where id='$id'").map { row -> row.string("type") to row.string("data") }.asSingle)
     } ?: throw IllegalStateException("Fant ikke hendelse med id $id")
 }

@@ -4,6 +4,7 @@ import com.github.navikt.tbd_libs.azure.AzureToken
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import com.github.navikt.tbd_libs.result_object.ok
+import com.github.navikt.tbd_libs.test_support.TestDataSource
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -30,19 +31,18 @@ import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
 import no.nav.helse.spre.testhelpers.*
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.TestInstance
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal abstract class AbstractE2ETest {
 
     protected val testRapid = TestRapid()
-    protected val dataSource = setupDataSourceMedFlyway()
+    protected lateinit var dataSource: TestDataSource
     protected var capturedJoarkRequests = mutableListOf<HttpRequestData>()
     protected var capturedPdfRequests = mutableListOf<HttpRequestData>()
 
@@ -61,16 +61,21 @@ internal abstract class AbstractE2ETest {
     protected val eregClient = EregClient("https://url.no", mockClient)
     protected val pdlClient = PdlClient(azureMock, mockClient, "http://url.no", "scope")
 
-    protected val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
-    protected val vedtakFattetDao = VedtakFattetDao(dataSource)
-    protected val utbetalingDao = UtbetalingDao(dataSource)
+    protected lateinit var duplikatsjekkDao: DuplikatsjekkDao
+    protected lateinit var vedtakFattetDao: VedtakFattetDao
+    protected lateinit var utbetalingDao: UtbetalingDao
     protected val vedtakMediator = VedtakMediator(pdfClient, joarkClient, eregClient, pdlClient)
     protected val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, pdlClient)
     protected val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     @BeforeEach
     internal fun abstractSetup() {
-        testRapid.reset()
+        dataSource = databaseContainer.nyTilkobling()
+
+        duplikatsjekkDao = DuplikatsjekkDao(dataSource.ds)
+        vedtakFattetDao = VedtakFattetDao(dataSource.ds)
+        utbetalingDao = UtbetalingDao(dataSource.ds)
+
         testRapid.settOppRivers(
             duplikatsjekkDao,
             annulleringMediator,
@@ -81,6 +86,12 @@ internal abstract class AbstractE2ETest {
         )
         capturedJoarkRequests.clear()
         capturedPdfRequests.clear()
+    }
+
+    @AfterEach
+    fun after() {
+        databaseContainer.droppTilkobling(dataSource)
+        testRapid.reset()
     }
 
     private fun httpclient(): HttpClient {
@@ -547,7 +558,7 @@ internal abstract class AbstractE2ETest {
     protected fun harIkkeLagretTilDuplikattabellen(hendelseId: UUID): Boolean =
         antallRaderIDuplikattabellen(hendelseId) == 0
 
-    private fun antallRaderIDuplikattabellen(hendelseId: UUID) = sessionOf(dataSource).use { session ->
+    private fun antallRaderIDuplikattabellen(hendelseId: UUID) = sessionOf(dataSource.ds).use { session ->
         @Language("PostgreSQL") val query = "SELECT COUNT(1) FROM duplikatsjekk WHERE id=?"
         session.run(queryOf(query, hendelseId).map { it.int(1) }.asSingle)
     }

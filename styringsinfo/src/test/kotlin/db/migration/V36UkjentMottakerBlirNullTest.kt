@@ -1,7 +1,6 @@
 package db.migration
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
@@ -11,8 +10,7 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class V36UkjentMottakerBlirNullTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V36__ukjent_mottaker_blir_null(),
-    dataSource = dataSource
+    migrering = V36__ukjent_mottaker_blir_null()
 ) {
     @Test
     fun `skal skrive om revurderinger av førstegangsbehandlinger skal ha periodetype førstebehandling`() {

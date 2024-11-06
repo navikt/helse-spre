@@ -1,18 +1,17 @@
 package no.nav.helse.spre.oppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import com.github.navikt.tbd_libs.test_support.TestDataSource
 import kotlinx.coroutines.runBlocking
-import kotliquery.queryOf
-import kotliquery.sessionOf
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Søknad
 import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -20,30 +19,28 @@ import java.time.temporal.ChronoUnit.SECONDS
 import java.util.*
 import kotlin.math.absoluteValue
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EndToEndTest {
-    private val dataSource = setupDataSourceMedFlyway()
+    private lateinit var dataSource: TestDataSource
 
     private val rapid = TestRapid()
-    private val oppgaveDAO = OppgaveDAO(dataSource)
+    private lateinit var oppgaveDAO: OppgaveDAO
     private var publiserteOppgaver = mutableListOf<OppgaveDTO>()
-
-    init {
-        val fakePublisist = Publisist { _: String, dto: OppgaveDTO ->
-            publiserteOppgaver.add(dto)
-        }
-        rapid.registerRivers(oppgaveDAO, fakePublisist)
+    private val fakePublisist = Publisist { _: String, dto: OppgaveDTO ->
+        publiserteOppgaver.add(dto)
     }
 
     @BeforeEach
-    fun reset() {
+    fun before() {
+        dataSource = databaseContainer.nyTilkobling()
+        oppgaveDAO = OppgaveDAO(dataSource.ds)
+        rapid.registerRivers(oppgaveDAO, fakePublisist)
+    }
+
+    @AfterEach
+    fun after() {
+        databaseContainer.droppTilkobling(dataSource)
         publiserteOppgaver.clear()
         rapid.reset()
-        sessionOf(dataSource).use {session ->
-            session.run(queryOf(
-                "TRUNCATE TABLE oppgave_tilstand, timeout;"
-            ).asExecute)
-        }
     }
 
     @Test

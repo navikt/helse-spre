@@ -23,15 +23,13 @@ import java.lang.System.getenv
 import java.util.*
 
 internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
-
-    private val hendelseDao: HendelseDao = PostgresHendelseDao(dataSource)
-    private val behandlingshendelseDao: BehandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
+    private lateinit var hendelseDao: HendelseDao
+    private lateinit var behandlingshendelseDao: BehandlingshendelseDao
 
     @BeforeEach
-    fun beforeEach() {
-        sessionOf(dataSource).use { session ->
-            session.run(queryOf("truncate table behandlingshendelse;").asExecute)
-        }
+    fun setup() {
+        hendelseDao = PostgresHendelseDao(testDataSource.ds)
+        behandlingshendelseDao = PostgresBehandlingshendelseDao(testDataSource.ds)
     }
 
     @AfterEach
@@ -82,7 +80,7 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         return behandling
     }
 
-    protected val BehandlingId.rader get() =  sessionOf(dataSource).use { session ->
+    protected val BehandlingId.rader get() = sessionOf(testDataSource.ds).use { session ->
         session.run(
             queryOf("select count(1) from behandlingshendelse where behandlingId='$this'")
                 .map { row -> row.int(1) }
@@ -103,7 +101,7 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
     protected fun assertUkjentBehandling(behandlingId: BehandlingId) =
         assertFalse(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
 
-    private val alleRader get() = sessionOf(dataSource).use { session ->
+    private val alleRader get() = sessionOf(testDataSource.ds).use { session ->
         session.run(queryOf("select * from behandlingshendelse").map { row ->
             (objectMapper.readTree(row.string("data")) as ObjectNode).apply {
                 put("sekvensnummer", row.long("sekvensnummer"))

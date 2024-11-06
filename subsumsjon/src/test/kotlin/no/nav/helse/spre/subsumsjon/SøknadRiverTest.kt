@@ -1,41 +1,29 @@
 package no.nav.helse.spre.subsumsjon
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import com.github.navikt.tbd_libs.test_support.TestDataSource
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.*
-import org.testcontainers.containers.PostgreSQLContainer
 import java.util.*
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SøknadRiverTest {
 
-    private lateinit var postgres: PostgreSQLContainer<Nothing>
+    private lateinit var testDataSource: TestDataSource
     private lateinit var mappingDao: MappingDao
     private lateinit var river: SøknadRiver
     private val testRapid = TestRapid()
 
-
-    @BeforeAll
-    fun setup() {
-        postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {
-            withLabel("app-navn", "spre-subsumsjon")
-            withReuse(true)
-            start()
-        }
-
-        val dataSourceBuilder = DataSourceBuilder(postgres.jdbcUrl, postgres.username, postgres.password)
-        dataSourceBuilder.migrate()
-
-        mappingDao = MappingDao(dataSourceBuilder.datasource())
-
-        river = SøknadRiver(testRapid, mappingDao)
-
-    }
-
     @BeforeEach
     fun before() {
+        testDataSource = databaseContainer.nyTilkobling()
+        mappingDao = MappingDao(testDataSource.ds)
+        river = SøknadRiver(testRapid, mappingDao)
+    }
+
+    @AfterEach
+    fun after() {
+        databaseContainer.droppTilkobling(testDataSource)
         testRapid.reset()
-        resetMappingDb(postgres)
     }
 
     @Test

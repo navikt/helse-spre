@@ -1,6 +1,5 @@
 package db.migration
 
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
@@ -11,8 +10,7 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class V31NavnEndringFørstegangsbehandlingTilSøknadTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V31__navnendring_førstegangsbehandling_til_søknad(),
-    dataSource = dataSource
+    migrering = V31__navnendring_førstegangsbehandling_til_søknad()
 ) {
 
     @Test

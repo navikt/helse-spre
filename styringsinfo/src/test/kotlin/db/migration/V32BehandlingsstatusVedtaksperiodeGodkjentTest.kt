@@ -1,6 +1,5 @@
 package db.migration
 
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
@@ -9,8 +8,7 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class V32BehandlingsstatusVedtaksperiodeGodkjentTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V32__behandlingsstatus_vedtaksperiode_godkjent(),
-    dataSource = dataSource
+    migrering = V32__behandlingsstatus_vedtaksperiode_godkjent()
 ) {
     @Test
     fun `skal skrive om alle vedtaksperiode_godkjent-hendelser sin behandlingsstatus fra AVSLUTTET til GODKJENT`() {

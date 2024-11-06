@@ -1,14 +1,12 @@
 package db.migration
 
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class V39FraVedtakIverksattTilVedtattVol2Test: BehandlingshendelseJsonMigreringTest(
-    migrering = V39__fra_vedtak_iverksatt_til_vedtatt_vol2(),
-    dataSource = dataSource
+    migrering = V39__fra_vedtak_iverksatt_til_vedtatt_vol2()
 ) {
     @Test
     fun `skal skrive om VEDTAK_IVERKSATT til VEDTATT`() {

@@ -1,6 +1,5 @@
 package db.migration
 
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
@@ -10,8 +9,7 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V35__riktig_periodetype_for_revurderte_førstegangsbehandlinger(),
-    dataSource = dataSource
+    migrering = V35__riktig_periodetype_for_revurderte_førstegangsbehandlinger()
 ) {
     @Test
     fun `skal skrive om revurderinger av førstegangsbehandlinger skal ha periodetype førstebehandling`() {

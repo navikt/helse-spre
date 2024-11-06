@@ -1,56 +1,24 @@
 package no.nav.helse.spre.styringsinfo
 
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
-import kotliquery.queryOf
-import kotliquery.sessionOf
-import org.flywaydb.core.Flyway
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.TestInstance
-import org.testcontainers.containers.PostgreSQLContainer
-import java.time.Duration
+import com.github.navikt.tbd_libs.test_support.CleanupStrategy
+import com.github.navikt.tbd_libs.test_support.DatabaseContainers
+import com.github.navikt.tbd_libs.test_support.TestDataSource
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+val databaseContainer = DatabaseContainers.container("spre-styringsinfo", CleanupStrategy.tables("behandlingshendelse,hendelse"), walLevelLogical = true)
+
 abstract class AbstractDatabaseTest {
+    protected lateinit var testDataSource: TestDataSource
 
-    init {
-        Flyway.configure()
-            .dataSource(dataSource)
-            .failOnMissingLocations(true)
-            .load()
-            .migrate()
+    @BeforeEach
+    fun before() {
+        testDataSource = databaseContainer.nyTilkobling()
     }
 
-    @BeforeAll
-    fun truncateAllTheTings() {
-        sessionOf(dataSource).use { session ->
-            session.run(
-                queryOf(
-                    """truncate behandlingshendelse, hendelse;"""
-                ).asUpdate)
-        }
-    }
-
-    companion object {
-        internal val postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {
-            // Cloud SQL har wal_level = 'logical' på grunn av flagget cloudsql.logical_decoding i
-            // naiserator.yaml. Vi må sette det samme lokalt for at flyway migrering skal fungere.
-            withCommand("postgres", "-c", "wal_level=logical")
-            withReuse(true)
-            withLabel("app-navn", "spre-styringsinfo")
-            start()
-            println("🎩 Databasen er startet opp, portnummer: $firstMappedPort, jdbcUrl: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test")
-            println("Database: jdbc:postgresql://localhost:$firstMappedPort/test, credentials: test og test")
-        }
-
-        val dataSource =
-            HikariDataSource(HikariConfig().apply {
-                jdbcUrl = postgres.jdbcUrl
-                username = postgres.username
-                password = postgres.password
-                maximumPoolSize = 5
-                initializationFailTimeout = Duration.ofMinutes(15).toMillis()
-            })
+    @AfterEach
+    fun after() {
+        databaseContainer.droppTilkobling(testDataSource)
     }
 }
 

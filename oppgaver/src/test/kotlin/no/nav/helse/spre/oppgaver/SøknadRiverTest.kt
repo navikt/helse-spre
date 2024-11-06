@@ -1,22 +1,32 @@
 package no.nav.helse.spre.oppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import java.util.*
+import com.github.navikt.tbd_libs.test_support.TestDataSource
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import java.util.*
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SøknadRiverTest {
-    private val dataSource = setupDataSourceMedFlyway()
+    private lateinit var dataSource: TestDataSource
+    private lateinit var oppgaveDAO: OppgaveDAO
     private val testRapid = TestRapid()
-    private val oppgaveDAO = OppgaveDAO(dataSource)
     private val observer = object : Oppgave.Observer {}
     private val publisist = Publisist { _, _ -> }
 
-    init {
+    @BeforeEach
+    fun reset() {
+        dataSource = databaseContainer.nyTilkobling()
+        oppgaveDAO = OppgaveDAO(dataSource.ds)
         SøknadRiver(testRapid, oppgaveDAO, publisist)
+    }
+
+    @AfterEach
+    fun after() {
+        databaseContainer.droppTilkobling(dataSource)
+        testRapid.reset()
     }
 
     @Test

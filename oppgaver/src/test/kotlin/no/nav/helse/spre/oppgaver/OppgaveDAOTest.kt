@@ -1,21 +1,32 @@
 package no.nav.helse.spre.oppgaver
 
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
-import java.util.*
+import com.github.navikt.tbd_libs.test_support.TestDataSource
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.SECONDS
+import java.util.*
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class OppgaveDAOTest {
-    private val dataSource = setupDataSourceMedFlyway()
-    private val oppgaveDAO = OppgaveDAO(dataSource)
+    private lateinit var dataSource: TestDataSource
+    private lateinit var oppgaveDAO: OppgaveDAO
     private val observer = object : Oppgave.Observer {}
+
+    @BeforeEach
+    fun reset() {
+        dataSource = databaseContainer.nyTilkobling()
+        oppgaveDAO = OppgaveDAO(dataSource.ds)
+    }
+
+    @AfterEach
+    fun after() {
+        databaseContainer.droppTilkobling(dataSource)
+    }
 
     @Test
     fun `finner ikke en ikke-eksisterende oppgave`() {

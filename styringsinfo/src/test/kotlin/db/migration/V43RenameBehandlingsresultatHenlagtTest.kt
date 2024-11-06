@@ -1,13 +1,11 @@
 package db.migration
 
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class V43RenameBehandlingsresultatHenlagtTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V43__rename_behandlingsresultat_henlagt(),
-    dataSource = dataSource
+    migrering = V43__rename_behandlingsresultat_henlagt()
 ) {
 
     @Test

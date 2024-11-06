@@ -1,39 +1,28 @@
 package no.nav.helse.spre.subsumsjon
 
+import com.github.navikt.tbd_libs.test_support.TestDataSource
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.testcontainers.containers.PostgreSQLContainer
 import java.time.LocalDateTime
 import java.util.*
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MappingDaoTest {
 
-    private lateinit var postgres: PostgreSQLContainer<Nothing>
+    private lateinit var testDataSource: TestDataSource
     private lateinit var mappingDao: MappingDao
-
-    @BeforeAll
-    fun setup() {
-        postgres = PostgreSQLContainer<Nothing>("postgres:15").apply {
-            withLabel("app-navn", "spre-subsumsjon")
-            withReuse(true)
-            start()
-        }
-
-        val dataSourceBuilder = DataSourceBuilder(postgres.jdbcUrl, postgres.username, postgres.password)
-        dataSourceBuilder.migrate()
-
-        mappingDao = MappingDao(dataSourceBuilder.datasource())
-
-    }
 
     @BeforeEach
     fun before() {
-        resetMappingDb(postgres)
+        testDataSource = databaseContainer.nyTilkobling()
+        mappingDao = MappingDao(testDataSource.ds)
+    }
+
+    @AfterEach
+    fun after() {
+        databaseContainer.droppTilkobling(testDataSource)
     }
 
     @Test

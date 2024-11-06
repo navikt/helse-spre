@@ -79,19 +79,19 @@ internal class TidsstempelTest: AbstractTeamSakTest() {
         assertEquals(OffsetDateTime.parse(tidspunktMedUtcOffset), tidspunktUtenOffset.offsetDateTime(ZoneId.of("UTC")))
     }
 
-    private val mottattTid get() = sessionOf(dataSource).use { session ->
+    private val mottattTid get() = sessionOf(testDataSource.ds).use { session ->
         session.run(queryOf("select data->>'mottattTid' from behandlingshendelse LIMIT 1").map { row ->
             row.string(1)
         }.asSingle)!!
     }
 
-    private val registrertTid get() = sessionOf(dataSource).use { session ->
+    private val registrertTid get() = sessionOf(testDataSource.ds).use { session ->
         session.run(queryOf("select data->>'registrertTid' from behandlingshendelse LIMIT 1").map { row ->
             row.string(1)
         }.asSingle)!!
     }
 
-    private val funksjonellTid get() = sessionOf(dataSource).use { session ->
+    private val funksjonellTid get() = sessionOf(testDataSource.ds).use { session ->
         session.run(queryOf("select funksjonellTid from behandlingshendelse LIMIT 1").map { row ->
             row.string(1)
         }.asSingle)!!

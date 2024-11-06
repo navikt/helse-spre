@@ -1,6 +1,5 @@
 package db.migration
 
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.Hendelsefabrikk
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -9,8 +8,7 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class V30KorrigererBehandlingsresultatVedVedtaksperiodeAvvistTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V30__korrigerer_behandlingsresultat_ved_vedtaksperiode_avvist(),
-    dataSource = dataSource
+    migrering = V30__korrigerer_behandlingsresultat_ved_vedtaksperiode_avvist()
 ) {
 
     @Test

@@ -1,12 +1,14 @@
 package no.nav.helse.spre.gosys.feriepenger
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import com.github.navikt.tbd_libs.test_support.TestDataSource
 import io.mockk.*
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.PdfClient
-import no.nav.helse.spre.gosys.setupDataSourceMedFlyway
+import no.nav.helse.spre.gosys.databaseContainer
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,20 +20,25 @@ internal class FeriepengerRiverTest {
     private val testRapid = TestRapid()
     private val joarkClient = mockk<JoarkClient>()
     private val pdfClient = mockk<PdfClient>(relaxed = true)
-    val dataSource = setupDataSourceMedFlyway()
-    val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
-    private val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
-
-    init {
-        FeriepengerRiver(testRapid, duplikatsjekkDao, feriepengerMediator)
-    }
+    protected lateinit var dataSource: TestDataSource
 
     @BeforeEach
     fun setup() {
-        testRapid.reset()
+        dataSource = databaseContainer.nyTilkobling()
         clearAllMocks()
         coEvery { pdfClient.hentFeriepengerPdf(any()) } returns "PDF‽‽‽"
         coEvery { joarkClient.opprettJournalpost(any(), any()) } returns true
+
+        val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
+        val duplikatsjekkDao = DuplikatsjekkDao(dataSource.ds)
+        FeriepengerRiver(testRapid, duplikatsjekkDao, feriepengerMediator)
+    }
+
+
+    @AfterEach
+    fun after() {
+        databaseContainer.droppTilkobling(dataSource)
+        testRapid.reset()
     }
 
     @Test

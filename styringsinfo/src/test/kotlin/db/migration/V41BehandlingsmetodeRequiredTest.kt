@@ -1,13 +1,11 @@
 package db.migration
 
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class V41BehandlingsmetodeRequiredTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V41__behandlingsmetode_required(),
-    dataSource = dataSource
+    migrering = V41__behandlingsmetode_required()
 ) {
 
     @Test

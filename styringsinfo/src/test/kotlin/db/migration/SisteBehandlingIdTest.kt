@@ -1,22 +1,26 @@
 package db.migration
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest.Companion.dataSource
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import org.flywaydb.core.api.MigrationVersion
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class SisteBehandlingIdTest: BehandlingshendelseJsonMigreringTest(
     migrering = V1337__Behandling1Migrering(),
-    forrigeVersjon = MigrationVersion.LATEST,
-    dataSource = dataSource
+    forrigeVersjon = MigrationVersion.LATEST
 ) {
 
-    private val behandlingshendelseDao: BehandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
+    private lateinit var behandlingshendelseDao: BehandlingshendelseDao
+
+    @BeforeEach
+    fun before() {
+        behandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource.ds)
+    }
 
     @Test
     fun `finner riktig sisteBehandlingId etter migrering av tidligere behandling`() {
