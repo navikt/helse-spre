@@ -14,11 +14,12 @@ gcp:
   sqlInstanceTier: db-f1-micro
 azure:
   enabled: true
+  tenant: trygdeetaten.no
 accessPolicy:
   outbound:
     - application: nom-api
       namespace: nom
-      cluster: dev-gcp
+    - application: speed-api
 env:
   - name: NOM_API_BASE_URL
     value: http://nom-api.nom.svc.cluster.local
