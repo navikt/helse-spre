@@ -33,7 +33,6 @@ internal class VedtakFattetRiver(
                 message.demandValue("@event_name", "vedtak_fattet")
                 message.demandKey("sykepengegrunnlagsfakta")
                 message.requireKey(
-                    "aktørId",
                     "fødselsnummer",
                     "@id",
                     "vedtaksperiodeId",

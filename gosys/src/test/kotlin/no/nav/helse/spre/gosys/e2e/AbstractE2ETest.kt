@@ -4,6 +4,8 @@ import com.github.navikt.tbd_libs.azure.AzureToken
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import com.github.navikt.tbd_libs.result_object.ok
+import com.github.navikt.tbd_libs.speed.PersonResponse
+import com.github.navikt.tbd_libs.speed.SpeedClient
 import com.github.navikt.tbd_libs.test_support.TestDataSource
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
@@ -21,8 +23,6 @@ import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
 import no.nav.helse.spre.gosys.e2e.VedtakOgUtbetalingE2ETest.Companion.formatted
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
-import no.nav.helse.spre.gosys.pdl.PdlClient
-import no.nav.helse.spre.gosys.pdl.pdlResponse
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
@@ -59,7 +59,17 @@ internal abstract class AbstractE2ETest {
     }
     protected val joarkClient = JoarkClient("https://url.no", azureMock, "JOARK_SCOPE", mockClient)
     protected val eregClient = EregClient("https://url.no", mockClient)
-    protected val pdlClient = PdlClient(azureMock, mockClient, "http://url.no", "scope")
+    protected val pdlClient = mockk<SpeedClient> {
+        every { hentPersoninfo(any(), any()) } returns PersonResponse(
+            fødselsdato = LocalDate.now(),
+            dødsdato = null,
+            fornavn = "MOLEFONKEN",
+            mellomnavn = null,
+            etternavn = "ERT",
+            adressebeskyttelse = PersonResponse.Adressebeskyttelse.UGRADERT,
+            kjønn = PersonResponse.Kjønn.UKJENT
+        ).ok()
+    }
 
     protected lateinit var duplikatsjekkDao: DuplikatsjekkDao
     protected lateinit var vedtakFattetDao: VedtakFattetDao
@@ -117,8 +127,6 @@ internal abstract class AbstractE2ETest {
                             request
                         )
 
-                        "/graphql" -> handlerForPdlKall(request)
-
                         else -> error("Unhandled ${request.url.fullPath}")
                     }
                 }
@@ -138,13 +146,6 @@ internal abstract class AbstractE2ETest {
 
     open fun MockRequestHandleScope.handlerForEregKall(request: HttpRequestData): HttpResponseData {
         return respond(eregResponse().toByteArray())
-    }
-
-    open fun MockRequestHandleScope.handlerForPdlKall(request: HttpRequestData): HttpResponseData {
-        return respond(
-            content = pdlResponse().toByteArray(),
-            headers = headersOf("Content-Type" to listOf("application/json"))
-        )
     }
 
     private inline fun <reified T> HttpRequestData.parsePayload(): T = runBlocking {

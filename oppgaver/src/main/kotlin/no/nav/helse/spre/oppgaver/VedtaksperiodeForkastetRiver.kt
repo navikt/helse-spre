@@ -21,7 +21,7 @@ class VedtaksperiodeForkastetRiver(
     init {
         River(rapidsConnection).apply {
             validate { it.demandValue("@event_name", "vedtaksperiode_forkastet") }
-            validate { it.requireKey("hendelser", "vedtaksperiodeId", "tilstand", "harPeriodeInnenfor16Dager", "forlengerPeriode", "fødselsnummer", "aktørId", "organisasjonsnummer") }
+            validate { it.requireKey("hendelser", "vedtaksperiodeId", "tilstand", "harPeriodeInnenfor16Dager", "forlengerPeriode", "fødselsnummer", "organisasjonsnummer") }
             validate { it.requireKey("behandletIInfotrygd") }
             validate { it.require("fom", JsonNode::asLocalDate) }
             validate { it.require("tom", JsonNode::asLocalDate) }
@@ -51,7 +51,6 @@ class VedtaksperiodeForkastetRiver(
             "harPeriodeInnenfor16Dager" to harPeriodeInnenfor16Dager.utfall(),
             "forlengerPeriode" to forlengerPeriode.utfall(),
             "behandletIInfotrygd" to behandletIInfotrygd.utfall(),
-            "aktørId" to packet["aktørId"].asText(),
             "vedtaksperiodeId" to packet["vedtaksperiodeId"].asText(),
             "tilstand" to packet["tilstand"].asText(),
             "fomÅr" to fom.year.toString(),

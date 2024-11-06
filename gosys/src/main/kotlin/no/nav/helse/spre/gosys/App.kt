@@ -8,6 +8,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.github.navikt.tbd_libs.retry.retry
+import com.github.navikt.tbd_libs.speed.SpeedClient
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.*
@@ -21,7 +22,6 @@ import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
 import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
-import no.nav.helse.spre.gosys.pdl.PdlClient
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
@@ -63,7 +63,11 @@ fun launchApplication(
     val joarkClient = JoarkClient(environment.getValue("JOARK_BASE_URL"), azureClient, environment.getValue("JOARK_SCOPE"), httpClient)
     val pdfClient = PdfClient(httpClient, "http://spre-gosys-pdf")
     val eregClient = EregClient(environment.getValue("EREG_BASE_URL"), httpClient)
-    val pdlClient = PdlClient(azureClient, httpClient, environment.getValue("PDL_BASE_URL"), environment.getValue("PDL_CLIENT_SCOPE"))
+    val speedClient = SpeedClient(
+        httpClient = java.net.http.HttpClient.newHttpClient(),
+        objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()),
+        tokenProvider = azureClient
+    )
 
     val hikariConfig = HikariConfig().apply {
         jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", environment.getValue("DB_HOST"), environment.getValue("DB_PORT"), environment.getValue("DB_DATABASE"))
@@ -82,8 +86,8 @@ fun launchApplication(
 
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
 
-    val vedtakMediator = VedtakMediator(pdfClient, joarkClient, eregClient, pdlClient)
-    val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, pdlClient)
+    val vedtakMediator = VedtakMediator(pdfClient, joarkClient, eregClient, speedClient)
+    val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, speedClient)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     val vedtakFattetDao = VedtakFattetDao(dataSource)

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import com.github.navikt.tbd_libs.speed.SpeedClient
 import com.zaxxer.hikari.HikariDataSource
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
@@ -14,6 +15,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.enhet.NavOrganisasjonsmasterClient
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.net.http.HttpClient
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -48,7 +50,12 @@ fun main() {
         azureClient = azureClient
     )
 
-    val rapidsConnection = launchApplication(dataSource, environment, nomClient)
+    val speedClient = SpeedClient(
+        httpClient = HttpClient.newHttpClient(),
+        objectMapper = objectMapper,
+        tokenProvider = azureClient
+    )
+    val rapidsConnection = launchApplication(dataSource, environment, nomClient, speedClient)
     rapidsConnection.register(object: RapidsConnection.StatusListener {
         override fun onStartup(rapidsConnection: RapidsConnection) {
             dataSourceBuilder.migrate()
@@ -57,12 +64,12 @@ fun main() {
     rapidsConnection.start()
 }
 
-internal fun launchApplication(dataSource: HikariDataSource, environment: Map<String, String>, nom: NavOrganisasjonsmasterClient): RapidsConnection {
+internal fun launchApplication(dataSource: HikariDataSource, environment: Map<String, String>, nom: NavOrganisasjonsmasterClient, speedClient: SpeedClient): RapidsConnection {
     val hendelseDao = PostgresHendelseDao(dataSource)
     val behandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
 
     return RapidApplication.create(environment).apply {
-        BehandlingOpprettet.river(this, hendelseDao, behandlingshendelseDao)
+        BehandlingOpprettet.river(this, hendelseDao, behandlingshendelseDao, speedClient)
         VedtakFattet.river(this, hendelseDao, behandlingshendelseDao)
         AvsluttetUtenVedtak.river(this, hendelseDao, behandlingshendelseDao)
         BehandlingForkastet.river(this, hendelseDao, behandlingshendelseDao)

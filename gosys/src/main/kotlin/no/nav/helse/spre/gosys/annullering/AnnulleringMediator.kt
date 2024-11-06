@@ -1,14 +1,19 @@
 package no.nav.helse.spre.gosys.annullering
 
+import com.github.navikt.tbd_libs.result_object.fold
+import com.github.navikt.tbd_libs.result_object.getOrThrow
+import com.github.navikt.tbd_libs.result_object.tryCatch
+import com.github.navikt.tbd_libs.retry.retryBlocking
+import com.github.navikt.tbd_libs.speed.PersonResponse
+import com.github.navikt.tbd_libs.speed.SpeedClient
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.*
-import no.nav.helse.spre.gosys.pdl.PdlClient
 
 class AnnulleringMediator(
     private val pdfClient: PdfClient,
     private val eregClient: EregClient,
     private val joarkClient: JoarkClient,
-    private val pdlClient: PdlClient,
+    private val speedClient: SpeedClient,
 ) {
     fun opprettAnnullering(annulleringMessage: AnnulleringMessage) {
         runBlocking {
@@ -21,15 +26,9 @@ class AnnulleringMediator(
                 log.error("Feil ved henting av bedriftsnavn")
                 null
             }
-            val navn = try {
-                pdlClient.hentPersonNavn(annulleringMessage.fødselsnummer, annulleringMessage.hendelseId)
-            } catch (e: Exception) {
-                log.error("Feil ved henting av navn for ${annulleringMessage.aktørId}")
-                sikkerLogg.error("Feil ved henting av navn for ${annulleringMessage.aktørId}", e)
-                null
-            }
-            val pdf = pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayloadV2(organisasjonsnavn, navn))
 
+            val navn = hentNavn(speedClient, annulleringMessage.fødselsnummer, annulleringMessage.hendelseId.toString())
+            val pdf = pdfClient.hentAnnulleringPdf(annulleringMessage.toPdfPayloadV2(organisasjonsnavn, navn))
 
             val journalpostPayload = JournalpostPayload(
                 tittel = "Annullering av vedtak om sykepenger",
@@ -43,9 +42,30 @@ class AnnulleringMediator(
                 eksternReferanseId = annulleringMessage.utbetalingId.toString(),
             )
             joarkClient.opprettJournalpost(annulleringMessage.hendelseId, journalpostPayload).let { success ->
-                if (success) log.info("Annullering journalført for aktør: ${annulleringMessage.aktørId}")
+                if (success) log.info("Annullering journalført for hendelseId=${annulleringMessage.hendelseId}")
                 else log.warn("Feil oppstod under journalføring av annullering")
             }
         }
     }
 }
+
+fun hentNavn(speedClient: SpeedClient, ident: String, callId: String) =
+    tryCatch {
+        retryBlocking {
+            speedClient.hentPersoninfo(ident, callId).getOrThrow()
+        }
+    }
+        .fold(
+            whenOk = { it.tilVisning() },
+            whenError = { msg, cause ->
+                log.error("Feil ved henting av navn")
+                sikkerLogg.error("Feil ved henting av navn for ident=$ident: $msg", cause)
+                null
+            }
+        )
+
+private fun PersonResponse.tilVisning() =
+    listOfNotNull(fornavn, mellomnavn, etternavn)
+        .map { it.lowercase() }
+        .flatMap { it.split(" ") }
+        .joinToString(" ") { navnebit -> navnebit.replaceFirstChar { it.uppercase() } }

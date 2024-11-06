@@ -31,7 +31,6 @@ internal class UtbetalingUtbetaltRiver(
             validate {
                 it.demandValue("@event_name", "utbetaling_utbetalt")
                 it.requireKey(
-                    "aktørId",
                     "fødselsnummer",
                     "@id",
                     "organisasjonsnummer",

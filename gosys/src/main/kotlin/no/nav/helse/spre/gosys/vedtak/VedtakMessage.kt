@@ -15,7 +15,6 @@ import java.util.*
 data class VedtakMessage(
     val utbetalingId: UUID,
     val fødselsnummer: String,
-    val aktørId: String,
     val type: Utbetalingtype,
     private val skjæringstidspunkt: LocalDate,
     private val opprettet: LocalDateTime,
@@ -51,7 +50,6 @@ data class VedtakMessage(
         utbetalingId = utbetaling.utbetalingId,
         opprettet = utbetaling.opprettet,
         fødselsnummer = utbetaling.fødselsnummer,
-        aktørId = utbetaling.aktørId,
         skjæringstidspunkt = skjæringstidspunkt,
         type = utbetaling.type,
         fom = fom,

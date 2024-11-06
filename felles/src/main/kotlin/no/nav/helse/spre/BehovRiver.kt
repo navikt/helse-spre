@@ -28,7 +28,7 @@ class BehovRiver(
     override fun validate(message: JsonMessage) {
         message.demandAll("@behov", listOf(behov))
         message.rejectKey("@final", "@løsning")
-        message.requireKey("aktørId", "fødselsnummer", "organisasjonsnummer")
+        message.requireKey("fødselsnummer", "organisasjonsnummer")
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext) {

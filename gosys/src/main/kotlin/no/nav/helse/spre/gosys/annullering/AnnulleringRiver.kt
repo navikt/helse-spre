@@ -27,7 +27,6 @@ class AnnulleringRiver(
                 it.requireKey(
                     "@id",
                     "fødselsnummer",
-                    "aktørId",
                     "organisasjonsnummer",
                     "ident",
                     "epost",

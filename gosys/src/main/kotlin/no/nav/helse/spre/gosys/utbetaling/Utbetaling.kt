@@ -17,7 +17,6 @@ import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 data class Utbetaling(
     val utbetalingId: UUID,
     val fødselsnummer: String,
-    val aktørId: String,
     val organisasjonsnummer: String,
     val fom: LocalDate,
     val tom: LocalDate,
@@ -78,7 +77,6 @@ data class Utbetaling(
             return Utbetaling(
                 utbetalingId = packet["utbetalingId"].let { UUID.fromString(it.asText()) },
                 fødselsnummer = packet["fødselsnummer"].asText(),
-                aktørId = packet["aktørId"].asText(),
                 organisasjonsnummer = packet["organisasjonsnummer"].asText(),
                 fom = packet["fom"].asLocalDate(),
                 tom = packet["tom"].asLocalDate(),

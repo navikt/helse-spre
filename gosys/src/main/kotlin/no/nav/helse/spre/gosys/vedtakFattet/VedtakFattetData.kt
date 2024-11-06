@@ -13,7 +13,6 @@ import java.util.*
 
 data class VedtakFattetData(
     val id: UUID,
-    val aktørId: String,
     val fødselsnummer: String,
     val vedtaksperiodeId: UUID,
     val opprettet: LocalDateTime,
@@ -29,7 +28,6 @@ data class VedtakFattetData(
     companion object {
         fun fromJson(hendelseId: UUID, packet: JsonMessage) = VedtakFattetData(
             id = hendelseId,
-            aktørId = packet["aktørId"].asText(),
             fødselsnummer = packet["fødselsnummer"].asText(),
             opprettet = packet["@opprettet"].asLocalDateTime(),
             vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText()),
@@ -49,7 +47,6 @@ data class VedtakFattetData(
 
         fun fromJson(packet: JsonNode) = VedtakFattetData(
             id = packet["@id"].asText().let { UUID.fromString(it) },
-            aktørId = packet["aktørId"].asText(),
             fødselsnummer = packet["fødselsnummer"].asText(),
             opprettet = packet["@opprettet"].asLocalDateTime(),
             vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText()),

@@ -9,7 +9,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.offsetDateTimeOslo
 import org.slf4j.Logger
@@ -30,11 +29,7 @@ internal class HendelseRiver(
                 it.demandAny("@event_name", listOf(eventName, "${eventName}_styringsinfo_replay"))
                 it.require("@opprettet") { opprettet -> opprettet.tidspunkt }
                 it.require("@id") { id -> UUID.fromString(id.asText()) }
-                it.interestedIn(
-                    "aktørId",
-                    "vedtaksperiodeId",
-                    "behandlingId"
-                )
+                it.interestedIn("vedtaksperiodeId", "behandlingId")
                 valider(it)
             }
         }.register(this)
@@ -62,8 +57,8 @@ internal class HendelseRiver(
     }
 
     private fun JsonMessage.sikkerLogg(melding: String, throwable: Throwable? = null) =
-        if (throwable == null) sikkerLogg.info("$melding\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()))
-        else sikkerLogg.error("$melding\n\t${toJson()}", keyValue("aktørId", get("aktørId").asText()), throwable)
+        if (throwable == null) sikkerLogg.info("$melding\n\t${toJson()}")
+        else sikkerLogg.error("$melding\n\t${toJson()}", throwable)
 
     private val JsonMessage.mdcValues get() = listOf("vedtaksperiodeId", "behandlingId", "@id", "@event_name")
         .associate { key -> key.removePrefix("@") to get(key) }

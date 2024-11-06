@@ -10,7 +10,6 @@ import java.util.*
 class FeriepengerMessage(hendelseId: UUID, packet: JsonMessage) {
     val hendelseId = hendelseId
     val fødselsnummer = packet["fødselsnummer"].asText()
-    val aktørId = packet["aktørId"].asText()
     val oppdrag = mutableListOf<Oppdrag>()
     val orgnummer: String = packet["organisasjonsnummer"].asText()
     val utbetalt: LocalDateTime = packet["@opprettet"].asLocalDateTime()

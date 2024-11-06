@@ -5,6 +5,7 @@ import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.PdfClient
 import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.sikkerLogg
 import java.time.format.DateTimeFormatter
 
 class FeriepengerMediator(
@@ -43,7 +44,8 @@ class FeriepengerMediator(
                 eksternReferanseId = feriepenger.hendelseId.toString(),
             )
             if (joarkClient.opprettJournalpost(feriepenger.hendelseId, journalpostPayload)) {
-                log.info("Feriepenger journalført for aktør: ${feriepenger.aktørId}")
+                log.info("Feriepenger journalført for hendelse: ${feriepenger.hendelseId}")
+                sikkerLogg.info("Feriepenger journalført for hendelse: ${feriepenger.hendelseId} og fødselsnummer: ${feriepenger.fødselsnummer}")
             } else {
                 log.warn("Feil oppstod under journalføring av feriepenger")
             }

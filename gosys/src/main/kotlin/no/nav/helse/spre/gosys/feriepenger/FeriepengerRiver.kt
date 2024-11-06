@@ -27,7 +27,6 @@ class FeriepengerRiver(
                 it.requireKey(
                     "@id",
                     "fødselsnummer",
-                    "aktørId",
                     "organisasjonsnummer",
                     "arbeidsgiverOppdrag.fagsystemId",
                 )

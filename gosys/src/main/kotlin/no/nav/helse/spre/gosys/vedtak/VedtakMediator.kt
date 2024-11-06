@@ -1,8 +1,9 @@
 package no.nav.helse.spre.gosys.vedtak
 
+import com.github.navikt.tbd_libs.speed.SpeedClient
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.*
-import no.nav.helse.spre.gosys.pdl.PdlClient
+import no.nav.helse.spre.gosys.annullering.hentNavn
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.vedtakFattet.Begrunnelse
 import no.nav.helse.spre.gosys.vedtakFattet.SykepengegrunnlagsfaktaData
@@ -12,7 +13,7 @@ class VedtakMediator(
     private val pdfClient: PdfClient,
     private val joarkClient: JoarkClient,
     private val eregClient: EregClient,
-    private val pdlClient: PdlClient
+    private val speedClient: SpeedClient
 ) {
     internal fun opprettSammenslåttVedtak(
         fom: LocalDate,
@@ -38,16 +39,11 @@ class VedtakMediator(
                     vedtakMessage.utbetalingId
                 ).navn
             } catch (e: Exception) {
-                log.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}, aktørId=${vedtakMessage.aktørId}")
+                log.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}")
+                sikkerLogg.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}, fødselsnummer=${vedtakMessage.fødselsnummer}")
                 ""
             }
-            val navn = try {
-                pdlClient.hentPersonNavn(vedtakMessage.fødselsnummer, vedtakMessage.utbetalingId) ?: ""
-            } catch (e: Exception) {
-                log.error("Feil ved henting av navn for ${vedtakMessage.aktørId}")
-                sikkerLogg.error("Feil ved henting av navn for ${vedtakMessage.aktørId}", e)
-                ""
-            }
+            val navn = hentNavn(speedClient, vedtakMessage.fødselsnummer, vedtakMessage.utbetalingId.toString()) ?: ""
             val vedtakPdfPayload = vedtakMessage.toVedtakPdfPayloadV2(organisasjonsnavn, navn)
             if (erUtvikling) sikkerLogg.info("vedtak-payload: ${objectMapper.writeValueAsString(vedtakPdfPayload)}")
             val pdf = pdfClient.hentVedtakPdfV2(vedtakPdfPayload)
@@ -63,7 +59,10 @@ class VedtakMediator(
                 eksternReferanseId = vedtakMessage.utbetalingId.toString(),
             )
             joarkClient.opprettJournalpost(vedtakMessage.utbetalingId, journalpostPayload).let { success ->
-                if (success) log.info("Vedtak journalført for aktør: ${vedtakMessage.aktørId}")
+                if (success) {
+                    log.info("Vedtak journalført for utbetalingId: ${vedtakMessage.utbetalingId}")
+                    sikkerLogg.info("Vedtak journalført for fødselsnummer=${vedtakMessage.fødselsnummer} utbetalingId: ${vedtakMessage.utbetalingId}")
+                }
                 else log.warn("Feil oppstod under journalføring av vedtak")
             }
         }
