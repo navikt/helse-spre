@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.util.UUID
@@ -42,6 +43,7 @@ class KafkaForelagteOpplysningerPublisher(private val producer: KafkaProducer<St
 data class ForelagteOpplysningerMelding(
     val vedtaksperiodeId: UUID,
     val behandlingId: UUID,
+    val skjæringstidspunkt: LocalDate,
     val tidsstempel: LocalDateTime,
     val omregnetÅrsinntekt: Double,
     val skatteinntekter: List<Skatteinntekt>

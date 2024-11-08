@@ -37,7 +37,7 @@ class SkatteinntekterLagtTilGrunnRiverTest {
 
         assertEquals(1, publisher.sendteMeldinger.size)
         val sendtMelding = publisher.sendteMeldinger.single()
-        val datafelter = listOf("skatteinntekter", "vedtaksperiodeId", "behandlingId", "tidsstempel", "omregnetÅrsinntekt")
+        val datafelter = listOf("skatteinntekter", "vedtaksperiodeId", "behandlingId", "skjæringstidspunkt", "tidsstempel", "omregnetÅrsinntekt")
         assertDoesNotThrow { datafelter.forEach { sendtMelding.javaClass.getDeclaredField(it) } }
     }
 
@@ -49,6 +49,7 @@ class SkatteinntekterLagtTilGrunnRiverTest {
          "organisasjonsnummer": "987654321",
          "vedtaksperiodeId": "$vedtaksperiodeId",
          "behandlingId": "264ef682-d276-48d0-9f41-2a9dac711175",
+         "skjæringstidspunkt": "2018-01-01",
          "omregnetÅrsinntekt": 372000.0,
          "skatteinntekter": [
            {
