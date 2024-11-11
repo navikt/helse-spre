@@ -6,7 +6,6 @@ plugins {
     kotlin("jvm") version "2.0.21"
 }
 
-val gradlewVersion = "8.10.2"
 val junitJupiterVersion = "5.10.2"
 val rapidsAndRiversVersion = "2024110520091730833744.40f3b6aa7090"
 val ktorVersion = "3.0.1" // should be set to same value as rapids and rivers
@@ -112,10 +111,6 @@ allprojects {
             toolchain {
                 languageVersion = JavaLanguageVersion.of(jvmTarget)
             }
-        }
-
-        withType<Wrapper> {
-            gradleVersion = gradlewVersion
         }
 
         withType<Test> {
