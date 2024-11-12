@@ -1,7 +1,5 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 
-val jvmTarget = 21
-
 plugins {
     kotlin("jvm") version "2.0.21"
 }
@@ -106,13 +104,13 @@ allprojects {
         maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
 
-    tasks {
-        java {
-            toolchain {
-                languageVersion = JavaLanguageVersion.of(jvmTarget)
-            }
+    kotlin {
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of("21"))
         }
+    }
 
+    tasks {
         withType<Test> {
             useJUnitPlatform()
             testLogging {
