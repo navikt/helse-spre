@@ -5,8 +5,10 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import io.micrometer.core.instrument.MeterRegistry
 
 class InntektsmeldingRiver (
     rapidsConnection: RapidsConnection,
@@ -23,7 +25,7 @@ class InntektsmeldingRiver (
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
         mappingDao.lagre(
             packet["@id"].toUUID(),
             packet["inntektsmeldingId"].toUUID(),
@@ -33,7 +35,7 @@ class InntektsmeldingRiver (
         )
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext) {
+    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
         sikkerLogg.error("Feil under validering av inntektsmelding  problems: ${problems.toExtendedReport()} ")
         throw IllegalArgumentException("Feil under validering av inntektsmelding")
     }
