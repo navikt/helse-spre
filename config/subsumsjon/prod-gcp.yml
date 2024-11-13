@@ -6,3 +6,5 @@ kafkaResetPolicy: earliest
 env:
   - name: SUBSUMSJON_TOPIC
     value: flex.omrade-helse-etterlevelse
+  - name: KAFKA_EXTRA_TOPIC
+    value: tbd.subsumsjon.v1
