@@ -39,6 +39,9 @@ class DokumentAliasRiver(
         val hendelsenavn = packet["hendelsenavn"].asText()
         val produsert = packet["@opprettet"].asLocalDateTime()
 
+        log.info("knytter ekstern_dokument_id=$eksternId <-> intern_dokument_id=$internId med dokumenttype=$dokumenttype (hendelsenavn=$hendelsenavn)")
+        sikkerLogg.info("knytter ekstern_dokument_id=$eksternId <-> intern_dokument_id=$internId med dokumenttype=$dokumenttype (hendelsenavn=$hendelsenavn)")
+
         mappingDao.lagre(
             hendelseId = internId,
             dokumentId = eksternId,
