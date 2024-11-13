@@ -47,6 +47,7 @@ fun main() {
         SubsumsjonRiver(this, mappingDao) { key, value -> publisher(key, value) }
         SykemeldingRiver(this, mappingDao)
         SøknadRiver(this, mappingDao)
+        DokumentAliasRiver(this, mappingDao)
         InntektsmeldingRiver(this, mappingDao)
         VedtakFattetRiver(this) { key, value -> publisher(key, value) }
         VedtakForkastetRiver(this) { key, value -> publisher(key, value) }

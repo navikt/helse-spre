@@ -50,6 +50,7 @@ internal class SubsumsjonRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
         log.info("mottatt subsumsjon med id: ${packet["@id"]}")
+        sikkerLogg.info("mottatt subsumsjon med id: ${packet["@id"]}")
         subsumsjonPublisher(fødselsnummer(packet), subsumsjonMelding(packet, fødselsnummer(packet)))
     }
 
