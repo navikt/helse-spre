@@ -18,7 +18,7 @@ class InntektsmeldingerFørSøknadRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "inntektsmelding_før_søknad") }
+            precondition { it.requireValue("@event_name", "inntektsmelding_før_søknad") }
             validate { it.requireKey("inntektsmeldingId", "fødselsnummer", "organisasjonsnummer", "fødselsnummer") }
         }.register(this)
     }

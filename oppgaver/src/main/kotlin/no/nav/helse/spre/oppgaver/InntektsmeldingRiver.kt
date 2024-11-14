@@ -13,7 +13,7 @@ class InntektsmeldingRiver(rapidsConnection: RapidsConnection, private val oppga
     River.PacketListener {
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "inntektsmelding") }
+            precondition { it.requireValue("@event_name", "inntektsmelding") }
             validate { it.requireKey("@id") }
             validate { it.requireKey("inntektsmeldingId") }
             validate { it.requireKey("beregnetInntekt") }

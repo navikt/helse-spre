@@ -18,10 +18,10 @@ class VedtaksperiodeEndretRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "vedtaksperiode_endret") }
+            precondition { it.requireValue("@event_name", "vedtaksperiode_endret") }
+            precondition { it.requireAny("gjeldendeTilstand", listOf("AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING"))}
             validate { it.requireKey("hendelser") }
             validate { it.interestedIn("forrigeTilstand") }
-            validate { it.demandAny("gjeldendeTilstand", listOf("AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING"))}
         }.register(this)
     }
 

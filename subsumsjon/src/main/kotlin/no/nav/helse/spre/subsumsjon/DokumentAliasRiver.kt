@@ -18,7 +18,7 @@ class DokumentAliasRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "dokument_alias") }
+            precondition { it.requireValue("@event_name", "dokument_alias") }
             validate { it.requireKey("dokumenttype") }
             validate { it.requireKey("hendelsenavn") }
             validate { it.requireKey("intern_dokument_id") }

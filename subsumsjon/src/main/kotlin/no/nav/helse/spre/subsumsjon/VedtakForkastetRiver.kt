@@ -18,8 +18,8 @@ class VedtakForkastetRiver(
 
     init {
         River(rapidsConnection).apply {
+            precondition { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
             validate { message ->
-                message.demandValue("@event_name", "vedtaksperiode_forkastet")
                 message.requireKey("@id", "@opprettet", "vedtaksperiodeId", "fødselsnummer", "organisasjonsnummer")
             }
         }.register(this)

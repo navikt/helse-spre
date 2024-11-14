@@ -18,7 +18,7 @@ class AvsluttetUtenVedtakRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "avsluttet_uten_vedtak") }
+            precondition { it.requireValue("@event_name", "avsluttet_uten_vedtak") }
             validate { it.requireKey("hendelser") }
         }.register(this)
     }

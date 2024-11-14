@@ -27,8 +27,10 @@ internal class HendelseRiver(
 
     init {
         River(rapidsConnection).apply {
+            precondition {
+                it.requireAny("@event_name", listOf(eventName, "${eventName}_styringsinfo_replay"))
+            }
             validate {
-                it.demandAny("@event_name", listOf(eventName, "${eventName}_styringsinfo_replay"))
                 it.require("@opprettet") { opprettet -> opprettet.tidspunkt }
                 it.require("@id") { id -> UUID.fromString(id.asText()) }
                 it.interestedIn("vedtaksperiodeId", "behandlingId")

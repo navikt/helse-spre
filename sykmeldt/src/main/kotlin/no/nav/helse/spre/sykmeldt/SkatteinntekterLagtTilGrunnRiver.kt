@@ -17,8 +17,8 @@ class SkatteinntekterLagtTilGrunnRiver(rapidsConnection: RapidsConnection, priva
 
     init {
         River(rapidsConnection).apply {
+            precondition { it.requireValue("@event_name", "skatteinntekter_lagt_til_grunn") }
             validate {
-                it.demandValue("@event_name", "skatteinntekter_lagt_til_grunn")
                 it.requireKey("vedtaksperiodeId", "behandlingId", "skjæringstidspunkt", "skatteinntekter", "omregnetÅrsinntekt")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
             }

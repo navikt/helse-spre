@@ -18,8 +18,8 @@ class VedtaksperiodeVenterRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "vedtaksperiode_venter") }
-            validate { it.demandAny("venterPå.venteårsak.hva", listOf("GODKJENNING", "SØKNAD", "INNTEKTSMELDING")) }
+            precondition { it.requireValue("@event_name", "vedtaksperiode_venter") }
+            precondition { it.requireAny("venterPå.venteårsak.hva", listOf("GODKJENNING", "SØKNAD", "INNTEKTSMELDING")) }
             validate { it.requireKey("hendelser", "@id", "organisasjonsnummer", "venterPå.organisasjonsnummer") }
         }.register(this)
     }

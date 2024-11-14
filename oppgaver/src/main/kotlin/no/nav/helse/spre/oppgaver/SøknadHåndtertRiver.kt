@@ -18,7 +18,7 @@ class SøknadHåndtertRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "søknad_håndtert") }
+            precondition { it.requireValue("@event_name", "søknad_håndtert") }
             validate { it.requireKey("søknadId") }
         }.register(this)
     }

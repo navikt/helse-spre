@@ -18,7 +18,7 @@ class InntektsmeldingHåndtertRiver(
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "inntektsmelding_håndtert") }
+            precondition { it.requireValue("@event_name", "inntektsmelding_håndtert") }
             validate { it.requireKey("inntektsmeldingId") }
         }.register(this)
     }

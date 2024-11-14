@@ -31,9 +31,11 @@ internal class VedtakFattetRiver(
 
     init {
         River(rapidsConnection).apply {
+            precondition {
+                it.requireValue("@event_name", "vedtak_fattet")
+                it.requireKey("sykepengegrunnlagsfakta")
+            }
             validate { message ->
-                message.demandValue("@event_name", "vedtak_fattet")
-                message.demandKey("sykepengegrunnlagsfakta")
                 message.requireKey(
                     "fødselsnummer",
                     "@id",

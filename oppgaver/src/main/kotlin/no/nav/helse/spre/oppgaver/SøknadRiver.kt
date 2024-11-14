@@ -14,7 +14,7 @@ class SøknadRiver(rapidsConnection: RapidsConnection, private val oppgaveDAO: O
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandAny("@event_name", listOf("sendt_søknad_nav", "sendt_søknad_arbeidsgiver", "sendt_søknad_frilans", "sendt_søknad_selvstendig", "sendt_søknad_arbeidsledig")) }
+            precondition { it.requireAny("@event_name", listOf("sendt_søknad_nav", "sendt_søknad_arbeidsgiver", "sendt_søknad_frilans", "sendt_søknad_selvstendig", "sendt_søknad_arbeidsledig")) }
             validate { it.requireKey("@id") }
             validate { it.requireKey("id") }
             validate { it.requireKey("fnr") }

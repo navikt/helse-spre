@@ -19,8 +19,8 @@ class VedtakFattetRiver(
 
     init {
         River(rapidsConnection).apply {
+            precondition { it.requireValue("@event_name", "vedtak_fattet") }
             validate { message ->
-                message.demandValue("@event_name", "vedtak_fattet")
                 message.requireKey(
                     "@id",
                     "hendelser",

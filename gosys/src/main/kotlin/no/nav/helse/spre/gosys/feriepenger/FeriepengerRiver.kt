@@ -23,8 +23,8 @@ class FeriepengerRiver(
 ) : River.PacketListener {
     init {
         River(rapidsConnection).apply {
+            precondition { it.requireValue("@event_name", "feriepenger_utbetalt") }
             validate {
-                it.demandValue("@event_name", "feriepenger_utbetalt")
                 it.require("@opprettet", JsonNode::asLocalDateTime)
                 it.requireKey(
                     "@id",
