@@ -10,8 +10,8 @@ val ktorVersion = "3.0.1" // should be set to same value as rapids and rivers
 val mockkVersion = "1.13.13"
 val hikariCPVersion = "6.1.0"
 val kotliqueryVersion = "1.9.0"
-val postgresqlVersion = "42.7.2"
-val flywayCoreVersion = "10.5.0"
+val postgresqlVersion = "42.7.4"
+val flywayCoreVersion = "10.21.0"
 val tbdLibsVersion = "2024.11.15-09.09-08ca346b"
 
 buildscript {
