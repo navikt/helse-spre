@@ -5,14 +5,14 @@ plugins {
 }
 
 val junitJupiterVersion = "5.11.3"
-val rapidsAndRiversVersion = "2024111411041731578641.814e834a9ecd"
+val rapidsAndRiversVersion = "2024111509181731658731.11009b44c672"
 val ktorVersion = "3.0.1" // should be set to same value as rapids and rivers
 val mockkVersion = "1.13.13"
 val hikariCPVersion = "5.1.0"
 val kotliqueryVersion = "1.9.0"
 val postgresqlVersion = "42.7.2"
 val flywayCoreVersion = "10.5.0"
-val tbdLibsVersion = "2024.11.14-10.46-bc229a23"
+val tbdLibsVersion = "2024.11.15-09.09-08ca346b"
 
 buildscript {
     repositories { mavenCentral() }
