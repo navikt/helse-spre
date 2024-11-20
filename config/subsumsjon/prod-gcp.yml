@@ -1,6 +1,7 @@
 gcp:
   type: POSTGRES_15
   databaseName: spre-subsumsjon
+  sqlInstanceTier: db-custom-64-65536
 kafkaPool: nav-prod
 kafkaResetPolicy: earliest
 env:
