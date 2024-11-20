@@ -1,8 +1,6 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 internal enum class Tag {
     IngenUtbetaling,
@@ -60,13 +58,8 @@ internal class Tags(private val tags: Set<Tag>) {
         private fun valueOfOrNull(name: String) = Tag.entries.firstOrNull { it.name == name }
 
         private fun List<String>.tilKjenteTags(): Set<Tag> {
-            return mapNotNull { streng ->
-                valueOfOrNull(streng).also {
-                    if (it == null) sikkerLogg.info("$streng er en ukjent tag.") }
-            }.toSet()
+            return mapNotNull { streng -> valueOfOrNull(streng) }.toSet()
         }
-
-        val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
         class UtledingFraTagsException(felt: String, tags: Set<Tag>): IllegalStateException("Nå kom det jaggu et event med en $felt jeg ikke klarte å tolke. Dette må være en feil. Ta en titt! Tagger: $tags")
     }
