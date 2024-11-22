@@ -2,6 +2,12 @@ gcp:
   type: POSTGRES_12
   databaseName: spre-subsumsjon
   sqlInstanceTier: db-f1-micro
+azure:
+  enabled: true
+  tenant: trygdeetaten.no
+accessPolicy:
+  outbound:
+    - application: spedisjon
 kafkaPool: nav-dev
 kafkaConsumerGroup: tbd-spre-subsumsjon-v3
 kafkaResetPolicy: earliest

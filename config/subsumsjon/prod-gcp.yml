@@ -1,6 +1,12 @@
 gcp:
   type: POSTGRES_15
   databaseName: spre-subsumsjon
+azure:
+  enabled: true
+  tenant: nav.no
+accessPolicy:
+  outbound:
+    - application: spedisjon
 kafkaPool: nav-prod
 kafkaResetPolicy: earliest
 env:
