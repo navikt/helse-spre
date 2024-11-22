@@ -3,6 +3,7 @@ package no.nav.helse.spre.subsumsjon
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import com.github.navikt.tbd_libs.result_object.ok
+import com.github.navikt.tbd_libs.spedisjon.HentMeldingResponse
 import com.github.navikt.tbd_libs.spedisjon.HentMeldingerResponse
 import com.github.navikt.tbd_libs.spedisjon.SpedisjonClient
 import com.github.navikt.tbd_libs.test_support.TestDataSource
@@ -11,6 +12,7 @@ import com.networknt.schema.SpecVersion
 import com.networknt.schema.ValidationMessage
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
+import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import org.intellij.lang.annotations.Language
@@ -33,18 +35,20 @@ internal class SubsumsjonTest {
     private lateinit var sykemeldingRiver: SykemeldingRiver
     private lateinit var søknadRiver: SøknadRiver
     private lateinit var inntektsmeldingRiver: InntektsmeldingRiver
-    private val subsumsjonClient = mockk<SpedisjonClient> {
-        every { hentMeldinger(any(), any()) } returns HentMeldingerResponse(emptyList()).ok()
-    }
+    private val spedisjonClient = mockk<SpedisjonClient>()
 
     @BeforeEach
     fun before() {
+        every {
+            spedisjonClient.hentMeldinger(any(), any())
+        } returns HentMeldingerResponse(emptyList()).ok()
+
         testDataSource = databaseContainer.nyTilkobling()
         mappingDao = MappingDao(testDataSource.ds)
         sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao)
         søknadRiver = SøknadRiver(testRapid, mappingDao)
         inntektsmeldingRiver = InntektsmeldingRiver(testRapid, mappingDao)
-        SubsumsjonRiver(testRapid, mappingDao, subsumsjonClient) { fnr, melding ->
+        SubsumsjonRiver(testRapid, spedisjonClient) { fnr, melding ->
             resultater.add(fnr to objectMapper.readTree(melding))
         }
     }
@@ -67,46 +71,38 @@ internal class SubsumsjonTest {
         val inntektsmeldingDokumentId = UUID.randomUUID()
         val inntektsmeldingDuplikatDokumentId = UUID.randomUUID()
 
-        testRapid.sendTestMessage(
-            testSykmelding(
-                hendelseId = sykmeldingId,
-                dokumentId = sykmeldingDokumentId
-            )
-        )
-        testRapid.sendTestMessage(
-            testSykmelding(
-                hendelseId = sykmeldingId, // sjekk dokumentId ikke blir overskrevet av ny hendelse
-                dokumentId = sykemeldingDuplikatDokumentId
-            )
-        )
-        testRapid.sendTestMessage(
-            testSykmelding(
-                hendelseId = UUID.randomUUID(),
-                dokumentId = sykmeldingDokumentId
-            )
-        )
-        testRapid.sendTestMessage(testSøknad(
-            hendelseId = søknadId,
-            dokumentId = søknadDokumentId,
-            sykmeldingDokumentId = sykmeldingDokumentId
-        ))
-        testRapid.sendTestMessage(testSøknad(
-            hendelseId = søknadId,
-            dokumentId = søknadDuplikatDokumentId,
-            sykmeldingDokumentId = sykmeldingDokumentId
-        ))
-        testRapid.sendTestMessage(testInntektsmelding(
-            hendelseId = inntektsmeldingId,
-            inntektsmeldingId = inntektsmeldingDokumentId
-        ))
-        testRapid.sendTestMessage(testInntektsmelding(
-            hendelseId = UUID.randomUUID(),
-            inntektsmeldingId = inntektsmeldingDuplikatDokumentId
-        )) // sjekk at vi kan håndtere flere av samme
-        testRapid.sendTestMessage(testInntektsmelding(
-            hendelseId = inntektsmeldingId,
-            inntektsmeldingId = inntektsmeldingDuplikatDokumentId
-        )) // sjekk at vi håndterer duplikater
+        clearMocks(spedisjonClient)
+        every {
+            spedisjonClient.hentMeldinger(any(), any())
+        } returns HentMeldingerResponse(listOf(
+            HentMeldingResponse(
+                type = "ny_søknad",
+                fnr = "",
+                internDokumentId = sykmeldingId,
+                eksternDokumentId = sykmeldingDokumentId,
+                rapportertDato = LocalDateTime.now(),
+                duplikatkontroll = "unik nøkkel",
+                jsonBody = "{}"
+            ),
+            HentMeldingResponse(
+                type = "sendt_søknad_nav",
+                fnr = "",
+                internDokumentId = søknadId,
+                eksternDokumentId = søknadDokumentId,
+                rapportertDato = LocalDateTime.now(),
+                duplikatkontroll = "unik nøkkel",
+                jsonBody = "{}"
+            ),
+            HentMeldingResponse(
+                type = "inntektsmelding",
+                fnr = "",
+                internDokumentId = inntektsmeldingId,
+                eksternDokumentId = inntektsmeldingDokumentId,
+                rapportertDato = LocalDateTime.now(),
+                duplikatkontroll = "unik nøkkel",
+                jsonBody = "{}"
+            ),
+        )).ok()
 
         testRapid.sendTestMessage(testSubsumsjon(
             sykmeldingIder = listOf(sykmeldingId),
@@ -135,15 +131,30 @@ internal class SubsumsjonTest {
         val søknadDokumentId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
-        testRapid.sendTestMessage(testSøknad(
-            hendelseId = søknadId,
-            dokumentId = søknadDokumentId,
-            sykmeldingDokumentId = sykmeldingDokumentId
-        ))
-        testRapid.sendTestMessage(testInntektsmelding(
-            hendelseId = inntektsmeldingId,
-            inntektsmeldingId = inntektsmeldingDokumentId
-        ))
+        clearMocks(spedisjonClient)
+        every {
+            spedisjonClient.hentMeldinger(any(), any())
+        } returns HentMeldingerResponse(listOf(
+            HentMeldingResponse(
+                type = "sendt_søknad_nav",
+                fnr = "",
+                internDokumentId = søknadId,
+                eksternDokumentId = søknadDokumentId,
+                rapportertDato = LocalDateTime.now(),
+                duplikatkontroll = "unik nøkkel",
+                jsonBody = """{ "sykmeldingId": "$sykmeldingDokumentId" }"""
+            ),
+            HentMeldingResponse(
+                type = "inntektsmelding",
+                fnr = "",
+                internDokumentId = inntektsmeldingId,
+                eksternDokumentId = inntektsmeldingDokumentId,
+                rapportertDato = LocalDateTime.now(),
+                duplikatkontroll = "unik nøkkel",
+                jsonBody = "{}"
+            ),
+        )).ok()
+
         testRapid.sendTestMessage(testSubsumsjon(
             sykmeldingIder = emptyList(),
             søknadIder = listOf(søknadId),
@@ -167,27 +178,38 @@ internal class SubsumsjonTest {
         val søknadDokumentId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
-        mappingDao.lagre(
-            hendelseId = sykmeldingId,
-            dokumentId = sykmeldingDokumentId,
-            dokumentIdType = DokumentIdType.Sykmelding,
-            hendelseNavn = "ny_søknad",
-            produsert = LocalDateTime.now()
-        )
-        mappingDao.lagre(
-            hendelseId = søknadId,
-            dokumentId = søknadDokumentId,
-            dokumentIdType = DokumentIdType.Søknad,
-            hendelseNavn = "sendt_søknad_nav",
-            produsert = LocalDateTime.of(2020, 1, 1, 12, 0)
-        )
-        mappingDao.lagre(
-            hendelseId = inntektsmeldingId,
-            dokumentId = inntektsmeldingDokumentId,
-            dokumentIdType = DokumentIdType.Inntektsmelding,
-            hendelseNavn = "inntektsmelding",
-            produsert = LocalDateTime.now()
-        )
+        clearMocks(spedisjonClient)
+        every {
+            spedisjonClient.hentMeldinger(any(), any())
+        } returns HentMeldingerResponse(listOf(
+            HentMeldingResponse(
+                type = "ny_søknad",
+                fnr = "",
+                internDokumentId = sykmeldingId,
+                eksternDokumentId = sykmeldingDokumentId,
+                rapportertDato = LocalDateTime.now(),
+                duplikatkontroll = "unik nøkkel",
+                jsonBody = "{}"
+            ),
+            HentMeldingResponse(
+                type = "sendt_søknad_nav",
+                fnr = "",
+                internDokumentId = søknadId,
+                eksternDokumentId = søknadDokumentId,
+                rapportertDato = LocalDateTime.of(2020, 1, 1, 12, 0),
+                duplikatkontroll = "unik nøkkel",
+                jsonBody = "{}"
+            ),
+            HentMeldingResponse(
+                type = "inntektsmelding",
+                fnr = "",
+                internDokumentId = inntektsmeldingId,
+                eksternDokumentId = inntektsmeldingDokumentId,
+                rapportertDato = LocalDateTime.now(),
+                duplikatkontroll = "unik nøkkel",
+                jsonBody = "{}"
+            ),
+        )).ok()
 
         assertDoesNotThrow {
             testRapid.sendTestMessage(
@@ -212,20 +234,29 @@ internal class SubsumsjonTest {
         val søknadDokumentId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
-        mappingDao.lagre(
-            hendelseId = søknadId,
-            dokumentId = søknadDokumentId,
-            dokumentIdType = DokumentIdType.Søknad,
-            hendelseNavn = "sendt_søknad_nav",
-            produsert = LocalDateTime.of(2022, 1, 1, 12, 0)
-        )
-        mappingDao.lagre(
-            hendelseId = inntektsmeldingId,
-            dokumentId = inntektsmeldingDokumentId,
-            dokumentIdType = DokumentIdType.Inntektsmelding,
-            hendelseNavn = "inntektsmelding",
-            produsert = LocalDateTime.now()
-        )
+        clearMocks(spedisjonClient)
+        every {
+            spedisjonClient.hentMeldinger(any(), any())
+        } returns HentMeldingerResponse(listOf(
+            HentMeldingResponse(
+                type = "sendt_søknad_nav",
+                fnr = "",
+                internDokumentId = søknadId,
+                eksternDokumentId = søknadDokumentId,
+                rapportertDato = LocalDateTime.of(2022, 1, 1, 12, 0),
+                duplikatkontroll = "unik nøkkel",
+                jsonBody = "{}"
+            ),
+            HentMeldingResponse(
+                type = "inntektsmelding",
+                fnr = "",
+                internDokumentId = inntektsmeldingId,
+                eksternDokumentId = inntektsmeldingDokumentId,
+                rapportertDato = LocalDateTime.now(),
+                duplikatkontroll = "unik nøkkel",
+                jsonBody = "{}"
+            ),
+        )).ok()
 
         assertDoesNotThrow {
             testRapid.sendTestMessage(

@@ -54,7 +54,7 @@ fun main() {
     })
 
     rapid.apply {
-        SubsumsjonRiver(this, mappingDao, spedisjonClient) { key, value -> publisher(key, value) }
+        SubsumsjonRiver(this, spedisjonClient) { key, value -> publisher(key, value) }
         SykemeldingRiver(this, mappingDao)
         SøknadRiver(this, mappingDao)
         DokumentAliasRiver(this, mappingDao)
