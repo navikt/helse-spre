@@ -2,12 +2,17 @@ package no.nav.helse.spre.subsumsjon
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import com.github.navikt.tbd_libs.result_object.ok
+import com.github.navikt.tbd_libs.spedisjon.HentMeldingerResponse
+import com.github.navikt.tbd_libs.spedisjon.SpedisjonClient
 import com.github.navikt.tbd_libs.test_support.TestDataSource
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
 import com.networknt.schema.ValidationMessage
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
+import io.mockk.every
+import io.mockk.mockk
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -28,6 +33,9 @@ internal class SubsumsjonTest {
     private lateinit var sykemeldingRiver: SykemeldingRiver
     private lateinit var søknadRiver: SøknadRiver
     private lateinit var inntektsmeldingRiver: InntektsmeldingRiver
+    private val subsumsjonClient = mockk<SpedisjonClient> {
+        every { hentMeldinger(any(), any()) } returns HentMeldingerResponse(emptyList()).ok()
+    }
 
     @BeforeEach
     fun before() {
@@ -36,7 +44,7 @@ internal class SubsumsjonTest {
         sykemeldingRiver = SykemeldingRiver(testRapid, mappingDao)
         søknadRiver = SøknadRiver(testRapid, mappingDao)
         inntektsmeldingRiver = InntektsmeldingRiver(testRapid, mappingDao)
-        SubsumsjonRiver(testRapid, mappingDao) { fnr, melding ->
+        SubsumsjonRiver(testRapid, mappingDao, subsumsjonClient) { fnr, melding ->
             resultater.add(fnr to objectMapper.readTree(melding))
         }
     }

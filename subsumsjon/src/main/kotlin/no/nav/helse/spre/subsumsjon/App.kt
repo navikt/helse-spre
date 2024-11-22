@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import com.github.navikt.tbd_libs.spedisjon.SpedisjonClient
 import no.nav.helse.rapids_rivers.*
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -16,6 +18,7 @@ import org.apache.kafka.common.security.auth.SecurityProtocol
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.net.http.HttpClient
 import java.util.*
 
 internal val log = LoggerFactory.getLogger("spre-subsumsjoner")
@@ -36,6 +39,13 @@ fun main() {
         }
     }
 
+    val azureClient = createAzureTokenClientFromEnvironment(env)
+    val spedisjonClient = SpedisjonClient(
+        httpClient = HttpClient.newHttpClient(),
+        objectMapper = objectMapper,
+        tokenProvider = azureClient
+    )
+
     // Migrer databasen før vi starter å konsumere fra rapid
     rapid.register(object : RapidsConnection.StatusListener {
         override fun onStartup(rapidsConnection: RapidsConnection) {
@@ -44,7 +54,7 @@ fun main() {
     })
 
     rapid.apply {
-        SubsumsjonRiver(this, mappingDao) { key, value -> publisher(key, value) }
+        SubsumsjonRiver(this, mappingDao, spedisjonClient) { key, value -> publisher(key, value) }
         SykemeldingRiver(this, mappingDao)
         SøknadRiver(this, mappingDao)
         DokumentAliasRiver(this, mappingDao)

@@ -7,12 +7,16 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import com.github.navikt.tbd_libs.result_object.Result
+import com.github.navikt.tbd_libs.spedisjon.HentMeldingerResponse
+import com.github.navikt.tbd_libs.spedisjon.SpedisjonClient
 import io.micrometer.core.instrument.MeterRegistry
 import java.time.LocalDate
 
 internal class SubsumsjonRiver(
     rapidsConnection: RapidsConnection,
     private val mappingDao: MappingDao,
+    private val spedisjonClient: SpedisjonClient,
     private val subsumsjonPublisher: (key: String, value: String) -> Unit
 ) : River.PacketListener {
 
@@ -74,6 +78,26 @@ internal class SubsumsjonRiver(
                 mapper.hentSykmeldingIder(internSøknadIderEtterDato)
         val søknadIder = mapper.hentSøknadIder(internSøknadIder)
         val inntektsmeldingIder = mapper.hentInntektsmeldingIder(internInntektsmeldingIder)
+
+        val meldingerFraSpedisjon = spedisjonClient.hentMeldinger(internSykmeldingIder + internSøknadIder + internInntektsmeldingIder)
+        when (meldingerFraSpedisjon) {
+            is Result.Error -> log.error("Fikk feil ved oppslag mot spedisjon: ${meldingerFraSpedisjon.error}", meldingerFraSpedisjon.cause)
+            is Result.Ok<HentMeldingerResponse> -> {
+                val sykmeldingerSomIkkeFinnes = internSykmeldingIder.filter { internId ->
+                    meldingerFraSpedisjon.value.meldinger.none { response -> response.internDokumentId == internId }
+                }
+                val søknaderSomIkkeFinnes = internSøknadIder.filter { internId ->
+                    meldingerFraSpedisjon.value.meldinger.none { response -> response.internDokumentId == internId }
+                }
+                val inntektsmeldingerSomIkkeFinnes = internInntektsmeldingIder.filter { internId ->
+                    meldingerFraSpedisjon.value.meldinger.none { response -> response.internDokumentId == internId }
+                }
+
+                if (sykmeldingerSomIkkeFinnes.isNotEmpty() || søknaderSomIkkeFinnes.isNotEmpty() || inntektsmeldingerSomIkkeFinnes.isNotEmpty()) {
+                    log.error("Fant ikke meldinger i spedisjon: sykmeldingerSomIkkeFinnes=$sykmeldingerSomIkkeFinnes, søknaderSomIkkeFinnes=$søknaderSomIkkeFinnes, inntektsmeldingerSomIkkeFinnes=$inntektsmeldingerSomIkkeFinnes")
+                }
+            }
+        }
 
         log.info("Mapper subsumsjons sporing sykmelding: $internSykmeldingIder til $sykmeldingIder søknad: $internSøknadIder til $søknadIder " +
                 "inntektsmelding: $internInntektsmeldingIder til $inntektsmeldingIder")
