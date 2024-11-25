@@ -12,6 +12,8 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
+import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import org.slf4j.Logger
@@ -58,25 +60,30 @@ internal class VedtakFattetRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
         val id = UUID.fromString(packet["@id"].asText())
-        duplikatsjekkDao.sjekkDuplikat(id) {
-            val utbetalingId = packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let { UUID.fromString(it.asText()) }
-            val vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
-            log.info("vedtak_fattet leses inn for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId")
+        try {
+            duplikatsjekkDao.sjekkDuplikat(id) {
+                val utbetalingId = packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let { UUID.fromString(it.asText()) }
+                val vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
+                log.info("vedtak_fattet leses inn for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId")
 
-            val vedtakFattet = VedtakFattetData.fromJson(id, packet)
+                val vedtakFattet = VedtakFattetData.fromJson(id, packet)
 
-            if (utbetalingId != null && erLogiskDuplikat(utbetalingId, vedtaksperiodeId)) {
-                log.warn("har allerede behandlet vedtak_fattet for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
-                return@sjekkDuplikat
+                if (utbetalingId != null && erLogiskDuplikat(utbetalingId, vedtaksperiodeId)) {
+                    log.warn("har allerede behandlet vedtak_fattet for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
+                    return@sjekkDuplikat
+                }
+
+                vedtakFattetDao.lagre(vedtakFattet, packet.toJson())
+                log.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
+
+                if (utbetalingId != null) {
+                    utbetalingDao.finnUtbetalingData(utbetalingId)?.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
+                }
             }
-
-            vedtakFattetDao.lagre(vedtakFattet, packet.toJson())
-            log.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
-
-            if (utbetalingId != null) {
-                utbetalingDao.finnUtbetalingData(utbetalingId)
-                    ?.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
-            }
+        }  catch (err: Exception) {
+            log.error("Feil i melding $id i vedtak fattet-river: ${err.message}", err)
+            sikkerLogg.error("Feil i melding $id i vedtak fattet-river: ${err.message}", err)
+            throw err
         }
     }
 

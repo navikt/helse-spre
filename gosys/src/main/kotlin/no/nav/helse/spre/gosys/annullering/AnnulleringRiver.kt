@@ -49,11 +49,17 @@ class AnnulleringRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
         val id = UUID.fromString(packet["@id"].asText())
-        duplikatsjekkDao.sjekkDuplikat(id) {
-            log.info("Oppdaget annullering-event {}", StructuredArguments.keyValue("id", packet["@id"].asText()))
-            sikkerLogg.info("utbetaling_annullert lest inn: {}", packet.toJson())
-            val annulleringMessage = AnnulleringMessage(id, packet)
-            annulleringMediator.opprettAnnullering(annulleringMessage)
+        try {
+            duplikatsjekkDao.sjekkDuplikat(id) {
+                log.info("Oppdaget annullering-event {}", StructuredArguments.keyValue("id", packet["@id"].asText()))
+                sikkerLogg.info("utbetaling_annullert lest inn: {}", packet.toJson())
+                val annulleringMessage = AnnulleringMessage(id, packet)
+                annulleringMediator.opprettAnnullering(annulleringMessage)
+            }
+        } catch (err: Exception) {
+            log.error("Feil i melding $id i annullering-river: ${err.message}", err)
+            sikkerLogg.error("Feil i melding $id i annullering-river: ${err.message}", err)
+            throw err
         }
     }
 }

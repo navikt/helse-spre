@@ -50,12 +50,18 @@ class FeriepengerRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
         val id = UUID.fromString(packet["@id"].asText())
-        duplikatsjekkDao.sjekkDuplikat(id) {
-            log.info("Oppdaget feriepenger-event {}", keyValue("id", id))
-            sikkerLogg.info("feriepenger_utbetalt lest inn: {}", packet.toJson())
+        try {
+            duplikatsjekkDao.sjekkDuplikat(id) {
+                log.info("Oppdaget feriepenger-event {}", keyValue("id", id))
+                sikkerLogg.info("feriepenger_utbetalt lest inn: {}", packet.toJson())
 
-            val feriepengerMessage = FeriepengerMessage(id, packet)
-            feriepengerMediator.opprettFeriepenger(feriepengerMessage)
+                val feriepengerMessage = FeriepengerMessage(id, packet)
+                feriepengerMediator.opprettFeriepenger(feriepengerMessage)
+            }
+        } catch (err: Exception) {
+            log.error("Feil i melding $id i feriepenge-river: ${err.message}", err)
+            sikkerLogg.error("Feil i melding $id i feriepenge-river: ${err.message}", err)
+            throw err
         }
     }
 

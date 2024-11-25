@@ -11,6 +11,8 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
+import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import org.slf4j.Logger
@@ -79,9 +81,15 @@ internal class UtbetalingUtbetaltRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
         val id = UUID.fromString(packet["@id"].asText())
-        duplikatsjekkDao.sjekkDuplikat(id) {
-            val utbetaling = lagreUtbetaling(id, packet, utbetalingDao)
-            utbetaling.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
+        try {
+            duplikatsjekkDao.sjekkDuplikat(id) {
+                val utbetaling = lagreUtbetaling(id, packet, utbetalingDao)
+                utbetaling.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
+            }
+        } catch (err: Exception) {
+            log.error("Feil i melding $id i utbetaling utbetalt-river: ${err.message}", err)
+            sikkerLogg.error("Feil i melding $id i utbetaling utbetalt-river: ${err.message}", err)
+            throw err
         }
     }
 }
