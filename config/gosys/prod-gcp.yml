@@ -1,6 +1,6 @@
 annotations:
   - key: config.linkerd.io/proxy-outbound-connect-timeout
-    value: 3s
+    value: 10s
 kafkaPool: nav-prod
 replicas:
   max: 6
