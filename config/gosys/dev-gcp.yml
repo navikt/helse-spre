@@ -1,3 +1,6 @@
+annotations:
+  - key: config.linkerd.io/proxy-outbound-connect-timeout
+    value: 3s
 kafkaPool: nav-dev
 azure:
   enabled: true

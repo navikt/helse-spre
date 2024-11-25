@@ -10,6 +10,12 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
+  {{#if annotations}}
+  annotations:
+    {{#each annotations as |item| }}
+    {{item.key}}: {{item.value}}
+    {{/each}}
+  {{/if}}
   name: spre-{{app}}
   namespace: {{team}}
   labels:
