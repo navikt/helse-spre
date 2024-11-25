@@ -1,1 +1,0 @@
-CREATE INDEX hendelse_dokument_kobling_dokument_id_idx ON hendelse_dokument_mapping (dokument_id);

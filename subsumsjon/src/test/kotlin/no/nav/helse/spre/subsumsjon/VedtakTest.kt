@@ -1,9 +1,6 @@
 package no.nav.helse.spre.subsumsjon
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import com.github.navikt.tbd_libs.test_support.CleanupStrategy
-import com.github.navikt.tbd_libs.test_support.DatabaseContainers
-import com.github.navikt.tbd_libs.test_support.TestDataSource
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,12 +10,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-val databaseContainer = DatabaseContainers.container("spre-subsumsjon", CleanupStrategy.tables("hendelse_dokument_mapping"))
-
 internal class VedtakTest {
 
-    private lateinit var testDataSource: TestDataSource
-    private lateinit var mappingDao: MappingDao
     private lateinit var fattetRiver: VedtakFattetRiver
     private lateinit var forkastetRiver: VedtakForkastetRiver
     private val testRapid = TestRapid()
@@ -27,16 +20,12 @@ internal class VedtakTest {
 
     @BeforeEach
     fun setup() {
-        testDataSource = databaseContainer.nyTilkobling()
-
-        mappingDao = MappingDao(testDataSource.ds)
         fattetRiver = VedtakFattetRiver(testRapid) { key, value -> resultat.add(Pair(key, value)) }
         forkastetRiver = VedtakForkastetRiver(testRapid) { key, value -> resultat.add(Pair(key, value)) }
     }
 
     @AfterEach
     fun before() {
-        databaseContainer.droppTilkobling(testDataSource)
         resultat.clear()
     }
 

@@ -1,1 +1,0 @@
-ALTER TABLE hendelse_dokument_mapping ADD PRIMARY KEY (hendelse_id);

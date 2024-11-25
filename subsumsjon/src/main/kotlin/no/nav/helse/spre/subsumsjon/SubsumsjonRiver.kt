@@ -1,5 +1,6 @@
 package no.nav.helse.spre.subsumsjon
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
@@ -130,3 +131,6 @@ internal class SubsumsjonRiver(
         return objectMapper.writeValueAsString(subsumsjonsmelding).also { sikkerLogg.info("sender subsumsjon: $it") }
     }
 }
+
+internal fun JsonNode.toUUID() = UUID.fromString(this.asText())
+internal fun JsonNode.toUUIDs() = this.map { it.toUUID() }

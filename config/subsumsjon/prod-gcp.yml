@@ -1,6 +1,3 @@
-gcp:
-  type: POSTGRES_15
-  databaseName: spre-subsumsjon
 azure:
   enabled: true
   tenant: nav.no

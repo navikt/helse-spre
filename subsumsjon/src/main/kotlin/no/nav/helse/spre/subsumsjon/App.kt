@@ -5,34 +5,27 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
-import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import com.github.navikt.tbd_libs.kafka.AivenConfig
+import com.github.navikt.tbd_libs.kafka.ConsumerProducerFactory
 import com.github.navikt.tbd_libs.spedisjon.SpedisjonClient
-import no.nav.helse.rapids_rivers.*
-import org.apache.kafka.clients.CommonClientConfigs
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerConfig
+import no.nav.helse.rapids_rivers.RapidApplication
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.errors.*
-import org.apache.kafka.common.security.auth.SecurityProtocol
-import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.http.HttpClient
-import java.util.*
 
 internal val log = LoggerFactory.getLogger("spre-subsumsjoner")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
 fun main() {
     val env = System.getenv()
-    val kafkaProducer = createProducer(env)
-    val config = Config.fromEnv()
-    val dataSourceBuilder = DataSourceBuilder(config.jdbcUrl, config.username, config.password)
-    val mappingDao = MappingDao(dataSourceBuilder.datasource())
-    val rapid = RapidApplication.create(env)
+    val factory = ConsumerProducerFactory(AivenConfig.default)
+    val kafkaProducer = factory.createProducer()
+    val rapid = RapidApplication.create(env, factory)
+    val subsumsjonTopic = requireNotNull(env["SUBSUMSJON_TOPIC"]) { " SUBSUMSJON_TOPIC is required config " }
     val publisher = { key: String, value: String ->
-        kafkaProducer.send(ProducerRecord(config.subsumsjonTopic, key, value)) { _, err ->
+        kafkaProducer.send(ProducerRecord(subsumsjonTopic, key, value)) { _, err ->
             if (err == null || !isFatalError(err)) return@send
             log.error("Shutting down due to fatal error in subsumsjon-producer: ${err.message}", err)
             rapid.stop()
@@ -46,41 +39,11 @@ fun main() {
         tokenProvider = azureClient
     )
 
-    // Migrer databasen før vi starter å konsumere fra rapid
-    rapid.register(object : RapidsConnection.StatusListener {
-        override fun onStartup(rapidsConnection: RapidsConnection) {
-            dataSourceBuilder.migrate()
-        }
-    })
-
     rapid.apply {
         SubsumsjonRiver(this, spedisjonClient) { key, value -> publisher(key, value) }
-        SykemeldingRiver(this, mappingDao)
-        SøknadRiver(this, mappingDao)
-        DokumentAliasRiver(this, mappingDao)
-        InntektsmeldingRiver(this, mappingDao)
         VedtakFattetRiver(this) { key, value -> publisher(key, value) }
         VedtakForkastetRiver(this) { key, value -> publisher(key, value) }
     }.start()
-}
-
-private fun createProducer(env: Map<String, String>): KafkaProducer<String, String> {
-    val properties = Properties().apply {
-        put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, env.getValue("KAFKA_BROKERS"))
-        put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, SecurityProtocol.SSL.name)
-        put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "")
-        put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "jks")
-        put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PKCS12")
-        put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, env.getValue("KAFKA_TRUSTSTORE_PATH"))
-        put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
-        put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, env.getValue("KAFKA_KEYSTORE_PATH"))
-        put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, env.getValue("KAFKA_CREDSTORE_PASSWORD"))
-        put(ProducerConfig.CLIENT_ID_CONFIG, env.getValue("KAFKA_CONSUMER_GROUP_ID"))
-        put(ProducerConfig.ACKS_CONFIG, "all")
-        put(ProducerConfig.LINGER_MS_CONFIG, "0")
-        put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "1")
-    }
-    return KafkaProducer(properties, StringSerializer(), StringSerializer())
 }
 
 private fun isFatalError(err: Exception) = when (err) {

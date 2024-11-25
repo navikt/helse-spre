@@ -1,7 +1,3 @@
-gcp:
-  type: POSTGRES_12
-  databaseName: spre-subsumsjon
-  sqlInstanceTier: db-f1-micro
 azure:
   enabled: true
   tenant: trygdeetaten.no
