@@ -71,7 +71,6 @@ spec:
         - host: {{item}}
         {{/each}}
   {{/if}}
-  leaderElection: {{leaderElected}}
   {{#if gcp}}
   gcp:
     sqlInstances:
@@ -96,23 +95,8 @@ spec:
   prometheus:
     enabled: true
     path: /metrics
-  webproxy: true
   secureLogs:
     enabled: true
-  vault:
-    enabled: true
-    {{#if mountPaths}}
-    paths:
-    {{# each mountPaths as |item| }}
-      - mountPath: {{ item.mountPath }}
-        kvPath: {{ item.kvPath }}
-    {{/each}}
-    {{/if}}
-  {{#if fromEnv}}
-  fromEnv:
-  {{# each fromEnv as |item| }}
-    - secret: {{ item }}
-  {{/each}}{{/if}}
   env:
   - name: KAFKA_CONSUMER_GROUP_ID
     value: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}{{team}}-spre-{{app}}-v1{{/if}}
