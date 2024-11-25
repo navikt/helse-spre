@@ -8,10 +8,10 @@ val tbdLibsVersion: String by project
 val wiremockVersion = "3.3.1"
 val jsonassertVersion = "1.5.0"
 
-val kotlinxSerializationJsonVersion = "1.6.0"
+val kotlinxSerializationJsonVersion = "1.7.3"
 
 plugins {
-    kotlin("plugin.serialization") version "1.6.0"
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 dependencies {
