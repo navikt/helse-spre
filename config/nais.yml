@@ -108,12 +108,6 @@ spec:
         kvPath: {{ item.kvPath }}
     {{/each}}
     {{/if}}
-  {{#if ingresses}}
-  ingresses:
-  {{#each ingresses as |item| }}
-  - {{item}}
-  {{/each}}
-  {{/if}}
   {{#if fromEnv}}
   fromEnv:
   {{# each fromEnv as |item| }}
