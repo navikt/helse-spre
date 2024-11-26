@@ -2,8 +2,7 @@ package no.nav.helse.spre.gosys.vedtakFattet
 
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
@@ -13,8 +12,10 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
     @Test
     fun `Lagrer vedtak fattet`() {
         val utbetalingId = UUID.randomUUID()
-        testRapid.sendTestMessage(vedtakFattetMedUtbetaling(utbetalingId = utbetalingId))
-        assertNotNull(vedtakFattetDao.finnVedtakFattetData(utbetalingId))
+        sendVedtakFattet(utbetalingId = utbetalingId)
+        val vedtak = vedtakFattetDao.finnVedtakFattetData(utbetalingId)[0]
+        assertNotNull(vedtak)
+        assertFalse(vedtakFattetDao.erJournalført(vedtak))
     }
 
     @Test
@@ -31,6 +32,7 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
         val vedtaksperiodeId = UUID.randomUUID()
         sendUtbetaling(utbetalingId = utbetalingId)
         sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+        assertTrue(vedtakFattetDao.erJournalført(vedtakFattetDao.finnVedtakFattetData(utbetalingId)[0]))
         sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
         assertEquals(1, vedtakFattetDao.finnVedtakFattetData(utbetalingId).size)
     }

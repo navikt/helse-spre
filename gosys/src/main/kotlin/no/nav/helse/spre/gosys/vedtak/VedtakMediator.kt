@@ -24,13 +24,14 @@ class VedtakMediator(
         sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
         begrunnelser: List<Begrunnelse>?,
         utbetaling: Utbetaling,
+        klarteÅJournalføreCallback: () -> Unit
     ) {
         val (søknadsperiodeFom, søknadsperiodeTom) = utbetaling.søknadsperiode(fom to tom)
         val vedtak = VedtakMessage(søknadsperiodeFom, søknadsperiodeTom, sykepengegrunnlag, grunnlagForSykepengegrunnlag, skjæringstidspunkt, utbetaling, sykepengegrunnlagsfakta, begrunnelser)
-        opprettSammenslåttVedtak(vedtak)
+        opprettSammenslåttVedtak(vedtak, klarteÅJournalføreCallback)
     }
 
-    private fun opprettSammenslåttVedtak(vedtakMessage: VedtakMessage) {
+    private fun opprettSammenslåttVedtak(vedtakMessage: VedtakMessage, klarteÅJournalføreCallback: () -> Unit) {
         if (vedtakMessage.type == Utbetaling.Utbetalingtype.ANNULLERING) return //Annullering har eget notat
         runBlocking {
             val organisasjonsnavn = try {
@@ -62,11 +63,13 @@ class VedtakMediator(
                 eksternReferanseId = vedtakMessage.utbetalingId.toString(),
             )
             val success = joarkClient.opprettJournalpost(vedtakMessage.utbetalingId, journalpostPayload)
-            if (success) {
-                log.info("Vedtak journalført for utbetalingId: ${vedtakMessage.utbetalingId}")
-                sikkerLogg.info("Vedtak journalført for fødselsnummer=${vedtakMessage.fødselsnummer} utbetalingId: ${vedtakMessage.utbetalingId}")
+            if (!success) {
+                log.warn("Feil oppstod under journalføring av vedtak")
+                return@runBlocking
             }
-            else log.warn("Feil oppstod under journalføring av vedtak")
+            log.info("Vedtak journalført for utbetalingId: ${vedtakMessage.utbetalingId}")
+            sikkerLogg.info("Vedtak journalført for fødselsnummer=${vedtakMessage.fødselsnummer} utbetalingId: ${vedtakMessage.utbetalingId}")
+            klarteÅJournalføreCallback()
         }
     }
 
