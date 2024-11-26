@@ -24,7 +24,8 @@ internal class HendelseRiver(
     private val opprett: (packet: JsonMessage) -> Hendelse,
     rapidsConnection: RapidsConnection,
     private val hendelseDao: HendelseDao,
-    private val behandlingshendelseDao: BehandlingshendelseDao): River.PacketListener {
+    private val behandlingshendelseDao: BehandlingshendelseDao
+): River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
