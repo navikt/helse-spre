@@ -2,15 +2,12 @@ package no.nav.helse.spre.oppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import com.github.navikt.tbd_libs.test_support.TestDataSource
-import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Inntektsmelding
 import no.nav.helse.spre.oppgaver.DokumentTypeDTO.Søknad
 import no.nav.helse.spre.oppgaver.OppdateringstypeDTO.*
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.LocalDate
@@ -20,31 +17,8 @@ import java.util.*
 import kotlin.math.absoluteValue
 
 class EndToEndTest {
-    private lateinit var dataSource: TestDataSource
-
-    private val rapid = TestRapid()
-    private lateinit var oppgaveDAO: OppgaveDAO
-    private var publiserteOppgaver = mutableListOf<OppgaveDTO>()
-    private val fakePublisist = Publisist { _: String, dto: OppgaveDTO ->
-        publiserteOppgaver.add(dto)
-    }
-
-    @BeforeEach
-    fun before() {
-        dataSource = databaseContainer.nyTilkobling()
-        oppgaveDAO = OppgaveDAO(dataSource.ds)
-        rapid.registerRivers(oppgaveDAO, fakePublisist)
-    }
-
-    @AfterEach
-    fun after() {
-        databaseContainer.droppTilkobling(dataSource)
-        publiserteOppgaver.clear()
-        rapid.reset()
-    }
-
     @Test
-    fun `beholder forrige timeout på søknad om den er etter ny timeout`() {
+    fun `beholder forrige timeout på søknad om den er etter ny timeout`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
 
@@ -66,7 +40,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `beholder forrige timeout på inntektsmelding om den er etter ny timeout`() {
+    fun `beholder forrige timeout på inntektsmelding om den er etter ny timeout`() = e2e {
         val inntektsmelding1HendelseId = UUID.randomUUID()
         val inntektsmelding1DokumentId = UUID.randomUUID()
 
@@ -88,7 +62,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `spleis håndterer et helt sykeforløp`() {
+    fun `spleis håndterer et helt sykeforløp`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
         val inntektsmeldingHendelseId = UUID.randomUUID()
@@ -124,7 +98,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter oppgave på forlengelse når perioden før avventer godkjenning`() {
+    fun `utsetter oppgave på forlengelse når perioden før avventer godkjenning`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.fromString("00000000-0000-0000-0000-500000000001")
 
@@ -196,7 +170,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter når vi venter på inntektsmelding på annen arbeidsgiver`() {
+    fun `utsetter når vi venter på inntektsmelding på annen arbeidsgiver`() = e2e {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val inntektsmeldingId = UUID.randomUUID()
@@ -225,7 +199,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter ikke når vi venter på inntektsmelding på samme arbeidsgiver`() {
+    fun `utsetter ikke når vi venter på inntektsmelding på samme arbeidsgiver`() = e2e {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val inntektsmeldingId = UUID.randomUUID()
@@ -250,7 +224,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter når vi venter på overlappende søknad`() {
+    fun `utsetter når vi venter på overlappende søknad`() = e2e {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val inntektsmeldingId = UUID.randomUUID()
@@ -279,7 +253,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `spleis replayer søknad👽`() {
+    fun `spleis replayer søknad👽`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
 
@@ -304,7 +278,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `spleis gir opp behandling av søknad`() {
+    fun `spleis gir opp behandling av søknad`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
 
@@ -319,7 +293,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `dersom perioden er behandlet i Infotrygd`() {
+    fun `dersom perioden er behandlet i Infotrygd`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
 
@@ -336,7 +310,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `oppgave opprettet speilrelatert harPeriodeInnenfor16Dager`() {
+    fun `oppgave opprettet speilrelatert harPeriodeInnenfor16Dager`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
         val imDokumentId = UUID.randomUUID()
@@ -356,7 +330,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `ignorer vedtaksperiode_forkastet som skyldes person_påminnelse`() {
+    fun `ignorer vedtaksperiode_forkastet som skyldes person_påminnelse`() = e2e {
         val imDokumentId = UUID.randomUUID()
         val imHendelseId = UUID.randomUUID()
 
@@ -370,7 +344,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `oppgave opprettet speilrelatert forlenger periode`() {
+    fun `oppgave opprettet speilrelatert forlenger periode`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
         val imDokumentId = UUID.randomUUID()
@@ -390,7 +364,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `spleis gir opp behandling i vilkårsprøving`() {
+    fun `spleis gir opp behandling i vilkårsprøving`() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
@@ -408,14 +382,14 @@ class EndToEndTest {
     }
 
     @Test
-    fun `tåler meldinger som mangler kritiske felter`() = runBlocking {
+    fun `tåler meldinger som mangler kritiske felter`() = e2e {
         rapid.sendTestMessage("{}")
         assertTrue(publiserteOppgaver.isEmpty())
         assertEquals(0, rapid.inspektør.size)
     }
 
     @Test
-    fun `ignorerer signal på at dokument er håndtert uten at vi har hørt om dokument`() {
+    fun `ignorerer signal på at dokument er håndtert uten at vi har hørt om dokument`() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         sendInntektsmeldingHåndtert(inntektsmeldingHendelseId)
 
@@ -424,7 +398,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `Håndterer AG-søknad som vanlig søknad`() {
+    fun `Håndterer AG-søknad som vanlig søknad`() = e2e {
         val søknadArbeidsgiverHendelseId = UUID.randomUUID()
         val søknadArbeidsgiverDokumentId = UUID.randomUUID()
 
@@ -439,7 +413,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `vedtaksperiode avsluttes uten utbetaling med inntektsmelding`() {
+    fun `vedtaksperiode avsluttes uten utbetaling med inntektsmelding`() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
 
@@ -464,7 +438,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `Forkastet oppgave på inntektsmelding skal opprettes`() {
+    fun `Forkastet oppgave på inntektsmelding skal opprettes`() = e2e {
         val periode1 = UUID.randomUUID()
 
         val inntektsmeldingHendelseId = UUID.randomUUID()
@@ -499,7 +473,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `Sender ikke flere opprett-meldinger hvis vi allerede har forkastet en periode`() {
+    fun `Sender ikke flere opprett-meldinger hvis vi allerede har forkastet en periode`() = e2e {
         val periode1 = UUID.randomUUID()
 
         val inntektsmeldingHendelseId = UUID.randomUUID()
@@ -538,7 +512,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `to perioder uten utbetaling og en lang periode hvor siste går til infotrygd`() {
+    fun `to perioder uten utbetaling og en lang periode hvor siste går til infotrygd`() = e2e {
         val periode1 = UUID.randomUUID()
         val periode2 = UUID.randomUUID()
         val søknadHendelseId = UUID.randomUUID()
@@ -579,7 +553,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `kort periode - forlengelse #1 utbetales - forlengelse #2 forkastes`() {
+    fun `kort periode - forlengelse #1 utbetales - forlengelse #2 forkastes`() = e2e {
         val periode1 = UUID.randomUUID()
         val periode2 = UUID.randomUUID()
         val søknadHendelseId = UUID.randomUUID()
@@ -618,7 +592,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `oppretter ikke oppgaver for perioder som var avsluttet, men som blir kastet ut senere`() {
+    fun `oppretter ikke oppgaver for perioder som var avsluttet, men som blir kastet ut senere`() = e2e {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
 
@@ -638,7 +612,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter oppgave for inntektsmelding som treffer perioden i AVSLUTTET_UTEN_UTBETALING`() {
+    fun `utsetter oppgave for inntektsmelding som treffer perioden i AVSLUTTET_UTEN_UTBETALING`() = e2e {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val inntektsmeldingId = UUID.randomUUID()
@@ -668,7 +642,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter oppgaver for inntektsmelding som ikke validerer der den treffer en periode i AVSLUTTET_UTEN_UTBETALING`() {
+    fun `utsetter oppgaver for inntektsmelding som ikke validerer der den treffer en periode i AVSLUTTET_UTEN_UTBETALING`() = e2e {
         val periode = UUID.randomUUID()
         val søknadId = UUID.randomUUID()
         val inntektsmeldingId = UUID.randomUUID()
@@ -694,7 +668,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `oppretter oppgaver for søknad og inntektsmelding når perioden går til infotrygd`() {
+    fun `oppretter oppgaver for søknad og inntektsmelding når perioden går til infotrygd`() = e2e {
         val periode = UUID.randomUUID()
         val søknadId1 = UUID.randomUUID()
         val søknadId2 = UUID.randomUUID()
@@ -730,7 +704,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `setter timeout på oppgave for inntektsmelding ved utbetaling til søker`() {
+    fun `setter timeout på oppgave for inntektsmelding ved utbetaling til søker`() = e2e {
         val hendelseId = UUID.randomUUID()
         val dokumentId = UUID.randomUUID()
         val inntekt = 40000.00
@@ -747,7 +721,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `setter timeout på oppgave for inntektsmelding ved full refusjon`() {
+    fun `setter timeout på oppgave for inntektsmelding ved full refusjon`() = e2e {
         val hendelseId = UUID.randomUUID()
         val dokumentId = UUID.randomUUID()
         val inntekt = 40000.00
@@ -764,7 +738,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `setter ny timeout på oppgaver når vedtaksperioden går til godkjenning`() {
+    fun `setter ny timeout på oppgaver når vedtaksperioden går til godkjenning`() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
         val søknadHendelseId = UUID.randomUUID()
@@ -795,7 +769,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `utsetter inntektsmelding som treffer AUU`() {
+    fun `utsetter inntektsmelding som treffer AUU`() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
         val søknadHendelseId = UUID.randomUUID()
@@ -820,7 +794,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `setter ny timeout hvis en IM kvikner en AUU-periode til live`() {
+    fun `setter ny timeout hvis en IM kvikner en AUU-periode til live`() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
         val søknadHendelseId = UUID.randomUUID()
@@ -859,7 +833,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `setter ikke ny timeout hvis IM-oppgave allerede er avsluttet`() {
+    fun `setter ikke ny timeout hvis IM-oppgave allerede er avsluttet`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
         val vedtaksperiodeId = UUID.randomUUID()
@@ -881,7 +855,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `inntektsmelding kommer før søknad, søknad kastes ut ved håndtering - inntektsmelding får opprettet oppgave`() {
+    fun `inntektsmelding kommer før søknad, søknad kastes ut ved håndtering - inntektsmelding får opprettet oppgave`() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
         sendInntektsmelding(hendelseId = inntektsmeldingHendelseId, dokumentId = inntektsmeldingDokumentId)
@@ -901,7 +875,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `inntektsmelding kommer før søknad - utsetter oppgave `() {
+    fun `inntektsmelding kommer før søknad - utsetter oppgave `() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
         sendInntektsmelding(hendelseId = inntektsmeldingHendelseId, dokumentId = inntektsmeldingDokumentId)
@@ -910,7 +884,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `inntektsmelding ikke håndtert - oppretter oppgave`() {
+    fun `inntektsmelding ikke håndtert - oppretter oppgave`() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
         sendInntektsmelding(hendelseId = inntektsmeldingHendelseId, dokumentId = inntektsmeldingDokumentId)
@@ -920,7 +894,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `inntektsmelding ikke håndtert med periode innenfor 16 dager - oppretter oppgave på speilkø`() {
+    fun `inntektsmelding ikke håndtert med periode innenfor 16 dager - oppretter oppgave på speilkø`() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
         sendInntektsmelding(hendelseId = inntektsmeldingHendelseId, dokumentId = inntektsmeldingDokumentId)
@@ -940,6 +914,27 @@ class EndToEndTest {
             get() = Duration.between(nå, this.timeout).toDays()
     }
 
+    data class OppgaverE2EContext(val oppgaveDAO: OppgaveDAO) {
+        val rapid = TestRapid()
+        var publiserteOppgaver = mutableListOf<OppgaveDTO>()
+        val fakePublisist = Publisist { _: String, dto: OppgaveDTO ->
+            publiserteOppgaver.add(dto)
+        }
+
+        init {
+            rapid.registerRivers(oppgaveDAO, fakePublisist)
+        }
+    }
+
+    private fun e2e(testblokk: OppgaverE2EContext.() -> Unit) {
+        val dataSource: TestDataSource = databaseContainer.nyTilkobling()
+        try {
+            testblokk(OppgaverE2EContext(OppgaveDAO(dataSource.ds)))
+        } finally {
+            databaseContainer.droppTilkobling(dataSource)
+        }
+    }
+
     private fun OppgaveDTO.assertInnhold(
         oppdateringstypeDTO: OppdateringstypeDTO,
         dokumentId: UUID,
@@ -950,15 +945,15 @@ class EndToEndTest {
         assertEquals(oppdateringstypeDTO, oppdateringstype)
     }
 
-    private fun sendSøknad(hendelseId: UUID, dokumentId: UUID = UUID.randomUUID()) {
+    private fun OppgaverE2EContext.sendSøknad(hendelseId: UUID, dokumentId: UUID = UUID.randomUUID()) {
         rapid.sendTestMessage(sendtSøknad(hendelseId, dokumentId))
     }
 
-    private fun sendArbeidsgiversøknad(hendelseId: UUID, dokumentId: UUID = UUID.randomUUID()) {
+    private fun OppgaverE2EContext.sendArbeidsgiversøknad(hendelseId: UUID, dokumentId: UUID = UUID.randomUUID()) {
         rapid.sendTestMessage(sendtArbeidsgiversøknad(hendelseId, dokumentId))
     }
 
-    private fun sendInntektsmelding(
+    private fun OppgaverE2EContext.sendInntektsmelding(
         hendelseId: UUID,
         dokumentId: UUID,
         inntekt: Double = 30000.00,
@@ -978,25 +973,25 @@ class EndToEndTest {
         )
     }
 
-    private fun sendVedtaksperiodeVenter(hendelseIder: List<UUID>, venterPåHva: String, venterPåHvorfor: String? = null, venterPåOrganisasjonsnummer: String = "999999999") {
+    private fun OppgaverE2EContext.sendVedtaksperiodeVenter(hendelseIder: List<UUID>, venterPåHva: String, venterPåHvorfor: String? = null, venterPåOrganisasjonsnummer: String = "999999999") {
         rapid.sendTestMessage(vedtaksperiodeVenter(hendelseIder, venterPåHva, venterPåHvorfor, venterPåOrganisasjonsnummer))
     }
 
-    private fun sendAvsluttetMedVedtak(
+    private fun OppgaverE2EContext.sendAvsluttetMedVedtak(
         hendelseIder: List<UUID>,
         vedtaksperiodeId: UUID = UUID.randomUUID()
     ) {
         rapid.sendTestMessage(avsluttetMedVedtak(hendelseIder, vedtaksperiodeId))
     }
 
-    private fun sendAvsluttetUtenVedtak(
+    private fun OppgaverE2EContext.sendAvsluttetUtenVedtak(
         hendelseIder: List<UUID>,
         vedtaksperiodeId: UUID = UUID.randomUUID()
     ) {
         rapid.sendTestMessage(avsluttetUtenVedtak(hendelseIder, vedtaksperiodeId))
     }
 
-    private fun sendVedtaksperiodeEndret(
+    private fun OppgaverE2EContext.sendVedtaksperiodeEndret(
         hendelseIder: List<UUID>,
         tilstand: String,
         vedtaksperiodeId: UUID = UUID.randomUUID()
@@ -1004,19 +999,19 @@ class EndToEndTest {
         rapid.sendTestMessage(vedtaksperiodeEndret(hendelseIder, tilstand, vedtaksperiodeId))
     }
 
-    private fun sendInntektsmeldingHåndtert(
+    private fun OppgaverE2EContext.sendInntektsmeldingHåndtert(
         inntektsmeldingId: UUID
     ) {
         rapid.sendTestMessage(inntektsmeldingHåndtert(inntektsmeldingId))
     }
 
-    private fun sendSøknadHåndtert(
+    private fun OppgaverE2EContext.sendSøknadHåndtert(
         søknadId: UUID
     ) {
         rapid.sendTestMessage(søknadHåndtert(søknadId))
     }
 
-    private fun vedtaksperiodeForkastet(
+    private fun OppgaverE2EContext.vedtaksperiodeForkastet(
         hendelseIder: List<UUID>,
         behandletIInfotrygd: Boolean = false,
         harPeriodeInnenfor16Dager: Boolean = false,
@@ -1029,7 +1024,7 @@ class EndToEndTest {
     }
 
 
-    private fun inntektsmeldingFørSøknad(inntektsmeldingId: UUID, organisasjonsnummer: String = ORGNUMMER, fødselsnummer: String = FØDSELSNUMMER) {
+    private fun OppgaverE2EContext.inntektsmeldingFørSøknad(inntektsmeldingId: UUID, organisasjonsnummer: String = ORGNUMMER, fødselsnummer: String = FØDSELSNUMMER) {
         rapid.sendTestMessage(
             no.nav.helse.spre.oppgaver.inntektsmeldingFørSøknad(
                 inntektsmeldingId,
@@ -1039,7 +1034,7 @@ class EndToEndTest {
         )
     }
 
-    private fun inntektsmeldingIkkeHåndtert(inntektsmeldingId: UUID, harPeriodeInnenfor16Dager: Boolean = false, organisasjonsnummer: String = ORGNUMMER, fødselsnummer: String = FØDSELSNUMMER) {
+    private fun OppgaverE2EContext.inntektsmeldingIkkeHåndtert(inntektsmeldingId: UUID, harPeriodeInnenfor16Dager: Boolean = false, organisasjonsnummer: String = ORGNUMMER, fødselsnummer: String = FØDSELSNUMMER) {
         rapid.sendTestMessage(
             inntektsmeldingIkkeHåndtert(
                 inntektsmeldingId,
