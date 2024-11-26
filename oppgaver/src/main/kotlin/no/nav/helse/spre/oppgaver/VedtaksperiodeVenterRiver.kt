@@ -2,7 +2,6 @@ package no.nav.helse.spre.oppgaver
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.convertValue
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
@@ -29,23 +28,6 @@ class VedtaksperiodeVenterRiver(
                 }
             }
         }.register(this)
-
-        // todo: denne riveren er deprecated
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "vedtaksperiode_venter") }
-            precondition { it.requireAny("venterPå.venteårsak.hva", listOf("GODKJENNING", "SØKNAD", "INNTEKTSMELDING")) }
-            validate { it.requireKey("hendelser", "@id", "organisasjonsnummer", "venterPå.organisasjonsnummer") }
-        }.register(object : River.PacketListener {
-            override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-                loggUkjentMelding("vedtaksperiode_venter", problems)
-            }
-
-            override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
-                val meldingId = packet["@id"].asText()
-                val venter = objectMapper.readValue<VedtaksperiodeVenterDto>(packet.toJson())
-                håndterVedtaksperiodeVenter(meldingId, venter, context)
-            }
-        })
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
