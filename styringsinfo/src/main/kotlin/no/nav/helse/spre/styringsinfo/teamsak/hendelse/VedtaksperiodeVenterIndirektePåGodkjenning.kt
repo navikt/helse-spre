@@ -49,9 +49,11 @@ internal class VedtaksperiodeVenterIndirektePåGodkjenning(
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
-            valider = { packet ->
+            preconditions = { packet ->
                 packet.demandVenterPåGodkjenning()
                 packet.demandVenterPåAnnenVedtaksperiode()
+            },
+            valider = { packet ->
                 packet.requireBehandlingId()
             },
             opprett = { packet -> VedtaksperiodeVenterIndirektePåGodkjenning(
@@ -62,10 +64,10 @@ internal class VedtaksperiodeVenterIndirektePåGodkjenning(
             )}
         )
 
-        private fun JsonMessage.demandVenterPåGodkjenning() = demandValue("venterPå.venteårsak.hva", "GODKJENNING")
+        private fun JsonMessage.demandVenterPåGodkjenning() = requireValue("venterPå.venteårsak.hva", "GODKJENNING")
         private fun JsonMessage.demandVenterPåAnnenVedtaksperiode() {
             requireVedtaksperiodeId()
-            demand("venterPå.vedtaksperiodeId") { id ->
+            require("venterPå.vedtaksperiodeId") { id ->
                 check(UUID.fromString(id.asText()) != vedtaksperiodeId)
             }
         }

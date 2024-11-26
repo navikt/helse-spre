@@ -19,6 +19,7 @@ import java.util.UUID
 
 internal class HendelseRiver(
     private val eventName: String,
+    private val preconditions: (packet: JsonMessage) -> Unit = {},
     private val valider: (packet: JsonMessage) -> Unit = {},
     private val opprett: (packet: JsonMessage) -> Hendelse,
     rapidsConnection: RapidsConnection,
@@ -27,9 +28,8 @@ internal class HendelseRiver(
 
     init {
         River(rapidsConnection).apply {
-            precondition {
-                it.requireAny("@event_name", listOf(eventName, "${eventName}_styringsinfo_replay"))
-            }
+            precondition { it.requireAny("@event_name", listOf(eventName, "${eventName}_styringsinfo_replay")) }
+            precondition { preconditions(it) }
             validate {
                 it.require("@opprettet") { opprettet -> opprettet.tidspunkt }
                 it.require("@id") { id -> UUID.fromString(id.asText()) }

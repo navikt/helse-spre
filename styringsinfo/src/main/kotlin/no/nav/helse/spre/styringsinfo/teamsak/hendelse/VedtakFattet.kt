@@ -43,13 +43,15 @@ internal class VedtakFattet(
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
+            preconditions = { packet ->
+                // Skal lese inn vedtak_fattet-event kun for perioder med vedtak, ikke AUU
+                packet.demandSykepengegrunnlagfakta()
+                packet.demandUtbetalingId()
+            },
             valider = {
                 packet ->
                     packet.requireBehandlingId()
                     packet.requireTags()
-                    // Skal lese inn vedtak_fattet-event kun for perioder med vedtak, ikke AUU
-                    packet.demandSykepengegrunnlagfakta()
-                    packet.demandUtbetalingId()
             },
             opprett = { packet -> VedtakFattet(
                 id = packet.hendelseId,
@@ -62,8 +64,8 @@ internal class VedtakFattet(
 
         private val JsonMessage.tags get() = this["tags"].map { it.asText() }
         private fun JsonMessage.requireTags() = requireKey("tags")
-        private fun JsonMessage.demandUtbetalingId() = demand("utbetalingId") { utbetalingId -> UUID.fromString(utbetalingId.asText()) }
-        private fun JsonMessage.demandSykepengegrunnlagfakta() = demand("sykepengegrunnlagsfakta") {
+        private fun JsonMessage.demandUtbetalingId() = require("utbetalingId") { utbetalingId -> UUID.fromString(utbetalingId.asText()) }
+        private fun JsonMessage.demandSykepengegrunnlagfakta() = require("sykepengegrunnlagsfakta") {
             sykepengegrunnlagsfakta -> require(!sykepengegrunnlagsfakta.isMissingOrNull())
         }
         private val manuelleTags = mapOf(
