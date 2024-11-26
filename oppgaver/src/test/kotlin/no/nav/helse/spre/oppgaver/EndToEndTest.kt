@@ -1063,17 +1063,21 @@ fun vedtaksperiodeVenter(
     venterPåOrganisasjonsnummer: String
 ) =
     """{
-            "@event_name": "vedtaksperiode_venter",
+            "@event_name": "vedtaksperioder_venter",
             "@id": "${UUID.randomUUID()}",
-            "organisasjonsnummer": "999999999",
-            "hendelser": ${hendelseIder.tilJSONStringArray()},
-            "venterPå": {
-                "organisasjonsnummer": "$venterPåOrganisasjonsnummer",
-                "venteårsak": {
-                  "hva": "$venterPåHva",
-                  "hvorfor": ${venterPåHvorfor?.let { "\"$it\"" }}
-                }
-             }
+            "vedtaksperioder": [
+              {
+                "organisasjonsnummer": "999999999",
+                "hendelser": ${hendelseIder.tilJSONStringArray()},
+                "venterPå": {
+                    "organisasjonsnummer": "$venterPåOrganisasjonsnummer",
+                    "venteårsak": {
+                      "hva": "$venterPåHva",
+                      "hvorfor": ${venterPåHvorfor?.let { "\"$it\"" }}
+                    }
+                 }
+              }
+            ]
         }"""
 
 private fun Iterable<Any>.tilJSONStringArray() = joinToString(prefix = "[", postfix = "]") { "\"$it\"" }
