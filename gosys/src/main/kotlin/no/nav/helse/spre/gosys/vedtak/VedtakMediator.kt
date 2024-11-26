@@ -43,10 +43,13 @@ class VedtakMediator(
                 sikkerLogg.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}, fødselsnummer=${vedtakMessage.fødselsnummer}")
                 ""
             }
+            log.debug("Hentet organisasjonsnavn")
             val navn = hentNavn(speedClient, vedtakMessage.fødselsnummer, vedtakMessage.utbetalingId.toString()) ?: ""
+            log.debug("Hentet søkernavn")
             val vedtakPdfPayload = vedtakMessage.toVedtakPdfPayloadV2(organisasjonsnavn, navn)
             if (erUtvikling) sikkerLogg.info("vedtak-payload: ${objectMapper.writeValueAsString(vedtakPdfPayload)}")
             val pdf = pdfClient.hentVedtakPdfV2(vedtakPdfPayload)
+            log.debug("Hentet pdf")
             val journalpostPayload = JournalpostPayload(
                 tittel = journalpostTittel(vedtakMessage.type),
                 bruker = JournalpostPayload.Bruker(id = vedtakMessage.fødselsnummer),
@@ -58,13 +61,12 @@ class VedtakMediator(
                 ),
                 eksternReferanseId = vedtakMessage.utbetalingId.toString(),
             )
-            joarkClient.opprettJournalpost(vedtakMessage.utbetalingId, journalpostPayload).let { success ->
-                if (success) {
-                    log.info("Vedtak journalført for utbetalingId: ${vedtakMessage.utbetalingId}")
-                    sikkerLogg.info("Vedtak journalført for fødselsnummer=${vedtakMessage.fødselsnummer} utbetalingId: ${vedtakMessage.utbetalingId}")
-                }
-                else log.warn("Feil oppstod under journalføring av vedtak")
+            val success = joarkClient.opprettJournalpost(vedtakMessage.utbetalingId, journalpostPayload)
+            if (success) {
+                log.info("Vedtak journalført for utbetalingId: ${vedtakMessage.utbetalingId}")
+                sikkerLogg.info("Vedtak journalført for fødselsnummer=${vedtakMessage.fødselsnummer} utbetalingId: ${vedtakMessage.utbetalingId}")
             }
+            else log.warn("Feil oppstod under journalføring av vedtak")
         }
     }
 
