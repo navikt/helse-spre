@@ -62,7 +62,9 @@ data class Utbetaling(
                 vedtaksperiode.sykepengegrunnlagsfakta,
                 vedtaksperiode.begrunnelser,
                 this
-            )
+            ) {
+                vedtakFattetDao.journalført(vedtaksperiode.id)
+            }
         }
     }
 

@@ -20,7 +20,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 
-private val log: Logger = LoggerFactory.getLogger("spregosys")
 private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 
 internal class VedtakFattetRiver(
@@ -88,7 +87,9 @@ internal class VedtakFattetRiver(
     }
 
     private fun erLogiskDuplikat(utbetalingId: UUID, vedtaksperiodeId: UUID?) =
-        vedtakFattetDao.finnVedtakFattetData(utbetalingId).any { it.vedtaksperiodeId == vedtaksperiodeId }
+        vedtakFattetDao.finnVedtakFattetData(utbetalingId).any { vedtak ->
+            vedtak.vedtaksperiodeId == vedtaksperiodeId && vedtakFattetDao.erJournalført(vedtak)
+        }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
         tjenestekall.info("Noe gikk galt: {}", problems.toExtendedReport())
