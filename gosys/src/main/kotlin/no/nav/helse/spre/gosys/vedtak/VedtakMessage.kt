@@ -144,6 +144,7 @@ data class VedtakMessage(
                 "SkjønnsfastsattSykepengegrunnlagKonklusjon" -> "begrunnelseFraKonklusjon" to it.begrunnelse
                 "DelvisInnvilgelse" -> "delvisInnvilgelse" to it.begrunnelse
                 "Avslag" -> "avslag" to it.begrunnelse
+                "Innvilgelse" -> "innvilgelse" to it.begrunnelse
                 else -> error("Ukjent begrunnelsetype: ${it.type}")
             }
         }

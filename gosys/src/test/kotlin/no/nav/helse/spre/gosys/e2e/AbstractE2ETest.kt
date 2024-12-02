@@ -202,7 +202,7 @@ internal abstract class AbstractE2ETest {
                 skjønnsfastsatt = 565260.0
             )
         ),
-        begrunnelser: Map<String, String>? = null,
+        begrunnelser: Map<String, String>? = mapOf("innvilgelse" to ""),
     ) =
         VedtakPdfPayloadV2(
             fødselsnummer = "12345678910",
@@ -319,6 +319,18 @@ internal abstract class AbstractE2ETest {
     "aktørId": "123",
     "organisasjonsnummer": "123456789",
     "system_read_count": 0,
+    "begrunnelser": [
+        {
+            "type": "Innvilgelse",
+            "begrunnelse": "",
+            "perioder": [
+                {
+                    "fom": "2023-11-13",
+                    "tom": "2023-12-01"
+                }
+            ]
+        }
+    ],
     "sykepengegrunnlagsfakta": {
       "omregnetÅrsinntekt": 565260.0,
       "fastsatt": "EtterSkjønn",

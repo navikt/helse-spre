@@ -406,6 +406,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             )
         )
     }
+
     @Test
     fun `Annen ytelse`() {
         val utbetalingId = UUID.randomUUID()
