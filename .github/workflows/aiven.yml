@@ -8,6 +8,7 @@ on:
     - 'config/oppgaver/aiven-dev-spre-oppgaver.yml'
     - 'config/oppgaver/aiven-prod-spre-oppgaver.yml'
     - 'config/sykmeldt/aiven-dev-forelagte-opplysninger.yml'
+    - 'config/sykmeldt/aiven-prod-forelagte-opplysninger.yml'
     - '.github/workflows/aiven.yml'
 
 jobs:
