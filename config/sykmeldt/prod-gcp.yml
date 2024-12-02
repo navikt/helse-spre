@@ -1,0 +1,3 @@
+kafkaPool: nav-prod
+kafkaConsumerGroup: tbd-spre-sykmeldt-v1
+kafkaResetPolicy: earliest
