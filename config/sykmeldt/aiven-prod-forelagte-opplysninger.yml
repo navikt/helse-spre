@@ -19,7 +19,8 @@ spec:
         partitions: 3
         replication: 2  # see min/max requirements
         retentionBytes: -1  # -1 means unlimited
-        retentionHours: 1440  # 60 dager lagring på treig disk
+        retentionHours: 168  # 7 dager på treig disk
+        localRetentionHours: 24 # 1 dag på rask disk
     acl:
         - team: tbd
           application: spre-sykmeldt
