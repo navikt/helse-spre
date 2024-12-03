@@ -3,13 +3,15 @@ annotations:
     value: 10s
 kafkaPool: nav-prod
 replicas:
-  max: 6
+  min: 1
+  max: 1
 azure:
   enabled: true
 gcp:
   type: POSTGRES_15
   databaseName: spre-gosys
   envVarPrefix: DB
+  tier: db-custom-10-20480
 accessPolicy:
   outbound:
     - application: speed-api
