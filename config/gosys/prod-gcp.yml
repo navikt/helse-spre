@@ -11,7 +11,7 @@ gcp:
   type: POSTGRES_15
   databaseName: spre-gosys
   envVarPrefix: DB
-  sqlInstanceTier: db-custom-10-20480
+  sqlInstanceTier: db-custom-96-638976
 accessPolicy:
   outbound:
     - application: speed-api
