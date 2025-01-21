@@ -16,10 +16,8 @@ class InntektsmeldingRiver(rapidsConnection: RapidsConnection, private val oppga
             precondition { it.requireValue("@event_name", "inntektsmelding") }
             validate { it.requireKey("@id") }
             validate { it.requireKey("inntektsmeldingId") }
-            validate { it.requireKey("beregnetInntekt") }
             validate { it.requireKey("virksomhetsnummer") }
             validate { it.requireKey("arbeidstakerFnr") }
-            validate { it.interestedIn("refusjon.beloepPrMnd") }
         }.register(this)
     }
 
