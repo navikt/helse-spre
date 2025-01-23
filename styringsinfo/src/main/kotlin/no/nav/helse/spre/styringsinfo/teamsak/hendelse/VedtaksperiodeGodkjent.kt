@@ -32,7 +32,6 @@ internal class VedtaksperiodeGodkjent(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        if (behandlingId == UUID.fromString("5cf12472-9c97-4cac-86e8-0f4e80aeebed")) return true
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
         val hendelsesmetode = if (automatiskBehandling) AUTOMATISK else if (totrinnsbehandling) TOTRINNS else MANUELL
 
