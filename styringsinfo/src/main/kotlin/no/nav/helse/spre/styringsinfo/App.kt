@@ -16,10 +16,6 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.http.HttpClient
-import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
@@ -29,13 +25,6 @@ internal val objectMapper: ObjectMapper = ObjectMapper().apply {
     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 }
-
-data class PatchOptions(
-    val patchLevelMindreEnn: Int,
-    val initialSleepMillis: Long = 60_000, // Antall millisekunder vi venter før patching starter.
-    val loopSleepMillis: Long = 1000, // Antall millisekunder mellom hver iterasjon
-    val antallMeldinger: Int = 1000 // Hvor mange meldinger vi henter fra databasen for hver iterasjon.
-)
 
 fun main() {
     val environment = System.getenv()
@@ -80,10 +69,3 @@ internal fun launchApplication(dataSource: HikariDataSource, environment: Map<St
         UtkastTilVedtak.river(this, hendelseDao, behandlingshendelseDao)
     }
 }
-
-fun LocalDateTime.toOsloOffset(): OffsetDateTime =
-    this.atOffset(ZoneId.of("Europe/Oslo").rules.getOffset(this))
-
-fun ZonedDateTime.toOsloTid(): LocalDateTime =
-    this.withZoneSameInstant(ZoneId.of("Europe/Oslo")).toLocalDateTime()
-
