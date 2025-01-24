@@ -38,6 +38,19 @@ internal class VedtakFattet(
     internal companion object {
         private const val eventName = "vedtak_fattet"
 
+        internal fun valider(packet: JsonMessage) {
+            packet.requireBehandlingId()
+            packet.requireTags()
+        }
+
+        internal fun opprett(packet: JsonMessage) = VedtakFattet(
+            id = packet.hendelseId,
+            opprettet = packet.opprettet,
+            data = packet.blob,
+            behandlingId = packet.behandlingId,
+            tags = Tags(packet.tags)
+        )
+
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
@@ -48,18 +61,8 @@ internal class VedtakFattet(
                 packet.demandSykepengegrunnlagfakta()
                 packet.demandUtbetalingId()
             },
-            valider = {
-                packet ->
-                    packet.requireBehandlingId()
-                    packet.requireTags()
-            },
-            opprett = { packet -> VedtakFattet(
-                id = packet.hendelseId,
-                opprettet = packet.opprettet,
-                data = packet.blob,
-                behandlingId = packet.behandlingId,
-                tags = Tags(packet.tags)
-            )}
+            valider = { packet -> valider(packet) },
+            opprett = { packet -> opprett(packet) }
         )
 
         private val JsonMessage.tags get() = this["tags"].map { it.asText() }
