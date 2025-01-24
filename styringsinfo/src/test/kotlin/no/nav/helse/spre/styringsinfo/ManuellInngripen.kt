@@ -12,6 +12,7 @@ import java.io.File
 import java.util.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.BehandlingOpprettet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.tidspunkt
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 
@@ -36,12 +37,14 @@ private class ManuellInngripen(jdbcUrl: String) {
 
     fun leggTilBehandlingOpprettet(path: String, aktørId: String) {
         val packet = path.jsonMessage
-        BehandlingOpprettet.valider(packet)
+        val id = packet.hendelseId
+        if (behandlingstatusDao.harHåndtertHendelseTidligere(id)) return println("Hendelse med @id $id er allerede håndtert.")
 
+        BehandlingOpprettet.valider(packet)
         val behandlingOpprettet = BehandlingOpprettet.opprett(packet, aktørId)
         hendelseDao.lagre(behandlingOpprettet)
         behandlingOpprettet.håndter(behandlingstatusDao)
-        println("La til BehandlingOpprettet med @id ${behandlingOpprettet.id}")
+        println("La til BehandlingOpprettet med @id $id")
     }
 
     private val meterRegistry = PrometheusMeterRegistry(DEFAULT, defaultRegistry, SYSTEM)
