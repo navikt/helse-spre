@@ -1,9 +1,9 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.github.navikt.tbd_libs.result_object.getOrThrow
-import com.github.navikt.tbd_libs.result_object.tryCatch
 import com.github.navikt.tbd_libs.retry.retryBlocking
 import com.github.navikt.tbd_libs.speed.SpeedClient
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
@@ -82,34 +82,38 @@ internal class BehandlingOpprettet(
 
         private const val eventName = "behandling_opprettet"
 
+        internal fun valider(packet: JsonMessage) {
+            packet.requireVedtaksperiodeId()
+            packet.requireBehandlingId()
+            packet.requireKey("fødselsnummer", "kilde.registrert", "kilde.innsendt", "kilde.avsender", "type")
+        }
+
+        internal fun opprett(packet: JsonMessage, aktørId: String) = BehandlingOpprettet(
+            id = packet.hendelseId,
+            data = packet.blob,
+            opprettet = packet.opprettet,
+            behandlingId = packet.behandlingId,
+            vedtaksperiodeId = packet.vedtaksperiodeId,
+            aktørId = aktørId,
+            behandlingskilde = Behandlingskilde(
+                innsendt = packet["kilde.innsendt"].tidspunkt,
+                registrert = packet["kilde.registrert"].tidspunkt,
+                avsender = Avsender(packet["kilde.avsender"].asText())
+            ),
+            behandlingstype = Behandlingstype(packet["type"].asText())
+        )
+
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao, speedClient: SpeedClient) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
-            valider = { packet ->
-                packet.requireVedtaksperiodeId()
-                packet.requireBehandlingId()
-                packet.requireKey("fødselsnummer", "kilde.registrert", "kilde.innsendt", "kilde.avsender", "type")
-            },
+            valider = { packet -> valider(packet) },
             opprett = { packet ->
-                val identer = retryBlocking {
+                val aktørId = retryBlocking {
                     speedClient.hentFødselsnummerOgAktørId(packet["fødselsnummer"].asText(), packet.hendelseId.toString()).getOrThrow()
-                }
-                BehandlingOpprettet(
-                    id = packet.hendelseId,
-                    data = packet.blob,
-                    opprettet = packet.opprettet,
-                    behandlingId = packet.behandlingId,
-                    vedtaksperiodeId = packet.vedtaksperiodeId,
-                    aktørId = identer.aktørId,
-                    behandlingskilde = Behandlingskilde(
-                        innsendt = packet["kilde.innsendt"].tidspunkt,
-                        registrert = packet["kilde.registrert"].tidspunkt,
-                        avsender = Avsender(packet["kilde.avsender"].asText())
-                    ),
-                    behandlingstype = Behandlingstype(packet["type"].asText())
-                )
+                }.aktørId
+                opprett(packet, aktørId)
             }
         )
     }
