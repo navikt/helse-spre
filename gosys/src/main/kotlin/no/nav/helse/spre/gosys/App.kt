@@ -38,7 +38,7 @@ internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .registerModule(JavaTimeModule())
 
-internal val log: Logger = LoggerFactory.getLogger("spregosys")
+internal val logg: Logger = LoggerFactory.getLogger("spregosys")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
 val erUtvikling = System.getenv("NAIS_CLUSTER_NAME") == "dev-gcp"

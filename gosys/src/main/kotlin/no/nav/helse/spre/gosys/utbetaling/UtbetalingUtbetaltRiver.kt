@@ -10,17 +10,12 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
+import java.util.*
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
-import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import java.util.*
-
-private val log: Logger = LoggerFactory.getLogger("spregosys")
-private val sikkerLog = LoggerFactory.getLogger("tjenestekall")
 
 internal class UtbetalingUtbetaltRiver(
     rapidsConnection: RapidsConnection,
@@ -75,8 +70,8 @@ internal class UtbetalingUtbetaltRiver(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error("forstod ikke utbetaling_utbetalt. (se sikkerlogg for melding)")
-        sikkerLog.error("forstod ikke utbetaling_utbetalt:\n${problems.toExtendedReport()}")
+        logg.error("forstod ikke utbetaling_utbetalt. (se sikkerlogg for melding)")
+        sikkerLogg.error("forstod ikke utbetaling_utbetalt:\n${problems.toExtendedReport()}")
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
@@ -87,7 +82,7 @@ internal class UtbetalingUtbetaltRiver(
                 utbetaling.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
             }
         } catch (err: Exception) {
-            log.error("Feil i melding $id i utbetaling utbetalt-river: ${err.message}", err)
+            logg.error("Feil i melding $id i utbetaling utbetalt-river: ${err.message}", err)
             sikkerLogg.error("Feil i melding $id i utbetaling utbetalt-river: ${err.message}", err)
             throw err
         }
@@ -97,10 +92,10 @@ internal class UtbetalingUtbetaltRiver(
 internal fun lagreUtbetaling(hendelseId: UUID, packet: JsonMessage, utbetalingDao: UtbetalingDao): Utbetaling {
     val utbetalingId = packet["utbetalingId"].asText().let { UUID.fromString(it) }
     val event = packet["@event_name"].asText()
-    log.info("$event lest inn for utbetaling med id $utbetalingId")
+    logg.info("$event lest inn for utbetaling med id $utbetalingId")
 
     val utbetalingData = Utbetaling.fromJson(packet)
     utbetalingDao.lagre(hendelseId, event, utbetalingData, packet.toJson())
-    log.info("$event lagret for utbetaling med id $utbetalingId på id $hendelseId")
+    logg.info("$event lagret for utbetaling med id $utbetalingId på id $hendelseId")
     return utbetalingData
 }

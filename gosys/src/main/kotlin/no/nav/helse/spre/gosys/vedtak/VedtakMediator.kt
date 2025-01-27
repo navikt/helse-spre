@@ -40,17 +40,17 @@ class VedtakMediator(
                     vedtakMessage.utbetalingId
                 ).navn
             } catch (e: Exception) {
-                log.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}")
+                logg.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}")
                 sikkerLogg.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}, fødselsnummer=${vedtakMessage.fødselsnummer}")
                 ""
             }
-            log.debug("Hentet organisasjonsnavn")
+            logg.debug("Hentet organisasjonsnavn")
             val navn = hentNavn(speedClient, vedtakMessage.fødselsnummer, vedtakMessage.utbetalingId.toString()) ?: ""
-            log.debug("Hentet søkernavn")
+            logg.debug("Hentet søkernavn")
             val vedtakPdfPayload = vedtakMessage.toVedtakPdfPayloadV2(organisasjonsnavn, navn)
             if (erUtvikling) sikkerLogg.info("vedtak-payload: ${objectMapper.writeValueAsString(vedtakPdfPayload)}")
             val pdf = pdfClient.hentVedtakPdfV2(vedtakPdfPayload)
-            log.debug("Hentet pdf")
+            logg.debug("Hentet pdf")
             val journalpostPayload = JournalpostPayload(
                 tittel = journalpostTittel(vedtakMessage.type),
                 bruker = JournalpostPayload.Bruker(id = vedtakMessage.fødselsnummer),
@@ -64,10 +64,10 @@ class VedtakMediator(
             )
             val success = joarkClient.opprettJournalpost(vedtakMessage.utbetalingId, journalpostPayload)
             if (!success) {
-                log.warn("Feil oppstod under journalføring av vedtak")
+                logg.warn("Feil oppstod under journalføring av vedtak")
                 return@runBlocking
             }
-            log.info("Vedtak journalført for utbetalingId: ${vedtakMessage.utbetalingId}")
+            logg.info("Vedtak journalført for utbetalingId: ${vedtakMessage.utbetalingId}")
             sikkerLogg.info("Vedtak journalført for fødselsnummer=${vedtakMessage.fødselsnummer} utbetalingId: ${vedtakMessage.utbetalingId}")
             klarteÅJournalføreCallback()
         }

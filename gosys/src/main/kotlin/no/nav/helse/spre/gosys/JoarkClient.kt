@@ -29,7 +29,8 @@ class JoarkClient(
             .executeRetry(avbryt = { it::class !in forsøkPåNy }) {
                 if (it.status.value !in ((200..300) + 409)) {
                     val error = it.body<String>()
-                    log.error("Feil fra Joark: {}", keyValue("response", error))
+                    logg.error("Feil fra Joark: {}", keyValue("response", error))
+                    sikkerLogg.error("Feil fra Joark: {}, {}", keyValue(journalpostPayload.bruker.idType, journalpostPayload.bruker.id), keyValue("response", error))
                     throw JoarkClientException("Feil fra Joark: $error")
                 } else true
             }

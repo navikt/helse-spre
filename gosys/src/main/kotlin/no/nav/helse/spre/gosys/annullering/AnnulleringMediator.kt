@@ -23,7 +23,7 @@ class AnnulleringMediator(
                     annulleringMessage.hendelseId
                 ).navn
             } catch (e: Exception) {
-                log.error("Feil ved henting av bedriftsnavn")
+                logg.error("Feil ved henting av bedriftsnavn")
                 null
             }
 
@@ -42,8 +42,8 @@ class AnnulleringMediator(
                 eksternReferanseId = annulleringMessage.utbetalingId.toString(),
             )
             joarkClient.opprettJournalpost(annulleringMessage.hendelseId, journalpostPayload).let { success ->
-                if (success) log.info("Annullering journalført for hendelseId=${annulleringMessage.hendelseId}")
-                else log.warn("Feil oppstod under journalføring av annullering")
+                if (success) logg.info("Annullering journalført for hendelseId=${annulleringMessage.hendelseId}")
+                else logg.warn("Feil oppstod under journalføring av annullering")
             }
         }
     }
@@ -58,7 +58,7 @@ fun hentNavn(speedClient: SpeedClient, ident: String, callId: String) =
         .fold(
             whenOk = { it.tilVisning() },
             whenError = { msg, cause ->
-                log.error("Feil ved henting av navn")
+                logg.error("Feil ved henting av navn")
                 sikkerLogg.error("Feil ved henting av navn for ident=$ident: $msg", cause)
                 null
             }

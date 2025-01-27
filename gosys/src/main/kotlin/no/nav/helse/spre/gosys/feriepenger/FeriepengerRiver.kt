@@ -12,7 +12,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
-import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.sikkerLogg
 import java.util.*
 
@@ -52,21 +52,21 @@ class FeriepengerRiver(
         val id = UUID.fromString(packet["@id"].asText())
         try {
             duplikatsjekkDao.sjekkDuplikat(id) {
-                log.info("Oppdaget feriepenger-event {}", keyValue("id", id))
+                logg.info("Oppdaget feriepenger-event {}", keyValue("id", id))
                 sikkerLogg.info("feriepenger_utbetalt lest inn: {}", packet.toJson())
 
                 val feriepengerMessage = FeriepengerMessage(id, packet)
                 feriepengerMediator.opprettFeriepenger(feriepengerMessage)
             }
         } catch (err: Exception) {
-            log.error("Feil i melding $id i feriepenge-river: ${err.message}", err)
+            logg.error("Feil i melding $id i feriepenge-river: ${err.message}", err)
             sikkerLogg.error("Feil i melding $id i feriepenge-river: ${err.message}", err)
             throw err
         }
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        log.error(problems.toString())
+        logg.error(problems.toString())
         sikkerLogg.error(problems.toExtendedReport())
     }
 }

@@ -1,6 +1,6 @@
 package no.nav.helse.spre.gosys.vedtak
 
-import no.nav.helse.spre.gosys.log
+import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
@@ -115,7 +115,7 @@ data class VedtakMessage(
                         "Arbeidsdag" -> "Arbeidsdag"
                         "Annullering" -> "Annullering"
                         else -> {
-                            log.error("Ukjent dagtype $it")
+                            logg.error("Ukjent dagtype $it")
                             "Ukjent dagtype: \"${it.type}\""
                         }
                     }
@@ -189,7 +189,7 @@ data class VedtakMessage(
             "AndreYtelserPleiepenger" -> "Personen mottar Pleiepenger"
             "AndreYtelserSvangerskapspenger" -> "Personen mottar Svangerskapspenger"
             else -> {
-                log.error("Ukjent begrunnelse $it")
+                logg.error("Ukjent begrunnelse $it")
                 "Ukjent begrunnelse: \"${it}\""
             }
         }

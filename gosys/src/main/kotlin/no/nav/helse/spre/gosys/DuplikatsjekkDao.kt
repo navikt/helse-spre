@@ -17,7 +17,7 @@ class DuplikatsjekkDao(private val datasource: DataSource) {
                 if (recordsChanged > 0) {
                     callback()
                 } else {
-                    log.info("Oppdaget duplikat, oppretter ikke journalpost for $id")
+                    logg.info("Oppdaget duplikat, oppretter ikke journalpost for $id")
                 }
             }
         }

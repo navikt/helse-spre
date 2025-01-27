@@ -35,7 +35,7 @@ class EregClient(
                 .let { jsonResponse -> EregResponse(navn = trekkUtNavn(jsonResponse))}
             }
         } catch (exception: RuntimeException) {
-            log.error("Feil ved henting av organiasasjonsnavn. Sjekk sikker logg for detaljer")
+            logg.error("Feil ved henting av organiasasjonsnavn. Sjekk sikker logg for detaljer")
             sikkerLogg.error("Feil ved henting av organiasasjonsnavn orgnummer=$organisasjonsnummer", exception)
             throw exception
         }
