@@ -108,8 +108,6 @@ jobs:
           tag: ${{ needs.generate_vars.outputs.tag }}
           dockerfile: Dockerfile
           docker_context: ${{ matrix.project }}
-          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
-          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
       - name: lage build-fil
         if: ${{ always() }}
         run: |
