@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import io.ktor.client.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -29,6 +30,7 @@ class EregClient(
                 System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
                 header("Nav-Call-Id", callId)
                 accept(ContentType.Application.Json)
+                expectSuccess = true
             }.executeRetry { response ->
                 response.bodyAsText()
                 .let<String, JsonNode>(objectMapper::readValue)

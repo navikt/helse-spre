@@ -25,6 +25,7 @@ class JoarkClient(
             bearerAuth(azureClient.bearerToken(joarkScope).getOrThrow().token)
             contentType(ContentType.Application.Json)
             setBody(journalpostPayload)
+            expectSuccess = true
         }
             .executeRetry(avbryt = { it::class !in forsøkPåNy }) {
                 if (it.status.value !in ((200..300) + 409)) {
