@@ -2,6 +2,7 @@ package no.nav.helse.spre.gosys
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.ContentType.Application.Json
@@ -26,6 +27,7 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
         httpClient.preparePost(url) {
             contentType(Json)
             setBody(input)
+            expectSuccess = true
         }.executeRetry { response ->
             response.body<ByteArray>().let(encoder::encodeToString).also { if (it.isNullOrBlank()) error("Fikk tom pdf") }
         }
