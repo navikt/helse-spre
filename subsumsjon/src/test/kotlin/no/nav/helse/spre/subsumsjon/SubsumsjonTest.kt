@@ -14,16 +14,16 @@ import io.kotest.matchers.collections.shouldNotBeIn
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
-import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
-import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.LocalDateTime
 import java.util.*
+import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
+import org.slf4j.LoggerFactory
 
 internal class SubsumsjonTest {
     private val testRapid = TestRapid()
@@ -36,9 +36,10 @@ internal class SubsumsjonTest {
             spedisjonClient.hentMeldinger(any(), any())
         } returns HentMeldingerResponse(emptyList()).ok()
 
-        SubsumsjonRiver(testRapid, spedisjonClient) { fnr, melding ->
+        SubsumsjonV1_0_0River(testRapid, spedisjonClient) { fnr, melding ->
             resultater.add(fnr to objectMapper.readTree(melding))
         }
+        SubsumsjonUkjentVersjonRiver(testRapid)
     }
 
     @Test
@@ -258,8 +259,12 @@ internal class SubsumsjonTest {
 
     @Test
     fun `En dårlig subsumsjon resulterer i exception`() {
+        assertThrows<IllegalStateException> { testRapid.sendTestMessage(badTestMessage) }
+    }
 
-        assertThrows(IllegalArgumentException::class.java) { testRapid.sendTestMessage(badTestMessage) }
+    @Test
+    fun `En ukjent versjon resulterer i exception`() {
+        assertThrows<IllegalStateException> { testRapid.sendTestMessage(testSubsumsjon(emptyList(), emptyList(), emptyList(), versjon = "2.0.0")) }
     }
 
     @Test
@@ -283,7 +288,8 @@ internal class SubsumsjonTest {
     private fun testSubsumsjon(
         sykmeldingIder: List<UUID>,
         søknadIder: List<UUID>,
-        inntektsmeldingIder: List<UUID>
+        inntektsmeldingIder: List<UUID>,
+        versjon: String = "1.0.0",
     ) = """
   {
     "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
@@ -291,7 +297,7 @@ internal class SubsumsjonTest {
     "@opprettet": "2022-02-02T14:47:01.326499238",
     "subsumsjon": {
       "tidsstempel": "2022-02-02T14:47:01.326499238+01:00",
-      "versjon": "1.0.0",
+      "versjon": "$versjon",
       "kilde": "spleis",
       "versjonAvKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",
       "fodselsnummer": "02126721911",

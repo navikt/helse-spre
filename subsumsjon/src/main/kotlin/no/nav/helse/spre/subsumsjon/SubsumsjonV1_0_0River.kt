@@ -14,7 +14,7 @@ import com.github.navikt.tbd_libs.spedisjon.SpedisjonClient
 import io.micrometer.core.instrument.MeterRegistry
 import java.util.UUID
 
-internal class SubsumsjonRiver(
+internal class SubsumsjonV1_0_0River(
     rapidsConnection: RapidsConnection,
     private val spedisjonClient: SpedisjonClient,
     private val subsumsjonPublisher: (key: String, value: String) -> Unit
@@ -22,7 +22,10 @@ internal class SubsumsjonRiver(
 
     init {
         River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "subsumsjon") }
+            precondition {
+                it.requireValue("@event_name", "subsumsjon")
+                it.requireValue("subsumsjon.versjon", "1.0.0")
+            }
             validate { it.requireKey("@id") }
             validate { it.requireKey("@opprettet") }
             validate { it.requireKey("subsumsjon") }
