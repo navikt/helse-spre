@@ -39,6 +39,9 @@ internal class SubsumsjonTest {
         SubsumsjonV1_0_0River(testRapid, spedisjonClient) { fnr, melding ->
             resultater.add(fnr to objectMapper.readTree(melding))
         }
+        SubsumsjonV1_1_0River(testRapid) { fnr, melding ->
+            resultater.add(fnr to objectMapper.readTree(melding))
+        }
         SubsumsjonUkjentVersjonRiver(testRapid)
     }
 
@@ -104,6 +107,19 @@ internal class SubsumsjonTest {
 
         inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
         inntektsmeldingDuplikatDokumentId shouldNotBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
+    }
+    @Test
+    fun `v1_1_0 - En subsumsjon blir publisert`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val behandlingId = UUID.randomUUID()
+        testRapid.sendTestMessage(testSubsumsjonV1_1_0(vedtaksperiodeId, behandlingId))
+
+        assertEquals("02126721911", resultater.last().first)
+        val subsumsjonMelding = resultater.last().second
+        vedtaksperiodeId shouldBeIn subsumsjonMelding.node("sporing.vedtaksperiode").toUUIDs()
+        "947064649" shouldBeIn subsumsjonMelding.node("sporing.organisasjonsnummer").map { it.asText() }
+        assertEquals(vedtaksperiodeId, subsumsjonMelding.node("vedtaksperiodeId").toUUID())
+        assertEquals(behandlingId, subsumsjonMelding.node("behandlingId").toUUID())
     }
 
     @Test
@@ -306,6 +322,55 @@ internal class SubsumsjonTest {
         "sykmelding": ${objectMapper.writeValueAsString(sykmeldingIder)},
         "soknad":${objectMapper.writeValueAsString(søknadIder)},
         "inntektsmelding": ${objectMapper.writeValueAsString(inntektsmeldingIder)},
+        "organisasjonsnummer":["947064649"]
+      },
+      "lovverk": "folketrygdloven",
+      "lovverksversjon": "2018-01-01",
+      "paragraf": "8-17",
+      "input": {
+        "arbeidsgiverperioder": [
+          {
+            "fom": "2021-08-01",
+            "tom": "2021-08-16"
+          }
+        ]
+      },
+      "output": {
+        "førsteUtbetalingsdag": "2021-08-17"
+      },
+      "utfall": "VILKAR_BEREGNET",
+      "ledd": 1,
+      "bokstav": "a"
+    },
+    "system_read_count": 0,
+    "system_participating_services": [
+      {
+        "service": "spleis",
+        "instance": "spleis-86b77d6b48-xbfwr",
+        "time": "2022-02-02T14:47:01.328378699"
+      }
+    ]
+  }
+""".trimIndent()
+    @Language("JSON")
+    private fun testSubsumsjonV1_1_0(
+        vedtaksperiodeId: UUID = UUID.randomUUID(),
+        behandlingId: UUID = UUID.randomUUID()
+    ) = """
+  {
+    "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
+    "@event_name": "subsumsjon",
+    "@opprettet": "2022-02-02T14:47:01.326499238",
+    "subsumsjon": {
+      "tidsstempel": "2022-02-02T14:47:01.326499238+01:00",
+      "versjon": "1.1.0",
+      "kilde": "spleis",
+      "versjonAvKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",
+      "fodselsnummer": "02126721911",
+      "vedtaksperiodeId": "$vedtaksperiodeId",
+      "behandlingId": "$behandlingId",
+      "sporing": {
+        "vedtaksperiode": ["$vedtaksperiodeId"],
         "organisasjonsnummer":["947064649"]
       },
       "lovverk": "folketrygdloven",

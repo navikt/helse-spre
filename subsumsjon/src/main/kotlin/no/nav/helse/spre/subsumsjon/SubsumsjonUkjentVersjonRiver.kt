@@ -17,6 +17,7 @@ internal class SubsumsjonUkjentVersjonRiver(rapidsConnection: RapidsConnection) 
             validate {
                 // forbid versjoner som ER støttet
                 it.forbidValue("subsumsjon.versjon", "1.0.0")
+                it.forbidValue("subsumsjon.versjon", "1.1.0")
             }
         }.register(this)
     }

@@ -41,6 +41,7 @@ fun main() {
 
     rapid.apply {
         SubsumsjonV1_0_0River(this, spedisjonClient) { key, value -> publisher(key, value) }
+        SubsumsjonV1_1_0River(this) { key, value -> publisher(key, value) }
         SubsumsjonUkjentVersjonRiver(this)
         VedtakFattetRiver(this) { key, value -> publisher(key, value) }
         VedtakForkastetRiver(this) { key, value -> publisher(key, value) }
