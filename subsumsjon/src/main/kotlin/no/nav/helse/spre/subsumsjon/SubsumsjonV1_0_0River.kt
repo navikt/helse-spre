@@ -25,6 +25,7 @@ internal class SubsumsjonV1_0_0River(
             precondition {
                 it.requireValue("@event_name", "subsumsjon")
                 it.requireValue("subsumsjon.versjon", "1.0.0")
+                it.forbidValues("@id", listOf("4f8595c1-3976-4bbf-9847-e653c24ad445"))
             }
             validate { it.requireKey("@id") }
             validate { it.requireKey("@opprettet") }
