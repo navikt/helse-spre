@@ -33,18 +33,6 @@ internal class VedtakFattetRiverTest {
     }
 
     @Test
-    fun `leser ikke inn vedtak_fattet-event som mangler utbetalingId`() {
-        testRapid.sendTestMessage(vedtakFattet(utbetalingId = null))
-        assertFalse(hendelseDao.harLagretHendelsen())
-    }
-
-    @Test
-    fun `leser ikke inn vedtak_fattet-event som mangler sykepengegrunnlagsfakta`() {
-        testRapid.sendTestMessage(vedtakFattet(sykepengegrunnlagFakta = null))
-        assertFalse(hendelseDao.harLagretHendelsen())
-    }
-
-    @Test
     fun `leser ikke inn vedtak_fattet-event som mangler behandlingId`() {
         testRapid.sendTestMessage(vedtakFattet(behandlingId = null))
         assertFalse(hendelseDao.harLagretHendelsen())
@@ -58,18 +46,14 @@ internal class VedtakFattetRiverTest {
 
     @Language("JSON")
     private fun vedtakFattet(
-        utbetalingId: UUID? = UUID.randomUUID(),
         behandlingId: UUID? = UUID.randomUUID(),
-        sykepengegrunnlagFakta: String? = """{ "fastsatt": "EtterHovedregel" }""",
         tags: List<String> = listOf("EnArbeidsgiver", "Arbeidsgiverutbetaling", "Innvilget", "Førstegangsbehandling")
     ) = """{
       "@event_name": "vedtak_fattet",
       "@id": "${UUID.randomUUID()}",
       "@opprettet": "${LocalDateTime.now()}",
-      "utbetalingId": "${utbetalingId}",
       "vedtaksperiodeId": "${UUID.randomUUID()}",
-      "behandlingId": "${behandlingId}",
-      "sykepengegrunnlagsfakta": $sykepengegrunnlagFakta,
+      "behandlingId": "$behandlingId",
       "tags": ${tags.map { "\"$it\"" }}
     }"""
 }

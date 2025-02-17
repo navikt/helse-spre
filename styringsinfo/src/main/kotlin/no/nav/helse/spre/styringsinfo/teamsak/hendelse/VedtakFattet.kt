@@ -2,7 +2,6 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
-import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
@@ -56,20 +55,11 @@ internal class VedtakFattet(
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
-            preconditions = { packet ->
-                // Skal lese inn vedtak_fattet-event kun for perioder med vedtak, ikke AUU
-                packet.demandSykepengegrunnlagfakta()
-                packet.demandUtbetalingId()
-            },
             valider = { packet -> valider(packet) },
             opprett = { packet -> opprett(packet) }
         )
 
         private val JsonMessage.tags get() = this["tags"].map { it.asText() }
         private fun JsonMessage.requireTags() = requireKey("tags")
-        private fun JsonMessage.demandUtbetalingId() = require("utbetalingId") { utbetalingId -> UUID.fromString(utbetalingId.asText()) }
-        private fun JsonMessage.demandSykepengegrunnlagfakta() = require("sykepengegrunnlagsfakta") {
-            sykepengegrunnlagsfakta -> require(!sykepengegrunnlagsfakta.isMissingOrNull())
-        }
     }
 }
