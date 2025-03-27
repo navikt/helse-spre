@@ -11,7 +11,7 @@ val mockkVersion = "1.13.17"
 val hikariCPVersion = "6.3.0"
 val kotliqueryVersion = "1.9.0"
 val postgresqlVersion = "42.7.5"
-val flywayCoreVersion = "10.21.0"
+val flywayCoreVersion = "11.5.0"
 val tbdLibsVersion = "2025.03.27-18.30-c228796d"
 
 buildscript {
