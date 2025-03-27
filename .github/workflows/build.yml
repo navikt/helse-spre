@@ -129,6 +129,8 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.generate_vars.outputs.deployMatrix) }}
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - name: create env vars
         run: |
@@ -151,7 +153,6 @@ jobs:
         if: steps.deploy-files.outputs.files_exists == 'true'
         uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ matrix.cluster }}
           VAR: team=${{ needs.generate_vars.outputs.team }},app=${{ matrix.project }},git_sha=${{ github.sha }}
 
