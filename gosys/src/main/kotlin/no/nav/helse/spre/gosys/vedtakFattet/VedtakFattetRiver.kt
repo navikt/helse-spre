@@ -31,10 +31,6 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Companion.IkkeUtbetalingsda
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage
 import no.nav.helse.spre.gosys.vedtak.slåSammenLikePerioder
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 
 internal class VedtakFattetRiver(
     rapidsConnection: RapidsConnection,
@@ -72,7 +68,8 @@ internal class VedtakFattetRiver(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        tjenestekall.info("Noe gikk galt: {}", problems.toExtendedReport())
+        logg.error("forstod ikke vedtak_fattet. (se sikkerlogg for melding)")
+        sikkerLogg.error("forstod ikke vedtak_fattet:\n${problems.toExtendedReport()}")
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
