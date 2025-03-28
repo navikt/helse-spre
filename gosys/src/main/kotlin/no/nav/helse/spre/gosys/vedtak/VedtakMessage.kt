@@ -29,7 +29,7 @@ data class VedtakMessage(
     private val sykepengegrunnlag: Double,
     private val utbetaling: Utbetaling,
     private val sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
-    private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>,
+    private val avvistePerioder: List<AvvistPeriode>,
     private val begrunnelser: List<Begrunnelse>?
 ) {
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -59,8 +59,7 @@ data class VedtakMessage(
         godkjentAv = godkjentAv,
         maksdato = maksdato,
         sykepengegrunnlag = sykepengegrunnlag,
-        ikkeUtbetalteDager = ikkeUtbetalteDager
-            .settSammenIkkeUtbetalteDager()
+        ikkeUtbetalteDager = avvistePerioder
             .map {
                 IkkeUtbetalteDager(
                     fom = it.fom,
@@ -155,43 +154,45 @@ data class VedtakMessage(
         }
     }
 
-    internal data class AvvistPeriode(
+    data class AvvistPeriode(
         val fom: LocalDate,
-        var tom: LocalDate,
+        val tom: LocalDate,
         val type: String,
         val begrunnelser: List<String>
-    )
-
-    data class IkkeUtbetaltDag(
-        val dato: LocalDate,
-        val type: String,
-        val begrunnelser: List<String>
-    )
+    ) {
+        constructor(fom: LocalDate, type: String, begrunnelser: List<String>) : this(
+            fom = fom,
+            tom = fom,
+            type = type,
+            begrunnelser = begrunnelser
+        )
+    }
 }
 
-internal fun Iterable<VedtakMessage.IkkeUtbetaltDag>.settSammenIkkeUtbetalteDager(): List<VedtakMessage.AvvistPeriode> =
-    map {
-        VedtakMessage.AvvistPeriode(
-            it.dato,
-            it.dato,
-            it.type,
-            it.begrunnelser
-        )
-    }.fold(listOf()) { akkumulator, avvistDag ->
-        val sisteInnslag = akkumulator.lastOrNull()
-        if (sisteInnslag != null
-            && (etterfølgerUtenGap(sisteInnslag, avvistDag))
-            && (erLiktBegrunnet(sisteInnslag, avvistDag) || nesteErFridagEtterArbeidsdag(sisteInnslag, avvistDag))
-        ) {
-            sisteInnslag.tom = avvistDag.tom
-            akkumulator
-        } else akkumulator + avvistDag
+internal fun Iterable<VedtakMessage.AvvistPeriode>.slåSammenLikePerioder(): List<VedtakMessage.AvvistPeriode> = this
+    .fold(listOf()) { akkumulator, avvistPeriode ->
+        val siste = akkumulator.lastOrNull()
+        val nySiste = when {
+            // listen er tom
+            siste == null -> listOf(avvistPeriode)
+            // kan utvide <siste>
+            siste.kanUtvidesMed(avvistPeriode) -> listOf(siste.copy(tom = avvistPeriode.tom))
+            // må legge <siste> tilbake igjen, og lage ny fordi <siste> ikke kan utvides
+            else -> listOf(siste, avvistPeriode)
+        }
+
+        akkumulator.dropLast(1) + nySiste
     }
+
+private fun VedtakMessage.AvvistPeriode.kanUtvidesMed(other: VedtakMessage.AvvistPeriode): Boolean {
+    if (!etterfølgerUtenGap(this, other)) return false
+    return erLiktBegrunnet(this, other) || nesteErFridagEtterArbeidsdag(this, other)
+}
 
 private fun etterfølgerUtenGap(
     sisteInnslag: VedtakMessage.AvvistPeriode,
     avvistDag: VedtakMessage.AvvistPeriode,
-) = sisteInnslag.tom.plusDays(1) == avvistDag.tom
+) = sisteInnslag.tom.plusDays(1) == avvistDag.fom
 
 private fun nesteErFridagEtterArbeidsdag(
     sisteInnslag: VedtakMessage.AvvistPeriode,

@@ -30,7 +30,7 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Companion.IkkeUtbetalingsdagtyper
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage
-import no.nav.helse.spre.gosys.vedtak.VedtakMessage.IkkeUtbetaltDag
+import no.nav.helse.spre.gosys.vedtak.slåSammenLikePerioder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -149,17 +149,19 @@ internal class VedtakFattetRiver(
             maksdato = utbetaling.maksdato,
             sykepengegrunnlag = vedtakFattet.sykepengegrunnlag,
             utbetaling = utbetaling,
-            ikkeUtbetalteDager = utbetaling
+            avvistePerioder = utbetaling
                 .utbetalingsdager
                 .filter { it.type in IkkeUtbetalingsdagtyper }
                 .filterNot { dag -> dag.dato < vedtakFattet.skjæringstidspunkt }
                 .map { dag ->
-                    IkkeUtbetaltDag(
-                        dato = dag.dato,
+                    VedtakMessage.AvvistPeriode(
+                        fom = dag.dato,
+                        tom = dag.dato,
                         type = dag.type,
                         begrunnelser = dag.begrunnelser
                     )
-                },
+                }
+                .slåSammenLikePerioder(),
             sykepengegrunnlagsfakta = vedtakFattet.sykepengegrunnlagsfakta,
             begrunnelser = vedtakFattet.begrunnelser
         )
