@@ -27,11 +27,8 @@ data class Utbetaling(
     val ident: String,
     val epost: String,
     val opprettet: LocalDateTime,
-    private val utbetalingsdager: List<UtbetalingdagDto>
+    val utbetalingsdager: List<UtbetalingdagDto>
 ) {
-
-    val ikkeUtbetalingsdager = utbetalingsdager.filter { it.type in IkkeUtbetalingsdagtyper }
-
     internal fun søknadsperiode(vedtaksperiode: Pair<LocalDate, LocalDate>): Pair<LocalDate, LocalDate> {
         val dager = utbetalingsdager.filter { it.dato >= vedtaksperiode.first && it.dato <= vedtaksperiode.second }
 
@@ -46,7 +43,7 @@ data class Utbetaling(
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
 
     companion object {
-        private val IkkeUtbetalingsdagtyper = listOf("AvvistDag", "Fridag", "Feriedag", "Permisjonsdag", "Arbeidsdag", "AndreYtelser")
+        val IkkeUtbetalingsdagtyper = listOf("AvvistDag", "Fridag", "Feriedag", "Permisjonsdag", "Arbeidsdag", "AndreYtelser")
 
         fun fromJson(packet: JsonMessage) = fromJson(objectMapper.readTree(packet.toJson()))
 

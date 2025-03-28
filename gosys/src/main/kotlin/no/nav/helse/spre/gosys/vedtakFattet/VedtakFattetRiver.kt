@@ -27,8 +27,10 @@ import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Companion.IkkeUtbetalingsdagtyper
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakMessage
+import no.nav.helse.spre.gosys.vedtak.VedtakMessage.IkkeUtbetaltDag
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -132,11 +134,32 @@ internal class VedtakFattetRiver(
         // justerer perioden ved å hoppe over AIG-dager i snuten (todo: gjøre dette i spleis?)
         val (søknadsperiodeFom, søknadsperiodeTom) = utbetaling.søknadsperiode(vedtakFattet.fom to vedtakFattet.tom)
         val vedtak = VedtakMessage(
+            utbetalingId = utbetaling.utbetalingId,
+            opprettet = utbetaling.opprettet,
+            fødselsnummer = utbetaling.fødselsnummer,
+            skjæringstidspunkt = vedtakFattet.skjæringstidspunkt,
+            type = utbetaling.type,
             fom = søknadsperiodeFom,
             tom = søknadsperiodeTom,
+            organisasjonsnummer = utbetaling.organisasjonsnummer,
+            gjenståendeSykedager = utbetaling.gjenståendeSykedager,
+            automatiskBehandling = utbetaling.automatiskBehandling,
+            godkjentAv = utbetaling.ident,
+            godkjentAvEpost = utbetaling.epost,
+            maksdato = utbetaling.maksdato,
             sykepengegrunnlag = vedtakFattet.sykepengegrunnlag,
-            skjæringstidspunkt = vedtakFattet.skjæringstidspunkt,
             utbetaling = utbetaling,
+            ikkeUtbetalteDager = utbetaling
+                .utbetalingsdager
+                .filter { it.type in IkkeUtbetalingsdagtyper }
+                .filterNot { dag -> dag.dato < vedtakFattet.skjæringstidspunkt }
+                .map { dag ->
+                    IkkeUtbetaltDag(
+                        dato = dag.dato,
+                        type = dag.type,
+                        begrunnelser = dag.begrunnelser
+                    )
+                },
             sykepengegrunnlagsfakta = vedtakFattet.sykepengegrunnlagsfakta,
             begrunnelser = vedtakFattet.begrunnelser
         )

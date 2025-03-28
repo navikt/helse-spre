@@ -30,47 +30,11 @@ data class VedtakMessage(
     private val utbetaling: Utbetaling,
     private val sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>,
-    private val begrunnelser: List<Begrunnelse>?,
+    private val begrunnelser: List<Begrunnelse>?
 ) {
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
-
-    constructor(
-        fom: LocalDate,
-        tom: LocalDate,
-        sykepengegrunnlag: Double,
-        skjæringstidspunkt: LocalDate,
-        utbetaling: Utbetaling,
-        sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
-        begrunnelser: List<Begrunnelse>?,
-    ) : this(
-        utbetalingId = utbetaling.utbetalingId,
-        opprettet = utbetaling.opprettet,
-        fødselsnummer = utbetaling.fødselsnummer,
-        skjæringstidspunkt = skjæringstidspunkt,
-        type = utbetaling.type,
-        fom = fom,
-        tom = tom,
-        organisasjonsnummer = utbetaling.organisasjonsnummer,
-        gjenståendeSykedager = utbetaling.gjenståendeSykedager,
-        automatiskBehandling = utbetaling.automatiskBehandling,
-        godkjentAv = utbetaling.ident,
-        godkjentAvEpost = utbetaling.epost,
-        maksdato = utbetaling.maksdato,
-        sykepengegrunnlag = sykepengegrunnlag,
-        utbetaling = utbetaling,
-        ikkeUtbetalteDager = utbetaling.ikkeUtbetalingsdager.filterNot { dag -> dag.dato.isBefore(skjæringstidspunkt) }
-            .map { dag ->
-                IkkeUtbetaltDag(
-                    dato = dag.dato,
-                    type = dag.type,
-                    begrunnelser = dag.begrunnelser
-                )
-            },
-        sykepengegrunnlagsfakta = sykepengegrunnlagsfakta,
-        begrunnelser = begrunnelser,
-    )
 
     internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
