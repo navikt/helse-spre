@@ -5,7 +5,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
-import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
+import com.github.navikt.tbd_libs.rapids_and_rivers.toUUID
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
@@ -35,6 +35,7 @@ internal class VedtakFattetRiver(
             precondition {
                 it.requireValue("@event_name", "vedtak_fattet")
                 it.requireKey("sykepengegrunnlagsfakta")
+                it.require("utbetalingId") { id -> UUID.fromString(id.asText()) }
             }
             validate { message ->
                 message.requireKey(
@@ -51,7 +52,6 @@ internal class VedtakFattetRiver(
                 message.require("tom", JsonNode::asLocalDate)
                 message.require("skjæringstidspunkt", JsonNode::asLocalDate)
                 message.require("@opprettet", JsonNode::asLocalDateTime)
-                message.interestedIn("utbetalingId") { id -> UUID.fromString(id.asText()) }
                 message.interestedIn("begrunnelser")
             }
         }.register(this)
@@ -61,51 +61,58 @@ internal class VedtakFattetRiver(
         val id = UUID.fromString(packet["@id"].asText())
         try {
             duplikatsjekkDao.sjekkDuplikat(id) {
-                val utbetalingId = packet["utbetalingId"].takeUnless(JsonNode::isMissingOrNull)?.let { UUID.fromString(it.asText()) }
+                val utbetalingId = packet["utbetalingId"].asText().toUUID()
                 val vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
                 logg.info("vedtak_fattet leses inn for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId")
 
-                val vedtakFattet = VedtakFattetData.fromJson(id, packet)
-                val tidligereVedtakFattet = utbetalingId?.let { vedtakFattetDao.finnVedtakFattetData(it) }
+                if (erDuplikatBehandling(utbetalingId, vedtaksperiodeId))
+                    return@sjekkDuplikat logg.warn("har allerede behandlet vedtak_fattet for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
 
-                if (tidligereVedtakFattet != null) {
-                    check(tidligereVedtakFattet.vedtaksperiodeId == vedtaksperiodeId) {
-                        "det finnes et tidligere vedtak (vedtaksperiode ${tidligereVedtakFattet.vedtaksperiodeId}) med samme utbetalingId, som er ulik vedtaksperiode $vedtaksperiodeId"
-                    }
-
-                    if (vedtakFattetDao.erJournalført(tidligereVedtakFattet)) {
-                        logg.warn("har allerede behandlet vedtak_fattet for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
-                        return@sjekkDuplikat
-                    }
-                }
-
-                vedtakFattetDao.lagre(vedtakFattet, packet.toJson())
-                logg.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
-
-                if (utbetalingId != null) {
-                    val utbetaling = checkNotNull(utbetalingDao.finnUtbetalingData(utbetalingId)) {
-                        "forventer å finne utbetaling for vedtak for $vedtaksperiodeId"
-                    }
-
-                    vedtakMediator.opprettSammenslåttVedtak(
-                        vedtakFattet.fom,
-                        vedtakFattet.tom,
-                        vedtakFattet.sykepengegrunnlag,
-                        vedtakFattet.grunnlagForSykepengegrunnlag,
-                        vedtakFattet.skjæringstidspunkt,
-                        vedtakFattet.sykepengegrunnlagsfakta,
-                        vedtakFattet.begrunnelser,
-                        utbetaling
-                    ) {
-                        vedtakFattetDao.journalført(vedtakFattet.id)
-                    }
-                }
+                val vedtakFattet = lagreVedtakFattet(id, packet)
+                behandleVedtakFattet(utbetalingId, vedtaksperiodeId, vedtakFattet)
             }
         }  catch (err: Exception) {
             logg.error("Feil i melding $id i vedtak fattet-river: ${err.message}", err)
             sikkerLogg.error("Feil i melding $id i vedtak fattet-river: ${err.message}", err)
             throw err
         }
+    }
+
+    private fun lagreVedtakFattet(id: UUID, packet: JsonMessage): VedtakFattetData {
+        val vedtakFattet = VedtakFattetData.fromJson(id, packet)
+        vedtakFattetDao.lagre(vedtakFattet, packet.toJson())
+        logg.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId ${vedtakFattet.vedtaksperiodeId} på id $id")
+        return vedtakFattet
+    }
+
+    private fun behandleVedtakFattet(utbetalingId: UUID, vedtaksperiodeId: UUID, vedtakFattet: VedtakFattetData) {
+        val utbetaling = checkNotNull(utbetalingDao.finnUtbetalingData(utbetalingId)) {
+            "forventer å finne utbetaling for vedtak for $vedtaksperiodeId"
+        }
+
+        vedtakMediator.opprettSammenslåttVedtak(
+            vedtakFattet.fom,
+            vedtakFattet.tom,
+            vedtakFattet.sykepengegrunnlag,
+            vedtakFattet.grunnlagForSykepengegrunnlag,
+            vedtakFattet.skjæringstidspunkt,
+            vedtakFattet.sykepengegrunnlagsfakta,
+            vedtakFattet.begrunnelser,
+            utbetaling
+        ) {
+            vedtakFattetDao.journalført(vedtakFattet.id)
+        }
+    }
+
+    private fun erDuplikatBehandling(utbetalingId: UUID, vedtaksperiodeId: UUID): Boolean {
+        val tidligereVedtakFattet = vedtakFattetDao.finnVedtakFattetData(utbetalingId) ?: return false
+
+        check(tidligereVedtakFattet.vedtaksperiodeId == vedtaksperiodeId) {
+            "det finnes et tidligere vedtak (vedtaksperiode ${tidligereVedtakFattet.vedtaksperiodeId}) " +
+                "med samme utbetalingId, som er ulik vedtaksperiode $vedtaksperiodeId"
+        }
+
+        return vedtakFattetDao.erJournalført(tidligereVedtakFattet)
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
