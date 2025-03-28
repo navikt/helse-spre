@@ -24,7 +24,6 @@ import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
 import no.nav.helse.spre.gosys.e2e.VedtakOgUtbetalingE2ETest.Companion.formatted
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
-import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import no.nav.helse.spre.gosys.vedtakFattet.*
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
@@ -59,7 +58,7 @@ internal abstract class AbstractE2ETest {
     }
     protected val joarkClient = JoarkClient("https://url.no", azureMock, "JOARK_SCOPE", mockClient)
     protected val eregClient = EregClient("https://url.no", mockClient)
-    protected val pdlClient = mockk<SpeedClient> {
+    protected val speedClient = mockk<SpeedClient> {
         every { hentPersoninfo(any(), any()) } returns PersonResponse(
             fødselsdato = LocalDate.now(),
             dødsdato = null,
@@ -74,8 +73,7 @@ internal abstract class AbstractE2ETest {
     protected lateinit var duplikatsjekkDao: DuplikatsjekkDao
     protected lateinit var vedtakFattetDao: VedtakFattetDao
     protected lateinit var utbetalingDao: UtbetalingDao
-    protected val vedtakMediator = VedtakMediator(pdfClient, joarkClient, eregClient, pdlClient)
-    protected val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, pdlClient)
+    protected val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, speedClient)
     protected val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     @BeforeEach
@@ -92,7 +90,10 @@ internal abstract class AbstractE2ETest {
             feriepengerMediator,
             vedtakFattetDao,
             utbetalingDao,
-            vedtakMediator
+            pdfClient,
+            joarkClient,
+            eregClient,
+            speedClient
         )
         capturedJoarkRequests.clear()
         capturedPdfRequests.clear()

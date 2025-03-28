@@ -25,7 +25,6 @@ import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
-import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import org.flywaydb.core.Flyway
@@ -86,7 +85,6 @@ fun launchApplication(
 
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
 
-    val vedtakMediator = VedtakMediator(pdfClient, joarkClient, eregClient, speedClient)
     val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, speedClient)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
@@ -95,7 +93,17 @@ fun launchApplication(
 
     return RapidApplication.create(environment)
         .apply {
-            settOppRivers(duplikatsjekkDao, annulleringMediator, feriepengerMediator, vedtakFattetDao, utbetalingDao, vedtakMediator)
+            settOppRivers(
+                duplikatsjekkDao = duplikatsjekkDao,
+                annulleringMediator = annulleringMediator,
+                feriepengerMediator = feriepengerMediator,
+                vedtakFattetDao = vedtakFattetDao,
+                utbetalingDao = utbetalingDao,
+                pdfClient = pdfClient,
+                joarkClient = joarkClient,
+                eregClient = eregClient,
+                speedClient = speedClient
+            )
         }
 }
 
@@ -105,11 +113,14 @@ internal fun RapidsConnection.settOppRivers(
     feriepengerMediator: FeriepengerMediator,
     vedtakFattetDao: VedtakFattetDao,
     utbetalingDao: UtbetalingDao,
-    vedtakMediator: VedtakMediator,
+    pdfClient: PdfClient,
+    joarkClient: JoarkClient,
+    eregClient: EregClient,
+    speedClient: SpeedClient
 ) {
     AnnulleringRiver(this, duplikatsjekkDao, annulleringMediator)
     FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
-    VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
+    VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, pdfClient, joarkClient, eregClient, speedClient)
     UtbetalingUtbetaltRiver(this, utbetalingDao, duplikatsjekkDao)
     UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
 }

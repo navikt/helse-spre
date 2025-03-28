@@ -10,15 +10,25 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import com.github.navikt.tbd_libs.speed.SpeedClient
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
-import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
+import kotlinx.coroutines.runBlocking
+import no.nav.helse.spre.gosys.EregClient
+import no.nav.helse.spre.gosys.JoarkClient
+import no.nav.helse.spre.gosys.JournalpostPayload
+import no.nav.helse.spre.gosys.PdfClient
+import no.nav.helse.spre.gosys.annullering.hentNavn
+import no.nav.helse.spre.gosys.erUtvikling
+import no.nav.helse.spre.gosys.objectMapper
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling
+import no.nav.helse.spre.gosys.vedtak.VedtakMessage
 
 private val tjenestekall: Logger = LoggerFactory.getLogger("tjenestekall")
 
@@ -27,7 +37,10 @@ internal class VedtakFattetRiver(
     private val vedtakFattetDao: VedtakFattetDao,
     private val utbetalingDao: UtbetalingDao,
     private val duplikatsjekkDao: DuplikatsjekkDao,
-    private val vedtakMediator: VedtakMediator
+    private val pdfClient: PdfClient,
+    private val joarkClient: JoarkClient,
+    private val eregClient: EregClient,
+    private val speedClient: SpeedClient
 ) : River.PacketListener {
 
     init {
@@ -57,6 +70,10 @@ internal class VedtakFattetRiver(
         }.register(this)
     }
 
+    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+        tjenestekall.info("Noe gikk galt: {}", problems.toExtendedReport())
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
         val id = UUID.fromString(packet["@id"].asText())
         try {
@@ -69,7 +86,13 @@ internal class VedtakFattetRiver(
                     return@sjekkDuplikat logg.warn("har allerede behandlet vedtak_fattet for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
 
                 val vedtakFattet = lagreVedtakFattet(id, packet)
-                behandleVedtakFattet(utbetalingId, vedtaksperiodeId, vedtakFattet)
+                val utbetaling = checkNotNull(utbetalingDao.finnUtbetalingData(utbetalingId)) {
+                    "forventer å finne utbetaling for vedtak for $vedtaksperiodeId"
+                }
+                check (utbetaling.type in setOf(Utbetaling.Utbetalingtype.UTBETALING, Utbetaling.Utbetalingtype.REVURDERING)) {
+                    "vedtaket for $vedtaksperiodeId peker på utbetalingtype ${utbetaling.type}. Forventer kun Utbetaling/Revurdering"
+                }
+                behandleVedtakFattet(vedtakFattet, utbetaling)
             }
         }  catch (err: Exception) {
             logg.error("Feil i melding $id i vedtak fattet-river: ${err.message}", err)
@@ -85,25 +108,6 @@ internal class VedtakFattetRiver(
         return vedtakFattet
     }
 
-    private fun behandleVedtakFattet(utbetalingId: UUID, vedtaksperiodeId: UUID, vedtakFattet: VedtakFattetData) {
-        val utbetaling = checkNotNull(utbetalingDao.finnUtbetalingData(utbetalingId)) {
-            "forventer å finne utbetaling for vedtak for $vedtaksperiodeId"
-        }
-
-        vedtakMediator.opprettSammenslåttVedtak(
-            vedtakFattet.fom,
-            vedtakFattet.tom,
-            vedtakFattet.sykepengegrunnlag,
-            vedtakFattet.grunnlagForSykepengegrunnlag,
-            vedtakFattet.skjæringstidspunkt,
-            vedtakFattet.sykepengegrunnlagsfakta,
-            vedtakFattet.begrunnelser,
-            utbetaling
-        ) {
-            vedtakFattetDao.journalført(vedtakFattet.id)
-        }
-    }
-
     private fun erDuplikatBehandling(utbetalingId: UUID, vedtaksperiodeId: UUID): Boolean {
         val tidligereVedtakFattet = vedtakFattetDao.finnVedtakFattetData(utbetalingId) ?: return false
 
@@ -115,7 +119,81 @@ internal class VedtakFattetRiver(
         return vedtakFattetDao.erJournalført(tidligereVedtakFattet)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        tjenestekall.info("Noe gikk galt: {}", problems.toExtendedReport())
+    private fun behandleVedtakFattet(vedtakFattet: VedtakFattetData, utbetaling: Utbetaling) {
+        // justerer perioden ved å hoppe over AIG-dager i snuten (todo: gjøre dette i spleis?)
+        val (søknadsperiodeFom, søknadsperiodeTom) = utbetaling.søknadsperiode(vedtakFattet.fom to vedtakFattet.tom)
+        val vedtak = VedtakMessage(
+            fom = søknadsperiodeFom,
+            tom = søknadsperiodeTom,
+            sykepengegrunnlag = vedtakFattet.sykepengegrunnlag,
+            grunnlagForSykepengegrunnlag = vedtakFattet.grunnlagForSykepengegrunnlag,
+            skjæringstidspunkt = vedtakFattet.skjæringstidspunkt,
+            utbetaling = utbetaling,
+            sykepengegrunnlagsfakta = vedtakFattet.sykepengegrunnlagsfakta,
+            begrunnelser = vedtakFattet.begrunnelser
+        )
+        opprettSammenslåttVedtak(vedtak) {
+            vedtakFattetDao.journalført(vedtakFattet.id)
+        }
+    }
+
+    private fun opprettSammenslåttVedtak(vedtakMessage: VedtakMessage, klarteÅJournalføreCallback: () -> Unit) {
+        runBlocking {
+            val organisasjonsnavn = try {
+                eregClient.hentOrganisasjonsnavn(
+                    vedtakMessage.organisasjonsnummer,
+                    vedtakMessage.utbetalingId
+                ).navn
+            } catch (e: Exception) {
+                logg.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}")
+                sikkerLogg.error("Feil ved henting av bedriftsnavn for ${vedtakMessage.organisasjonsnummer}, fødselsnummer=${vedtakMessage.fødselsnummer}")
+                ""
+            }
+            logg.debug("Hentet organisasjonsnavn")
+            val navn = hentNavn(speedClient, vedtakMessage.fødselsnummer, vedtakMessage.utbetalingId.toString()) ?: ""
+            logg.debug("Hentet søkernavn")
+            val vedtakPdfPayload = vedtakMessage.toVedtakPdfPayloadV2(organisasjonsnavn, navn)
+            if (erUtvikling) sikkerLogg.info("vedtak-payload: ${objectMapper.writeValueAsString(vedtakPdfPayload)}")
+            val pdf = pdfClient.hentVedtakPdfV2(vedtakPdfPayload)
+            logg.debug("Hentet pdf")
+            val journalpostPayload = JournalpostPayload(
+                tittel = journalpostTittel(vedtakMessage.type),
+                bruker = JournalpostPayload.Bruker(id = vedtakMessage.fødselsnummer),
+                dokumenter = listOf(
+                    JournalpostPayload.Dokument(
+                        tittel = dokumentTittel(vedtakMessage),
+                        dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdf))
+                    )
+                ),
+                eksternReferanseId = vedtakMessage.utbetalingId.toString(),
+            )
+            val success = joarkClient.opprettJournalpost(vedtakMessage.utbetalingId, journalpostPayload)
+            if (!success) {
+                logg.warn("Feil oppstod under journalføring av vedtak")
+                return@runBlocking
+            }
+            logg.info("Vedtak journalført for utbetalingId: ${vedtakMessage.utbetalingId}")
+            sikkerLogg.info("Vedtak journalført for fødselsnummer=${vedtakMessage.fødselsnummer} utbetalingId: ${vedtakMessage.utbetalingId}")
+            klarteÅJournalføreCallback()
+        }
+    }
+
+    private fun dokumentTittel(vedtakMessage: VedtakMessage): String {
+        return when (vedtakMessage.type) {
+            Utbetaling.Utbetalingtype.UTBETALING -> "Sykepenger behandlet, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
+            Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Sykepenger etterutbetalt, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
+            Utbetaling.Utbetalingtype.REVURDERING -> "Sykepenger revurdert, ${vedtakMessage.norskFom} - ${vedtakMessage.norskTom}"
+            Utbetaling.Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
+        }
+    }
+
+
+    private fun journalpostTittel(type: Utbetaling.Utbetalingtype): String {
+        return when (type) {
+            Utbetaling.Utbetalingtype.UTBETALING -> "Vedtak om sykepenger"
+            Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Vedtak om etterutbetaling av sykepenger"
+            Utbetaling.Utbetalingtype.REVURDERING -> "Vedtak om revurdering av sykepenger"
+            Utbetaling.Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
+        }
     }
 }
