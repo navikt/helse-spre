@@ -1,16 +1,20 @@
 package no.nav.helse.spre.gosys.vedtak
 
-import no.nav.helse.spre.gosys.logg
-import no.nav.helse.spre.gosys.utbetaling.Utbetaling
-import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Oppdrag
-import no.nav.helse.spre.gosys.vedtakFattet.*
-import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import no.nav.helse.spre.gosys.logg
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.UtbetalingslinjeDto
+import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Oppdrag
+import no.nav.helse.spre.gosys.vedtakFattet.Begrunnelse
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.ANNET
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.OMREGNET_ÅRSINNTEKT
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.RAPPORTERT_ÅRSINNTEKT
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingårsak
+import no.nav.helse.spre.gosys.vedtakFattet.SykepengegrunnlagsfaktaData
 
 data class VedtakMessage(
     val utbetalingId: UUID,
@@ -27,7 +31,12 @@ data class VedtakMessage(
     private val godkjentAvEpost: String,
     private val maksdato: LocalDate?,
     private val sykepengegrunnlag: Double,
-    private val utbetaling: Utbetaling,
+    private val sumNettobeløp: Int,
+    private val sumTotalBeløp: Int,
+    private val arbeidsgiverFagsystemId: String,
+    private val arbeidsgiverlinjer: List<UtbetalingslinjeDto>,
+    private val personFagsystemId: String,
+    private val personlinjer: List<UtbetalingslinjeDto>,
     private val sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
     private val avvistePerioder: List<AvvistPeriode>,
     private val begrunnelser: List<Begrunnelse>?
@@ -37,18 +46,18 @@ data class VedtakMessage(
     val norskTom: String = tom.format(formatter)
 
     internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
-        sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
-        sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
+        sumNettoBeløp = sumNettobeløp,
+        sumTotalBeløp = sumTotalBeløp,
         type = begrunnelser?.find { it.type == "DelvisInnvilgelse" || it.type == "Avslag" }?.let { when (it.type) {
             "DelvisInnvilgelse" -> "Delvis innvilgelse av"
             "Avslag" -> "Avslag av"
             else -> null
         }}
             ?: lesbarTittel(),
-        linjer = utbetaling.arbeidsgiverOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver, navn)
-            .slåSammen(utbetaling.personOppdrag.linjer(VedtakPdfPayloadV2.MottakerType.Person, navn)),
-        personOppdrag = personOppdrag(),
-        arbeidsgiverOppdrag = arbeidsgiverOppdrag(),
+        linjer = arbeidsgiverlinjer.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver, "Arbeidsgiver")
+            .slåSammen(personlinjer.linjer(VedtakPdfPayloadV2.MottakerType.Person, navn.split(Regex("\\s"), 0).firstOrNull() ?: "")),
+        personOppdrag = Oppdrag(personFagsystemId).takeIf { personlinjer.isNotEmpty() },
+        arbeidsgiverOppdrag = Oppdrag(arbeidsgiverFagsystemId).takeIf { arbeidsgiverlinjer.isNotEmpty() },
         fødselsnummer = fødselsnummer,
         fom = fom,
         tom = tom,
@@ -109,15 +118,20 @@ data class VedtakMessage(
         }
     )
 
-    private fun personOppdrag() =
-        utbetaling.personOppdrag.run {
-            if (utbetalingslinjer.isNotEmpty()) Oppdrag(fagsystemId = fagsystemId) else null
+    private fun List<UtbetalingslinjeDto>.linjer(mottakerType: VedtakPdfPayloadV2.MottakerType, navn: String): List<VedtakPdfPayloadV2.Linje> {
+        return this.map {
+            VedtakPdfPayloadV2.Linje(
+                fom = it.fom,
+                tom = it.tom,
+                grad = it.grad,
+                dagsats = it.dagsats,
+                mottaker = navn,
+                mottakerType = mottakerType,
+                totalbeløp = it.totalbeløp,
+                erOpphørt = it.erOpphørt
+            )
         }
-
-    private fun arbeidsgiverOppdrag() =
-        utbetaling.arbeidsgiverOppdrag.run {
-            if (utbetalingslinjer.isNotEmpty()) Oppdrag(fagsystemId = fagsystemId) else null
-        }
+    }
 
     private fun lesbarTittel(): String {
         return when (this.type) {

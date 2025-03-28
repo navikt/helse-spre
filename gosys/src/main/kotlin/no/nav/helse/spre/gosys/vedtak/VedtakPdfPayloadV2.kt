@@ -35,15 +35,7 @@ data class VedtakPdfPayloadV2(
     )
 
     enum class MottakerType {
-        Arbeidsgiver {
-            override fun formater(fulltNavn: String): String = "Arbeidsgiver"
-        },
-        Person {
-            override fun formater(fulltNavn: String): String = fulltNavn.split(Regex("\\s"), 0).firstOrNull() ?: ""
-        }
-        ;
-
-        abstract fun formater(fulltNavn: String): String
+        Arbeidsgiver, Person
     }
 
     data class Linje(

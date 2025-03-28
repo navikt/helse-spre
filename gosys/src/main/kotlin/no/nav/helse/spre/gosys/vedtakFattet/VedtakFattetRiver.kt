@@ -148,7 +148,12 @@ internal class VedtakFattetRiver(
             godkjentAvEpost = utbetaling.epost,
             maksdato = utbetaling.maksdato,
             sykepengegrunnlag = vedtakFattet.sykepengegrunnlag,
-            utbetaling = utbetaling,
+            sumNettobeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
+            sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
+            arbeidsgiverFagsystemId = utbetaling.arbeidsgiverOppdrag.fagsystemId,
+            arbeidsgiverlinjer = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer,
+            personFagsystemId = utbetaling.personOppdrag.fagsystemId,
+            personlinjer = utbetaling.personOppdrag.utbetalingslinjer,
             avvistePerioder = utbetaling
                 .utbetalingsdager
                 .filter { it.type in IkkeUtbetalingsdagtyper }

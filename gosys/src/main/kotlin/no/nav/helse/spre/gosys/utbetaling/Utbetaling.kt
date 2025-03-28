@@ -9,7 +9,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import no.nav.helse.spre.gosys.objectMapper
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 
 data class Utbetaling(
     val utbetalingId: UUID,
@@ -80,7 +79,7 @@ data class Utbetaling(
                         tom = linje["tom"].asLocalDate(),
                         dagsats = (linje.path("sats").takeUnless { it.isMissingOrNull() } ?: linje.path("dagsats")).asInt(),
                         totalbeløp = linje["totalbeløp"].asInt(),
-                        grad = linje["grad"].asDouble(),
+                        grad = linje["grad"].asInt(),
                         stønadsdager = linje["stønadsdager"].asInt(),
                         statuskode = linje.findValue("statuskode")?.asText()
                     )
@@ -110,22 +109,11 @@ data class Utbetaling(
             val tom: LocalDate,
             val dagsats: Int,
             val totalbeløp: Int,
-            val grad: Double,
+            val grad: Int,
             val stønadsdager: Int,
             val statuskode: String?
-        )
-
-        internal fun linjer(mottakerType: VedtakPdfPayloadV2.MottakerType, navn: String): List<VedtakPdfPayloadV2.Linje> {
-            return utbetalingslinjer.map { VedtakPdfPayloadV2.Linje(
-                fom = it.fom,
-                tom = it.tom,
-                grad = it.grad.toInt(),
-                dagsats = it.dagsats,
-                mottaker = mottakerType.formater(navn),
-                mottakerType = mottakerType,
-                totalbeløp = it.totalbeløp,
-                erOpphørt = it.statuskode == "OPPH"
-            )}
+        ) {
+            val erOpphørt = statuskode == "OPPH"
         }
     }
 
