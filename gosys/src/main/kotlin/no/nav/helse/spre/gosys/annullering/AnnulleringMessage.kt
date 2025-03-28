@@ -1,15 +1,11 @@
 package no.nav.helse.spre.gosys.annullering
 
-import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
-import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
-import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
-import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-class AnnulleringMessage private constructor(
+data class AnnulleringMessage(
     val hendelseId: UUID,
     val utbetalingId: UUID,
     val fødselsnummer: String,
@@ -25,20 +21,6 @@ class AnnulleringMessage private constructor(
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
-
-    constructor(hendelseId: UUID, packet: JsonMessage) : this(
-        hendelseId = hendelseId,
-        utbetalingId = UUID.fromString(packet["utbetalingId"].asText()),
-        fødselsnummer = packet["fødselsnummer"].asText(),
-        fom = packet["fom"].asLocalDate(),
-        tom = packet["tom"].asLocalDate(),
-        organisasjonsnummer = packet["organisasjonsnummer"].asText(),
-        dato = packet["tidspunkt"].asLocalDateTime(),
-        saksbehandlerIdent = packet["ident"].asText(),
-        saksbehandlerEpost = packet["epost"].asText(),
-        personFagsystemId = packet["personFagsystemId"].takeUnless { it.isMissingOrNull() }?.asText(),
-        arbeidsgiverFagsystemId = packet["arbeidsgiverFagsystemId"].takeUnless { it.isMissingOrNull() }?.asText()
-    )
 
     internal fun toPdfPayloadV2(organisasjonsnavn: String?, navn: String?) = AnnulleringPdfPayloadV2(
         fødselsnummer = fødselsnummer,

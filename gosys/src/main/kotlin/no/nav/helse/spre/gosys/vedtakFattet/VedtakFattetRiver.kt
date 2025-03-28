@@ -15,14 +15,14 @@ import com.github.navikt.tbd_libs.speed.SpeedClient
 import io.micrometer.core.instrument.MeterRegistry
 import java.util.*
 import kotlinx.coroutines.runBlocking
-import net.logstash.logback.argument.StructuredArguments.kv
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.EregClient
 import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.PdfClient
-import no.nav.helse.spre.gosys.annullering.hentNavn
 import no.nav.helse.spre.gosys.erUtvikling
+import no.nav.helse.spre.gosys.finnOrganisasjonsnavn
+import no.nav.helse.spre.gosys.hentNavn
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.sikkerLogg
@@ -169,7 +169,7 @@ internal class VedtakFattetRiver(
     }
 
     private fun lagPdf(organisasjonsnummer: String, fødselsnummer: String, vedtak: VedtakMessage): String {
-        val organisasjonsnavn = runBlocking { finnOrganisasjonsnavn(organisasjonsnummer) }
+        val organisasjonsnavn = runBlocking { finnOrganisasjonsnavn(eregClient, organisasjonsnummer) }
         logg.debug("Hentet organisasjonsnavn")
         val navn = hentNavn(speedClient, fødselsnummer, UUID.randomUUID().toString()) ?: ""
         logg.debug("Hentet søkernavn")
@@ -181,16 +181,6 @@ internal class VedtakFattetRiver(
 
     private fun journalførPdf(vedtak: VedtakMessage, journalpostPayload: JournalpostPayload): Boolean {
         return runBlocking { joarkClient.opprettJournalpost(vedtak.utbetalingId, journalpostPayload) }
-    }
-
-    private suspend fun finnOrganisasjonsnavn(organisasjonsnummer: String, callId: UUID = UUID.randomUUID()): String {
-        return try {
-            eregClient.hentOrganisasjonsnavn(organisasjonsnummer, callId).navn
-        } catch (e: Exception) {
-            logg.error("Feil ved henting av bedriftsnavn for $organisasjonsnummer {}", kv("callId", callId))
-            sikkerLogg.error("Feil ved henting av bedriftsnavn for $organisasjonsnummer {}", kv("callId", callId), e)
-            ""
-        }
     }
 
     private fun dokumentTittel(vedtakMessage: VedtakMessage): String {

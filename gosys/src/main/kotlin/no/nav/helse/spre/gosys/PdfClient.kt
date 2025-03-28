@@ -1,5 +1,11 @@
 package no.nav.helse.spre.gosys
 
+import com.github.navikt.tbd_libs.result_object.fold
+import com.github.navikt.tbd_libs.result_object.getOrThrow
+import com.github.navikt.tbd_libs.result_object.tryCatch
+import com.github.navikt.tbd_libs.retry.retryBlocking
+import com.github.navikt.tbd_libs.speed.PersonResponse
+import com.github.navikt.tbd_libs.speed.SpeedClient
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -10,6 +16,7 @@ import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayloadV2
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
 import java.util.*
+import net.logstash.logback.argument.StructuredArguments.kv
 
 class PdfClient(private val httpClient: HttpClient, private val baseUrl: String) {
     private val encoder = Base64.getEncoder()
@@ -32,3 +39,34 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
             response.body<ByteArray>().let(encoder::encodeToString).also { if (it.isNullOrBlank()) error("Fikk tom pdf") }
         }
 }
+
+suspend fun finnOrganisasjonsnavn(eregClient: EregClient, organisasjonsnummer: String, callId: UUID = UUID.randomUUID()): String {
+    return try {
+        eregClient.hentOrganisasjonsnavn(organisasjonsnummer, callId).navn
+    } catch (e: Exception) {
+        logg.error("Feil ved henting av bedriftsnavn for $organisasjonsnummer {}", kv("callId", callId))
+        sikkerLogg.error("Feil ved henting av bedriftsnavn for $organisasjonsnummer {}", kv("callId", callId), e)
+        ""
+    }
+}
+
+fun hentNavn(speedClient: SpeedClient, ident: String, callId: String) =
+    tryCatch {
+        retryBlocking {
+            speedClient.hentPersoninfo(ident, callId).getOrThrow()
+        }
+    }
+        .fold(
+            whenOk = { it.tilVisning() },
+            whenError = { msg, cause ->
+                logg.error("Feil ved henting av navn {}", kv("callId", callId))
+                sikkerLogg.error("Feil ved henting av navn for ident=$ident: $msg {}", kv("callId", callId), cause)
+                null
+            }
+        )
+
+private fun PersonResponse.tilVisning() =
+    listOfNotNull(fornavn, mellomnavn, etternavn)
+        .map { it.lowercase() }
+        .flatMap { it.split(" ") }
+        .joinToString(" ") { navnebit -> navnebit.replaceFirstChar { it.uppercase() } }

@@ -5,10 +5,10 @@ import com.github.navikt.tbd_libs.speed.PersonResponse
 import com.github.navikt.tbd_libs.speed.SpeedClient
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.helse.spre.gosys.annullering.hentNavn
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import no.nav.helse.spre.gosys.hentNavn
 
 internal class NavnTest {
 

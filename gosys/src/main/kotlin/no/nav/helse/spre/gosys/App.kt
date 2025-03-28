@@ -18,7 +18,6 @@ import io.ktor.serialization.jackson.JacksonConverter
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.statement.*
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
 import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
@@ -85,7 +84,6 @@ fun launchApplication(
 
     val duplikatsjekkDao = DuplikatsjekkDao(dataSource)
 
-    val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, speedClient)
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     val vedtakFattetDao = VedtakFattetDao(dataSource)
@@ -95,7 +93,6 @@ fun launchApplication(
         .apply {
             settOppRivers(
                 duplikatsjekkDao = duplikatsjekkDao,
-                annulleringMediator = annulleringMediator,
                 feriepengerMediator = feriepengerMediator,
                 vedtakFattetDao = vedtakFattetDao,
                 utbetalingDao = utbetalingDao,
@@ -109,7 +106,6 @@ fun launchApplication(
 
 internal fun RapidsConnection.settOppRivers(
     duplikatsjekkDao: DuplikatsjekkDao,
-    annulleringMediator: AnnulleringMediator,
     feriepengerMediator: FeriepengerMediator,
     vedtakFattetDao: VedtakFattetDao,
     utbetalingDao: UtbetalingDao,
@@ -118,7 +114,7 @@ internal fun RapidsConnection.settOppRivers(
     eregClient: EregClient,
     speedClient: SpeedClient
 ) {
-    AnnulleringRiver(this, duplikatsjekkDao, annulleringMediator)
+    AnnulleringRiver(this, duplikatsjekkDao, pdfClient, eregClient, joarkClient, speedClient)
     FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
     VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, pdfClient, joarkClient, eregClient, speedClient)
     UtbetalingUtbetaltRiver(this, utbetalingDao, duplikatsjekkDao)

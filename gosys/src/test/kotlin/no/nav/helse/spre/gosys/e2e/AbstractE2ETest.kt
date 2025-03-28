@@ -19,7 +19,6 @@ import kotlinx.coroutines.runBlocking
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.gosys.*
-import no.nav.helse.spre.gosys.annullering.AnnulleringMediator
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
 import no.nav.helse.spre.gosys.e2e.VedtakOgUtbetalingE2ETest.Companion.formatted
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
@@ -73,7 +72,6 @@ internal abstract class AbstractE2ETest {
     protected lateinit var duplikatsjekkDao: DuplikatsjekkDao
     protected lateinit var vedtakFattetDao: VedtakFattetDao
     protected lateinit var utbetalingDao: UtbetalingDao
-    protected val annulleringMediator = AnnulleringMediator(pdfClient, eregClient, joarkClient, speedClient)
     protected val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     @BeforeEach
@@ -86,7 +84,6 @@ internal abstract class AbstractE2ETest {
 
         testRapid.settOppRivers(
             duplikatsjekkDao,
-            annulleringMediator,
             feriepengerMediator,
             vedtakFattetDao,
             utbetalingDao,
