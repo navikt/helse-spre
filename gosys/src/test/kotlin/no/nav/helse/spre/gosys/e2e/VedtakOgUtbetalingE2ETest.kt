@@ -119,8 +119,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     IkkeUtbetalteDager(
                         1.februar,
                         7.februar,
-                        "Arbeidsdag",
-                        emptyList()
+                        listOf("Arbeidsdag")
                     )
                 )
             )
@@ -213,8 +212,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     IkkeUtbetalteDager(
                         fom = 18.januar,
                         tom = 22.januar,
-                        grunn = "Arbeidsdag",
-                        begrunnelser = emptyList()
+                        begrunnelser = listOf("Arbeidsdag")
                     )
                 ),
                 linjer = listOf(
@@ -268,7 +266,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     IkkeUtbetalteDager(
                         fom = 17.januar,
                         tom = 17.januar,
-                        grunn = "Avvist dag",
                         begrunnelser = listOf("Personen er død")
                     )
                 ),
@@ -321,7 +318,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                     IkkeUtbetalteDager(
                         fom = 1.januar,
                         tom = 17.januar,
-                        grunn = "Annen ytelse",
                         begrunnelser = listOf("Personen mottar Svangerskapspenger")
                     )
                 ),

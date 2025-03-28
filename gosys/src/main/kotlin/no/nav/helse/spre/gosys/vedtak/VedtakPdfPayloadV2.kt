@@ -1,7 +1,7 @@
 package no.nav.helse.spre.gosys.vedtak
 
-import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 import java.time.LocalDate
+import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 
 data class VedtakPdfPayloadV2(
     val fødselsnummer: String,
@@ -52,9 +52,14 @@ data class VedtakPdfPayloadV2(
     data class IkkeUtbetalteDager(
         val fom: LocalDate,
         val tom: LocalDate,
-        val grunn: String,
         val begrunnelser: List<String>
-    )
+    ) {
+        init {
+            check(begrunnelser.isNotEmpty()) {
+                "Forventer minst én begrunnelse for en ikke-utbetalt dag"
+            }
+        }
+    }
 }
 
 

@@ -70,23 +70,21 @@ data class VedtakMessage(
         sykepengegrunnlag = sykepengegrunnlag,
         ikkeUtbetalteDager = avvistePerioder
             .map {
+                val begrunnelser = if (it.begrunnelser.isNotEmpty()) {
+                    mapBegrunnelser(it.begrunnelser)
+                } else {
+                    listOf(when (it.type) {
+                        "Fridag" -> "Ferie/Permisjon"
+                        "Feriedag" -> "Feriedag"
+                        "Permisjonsdag" -> "Permisjonsdag"
+                        "Arbeidsdag" -> "Arbeidsdag"
+                        else -> error("Ukjent dagtype uten begrunnelser: ${it.type}!")
+                    })
+                }
                 IkkeUtbetalteDager(
                     fom = it.fom,
                     tom = it.tom,
-                    begrunnelser = mapBegrunnelser(it.begrunnelser),
-                    grunn = when (it.type) {
-                        "AvvistDag" -> "Avvist dag"
-                        "Fridag" -> "Ferie/Permisjon"
-                        "Feriedag" -> "Feriedag"
-                        "AndreYtelser" -> "Annen ytelse"
-                        "Permisjonsdag" -> "Permisjonsdag"
-                        "Arbeidsdag" -> "Arbeidsdag"
-                        "Annullering" -> "Annullering"
-                        else -> {
-                            logg.error("Ukjent dagtype $it")
-                            "Ukjent dagtype: \"${it.type}\""
-                        }
-                    }
+                    begrunnelser = begrunnelser
                 )
             },
         navn = navn,
