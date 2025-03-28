@@ -76,7 +76,9 @@ internal class VedtakFattetRiver(
                 logg.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
 
                 if (utbetalingId != null) {
-                    utbetalingDao.finnUtbetalingData(utbetalingId)?.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
+                    checkNotNull(utbetalingDao.finnUtbetalingData(utbetalingId)) {
+                        "forventer å finne utbetaling for vedtak for $vedtaksperiodeId"
+                    }.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
                 }
             }
         }  catch (err: Exception) {

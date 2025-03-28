@@ -14,15 +14,11 @@ import java.util.*
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.sikkerLogg
-import no.nav.helse.spre.gosys.vedtak.VedtakMediator
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 
 internal class UtbetalingUtbetaltRiver(
     rapidsConnection: RapidsConnection,
     private val utbetalingDao: UtbetalingDao,
-    private val vedtakFattetDao: VedtakFattetDao,
-    private val duplikatsjekkDao: DuplikatsjekkDao,
-    private val vedtakMediator: VedtakMediator
+    private val duplikatsjekkDao: DuplikatsjekkDao
 ) : River.PacketListener {
 
     init {
@@ -78,8 +74,7 @@ internal class UtbetalingUtbetaltRiver(
         val id = UUID.fromString(packet["@id"].asText())
         try {
             duplikatsjekkDao.sjekkDuplikat(id) {
-                val utbetaling = lagreUtbetaling(id, packet, utbetalingDao)
-                utbetaling.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
+                lagreUtbetaling(id, packet, utbetalingDao)
             }
         } catch (err: Exception) {
             logg.error("Feil i melding $id i utbetaling utbetalt-river: ${err.message}", err)

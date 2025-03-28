@@ -110,8 +110,8 @@ internal fun RapidsConnection.settOppRivers(
     AnnulleringRiver(this, duplikatsjekkDao, annulleringMediator)
     FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
     VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, vedtakMediator)
-    UtbetalingUtbetaltRiver(this, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
-    UtbetalingUtenUtbetalingRiver(this, utbetalingDao, vedtakFattetDao, duplikatsjekkDao, vedtakMediator)
+    UtbetalingUtbetaltRiver(this, utbetalingDao, duplikatsjekkDao)
+    UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
 }
 
 

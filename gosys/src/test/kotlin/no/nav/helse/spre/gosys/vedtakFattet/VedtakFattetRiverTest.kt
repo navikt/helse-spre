@@ -12,10 +12,11 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
     @Test
     fun `Lagrer vedtak fattet`() {
         val utbetalingId = UUID.randomUUID()
+        sendUtbetaling(utbetalingId = utbetalingId)
         sendVedtakFattet(utbetalingId = utbetalingId)
         val vedtak = vedtakFattetDao.finnVedtakFattetData(utbetalingId)[0]
         assertNotNull(vedtak)
-        assertFalse(vedtakFattetDao.erJournalført(vedtak))
+        assertTrue(vedtakFattetDao.erJournalført(vedtak))
     }
 
     @Test
@@ -43,38 +44,6 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
         testRapid.sendTestMessage(vedtakFattetForAvsluttetUtenUtbetaling(meldingId))
         harIkkeLagretTilDuplikattabellen(meldingId)
     }
-
-    @Language("json")
-    private fun vedtakFattetMedUtbetaling(
-        id: UUID = UUID.randomUUID(),
-        vedtaksperiodeId: UUID = UUID.randomUUID(),
-        utbetalingId: UUID = UUID.randomUUID()
-    ) = """{
-  "@id": "$id",
-  "vedtaksperiodeId": "$vedtaksperiodeId",
-  "fødselsnummer": "12345678910",
-  "utbetalingId": "$utbetalingId",
-  "@event_name": "vedtak_fattet",
-  "@opprettet": "2021-05-25T13:12:24.922420993",
-  "fom": "2021-05-03",
-  "tom": "2021-05-16",
-  "hendelser": [
-    "65ca68fa-0f12-40f3-ac34-141fa77c4270",
-    "6977170d-5a99-4e7f-8d5f-93bda94a9ba3",
-    "15aa9c84-a9cc-4787-b82a-d5447aa3fab1"
-  ],
-  "skjæringstidspunkt": "2021-01-07",
-  "sykepengegrunnlag": 565260.0,
-  "grunnlagForSykepengegrunnlagPerArbeidsgiver": {
-    "123456789": 1234.56,
-    "987654321": 6543.21
-  },
-  "inntekt": 47105.0,
-  "aktørId": "9000011921123",
-  "organisasjonsnummer": "123456789",
-  "system_read_count": 0
-}
-    """
 
     @Language("json")
     private fun vedtakFattetForAvsluttetUtenUtbetaling(hendelseId: UUID) = """

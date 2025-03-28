@@ -22,69 +22,17 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_utbetalt`() {
-        val vedtaksperiodeId = UUID.randomUUID()
-        val utbetalingId = UUID.randomUUID()
-
-        sendVedtakFattet(
-            vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId,
-        )
-        sendUtbetaling(
-            utbetalingId = utbetalingId,
-        )
-        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
-        assertVedtakPdf(expectedPdfPayloadV2(arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver")))
-    }
-
-
-    @Test
-    fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_utbetalt for brukerutbetaling`() {
-        val vedtaksperiodeId = UUID.randomUUID()
-        val utbetalingId = UUID.randomUUID()
-
-        sendVedtakFattet(
-            vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId
-        )
-        sendBrukerutbetaling(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(vedtaksperiodeId)
-        )
-        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
-
-        val linjer = listOf(
-            Linje(
-                fom = 1.januar,
-                tom = 31.januar,
-                grad = 100,
-                dagsats = 1431,
-                mottaker = "Molefonken",
-                mottakerType = MottakerType.Person,
-                totalbeløp = 32913,
-                erOpphørt = false
-            )
-        )
-        assertVedtakPdf(
-            expectedPdfPayloadV2(
-                linjer = linjer,
-                personOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdPerson")
-            )
-        )
-    }
-
-    @Test
     fun `delvis refusjon`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        sendVedtakFattet(
-            vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId
-        )
         sendUtbetalingDelvisRefusjon(
             utbetalingId = utbetalingId,
             vedtaksperiodeIder = listOf(vedtaksperiodeId),
             sykdomstidslinje = utbetalingsdager(1.januar, 31.januar)
+        )
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId
         )
 
         val expectedLinjer = listOf(
@@ -125,16 +73,16 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `sorterer linjer`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
-        sendVedtakFattet(
-            vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId
-        )
         sendBrukerutbetaling(
             utbetalingId = utbetalingId,
             vedtaksperiodeIder = listOf(vedtaksperiodeId),
             sykdomstidslinje = utbetalingsdager(1.januar, 31.januar)
-                    + arbeidsdager(1.februar, 7.februar)
-                    + utbetalingsdager(8.februar, 18.februar)
+                + arbeidsdager(1.februar, 7.februar)
+                + utbetalingsdager(8.februar, 18.februar)
+        )
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId
         )
         assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
 
@@ -179,91 +127,22 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
     }
 
-
-    @Test
-    fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_uten_utbetaling for brukerutbetaling`() {
-        val vedtaksperiodeId = UUID.randomUUID()
-        val utbetalingId = UUID.randomUUID()
-        sendVedtakFattet(
-            vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId
-        )
-        sendBrukerutbetaling(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeIder = listOf(vedtaksperiodeId),
-            sykdomstidslinje = fridager(1.januar, 31.januar)
-        )
-        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
-        assertVedtakPdf(
-            expectedPdfPayloadV2(
-                linjer = emptyList(),
-                totaltTilUtbetaling = 0,
-                ikkeUtbetalteDager = listOf(
-                    IkkeUtbetalteDager(
-                        1.januar,
-                        31.januar,
-                        "Ferie/Permisjon",
-                        emptyList()
-                    )
-                )
-            )
-        )
-    }
-
-    @Test
-    fun `journalfører vedtak med vedtak_fattet og deretter utbetaling_uten_utbetaling`() {
-        val vedtaksperiodeId = UUID.randomUUID()
-        val utbetalingId = UUID.randomUUID()
-        sendVedtakFattet(vedtaksperiodeId = vedtaksperiodeId, utbetalingId = utbetalingId)
-        sendUtbetaling(
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = fridager(1.januar, 31.januar)
-        )
-        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
-        assertVedtakPdf(
-            expectedPdfPayloadV2(
-                totaltTilUtbetaling = 0,
-                linjer = emptyList(),
-                ikkeUtbetalteDager = listOf(
-                    IkkeUtbetalteDager(
-                        fom = 1.januar,
-                        tom = 31.januar,
-                        grunn = "Ferie/Permisjon",
-                        begrunnelser = emptyList()
-                    )
-                )
-            )
-        )
-    }
-
-    @Test
-    fun `journalfører vedtak med utbetaling_utbetalt og deretter vedtak_fattet`() {
-        val vedtaksperiodeId = UUID.randomUUID()
-        val utbetalingId = UUID.randomUUID()
-        sendUtbetaling(utbetalingId = utbetalingId)
-        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
-
-        assertEquals(1, capturedJoarkRequests.size)
-        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
-        assertVedtakPdf(expectedPdfPayloadV2(arbeidsgiverOppdrag = VedtakPdfPayloadV2.Oppdrag("fagsystemIdArbeidsgiver")))
-    }
-
     @Test
     fun `journalfører ikke dobbelt vedtak`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
         val hendelseIdVedtak = UUID.randomUUID()
         val hendelseIdUtbetaling = UUID.randomUUID()
-        sendVedtakFattet(
-            hendelseId = hendelseIdVedtak,
-            utbetalingId = utbetalingId,
-            vedtaksperiodeId = vedtaksperiodeId
-        )
         sendUtbetaling(
             hendelseId = hendelseIdUtbetaling,
             utbetalingId = utbetalingId
         )
 
+        sendVedtakFattet(
+            hendelseId = hendelseIdVedtak,
+            utbetalingId = utbetalingId,
+            vedtaksperiodeId = vedtaksperiodeId
+        )
         sendUtbetaling(
             hendelseId = hendelseIdUtbetaling,
             utbetalingId = utbetalingId
@@ -280,7 +159,9 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
     @Test
     fun `journalfører ikke uten å ha mottatt utbetaling`() {
-        sendVedtakFattet()
+        assertThrows<IllegalStateException> {
+            sendVedtakFattet()
+        }
         assertEquals(0, capturedJoarkRequests.size)
         assertEquals(0, capturedPdfRequests.size)
     }
@@ -359,15 +240,15 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val sykdomstidslinje =
             utbetalingsdager(1.januar, 16.januar) +
                     avvistDager(17.januar, begrunnelser = listOf("EtterDødsdato"))
-        sendVedtakFattet(
-            vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = sykdomstidslinje
-        )
         sendUtbetaling(
             utbetalingId = utbetalingId,
             sykdomstidslinje = sykdomstidslinje,
             type = "REVURDERING"
+        )
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = sykdomstidslinje
         )
         assertJournalpost(
             expected = expectedJournalpost(
@@ -412,15 +293,15 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val utbetalingId = UUID.randomUUID()
         val vedtaksperiodeId = UUID.randomUUID()
         val sykdomstidslinje = andreYtelser(1.januar, 17.januar, begrunnelser = listOf("AndreYtelserSvangerskapspenger"))
-        sendVedtakFattet(
-            vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = sykdomstidslinje
-        )
         sendUtbetaling(
             utbetalingId = utbetalingId,
             sykdomstidslinje = sykdomstidslinje,
             type = "REVURDERING"
+        )
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = sykdomstidslinje
         )
         assertJournalpost(
             expected = expectedJournalpost(
@@ -454,14 +335,14 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
         val sykdomstidslinje = utbetalingsdager(2.januar, 31.januar)
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = arbeidsdager(1.januar) + sykdomstidslinje
+        )
         sendVedtakFattet(
             utbetalingId = utbetalingId,
             vedtaksperiodeId = vedtaksperiodeId,
             sykdomstidslinje = sykdomstidslinje
-        )
-        sendUtbetaling(
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = arbeidsdager(1.januar) + sykdomstidslinje
         )
 
         assertJournalpost(expectedJournalpost(fom = 2.januar, tom = 31.januar, eksternReferanseId = utbetalingId))
@@ -502,53 +383,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `revurdering med flere vedtak knyttet til én utbetaling - vedtak først`() {
-        val utbetalingId = UUID.randomUUID()
-        val (v1, v2) = UUID.randomUUID() to UUID.randomUUID()
-        val (p1, p2) = utbetalingsdager(1.januar, 31.januar) to utbetalingsdager(1.februar, 28.februar)
-
-        sendVedtakFattet(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeId = v1,
-            sykdomstidslinje = p1
-        )
-        sendRevurdering(
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = p1 + p2
-        )
-        assertThrows<IllegalStateException> {
-            sendVedtakFattet(
-                utbetalingId = utbetalingId,
-                vedtaksperiodeId = v2,
-                sykdomstidslinje = p2
-            )
-        }
-    }
-
-    @Test
-    fun `revurdering med flere vedtak knyttet til én utbetaling - utbetaling sist`() {
-        val utbetalingId = UUID.randomUUID()
-        val (v1, v2) = UUID.randomUUID() to UUID.randomUUID()
-        val (p1, p2) = utbetalingsdager(1.januar, 31.januar) to utbetalingsdager(1.februar, 28.februar)
-        sendVedtakFattet(
-            vedtaksperiodeId = v1,
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = p1
-        )
-        sendVedtakFattet(
-            vedtaksperiodeId = v2,
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = p2
-        )
-        assertThrows<IllegalStateException> {
-            sendRevurdering(
-                utbetalingId = utbetalingId,
-                sykdomstidslinje = p1 + p2
-            )
-        }
-    }
-
-    @Test
     fun `revurdering med flere vedtak knyttet til én utbetaling - inneklemt fridag`() {
         val utbetalingstidspunkt = LocalDateTime.now()
         val utbetalingId = UUID.randomUUID()
@@ -581,12 +415,12 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `markerer linjer utbetaling_utbetalt som er opphørt`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
+        testRapid.sendTestMessage(utbetalingMedOpphør(vedtaksperiodeId.toString(), utbetalingId.toString()))
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId,
             sykdomstidslinje = utbetalingsdager(6.november(2021), 19.november(2021))
         )
-        testRapid.sendTestMessage(utbetalingMedOpphør(vedtaksperiodeId.toString(), utbetalingId.toString()))
 
         assertJournalpost(
             expectedJournalpost(
@@ -647,12 +481,12 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `Vedtak med bruk av arbeid ikke gjenopptatt setter fom til første dag etter arbeid ikke gjenopptatt`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
+        testRapid.sendTestMessage(utbetalingUtbetaltMedAig(utbetalingId, vedtaksperiodeId))
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId,
             sykdomstidslinje = utbetalingsdager(1.juni(2023), 5.juni(2023))
         )
-        testRapid.sendTestMessage(utbetalingUtbetaltMedAig(utbetalingId, vedtaksperiodeId))
 
         assertJournalpost(
             expectedJournalpost(
@@ -685,12 +519,12 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     fun `markerer linjer utbetaling_utbetalt som er opphørt i PDFPayloadV2`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
+        testRapid.sendTestMessage(utbetalingMedOpphør(vedtaksperiodeId.toString(), utbetalingId.toString()))
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId,
             sykdomstidslinje = utbetalingsdager(6.november(2021), 19.november(2021))
         )
-        testRapid.sendTestMessage(utbetalingMedOpphør(vedtaksperiodeId.toString(), utbetalingId.toString()))
 
         assertJournalpost(
             expectedJournalpost(
