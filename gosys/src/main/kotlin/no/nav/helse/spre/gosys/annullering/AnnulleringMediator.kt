@@ -7,6 +7,7 @@ import com.github.navikt.tbd_libs.retry.retryBlocking
 import com.github.navikt.tbd_libs.speed.PersonResponse
 import com.github.navikt.tbd_libs.speed.SpeedClient
 import kotlinx.coroutines.runBlocking
+import net.logstash.logback.argument.StructuredArguments.kv
 import no.nav.helse.spre.gosys.*
 
 class AnnulleringMediator(
@@ -58,8 +59,8 @@ fun hentNavn(speedClient: SpeedClient, ident: String, callId: String) =
         .fold(
             whenOk = { it.tilVisning() },
             whenError = { msg, cause ->
-                logg.error("Feil ved henting av navn")
-                sikkerLogg.error("Feil ved henting av navn for ident=$ident: $msg", cause)
+                logg.error("Feil ved henting av navn {}", kv("callId", callId))
+                sikkerLogg.error("Feil ved henting av navn for ident=$ident: $msg {}", kv("callId", callId), cause)
                 null
             }
         )
