@@ -66,19 +66,39 @@ internal class VedtakFattetRiver(
                 logg.info("vedtak_fattet leses inn for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId")
 
                 val vedtakFattet = VedtakFattetData.fromJson(id, packet)
+                val tidligereVedtakFattet = utbetalingId?.let { vedtakFattetDao.finnVedtakFattetData(it) }
 
-                if (utbetalingId != null && erLogiskDuplikat(utbetalingId, vedtaksperiodeId)) {
-                    logg.warn("har allerede behandlet vedtak_fattet for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
-                    return@sjekkDuplikat
+                if (tidligereVedtakFattet != null) {
+                    check(tidligereVedtakFattet.vedtaksperiodeId == vedtaksperiodeId) {
+                        "det finnes et tidligere vedtak (vedtaksperiode ${tidligereVedtakFattet.vedtaksperiodeId}) med samme utbetalingId, som er ulik vedtaksperiode $vedtaksperiodeId"
+                    }
+
+                    if (vedtakFattetDao.erJournalført(tidligereVedtakFattet)) {
+                        logg.warn("har allerede behandlet vedtak_fattet for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
+                        return@sjekkDuplikat
+                    }
                 }
 
                 vedtakFattetDao.lagre(vedtakFattet, packet.toJson())
                 logg.info("vedtak_fattet lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
 
                 if (utbetalingId != null) {
-                    checkNotNull(utbetalingDao.finnUtbetalingData(utbetalingId)) {
+                    val utbetaling = checkNotNull(utbetalingDao.finnUtbetalingData(utbetalingId)) {
                         "forventer å finne utbetaling for vedtak for $vedtaksperiodeId"
-                    }.avgjørVidereBehandling(vedtakFattetDao, vedtakMediator)
+                    }
+
+                    vedtakMediator.opprettSammenslåttVedtak(
+                        vedtakFattet.fom,
+                        vedtakFattet.tom,
+                        vedtakFattet.sykepengegrunnlag,
+                        vedtakFattet.grunnlagForSykepengegrunnlag,
+                        vedtakFattet.skjæringstidspunkt,
+                        vedtakFattet.sykepengegrunnlagsfakta,
+                        vedtakFattet.begrunnelser,
+                        utbetaling
+                    ) {
+                        vedtakFattetDao.journalført(vedtakFattet.id)
+                    }
                 }
             }
         }  catch (err: Exception) {
@@ -87,11 +107,6 @@ internal class VedtakFattetRiver(
             throw err
         }
     }
-
-    private fun erLogiskDuplikat(utbetalingId: UUID, vedtaksperiodeId: UUID?) =
-        vedtakFattetDao.finnVedtakFattetData(utbetalingId).any { vedtak ->
-            vedtak.vedtaksperiodeId == vedtaksperiodeId && vedtakFattetDao.erJournalført(vedtak)
-        }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
         tjenestekall.info("Noe gikk galt: {}", problems.toExtendedReport())

@@ -9,10 +9,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import no.nav.helse.spre.gosys.objectMapper
-import no.nav.helse.spre.gosys.sikkerLogg
-import no.nav.helse.spre.gosys.vedtak.VedtakMediator
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 
 data class Utbetaling(
     val utbetalingId: UUID,
@@ -44,28 +41,6 @@ data class Utbetaling(
         }
 
         return fom to vedtaksperiode.second
-    }
-
-    private fun vedtakOrNull(vedtakFattetDao: VedtakFattetDao) = vedtakFattetDao.finnVedtakFattetData(utbetalingId).let { vedtak ->
-        if (vedtak.size > 1) sikkerLogg.warn("${vedtak.map { "Vedtak ${it.id} for Vedtaksperiode ${it.vedtaksperiodeId}"}} peker alle på Utbetalingen $utbetalingId")
-        vedtak.singleOrNullOrThrow()
-    }
-
-    internal fun avgjørVidereBehandling(vedtakFattetDao: VedtakFattetDao, vedtakMediator: VedtakMediator) {
-        vedtakOrNull(vedtakFattetDao)?.let { vedtaksperiode ->
-            vedtakMediator.opprettSammenslåttVedtak(
-                vedtaksperiode.fom,
-                vedtaksperiode.tom,
-                vedtaksperiode.sykepengegrunnlag,
-                vedtaksperiode.grunnlagForSykepengegrunnlag,
-                vedtaksperiode.skjæringstidspunkt,
-                vedtaksperiode.sykepengegrunnlagsfakta,
-                vedtaksperiode.begrunnelser,
-                this
-            ) {
-                vedtakFattetDao.journalført(vedtaksperiode.id)
-            }
-        }
     }
 
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
@@ -162,8 +137,4 @@ data class Utbetaling(
         val type: String,
         val begrunnelser: List<String>
     )
-
-    private fun <R> Collection<R>.singleOrNullOrThrow() =
-        if (size < 2) this.firstOrNull()
-        else throw IllegalStateException("Listen inneholder mer enn ett element!")
 }

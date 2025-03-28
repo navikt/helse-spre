@@ -9,7 +9,6 @@ import org.intellij.lang.annotations.Language
 import java.time.*
 import java.util.*
 import javax.sql.DataSource
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 class VedtakFattetDao(private val dataSource: DataSource) {
 
@@ -58,9 +57,8 @@ class VedtakFattetDao(private val dataSource: DataSource) {
         return journalførtTidspunkt != null && journalførtTidspunkt > NITTEN_ÅTTI;
     }
 
-    internal fun finnVedtakFattetData(utbetalingId: UUID): List<VedtakFattetData> = finnJsonHvisFinnes(utbetalingId).let { vedtakFattetJson ->
-        vedtakFattetJson.map { fromJson(it) }
-    }
+    internal fun finnVedtakFattetData(utbetalingId: UUID): VedtakFattetData? =
+        finnJsonHvisFinnes(utbetalingId).map { fromJson(it) }.singleOrNullOrThrow()
 
     private fun finnJsonHvisFinnes(utbetalingId: UUID): List<String> =
         sessionOf(dataSource).use { session ->
@@ -74,4 +72,7 @@ class VedtakFattetDao(private val dataSource: DataSource) {
             )
         }
 
+    private fun <R> Collection<R>.singleOrNullOrThrow() =
+        if (size < 2) this.firstOrNull()
+        else throw IllegalStateException("Listen inneholder mer enn ett element!")
 }

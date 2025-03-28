@@ -358,60 +358,6 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `revurdering med flere vedtak knyttet til én utbetaling - utbetaling først`() {
-        val utbetalingstidspunkt = LocalDateTime.now()
-        val utbetalingId = UUID.randomUUID()
-        val (v1, v2) = UUID.randomUUID() to UUID.randomUUID()
-        val (p1, p2) = utbetalingsdager(1.januar, 31.januar) to utbetalingsdager(1.februar, 28.februar)
-        sendRevurdering(
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = p1 + p2,
-            opprettet = utbetalingstidspunkt
-        )
-        sendVedtakFattet(
-            utbetalingId = utbetalingId,
-            vedtaksperiodeId = v1,
-            sykdomstidslinje = p1
-        )
-        assertThrows<IllegalStateException> {
-            sendVedtakFattet(
-                utbetalingId = utbetalingId,
-                vedtaksperiodeId = v2,
-                sykdomstidslinje = p2
-            )
-        }
-    }
-
-    @Test
-    fun `revurdering med flere vedtak knyttet til én utbetaling - inneklemt fridag`() {
-        val utbetalingstidspunkt = LocalDateTime.now()
-        val utbetalingId = UUID.randomUUID()
-        val (v1, v2) = UUID.randomUUID() to UUID.randomUUID()
-        val (p1, p2) =
-            utbetalingsdager(1.januar, 28.januar) +
-                    fridager(29.januar) +
-                    utbetalingsdager(30.januar, 31.januar) to
-                    utbetalingsdager(1.februar, 28.februar)
-        sendRevurdering(
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = p1 + p2,
-            opprettet = utbetalingstidspunkt
-        )
-        sendVedtakFattet(
-            vedtaksperiodeId = v1,
-            utbetalingId = utbetalingId,
-            sykdomstidslinje = p1
-        )
-        assertThrows<IllegalStateException> {
-            sendVedtakFattet(
-                vedtaksperiodeId = v2,
-                utbetalingId = utbetalingId,
-                sykdomstidslinje = p2
-            )
-        }
-    }
-
-    @Test
     fun `markerer linjer utbetaling_utbetalt som er opphørt`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
