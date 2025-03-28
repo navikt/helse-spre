@@ -219,7 +219,6 @@ internal abstract class AbstractE2ETest {
             ikkeUtbetalteDager = ikkeUtbetalteDager,
             maksdato = maksdato,
             sykepengegrunnlag = 565260.0,
-            grunnlagForSykepengegrunnlag = mapOf("123456789" to 265260.0, "987654321" to 300000.21),
             sumTotalBeløp = linjer.sumOf { it.totalbeløp },
             organisasjonsnavn = "PENGELØS SPAREBANK",
             navn = "Molefonken Ert",

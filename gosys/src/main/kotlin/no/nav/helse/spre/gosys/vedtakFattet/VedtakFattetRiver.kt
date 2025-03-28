@@ -58,10 +58,7 @@ internal class VedtakFattetRiver(
                     "@id",
                     "vedtaksperiodeId",
                     "organisasjonsnummer",
-                    "hendelser",
-                    "sykepengegrunnlag",
-                    "inntekt",
-                    "grunnlagForSykepengegrunnlagPerArbeidsgiver",
+                    "sykepengegrunnlag"
                 )
                 message.require("fom", JsonNode::asLocalDate)
                 message.require("tom", JsonNode::asLocalDate)
@@ -138,7 +135,6 @@ internal class VedtakFattetRiver(
             fom = søknadsperiodeFom,
             tom = søknadsperiodeTom,
             sykepengegrunnlag = vedtakFattet.sykepengegrunnlag,
-            grunnlagForSykepengegrunnlag = vedtakFattet.grunnlagForSykepengegrunnlag,
             skjæringstidspunkt = vedtakFattet.skjæringstidspunkt,
             utbetaling = utbetaling,
             sykepengegrunnlagsfakta = vedtakFattet.sykepengegrunnlagsfakta,

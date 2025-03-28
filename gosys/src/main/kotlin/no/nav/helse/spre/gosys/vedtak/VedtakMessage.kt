@@ -27,7 +27,6 @@ data class VedtakMessage(
     private val godkjentAvEpost: String,
     private val maksdato: LocalDate?,
     private val sykepengegrunnlag: Double,
-    private val grunnlagForSykepengegrunnlag: Map<String, Double>,
     private val utbetaling: Utbetaling,
     private val sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
     private val ikkeUtbetalteDager: List<IkkeUtbetaltDag>,
@@ -41,7 +40,6 @@ data class VedtakMessage(
         fom: LocalDate,
         tom: LocalDate,
         sykepengegrunnlag: Double,
-        grunnlagForSykepengegrunnlag: Map<String, Double>,
         skjæringstidspunkt: LocalDate,
         utbetaling: Utbetaling,
         sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
@@ -61,7 +59,6 @@ data class VedtakMessage(
         godkjentAvEpost = utbetaling.epost,
         maksdato = utbetaling.maksdato,
         sykepengegrunnlag = sykepengegrunnlag,
-        grunnlagForSykepengegrunnlag = grunnlagForSykepengegrunnlag,
         utbetaling = utbetaling,
         ikkeUtbetalteDager = utbetaling.ikkeUtbetalingsdager.filterNot { dag -> dag.dato.isBefore(skjæringstidspunkt) }
             .map { dag ->
@@ -98,7 +95,6 @@ data class VedtakMessage(
         godkjentAv = godkjentAv,
         maksdato = maksdato,
         sykepengegrunnlag = sykepengegrunnlag,
-        grunnlagForSykepengegrunnlag = grunnlagForSykepengegrunnlag,
         ikkeUtbetalteDager = ikkeUtbetalteDager
             .settSammenIkkeUtbetalteDager()
             .map {

@@ -21,7 +21,6 @@ data class VedtakPdfPayloadV2(
     val ikkeUtbetalteDager: List<IkkeUtbetalteDager>,
     val maksdato: LocalDate?,
     val sykepengegrunnlag: Double,
-    val grunnlagForSykepengegrunnlag: Map<String, Double>,
     val navn: String,
     val organisasjonsnavn: String,
     val skjæringstidspunkt: LocalDate,
