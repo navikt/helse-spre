@@ -5,10 +5,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.micrometer.core.instrument.Clock.SYSTEM
-import io.micrometer.prometheusmetrics.PrometheusConfig.DEFAULT
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import io.prometheus.metrics.model.registry.PrometheusRegistry.defaultRegistry
 import java.io.File
 import java.util.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.PostgresBehandlingshendelseDao
@@ -78,9 +74,8 @@ private class ManuellInngripen(jdbcUrl: String) {
         return packet
     }
 
-    private val meterRegistry = PrometheusMeterRegistry(DEFAULT, defaultRegistry, SYSTEM)
     private fun String.jsonMessage(eventName: String) = File(this).readText().let {
-        JsonMessage(it, MessageProblems(it), meterRegistry).also { packet -> defaultValidering(packet, eventName) }
+        JsonMessage(it, MessageProblems(it)).also { packet -> defaultValidering(packet, eventName) }
     }
     private fun defaultValidering(packet: JsonMessage, eventName: String) = with(packet) {
         requireValue("@event_name", eventName)
