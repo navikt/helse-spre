@@ -963,12 +963,13 @@ class EndToEndTest {
     ) {
         rapid.sendTestMessage(
             inntektsmelding(
-                hendelseId,
-                dokumentId,
-                inntekt,
-                refusjon,
-                fødselsnummer,
-                organisasjonsnummer
+                hendelseId = hendelseId,
+                dokumentId = dokumentId,
+                eventName = "inntektsmelding",
+                inntekt = inntekt,
+                refusjon = refusjon,
+                fødselsnummer = fødselsnummer,
+                organisasjonsnummer = organisasjonsnummer
             )
         )
     }

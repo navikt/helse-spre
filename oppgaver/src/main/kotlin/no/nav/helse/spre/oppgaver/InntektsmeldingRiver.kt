@@ -13,7 +13,7 @@ class InntektsmeldingRiver(rapidsConnection: RapidsConnection, private val oppga
     River.PacketListener {
     init {
         River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "inntektsmelding") }
+            precondition { it.requireAny("@event_name", listOf("inntektsmelding", "arbeidsgiveropplysninger", "korrigerte_arbeidsgiveropplysninger", "selvbestemte_arbeidsgiveropplysninger")) }
             validate { it.requireKey("@id") }
             validate { it.requireKey("inntektsmeldingId") }
             validate { it.requireKey("virksomhetsnummer") }
