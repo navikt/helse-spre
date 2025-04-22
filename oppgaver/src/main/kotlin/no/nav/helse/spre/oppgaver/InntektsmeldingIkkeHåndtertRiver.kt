@@ -2,6 +2,7 @@ package no.nav.helse.spre.oppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
@@ -19,7 +20,10 @@ class InntektsmeldingIkkeHåndtertRiver(
     init {
         River(rapidsConnection).apply {
             precondition { it.requireValue("@event_name", "inntektsmelding_ikke_håndtert") }
-            validate { it.requireKey("inntektsmeldingId", "harPeriodeInnenfor16Dager") }
+            validate {
+                it.requireKey("inntektsmeldingId")
+                it.interestedIn("harPeriodeInnenfor16Dager", "speilrelatert")
+            }
         }.register(this)
     }
 
@@ -27,16 +31,20 @@ class InntektsmeldingIkkeHåndtertRiver(
         loggUkjentMelding("inntektsmelding_ikke_håndtert", problems)
     }
 
+    private val JsonMessage.speilrelatert get(): Boolean {
+        val nyttFlagg = get("speilrelatert").takeUnless { it.isMissingOrNull() }?.asBoolean()
+        if (nyttFlagg != null) return nyttFlagg
+        return get("harPeriodeInnenfor16Dager").asBoolean()
+    }
+
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
         val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         val inntektsmeldingId = packet["inntektsmeldingId"].asText().let { UUID.fromString(it) }
-        val harPeriodeInnenfor16Dager = packet["harPeriodeInnenfor16Dager"].asBoolean()
-
-        val speilRelatert = harPeriodeInnenfor16Dager
+        val speilrelatert = packet.speilrelatert
 
         val oppgave = oppgaveDAO.finnOppgave(inntektsmeldingId, observer) ?: return
-        withMDC(mapOf("event" to "inntektsmelding_ikke_håndtert", "harPeriodeInnenfor16Dager" to harPeriodeInnenfor16Dager.utfall())) {
-            oppgave.håndterInntektsmeldingIkkeHåndtert(speilRelatert)
+        withMDC(mapOf("event" to "inntektsmelding_ikke_håndtert", "speilrelatert" to speilrelatert.utfall())) {
+            oppgave.håndterInntektsmeldingIkkeHåndtert(speilrelatert)
             log.info("Mottok inntektsmelding_ikke_håndtert-event: {}", oppgave.hendelseId)
         }
     }
