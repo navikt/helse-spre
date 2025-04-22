@@ -25,7 +25,6 @@ class VedtaksperiodeForkastetRiver(
             precondition { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
             precondition { it.forbidValue("@forårsaket_av.event_name", "person_påminnelse") }
             validate { it.requireKey("hendelser", "vedtaksperiodeId", "tilstand", "harPeriodeInnenfor16Dager", "forlengerPeriode", "fødselsnummer", "organisasjonsnummer") }
-            validate { it.requireKey("behandletIInfotrygd") }
             validate { it.require("fom", JsonNode::asLocalDate) }
             validate { it.require("tom", JsonNode::asLocalDate) }
         }.register(this)
@@ -41,7 +40,6 @@ class VedtaksperiodeForkastetRiver(
         val orgnummer = packet["organisasjonsnummer"].asText()
         val fødselsnummer = packet["fødselsnummer"].asText()
         val speilRelatert = harPeriodeInnenfor16Dager || forlengerPeriode
-        val behandletIInfotrygd = packet["behandletIInfotrygd"].asBoolean(false)
         val fom = packet["fom"].asLocalDate()
         val tom = packet["tom"].asLocalDate()
         val erGammelPeriode = tom <= LocalDate.of(2022, 12, 31)
@@ -52,14 +50,13 @@ class VedtaksperiodeForkastetRiver(
             "event" to "vedtaksperiode_forkastet",
             "harPeriodeInnenfor16Dager" to harPeriodeInnenfor16Dager.utfall(),
             "forlengerPeriode" to forlengerPeriode.utfall(),
-            "behandletIInfotrygd" to behandletIInfotrygd.utfall(),
             "vedtaksperiodeId" to packet["vedtaksperiodeId"].asText(),
             "tilstand" to packet["tilstand"].asText(),
             "fomÅr" to fom.year.toString(),
             "tomÅr" to tom.year.toString(),
             "erGammelPeriode" to erGammelPeriode.utfall()
         )) {
-            if (oppgaver.isEmpty()) return@withMDC sikkerLog.info("Ignorerer vedtaksperiode_forkastet fordi ingen hendelser kan mappes til oppgaver i databasen", kv("fødselsnummer", fødselsnummer))
+            if (oppgaver.isEmpty()) return@withMDC sikkerLog.info("Ignorerer vedtaksperiode_forkastet fordi ingen hendelser kan mappes til oppgaver i databasen for {}", kv("fødselsnummer", fødselsnummer))
             oppgaver.forEach { oppgave ->
                 if (speilRelatert) oppgave.lagOppgavePåSpeilKø()
                 else oppgave.lagOppgave()
