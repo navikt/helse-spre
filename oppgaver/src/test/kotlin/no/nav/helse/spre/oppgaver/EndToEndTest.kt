@@ -330,20 +330,6 @@ class EndToEndTest {
     }
 
     @Test
-    fun `ignorer vedtaksperiode_forkastet som skyldes person_påminnelse`() = e2e {
-        val imDokumentId = UUID.randomUUID()
-        val imHendelseId = UUID.randomUUID()
-
-        sendInntektsmelding(imHendelseId, imDokumentId)
-
-        vedtaksperiodeForkastet(hendelseIder = listOf(imHendelseId), forårsaketAv = "person_påminnelse")
-        assertEquals(0, publiserteOppgaver.size)
-
-        vedtaksperiodeForkastet(hendelseIder = listOf(imHendelseId), forårsaketAv = "ikke_person_påminnelse")
-        assertEquals(1, publiserteOppgaver.size)
-    }
-
-    @Test
     fun `spleis gir opp behandling i vilkårsprøving`() = e2e {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
@@ -996,10 +982,9 @@ class EndToEndTest {
         hendelseIder: List<UUID>,
         organisasjonsnummer: String = ORGNUMMER,
         fødselsnummer: String = FØDSELSNUMMER,
-        forårsaketAv: String = "hva_som_helst",
         speilrelatert: Boolean = false
     ) {
-        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, fødselsnummer, organisasjonsnummer, forårsaketAv, speilrelatert))
+        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, fødselsnummer, organisasjonsnummer, speilrelatert))
     }
 
 
@@ -1117,7 +1102,6 @@ fun vedtaksperiodeForkastet(
     hendelser: List<UUID>,
     fødselsnummer: String,
     organisasjonsnummer: String,
-    forårsaketAv: String,
     speilrelatert: Boolean
 ) =
     """{
@@ -1130,10 +1114,7 @@ fun vedtaksperiodeForkastet(
             "tom": "${LocalDate.now()}",
             "organisasjonsnummer": "$organisasjonsnummer",
             "hendelser": ${hendelser.tilJSONStringArray()},
-            "speilrelatert": $speilrelatert,
-            "@forårsaket_av": {
-                "event_name": "$forårsaketAv"
-            }
+            "speilrelatert": $speilrelatert
         }"""
 
 

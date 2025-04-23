@@ -22,7 +22,6 @@ class VedtaksperiodeForkastetRiver(
     init {
         River(rapidsConnection).apply {
             precondition { it.requireValue("@event_name", "vedtaksperiode_forkastet") }
-            precondition { it.forbidValue("@forårsaket_av.event_name", "person_påminnelse") }
             validate { it.requireKey("hendelser", "vedtaksperiodeId", "tilstand", "fødselsnummer", "organisasjonsnummer", "speilrelatert") }
             validate { it.require("fom", JsonNode::asLocalDate) }
             validate { it.require("tom", JsonNode::asLocalDate) }
