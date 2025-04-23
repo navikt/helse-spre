@@ -299,7 +299,7 @@ class EndToEndTest {
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendSøknadHåndtert(søknad1HendelseId)
-        vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId), behandletIInfotrygd = true)
+        vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId))
 
         assertEquals(2, publiserteOppgaver.size)
         publiserteOppgaver[0].assertInnhold(Utsett, søknad1DokumentId, Søknad)
@@ -310,7 +310,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `oppgave opprettet speilrelatert harPeriodeInnenfor16Dager`() = e2e {
+    fun `oppgave opprettet speilrelatert`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
         val imDokumentId = UUID.randomUUID()
@@ -318,7 +318,7 @@ class EndToEndTest {
 
         sendSøknad(søknad1HendelseId, søknad1DokumentId)
         sendInntektsmelding(imHendelseId, imDokumentId)
-        vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId, imHendelseId), harPeriodeInnenfor16Dager = true)
+        vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId, imHendelseId), speilrelatert = true)
 
         assertEquals(2, publiserteOppgaver.size)
         publiserteOppgaver[0].assertInnhold(OpprettSpeilRelatert, søknad1DokumentId, Søknad)
@@ -341,26 +341,6 @@ class EndToEndTest {
 
         vedtaksperiodeForkastet(hendelseIder = listOf(imHendelseId), forårsaketAv = "ikke_person_påminnelse")
         assertEquals(1, publiserteOppgaver.size)
-    }
-
-    @Test
-    fun `oppgave opprettet speilrelatert forlenger periode`() = e2e {
-        val søknad1HendelseId = UUID.randomUUID()
-        val søknad1DokumentId = UUID.randomUUID()
-        val imDokumentId = UUID.randomUUID()
-        val imHendelseId = UUID.randomUUID()
-
-        sendSøknad(søknad1HendelseId, søknad1DokumentId)
-        sendInntektsmelding(imHendelseId, imDokumentId)
-        vedtaksperiodeForkastet(hendelseIder = listOf(søknad1HendelseId, imHendelseId), forlengerPeriode = true)
-
-        assertEquals(2, publiserteOppgaver.size)
-        publiserteOppgaver[0].assertInnhold(OpprettSpeilRelatert, søknad1DokumentId, Søknad)
-        publiserteOppgaver[1].assertInnhold(OpprettSpeilRelatert, imDokumentId, Inntektsmelding)
-
-        assertEquals(2, rapid.inspektør.size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett_speilrelatert", søknad1HendelseId).size)
-        assertEquals(1, rapid.inspektør.events("oppgavestyring_opprett_speilrelatert", imHendelseId).size)
     }
 
     @Test
@@ -602,7 +582,7 @@ class EndToEndTest {
             hendelseIder = listOf(søknadId),
             vedtaksperiodeId = periode
         )
-        vedtaksperiodeForkastet(listOf(søknadId))
+        vedtaksperiodeForkastet(listOf(søknadId), speilrelatert = false)
 
         assertEquals(1, rapid.inspektør.events("oppgavestyring_kort_periode", søknadId).size)
         assertEquals(0, rapid.inspektør.events("oppgavestyring_opprett", søknadId).size)
@@ -898,7 +878,7 @@ class EndToEndTest {
         val inntektsmeldingHendelseId = UUID.randomUUID()
         val inntektsmeldingDokumentId = UUID.randomUUID()
         sendInntektsmelding(hendelseId = inntektsmeldingHendelseId, dokumentId = inntektsmeldingDokumentId)
-        inntektsmeldingIkkeHåndtert(inntektsmeldingId = inntektsmeldingHendelseId, harPeriodeInnenfor16Dager = true)
+        inntektsmeldingIkkeHåndtert(inntektsmeldingId = inntektsmeldingHendelseId, speilrelatert = true)
         assertEquals(1, publiserteOppgaver.size)
         publiserteOppgaver[0].assertInnhold(OpprettSpeilRelatert, inntektsmeldingDokumentId, Inntektsmelding)
     }
@@ -1014,14 +994,12 @@ class EndToEndTest {
 
     private fun OppgaverE2EContext.vedtaksperiodeForkastet(
         hendelseIder: List<UUID>,
-        behandletIInfotrygd: Boolean = false,
-        harPeriodeInnenfor16Dager: Boolean = false,
-        forlengerPeriode: Boolean = false,
         organisasjonsnummer: String = ORGNUMMER,
         fødselsnummer: String = FØDSELSNUMMER,
-        forårsaketAv: String = "hva_som_helst"
+        forårsaketAv: String = "hva_som_helst",
+        speilrelatert: Boolean = false
     ) {
-        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, behandletIInfotrygd, harPeriodeInnenfor16Dager, forlengerPeriode, fødselsnummer, organisasjonsnummer, forårsaketAv))
+        rapid.sendTestMessage(no.nav.helse.spre.oppgaver.vedtaksperiodeForkastet(hendelseIder, fødselsnummer, organisasjonsnummer, forårsaketAv, speilrelatert))
     }
 
 
@@ -1035,13 +1013,13 @@ class EndToEndTest {
         )
     }
 
-    private fun OppgaverE2EContext.inntektsmeldingIkkeHåndtert(inntektsmeldingId: UUID, harPeriodeInnenfor16Dager: Boolean = false, organisasjonsnummer: String = ORGNUMMER, fødselsnummer: String = FØDSELSNUMMER) {
+    private fun OppgaverE2EContext.inntektsmeldingIkkeHåndtert(inntektsmeldingId: UUID, speilrelatert: Boolean = false, organisasjonsnummer: String = ORGNUMMER, fødselsnummer: String = FØDSELSNUMMER) {
         rapid.sendTestMessage(
             inntektsmeldingIkkeHåndtert(
                 inntektsmeldingId,
                 organisasjonsnummer,
                 fødselsnummer,
-                harPeriodeInnenfor16Dager
+                speilrelatert
             )
         )
     }
@@ -1137,18 +1115,13 @@ fun søknadHåndtert(
 
 fun vedtaksperiodeForkastet(
     hendelser: List<UUID>,
-    behandletIInfotrygd: Boolean,
-    harPeriodeInnenfor16Dager: Boolean,
-    forlengerPeriode: Boolean,
     fødselsnummer: String,
     organisasjonsnummer: String,
-    forårsaketAv: String
+    forårsaketAv: String,
+    speilrelatert: Boolean
 ) =
     """{
             "@event_name": "vedtaksperiode_forkastet",
-            "harPeriodeInnenfor16Dager": "$harPeriodeInnenfor16Dager",
-            "forlengerPeriode": "$forlengerPeriode",
-            "behandletIInfotrygd": $behandletIInfotrygd,
             "fødselsnummer": "$fødselsnummer",
             "aktørId": "aktør",
             "tilstand": "AVVENTER_INNTEKTSMELDING",
@@ -1157,6 +1130,7 @@ fun vedtaksperiodeForkastet(
             "tom": "${LocalDate.now()}",
             "organisasjonsnummer": "$organisasjonsnummer",
             "hendelser": ${hendelser.tilJSONStringArray()},
+            "speilrelatert": $speilrelatert,
             "@forårsaket_av": {
                 "event_name": "$forårsaketAv"
             }
@@ -1172,13 +1146,7 @@ fun inntektsmeldingFørSøknad(
             "@event_name": "inntektsmelding_før_søknad",
             "inntektsmeldingId": "$inntektsmeldingId",
             "organisasjonsnummer": "$organisasjonsnummer",
-            "fødselsnummer": "$fødselsnummer",
-            "relevante_sykmeldingsperioder": [
-                {
-                    "fom":"2018-01-01",
-                    "tom":"2018-01-16"
-                }
-            ]
+            "fødselsnummer": "$fødselsnummer"
         }
 """
 
@@ -1186,13 +1154,13 @@ fun inntektsmeldingIkkeHåndtert(
     inntektsmeldingId: UUID,
     organisasjonsnummer: String,
     fødselsnummer: String,
-    harPeriodeInnenfor16Dager: Boolean = false
+    speilrelatert: Boolean = false
 ) =
     """{
             "@event_name": "inntektsmelding_ikke_håndtert",
             "inntektsmeldingId": "$inntektsmeldingId",
             "organisasjonsnummer": "$organisasjonsnummer",
-            "harPeriodeInnenfor16Dager" : "$harPeriodeInnenfor16Dager",
+            "speilrelatert" : "$speilrelatert",
             "fødselsnummer": "$fødselsnummer"
         }"""
 
