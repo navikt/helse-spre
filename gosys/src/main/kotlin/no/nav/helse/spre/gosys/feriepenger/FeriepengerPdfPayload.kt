@@ -5,13 +5,13 @@ import java.time.LocalDateTime
 
 data class FeriepengerPdfPayload(
     val tittel: String,
-    val oppdrag: List<Oppdrag>,
+    val oppdrag: List<OppdragPdfPayload>,
     val utbetalt: LocalDateTime,
     val orgnummer: String,
     val fødselsnummer: String
 )
 
-data class Oppdrag(
+data class OppdragPdfPayload(
     val type: OppdragType,
     val fom: LocalDate,
     val tom: LocalDate,

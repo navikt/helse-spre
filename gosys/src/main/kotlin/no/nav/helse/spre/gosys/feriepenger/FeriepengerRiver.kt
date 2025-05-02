@@ -26,24 +26,12 @@ class FeriepengerRiver(
             precondition { it.requireValue("@event_name", "feriepenger_utbetalt") }
             validate {
                 it.require("@opprettet", JsonNode::asLocalDateTime)
-                it.requireKey(
-                    "@id",
-                    "fødselsnummer",
-                    "organisasjonsnummer",
-                    "arbeidsgiverOppdrag.fagsystemId",
-                )
-                it.requireKey("arbeidsgiverOppdrag")
-                it.requireArray("arbeidsgiverOppdrag.linjer") {
-                    require("fom", JsonNode::asLocalDate)
-                    require("tom", JsonNode::asLocalDate)
-                    requireKey("totalbeløp")
-                }
-                it.requireKey("personOppdrag")
-                it.requireArray("personOppdrag.linjer") {
-                    require("fom", JsonNode::asLocalDate)
-                    require("tom", JsonNode::asLocalDate)
-                    requireKey("totalbeløp")
-                }
+                it.requireKey("@id", "fødselsnummer", "organisasjonsnummer")
+                it.require("fom", JsonNode::asLocalDate)
+                it.require("tom", JsonNode::asLocalDate)
+
+                it.requireKey("arbeidsgiverOppdrag.fagsystemId", "arbeidsgiverOppdrag.mottaker", "arbeidsgiverOppdrag.totalbeløp")
+                it.requireKey("personOppdrag.fagsystemId", "personOppdrag.mottaker", "personOppdrag.totalbeløp")
             }
         }.register(this)
     }

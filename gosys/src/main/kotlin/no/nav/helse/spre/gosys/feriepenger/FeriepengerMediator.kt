@@ -25,19 +25,13 @@ class FeriepengerMediator(
             )
 
             val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-            val fom = feriepenger.oppdrag.map { it.fom }.minOrNull()!!
-            val tom = feriepenger.oppdrag.map { it.tom }.maxOrNull()!!
 
             val journalpostPayload = JournalpostPayload(
                 tittel = "Feriepenger utbetalt for sykepenger",
                 bruker = JournalpostPayload.Bruker(id = feriepenger.fødselsnummer),
                 dokumenter = listOf(
                     JournalpostPayload.Dokument(
-                        tittel = "Utbetaling av feriepenger i ny løsning ${fom.format(formatter)} - ${
-                            tom.format(
-                                formatter
-                            )
-                        }",
+                        tittel = "Utbetaling av feriepenger i ny løsning ${feriepenger.fom.format(formatter)} - ${feriepenger.tom.format(formatter)}",
                         dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdf))
                     )
                 ),

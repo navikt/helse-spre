@@ -61,7 +61,7 @@ internal class FeriepengerRiverTest {
             FeriepengerPdfPayload(
                 tittel = "Feriepenger utbetalt for sykepenger",
                 oppdrag = listOf(
-                    Oppdrag(
+                    OppdragPdfPayload(
                         type = OppdragType.ARBEIDSGIVER,
                         fom = LocalDate.of(2021, 5, 1),
                         tom = LocalDate.of(2021, 5, 31),
@@ -89,7 +89,7 @@ internal class FeriepengerRiverTest {
             FeriepengerPdfPayload(
                 tittel = "Feriepenger utbetalt for sykepenger",
                 oppdrag = listOf(
-                    Oppdrag(
+                    OppdragPdfPayload(
                         type = OppdragType.ARBEIDSGIVER,
                         fom = LocalDate.of(2021, 5, 1),
                         tom = LocalDate.of(2021, 5, 31),
@@ -97,7 +97,7 @@ internal class FeriepengerRiverTest {
                         mottaker = "123456789",
                         fagsystemId ="88ABRH3QENHB5K4XUY4LQ7HRTY"
                     ),
-                    Oppdrag(
+                    OppdragPdfPayload(
                         type = OppdragType.PERSON,
                         fom = LocalDate.of(2021, 5, 1),
                         tom = LocalDate.of(2021, 5, 31),
@@ -121,30 +121,22 @@ internal class FeriepengerRiverTest {
     {
       "arbeidsgiverOppdrag": {
         "mottaker": "123456789",
-        "linjer": [
-          {
-            "fom": "2021-05-01",
-            "tom": "2021-05-31",
-            "totalbeløp": 1000
-          }
-        ],
         "fagsystemId": "88ABRH3QENHB5K4XUY4LQ7HRTY",
-        "fom": "2021-05-01",
-        "tom": "2021-05-31"
+        "totalbeløp": 1000
       },
       "personOppdrag": {
         "mottaker": "20046912345",
-        "linjer": [],
         "fagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
-        "fom": "-999999999-01-01",
-        "tom": "-999999999-01-01"
+        "totalbeløp": 0
       },
       "@event_name": "feriepenger_utbetalt",
       "@id": "${UUID.randomUUID()}",
       "@opprettet": "$utbetalt",
       "aktørId": "123456",
       "fødselsnummer": "20046912345",
-      "organisasjonsnummer": "123456789"
+      "organisasjonsnummer": "123456789",
+      "fom": "2021-05-01",
+      "tom": "2021-05-31"
     }
     """
 
@@ -155,36 +147,22 @@ internal class FeriepengerRiverTest {
     {
       "arbeidsgiverOppdrag": {
         "mottaker": "123456789",
-        "linjer": [
-          {
-            "fom": "2021-05-01",
-            "tom": "2021-05-31",
-            "totalbeløp": 1000
-          }
-        ],
         "fagsystemId": "88ABRH3QENHB5K4XUY4LQ7HRTY",
-        "fom": "2021-05-01",
-        "tom": "2021-05-31"
+        "totalbeløp": 1000
       },
       "personOppdrag": {
         "mottaker": "20046912345",
-        "linjer": [
-          {
-            "fom": "2021-05-01",
-            "tom": "2021-05-31",
-            "totalbeløp": 420
-          }
-        ],
         "fagsystemId": "77ATRH3QENHB5K4XUY4LQ7HRTY",
-        "fom": "2021-05-01",
-        "tom": "2021-05-31"
+        "totalbeløp": 420
       },
       "@event_name": "feriepenger_utbetalt",
       "@id": "${UUID.randomUUID()}",
       "@opprettet": "$utbetalt",
       "aktørId": "123456",
       "fødselsnummer": "20046912345",
-      "organisasjonsnummer": "123456789"
+      "organisasjonsnummer": "123456789",
+      "fom": "2021-05-01",
+      "tom": "2021-05-31"
     }
     """
 
