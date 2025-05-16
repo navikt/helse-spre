@@ -34,8 +34,14 @@ spec:
   {{/if}}
   replicas:
     min: {{#if replicas.min }}{{ replicas.min }}{{else}}2{{/if}}
-    max: {{#if replicas.max }}{{ replicas.max }}{{else}}4{{/if}}
-    cpuThresholdPercentage: 75
+    max: {{#if replicas.max }}{{ replicas.max }}{{else}}8{{/if}}
+    {{#if kafkaPool}}
+    scalingStrategy:
+      kafka:
+        topic: tbd.rapid.v1
+        consumerGroup: {{#if kafkaConsumerGroup }}{{ kafkaConsumerGroup }}{{else}}tbd-spre-{{app}}-v1{{/if}}
+        threshold: 200
+    {{/if}}
   liveness:
     path: isalive
     initialDelay: {{#if livenessInitialDelay }}{{ livenessInitialDelay }}{{else}}5{{/if}}
