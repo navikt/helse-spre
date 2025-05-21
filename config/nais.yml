@@ -23,6 +23,10 @@ metadata:
 spec:
   image: {{image}}
   port: 8080
+  observability:
+    logging:
+      destinations:
+        - id: elastic
   strategy:
   {{#if recreateStrategy }}
     type: Recreate
