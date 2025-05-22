@@ -27,6 +27,7 @@ spec:
     logging:
       destinations:
         - id: elastic
+        - id: loki
   strategy:
   {{#if recreateStrategy }}
     type: Recreate
