@@ -201,6 +201,7 @@ internal abstract class AbstractE2ETest {
             )
         ),
         begrunnelser: Map<String, String>? = mapOf("innvilgelse" to ""),
+        vedtakFattetTidspunkt: LocalDateTime = AbstractE2ETest.vedtakFattetTidspunkt,
     ) =
         VedtakPdfPayloadV2(
             fødselsnummer = "12345678910",
@@ -228,15 +229,14 @@ internal abstract class AbstractE2ETest {
                 OMREGNET_ÅRSINNTEKT -> "Omregnet årsinntekt"
                 RAPPORTERT_ÅRSINNTEKT -> "Rapportert årsinntekt"
                 ANNET -> "Annet"
-                else -> null
             },
             skjønnsfastsettingårsak = when (skjønnsfastsettingårsak) {
                 Skjønnsfastsettingårsak.ANDRE_AVSNITT -> "Skjønnsfastsettelse ved mer enn 25 % avvik (§ 8-30 andre avsnitt)"
                 Skjønnsfastsettingårsak.TREDJE_AVSNITT -> "Skjønnsfastsettelse ved mangelfull eller uriktig rapportering (§ 8-30 tredje avsnitt)"
-                else -> null
             },
             arbeidsgivere = arbeidsgivere,
             begrunnelser = begrunnelser,
+            vedtakFattetTidspunkt = vedtakFattetTidspunkt,
         )
 
     protected fun expectedJournalpost(
@@ -284,6 +284,7 @@ internal abstract class AbstractE2ETest {
         fnr: String = "12345678910",
         fom: LocalDate = 1.januar,
         tom: LocalDate = 31.januar,
+        vedtakFattetTidspunkt: LocalDateTime,
     ) = """{
     "@id": "$hendelseId",
     "vedtaksperiodeId": "$vedtaksperiodeId",
@@ -293,6 +294,7 @@ internal abstract class AbstractE2ETest {
     "@opprettet": "${tom.atStartOfDay()}",
     "fom": "$fom",
     "tom": "$tom",
+    "vedtakFattetTidspunkt": "$vedtakFattetTidspunkt",
     "@forårsaket_av": {
         "behov": [
             "Utbetaling"
@@ -547,7 +549,8 @@ internal abstract class AbstractE2ETest {
         vedtaksperiodeId: UUID = UUID.randomUUID(),
         utbetalingId: UUID? = UUID.randomUUID(),
         fødselsnummer: String = "12345678910",
-        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar)
+        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
+        vedtakFattetTidspunkt: LocalDateTime = AbstractE2ETest.vedtakFattetTidspunkt,
     ) {
         require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
         testRapid.sendTestMessage(
@@ -557,7 +560,8 @@ internal abstract class AbstractE2ETest {
                 utbetalingId = utbetalingId,
                 vedtaksperiodeId = vedtaksperiodeId,
                 fom = sykdomstidslinje.first().dato,
-                tom = sykdomstidslinje.last().dato
+                tom = sykdomstidslinje.last().dato,
+                vedtakFattetTidspunkt = vedtakFattetTidspunkt
             )
         )
     }
@@ -580,5 +584,9 @@ internal abstract class AbstractE2ETest {
     ) {
         UTBETALING("Vedtak om sykepenger", "Sykepenger behandlet", "utbetaling av"),
         REVURDERING("Vedtak om revurdering av sykepenger", "Sykepenger revurdert", "revurdering av")
+    }
+
+    companion object {
+        val vedtakFattetTidspunkt = 1.februar.atStartOfDay()
     }
 }

@@ -1,6 +1,7 @@
 package no.nav.helse.spre.gosys.vedtak
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 
 data class VedtakPdfPayloadV2(
@@ -29,6 +30,7 @@ data class VedtakPdfPayloadV2(
     val skjønnsfastsettingårsak: String?,
     val arbeidsgivere: List<ArbeidsgiverData>?,
     val begrunnelser: Map<String, String>?,
+    val vedtakFattetTidspunkt: LocalDateTime,
 ) {
     data class Oppdrag(
         val fagsystemId: String

@@ -62,6 +62,7 @@ internal class VedtakFattetRiver(
                 message.require("tom", JsonNode::asLocalDate)
                 message.require("skjæringstidspunkt", JsonNode::asLocalDate)
                 message.require("@opprettet", JsonNode::asLocalDateTime)
+                message.require("vedtakFattetTidspunkt", JsonNode::asLocalDateTime)
                 message.interestedIn("begrunnelser")
             }
         }.register(this)
@@ -165,7 +166,8 @@ internal class VedtakFattetRiver(
                 }
                 .slåSammenLikePerioder(),
             sykepengegrunnlagsfakta = vedtakFattet.sykepengegrunnlagsfakta,
-            begrunnelser = vedtakFattet.begrunnelser
+            begrunnelser = vedtakFattet.begrunnelser,
+            vedtakFattetTidspunkt = vedtakFattet.vedtakFattetTidspunkt
         )
 
         val pdf = lagPdf(utbetaling.organisasjonsnummer, vedtakFattet.fødselsnummer, vedtak)

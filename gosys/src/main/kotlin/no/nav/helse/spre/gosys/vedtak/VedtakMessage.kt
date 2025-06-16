@@ -39,7 +39,8 @@ data class VedtakMessage(
     private val personlinjer: List<UtbetalingslinjeDto>,
     private val sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
     private val avvistePerioder: List<AvvistPeriode>,
-    private val begrunnelser: List<Begrunnelse>?
+    private val begrunnelser: List<Begrunnelse>?,
+    private val vedtakFattetTidspunkt: LocalDateTime,
 ) {
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)
@@ -48,11 +49,13 @@ data class VedtakMessage(
     internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
         sumNettoBeløp = sumNettobeløp,
         sumTotalBeløp = sumTotalBeløp,
-        type = begrunnelser?.find { it.type == "DelvisInnvilgelse" || it.type == "Avslag" }?.let { when (it.type) {
-            "DelvisInnvilgelse" -> "Delvis innvilgelse av"
-            "Avslag" -> "Avslag av"
-            else -> null
-        }}
+        type = begrunnelser?.find { it.type == "DelvisInnvilgelse" || it.type == "Avslag" }?.let {
+            when (it.type) {
+                "DelvisInnvilgelse" -> "Delvis innvilgelse av"
+                "Avslag" -> "Avslag av"
+                else -> null
+            }
+        }
             ?: lesbarTittel(),
         linjer = arbeidsgiverlinjer.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver, "Arbeidsgiver")
             .slåSammen(personlinjer.linjer(VedtakPdfPayloadV2.MottakerType.Person, navn.split(Regex("\\s"), 0).firstOrNull() ?: "")),
@@ -73,13 +76,15 @@ data class VedtakMessage(
                 val begrunnelser = if (it.begrunnelser.isNotEmpty()) {
                     mapBegrunnelser(it.begrunnelser)
                 } else {
-                    listOf(when (it.type) {
-                        "Fridag" -> "Ferie/Permisjon"
-                        "Feriedag" -> "Feriedag"
-                        "Permisjonsdag" -> "Permisjonsdag"
-                        "Arbeidsdag" -> "Arbeidsdag"
-                        else -> error("Ukjent dagtype uten begrunnelser: ${it.type}!")
-                    })
+                    listOf(
+                        when (it.type) {
+                            "Fridag" -> "Ferie/Permisjon"
+                            "Feriedag" -> "Feriedag"
+                            "Permisjonsdag" -> "Permisjonsdag"
+                            "Arbeidsdag" -> "Arbeidsdag"
+                            else -> error("Ukjent dagtype uten begrunnelser: ${it.type}!")
+                        }
+                    )
                 }
                 IkkeUtbetalteDager(
                     fom = it.fom,
@@ -113,7 +118,8 @@ data class VedtakMessage(
                 "Innvilgelse" -> "innvilgelse" to it.begrunnelse
                 else -> error("Ukjent begrunnelsetype: ${it.type}")
             }
-        }
+        },
+        vedtakFattetTidspunkt = vedtakFattetTidspunkt
     )
 
     private fun List<UtbetalingslinjeDto>.linjer(mottakerType: VedtakPdfPayloadV2.MottakerType, navn: String): List<VedtakPdfPayloadV2.Linje> {

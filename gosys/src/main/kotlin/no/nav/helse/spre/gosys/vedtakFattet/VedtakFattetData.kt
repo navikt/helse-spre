@@ -21,6 +21,7 @@ data class VedtakFattetData(
     val utbetalingId: UUID?,
     val sykepengegrunnlagsfakta: SykepengegrunnlagsfaktaData,
     val begrunnelser: List<Begrunnelse>?,
+    val vedtakFattetTidspunkt: LocalDateTime,
 ) {
     companion object {
         fun fromJson(hendelseId: UUID, packet: JsonMessage) = VedtakFattetData(
@@ -37,6 +38,7 @@ data class VedtakFattetData(
             },
             sykepengegrunnlagsfakta = sykepengegrunnlagsfakta(json = packet["sykepengegrunnlagsfakta"]),
             begrunnelser = packet["begrunnelser"].takeUnless { it.isMissingOrNull() }?.let { begrunnelser(json = it) },
+            vedtakFattetTidspunkt = packet["vedtakFattetTidspunkt"].asLocalDateTime(),
         )
 
         fun fromJson(packet: JsonNode) = VedtakFattetData(
@@ -51,6 +53,7 @@ data class VedtakFattetData(
             utbetalingId = packet["utbetalingId"]?.let { UUID.fromString(it.asText()) },
             sykepengegrunnlagsfakta = sykepengegrunnlagsfakta(json = packet["sykepengegrunnlagsfakta"]),
             begrunnelser = packet["begrunnelser"]?.let { begrunnelser(json = it) },
+            vedtakFattetTidspunkt = packet["vedtakFattetTidspunkt"].asLocalDateTime(),
         )
 
         private fun begrunnelser(json: JsonNode): List<Begrunnelse> = json.map { begrunnelse ->
