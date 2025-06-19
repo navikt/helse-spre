@@ -24,6 +24,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.t
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.vedtaksperiodeId
 import java.time.OffsetDateTime
 import java.util.UUID
+import no.nav.helse.spre.styringsinfo.sikkerLogg
 
 internal class BehandlingOpprettet(
     override val id: UUID,
@@ -38,7 +39,10 @@ internal class BehandlingOpprettet(
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        check(!behandlingshendelseDao.harLagretBehandingshendelseFor(BehandlingId(behandlingId))) { "Forventer at opprettelse av behandling er det første som skjer på en behandling" }
+        if(behandlingshendelseDao.harLagretBehandingshendelseFor(BehandlingId(behandlingId))) {
+            sikkerLogg.warn("Fikk behandling_opprettet på behandling vi allerede har fått! Ignorer duplikat melding for: $behandlingId")
+            return false
+        }
 
         val sakId = SakId(vedtaksperiodeId)
         val behandlingskilde = behandlingskilde.avsender.behandlingskilde
