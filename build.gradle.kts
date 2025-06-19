@@ -5,7 +5,7 @@ plugins {
 }
 
 val junitJupiterVersion = "5.12.1"
-val rapidsAndRiversVersion = "2025033014191743337188.2f9d6b08d096"
+val rapidsAndRiversVersion = "2025061811051750237542.df739400e55e"
 val ktorVersion = "3.1.2" // should be set to same value as rapids and rivers
 val mockkVersion = "1.13.17"
 val hikariCPVersion = "6.3.0"
