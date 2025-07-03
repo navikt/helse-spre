@@ -23,7 +23,7 @@ import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
 import no.nav.helse.spre.gosys.e2e.VedtakOgUtbetalingE2ETest.Companion.formatted
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtakFattet.*
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
 import no.nav.helse.spre.testhelpers.*
@@ -160,19 +160,19 @@ internal abstract class AbstractE2ETest {
         Assertions.assertEquals(expected, joarkPayload)
     }
 
-    protected fun assertVedtakPdf(expected: VedtakPdfPayloadV2 = expectedPdfPayloadV2()) {
-        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayloadV2>()
+    protected fun assertVedtakPdf(expected: VedtakPdfPayload = expectedPdfPayload()) {
+        val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
         Assertions.assertEquals(expected, pdfPayload)
     }
 
-    protected fun expectedPdfPayloadV2(
+    protected fun expectedPdfPayload(
         fom: LocalDate = 1.januar,
         tom: LocalDate = 31.januar,
         utbetalingstype: Utbetalingstype = UTBETALING,
         totaltTilUtbetaling: Int = 32913,
         behandlingsdato: LocalDate = tom,
-        linjer: List<VedtakPdfPayloadV2.Linje> = listOf(
-            VedtakPdfPayloadV2.Linje(
+        linjer: List<VedtakPdfPayload.Linje> = listOf(
+            VedtakPdfPayload.Linje(
                 fom = fom,
                 tom = tom,
                 grad = 100,
@@ -182,9 +182,9 @@ internal abstract class AbstractE2ETest {
                 erOpphørt = false,
             )
         ),
-        arbeidsgiverOppdrag: VedtakPdfPayloadV2.Oppdrag? = null,
-        personOppdrag: VedtakPdfPayloadV2.Oppdrag? = null,
-        ikkeUtbetalteDager: List<VedtakPdfPayloadV2.IkkeUtbetalteDager> = emptyList(),
+        arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag? = null,
+        personOppdrag: VedtakPdfPayload.Oppdrag? = null,
+        ikkeUtbetalteDager: List<VedtakPdfPayload.IkkeUtbetalteDager> = emptyList(),
         maksdato: LocalDate = LocalDate.of(2021, 7, 15),
         godkjentAv: String = "Automatisk behandlet",
         dagerIgjen: Int = 31,
@@ -203,7 +203,7 @@ internal abstract class AbstractE2ETest {
         begrunnelser: Map<String, String>? = mapOf("innvilgelse" to ""),
         vedtakFattetTidspunkt: LocalDateTime = AbstractE2ETest.vedtakFattetTidspunkt,
     ) =
-        VedtakPdfPayloadV2(
+        VedtakPdfPayload(
             fødselsnummer = "12345678910",
             type = utbetalingstype.lesbarTittel,
             fom = fom,

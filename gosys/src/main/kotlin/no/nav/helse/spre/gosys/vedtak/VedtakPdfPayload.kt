@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 
-data class VedtakPdfPayloadV2(
+data class VedtakPdfPayload(
     val fødselsnummer: String,
     val type: String,
     val fom: LocalDate,
@@ -65,7 +65,7 @@ data class VedtakPdfPayloadV2(
 }
 
 
-fun List<VedtakPdfPayloadV2.Linje>.slåSammen(other: List<VedtakPdfPayloadV2.Linje>): List<VedtakPdfPayloadV2.Linje> {
+fun List<VedtakPdfPayload.Linje>.slåSammen(other: List<VedtakPdfPayload.Linje>): List<VedtakPdfPayload.Linje> {
     return (this + other)
         .sortedBy { it.mottakerType }
         .sortedByDescending { it.fom }

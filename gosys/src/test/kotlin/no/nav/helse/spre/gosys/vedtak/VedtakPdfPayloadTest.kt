@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.time.LocalDate
 
-internal class VedtakPdfPayloadV2KtTest {
+internal class VedtakPdfPayloadTest {
 
-    private val tomListe: List<VedtakPdfPayloadV2.Linje> = emptyList()
+    private val tomListe: List<VedtakPdfPayload.Linje> = emptyList()
 
     @Test
     fun `slå sammen to tomme linjer`() {
@@ -87,7 +87,7 @@ internal class VedtakPdfPayloadV2KtTest {
         dagsats: Int = 1400,
         mottaker: String = "123 456 789",
         totalbeløp: Int = 20000
-    ) = linje(fom, tom, grad, dagsats, mottaker, VedtakPdfPayloadV2.MottakerType.Arbeidsgiver, totalbeløp)
+    ) = linje(fom, tom, grad, dagsats, mottaker, VedtakPdfPayload.MottakerType.Arbeidsgiver, totalbeløp)
 
     fun personlinje(
         fom: LocalDate = 17.januar,
@@ -96,7 +96,7 @@ internal class VedtakPdfPayloadV2KtTest {
         dagsats: Int = 1400,
         mottaker: String = "123456 78999",
         totalbeløp: Int = 20000
-    ) = linje(fom, tom, grad, dagsats, mottaker, VedtakPdfPayloadV2.MottakerType.Person, totalbeløp)
+    ) = linje(fom, tom, grad, dagsats, mottaker, VedtakPdfPayload.MottakerType.Person, totalbeløp)
 
     fun linje(
         fom: LocalDate,
@@ -104,11 +104,11 @@ internal class VedtakPdfPayloadV2KtTest {
         grad: Int,
         dagsats: Int,
         mottaker: String,
-        mottakerType: VedtakPdfPayloadV2.MottakerType,
+        mottakerType: VedtakPdfPayload.MottakerType,
         totalbeløp: Int,
         erOpphørt: Boolean = false
     ) =
-        VedtakPdfPayloadV2.Linje(
+        VedtakPdfPayload.Linje(
             fom = fom,
             tom = tom,
             grad = grad,

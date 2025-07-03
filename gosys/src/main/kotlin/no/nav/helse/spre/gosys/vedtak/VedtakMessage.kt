@@ -7,8 +7,8 @@ import java.util.*
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.UtbetalingslinjeDto
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Utbetalingtype
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.IkkeUtbetalteDager
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2.Oppdrag
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.IkkeUtbetalteDager
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.Oppdrag
 import no.nav.helse.spre.gosys.vedtakFattet.Begrunnelse
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.ANNET
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.OMREGNET_ÅRSINNTEKT
@@ -46,7 +46,7 @@ data class VedtakMessage(
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
 
-    internal fun toVedtakPdfPayloadV2(organisasjonsnavn: String, navn: String): VedtakPdfPayloadV2 = VedtakPdfPayloadV2(
+    internal fun toVedtakPdfPayload(organisasjonsnavn: String, navn: String): VedtakPdfPayload = VedtakPdfPayload(
         sumNettoBeløp = sumNettobeløp,
         sumTotalBeløp = sumTotalBeløp,
         type = begrunnelser?.find { it.type == "DelvisInnvilgelse" || it.type == "Avslag" }?.let {
@@ -57,8 +57,8 @@ data class VedtakMessage(
             }
         }
             ?: lesbarTittel(),
-        linjer = arbeidsgiverlinjer.linjer(VedtakPdfPayloadV2.MottakerType.Arbeidsgiver, "Arbeidsgiver")
-            .slåSammen(personlinjer.linjer(VedtakPdfPayloadV2.MottakerType.Person, navn.split(Regex("\\s"), 0).firstOrNull() ?: "")),
+        linjer = arbeidsgiverlinjer.linjer(VedtakPdfPayload.MottakerType.Arbeidsgiver, "Arbeidsgiver")
+            .slåSammen(personlinjer.linjer(VedtakPdfPayload.MottakerType.Person, navn.split(Regex("\\s"), 0).firstOrNull() ?: "")),
         personOppdrag = Oppdrag(personFagsystemId).takeIf { personlinjer.isNotEmpty() },
         arbeidsgiverOppdrag = Oppdrag(arbeidsgiverFagsystemId).takeIf { arbeidsgiverlinjer.isNotEmpty() },
         fødselsnummer = fødselsnummer,
@@ -122,9 +122,9 @@ data class VedtakMessage(
         vedtakFattetTidspunkt = vedtakFattetTidspunkt
     )
 
-    private fun List<UtbetalingslinjeDto>.linjer(mottakerType: VedtakPdfPayloadV2.MottakerType, navn: String): List<VedtakPdfPayloadV2.Linje> {
+    private fun List<UtbetalingslinjeDto>.linjer(mottakerType: VedtakPdfPayload.MottakerType, navn: String): List<VedtakPdfPayload.Linje> {
         return this.map {
-            VedtakPdfPayloadV2.Linje(
+            VedtakPdfPayload.Linje(
                 fom = it.fom,
                 tom = it.tom,
                 grad = it.grad,

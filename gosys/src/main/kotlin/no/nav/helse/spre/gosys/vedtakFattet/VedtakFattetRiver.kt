@@ -199,9 +199,9 @@ internal class VedtakFattetRiver(
         val navn = hentNavn(speedClient, fødselsnummer, UUID.randomUUID().toString()) ?: ""
         logg.debug("Hentet søkernavn")
 
-        val vedtakPdfPayload = vedtak.toVedtakPdfPayloadV2(organisasjonsnavn, navn)
+        val vedtakPdfPayload = vedtak.toVedtakPdfPayload(organisasjonsnavn, navn)
         if (erUtvikling) sikkerLogg.info("vedtak-payload: ${objectMapper.writeValueAsString(vedtakPdfPayload)}")
-        return runBlocking { pdfClient.hentVedtakPdfV2(vedtakPdfPayload) }
+        return runBlocking { pdfClient.hentVedtakPdf(vedtakPdfPayload) }
     }
 
     private fun journalførPdf(vedtak: VedtakMessage, journalpostPayload: JournalpostPayload): Boolean {

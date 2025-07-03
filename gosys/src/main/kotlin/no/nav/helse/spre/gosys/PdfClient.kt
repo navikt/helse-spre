@@ -12,19 +12,19 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.ContentType.Application.Json
-import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayloadV2
+import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayload
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerPdfPayload
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayloadV2
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import java.util.*
 import net.logstash.logback.argument.StructuredArguments.kv
 
 class PdfClient(private val httpClient: HttpClient, private val baseUrl: String) {
     private val encoder = Base64.getEncoder()
 
-    suspend fun hentVedtakPdfV2(vedtak: VedtakPdfPayloadV2) =
+    suspend fun hentVedtakPdf(vedtak: VedtakPdfPayload) =
         hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/vedtak-v2", vedtak)
 
-    suspend fun hentAnnulleringPdf(annullering: AnnulleringPdfPayloadV2) =
+    suspend fun hentAnnulleringPdf(annullering: AnnulleringPdfPayload) =
         hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/annullering-v2", annullering)
 
     suspend fun hentFeriepengerPdf(feriepenger: FeriepengerPdfPayload) =

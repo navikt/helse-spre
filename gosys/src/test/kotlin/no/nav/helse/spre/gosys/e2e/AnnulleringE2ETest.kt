@@ -3,7 +3,7 @@ package no.nav.helse.spre.gosys.e2e
 import io.ktor.client.engine.mock.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.JournalpostPayload
-import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayloadV2
+import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayload
 import no.nav.helse.spre.gosys.objectMapper
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -39,9 +39,9 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
 
             val pdfRequest = capturedPdfRequests.single()
             val pdfPayload =
-                requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), AnnulleringPdfPayloadV2::class.java))
+                requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), AnnulleringPdfPayload::class.java))
 
-            val expectedPdfPayload = AnnulleringPdfPayloadV2(
+            val expectedPdfPayload = AnnulleringPdfPayload(
                 fødselsnummer = "fnr",
                 fom = LocalDate.of(2020, 1, 1),
                 tom = LocalDate.of(2020, 1, 10),
@@ -66,9 +66,9 @@ internal class AnnulleringE2ETest : AbstractE2ETest() {
 
             val pdfRequest = capturedPdfRequests.single()
             val pdfPayload =
-                requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), AnnulleringPdfPayloadV2::class.java))
+                requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), AnnulleringPdfPayload::class.java))
 
-            val expectedPdfPayload = AnnulleringPdfPayloadV2(
+            val expectedPdfPayload = AnnulleringPdfPayload(
                 fødselsnummer = "fnr",
                 fom = LocalDate.of(2020, 1, 1),
                 tom = LocalDate.of(2020, 1, 10),

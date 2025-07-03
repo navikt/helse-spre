@@ -3,7 +3,7 @@ package no.nav.helse.spre.gosys.annullering
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class AnnulleringPdfPayloadV2(
+data class AnnulleringPdfPayload(
     val fødselsnummer: String,
     val fom: LocalDate,
     val tom: LocalDate,

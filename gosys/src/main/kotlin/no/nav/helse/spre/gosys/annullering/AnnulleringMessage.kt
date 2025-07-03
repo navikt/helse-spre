@@ -22,7 +22,7 @@ data class AnnulleringMessage(
     val norskFom: String = fom.format(formatter)
     val norskTom: String = tom.format(formatter)
 
-    internal fun toPdfPayloadV2(organisasjonsnavn: String?, navn: String?) = AnnulleringPdfPayloadV2(
+    internal fun toPdfPayload(organisasjonsnavn: String?, navn: String?) = AnnulleringPdfPayload(
         fødselsnummer = fødselsnummer,
         fom = fom,
         tom = tom,

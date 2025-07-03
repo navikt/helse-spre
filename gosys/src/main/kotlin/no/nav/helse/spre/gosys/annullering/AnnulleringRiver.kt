@@ -119,7 +119,7 @@ class AnnulleringRiver(
         val navn = hentNavn(speedClient, fødselsnummer, UUID.randomUUID().toString()) ?: ""
         logg.debug("Hentet søkernavn")
 
-        val annulleringPdfPayload = annullering.toPdfPayloadV2(organisasjonsnavn, navn)
+        val annulleringPdfPayload = annullering.toPdfPayload(organisasjonsnavn, navn)
         if (erUtvikling) sikkerLogg.info("annullering-payload: ${objectMapper.writeValueAsString(annulleringPdfPayload)}")
         return runBlocking { pdfClient.hentAnnulleringPdf(annulleringPdfPayload) }
     }
