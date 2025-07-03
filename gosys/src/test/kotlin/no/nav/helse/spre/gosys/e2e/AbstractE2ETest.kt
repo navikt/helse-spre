@@ -434,40 +434,6 @@ internal abstract class AbstractE2ETest {
     "organisasjonsnummer": "123456789"
 }"""
 
-    private fun revurderingUtbetalt(
-        id: UUID = UUID.randomUUID(),
-        fødselsnummer: String = "12345678910",
-        utbetalingId: UUID = UUID.randomUUID(),
-        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
-        opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay()
-    ) = utbetalingArbeidsgiver(
-        fødselsnummer = fødselsnummer,
-        hendelseId = id,
-        utbetalingId = utbetalingId,
-        sykdomstidslinje = sykdomstidslinje,
-        type = "REVURDERING",
-        opprettet = opprettet
-    )
-
-    protected fun sendRevurdering(
-        hendelseId: UUID = UUID.randomUUID(),
-        fødselsnummer: String = "12345678910",
-        utbetalingId: UUID = UUID.randomUUID(),
-        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
-        opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay()
-    ) {
-        require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
-        testRapid.sendTestMessage(
-            revurderingUtbetalt(
-                id = hendelseId,
-                fødselsnummer = fødselsnummer,
-                utbetalingId = utbetalingId,
-                sykdomstidslinje = sykdomstidslinje,
-                opprettet = opprettet
-            )
-        )
-    }
-
     protected fun sendUtbetaling(
         hendelseId: UUID = UUID.randomUUID(),
         fødselsnummer: String = "12345678910",
