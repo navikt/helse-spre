@@ -12,6 +12,7 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.http.fullPath
 import io.ktor.serialization.jackson.*
 import io.mockk.every
 import io.mockk.mockk
@@ -112,10 +113,6 @@ internal abstract class AbstractE2ETest {
                     when (request.url.fullPath) {
 
                         "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> handlerForJoark(request)
-
-                        "/api/v1/genpdf/spre-gosys/vedtak" -> handlerForPdfKall(request)
-
-                        "/api/v1/genpdf/spre-gosys/annullering" -> handlerForPdfKall(request)
 
                         "/api/v1/genpdf/spre-gosys/annullering-v2" -> handlerForPdfKall(request)
 
