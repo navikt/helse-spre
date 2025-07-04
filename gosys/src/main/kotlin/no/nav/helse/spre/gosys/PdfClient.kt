@@ -22,20 +22,10 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
     private val encoder = Base64.getEncoder()
 
     suspend fun hentVedtakPdf(vedtak: VedtakPdfPayload) =
-        try {
-            hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/vedtak", vedtak)
-        } catch (_: Exception) {
-            logg.info("Fant ikke noe på /vedtak, prøver /vedtak-v2")
-            hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/vedtak-v2", vedtak)
-        }
+        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/vedtak", vedtak)
 
     suspend fun hentAnnulleringPdf(annullering: AnnulleringPdfPayload) =
-        try {
-            hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/annullering", annullering)
-        } catch (_: Exception) {
-            logg.info("Fant ikke noe på /annullering, prøver /annullering-v2")
-            hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/annullering-v2", annullering)
-        }
+        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/annullering", annullering)
 
     suspend fun hentFeriepengerPdf(feriepenger: FeriepengerPdfPayload) =
         hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/feriepenger", feriepenger)

@@ -114,13 +114,10 @@ internal abstract class AbstractE2ETest {
 
                         "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> handlerForJoark(request)
 
-                        "/api/v1/genpdf/spre-gosys/annullering-v2" -> handlerForPdfKall(request)
+                        "/api/v1/genpdf/spre-gosys/vedtak",
+                        "/api/v1/genpdf/spre-gosys/annullering" -> handlerForPdfKall(request)
 
-                        "/api/v1/genpdf/spre-gosys/vedtak-v2" -> handlerForPdfKall(request)
-
-                        "/v1/organisasjon/123456789" -> handlerForEregKall(
-                            request
-                        )
+                        "/v1/organisasjon/123456789" -> handlerForEregKall(request)
 
                         else -> error("Unhandled ${request.url.fullPath}")
                     }
