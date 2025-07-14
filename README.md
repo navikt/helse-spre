@@ -1,5 +1,4 @@
-Spre [![Build](https://github.com/navikt/helse-spre/actions/workflows/build.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/build.yml)
-=======
+# Spre [![Build](https://github.com/navikt/helse-spre/actions/workflows/build.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/build.yml)
 
 ## Legge til en ny gradlemodul
 
@@ -14,7 +13,7 @@ Navnet på appen prefikses med `spre-` i nais.yml, slik at navnet på modulen sk
 
 1. Gjør 'Legge til en ny gradlemodul'. Mappenavnet korresponderer med appnavnet
 2. Lag `config/[app]/[cluster].yml` for de klustrene appen skal deployes til.
-3. Lag en minimal `App.kt` så appen kan starte opp. 
+3. Lag en minimal `App.kt` så appen kan starte opp.
 4. Push endringene
 
 ## Disable deploy av app eller begrense miljøer:
@@ -25,9 +24,10 @@ vi disabler deploy av spre-gosys i
 prod: https://github.com/navikt/helse-spre/commit/19424c6edb195dbcb06d1f6f1d4bcd6267ed685e.
 
 ## Oppgradering av gradle wrapper
+
 Finn nyeste versjon av gradle her: https://gradle.org/releases/
 
-```./gradlew wrapper --gradle-version $gradleVersjon```
+`./gradlew wrapper --gradle-version $gradleVersjon`
 
 ## Henvendelser
 
@@ -35,4 +35,4 @@ Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på Git
 
 ### For NAV-ansatte
 
-Interne henvendelser kan sendes via Slack i kanalen #team-bømlo-værsågod
+Interne henvendelser kan sendes via Slack i kanalen [#team-bømlo-værsågod](https://nav-it.slack.com/archives/C019637N90X)
