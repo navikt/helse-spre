@@ -103,6 +103,13 @@ internal class VedtaksperiodeForkastetRiver(
         if (relevanteUtbetalinger.size == 1) return // Hvis det kun er én utbetaling med fagsystemId, "eier" perioden utbetalingen, og den er allerede blitt annullert
 
         val revurderingsutbetaling = relevanteUtbetalinger.maxByOrNull { it.opprettet }
+        revurderingsutbetaling?.let {
+            val erRevurderingUtbetalingFørVedtaksperiodeForkastetMessage = revurderingsutbetaling.tom < vedtaksperiodeForkastetMessage.fom
+            val harNegativNetto = revurderingsutbetaling.arbeidsgiverOppdrag.nettoBeløp < 0 || revurderingsutbetaling.personOppdrag.nettoBeløp < 0
+            if(erRevurderingUtbetalingFørVedtaksperiodeForkastetMessage && it.erRevurdering() && harNegativNetto) {
+                  val h = "HER SKAL VI LAGE GOSYSNOTATER"
+            }
+        }
 
     }
 
