@@ -30,6 +30,7 @@ import org.flywaydb.core.Flyway
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import no.nav.helse.spre.gosys.vedtaksperiodeForkastet.VedtaksperiodeForkastetRiver
 
 internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -119,6 +120,7 @@ internal fun RapidsConnection.settOppRivers(
     VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, pdfClient, joarkClient, eregClient, speedClient)
     UtbetalingUtbetaltRiver(this, utbetalingDao, duplikatsjekkDao)
     UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
+    VedtaksperiodeForkastetRiver(this, utbetalingDao, pdfClient, joarkClient, eregClient, speedClient)
 }
 
 

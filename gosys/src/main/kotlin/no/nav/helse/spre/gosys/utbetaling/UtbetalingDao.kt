@@ -1,12 +1,12 @@
 package no.nav.helse.spre.gosys.utbetaling
 
 import com.fasterxml.jackson.databind.JsonNode
+import java.util.*
+import javax.sql.DataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.gosys.objectMapper
 import org.intellij.lang.annotations.Language
-import java.util.*
-import javax.sql.DataSource
 
 class UtbetalingDao(private val dataSource: DataSource) {
 
@@ -48,6 +48,22 @@ class UtbetalingDao(private val dataSource: DataSource) {
                     query,
                     utbetalingId,
                 ).map { it.string("data") }.asSingle
+            )
+        }
+    }
+
+    internal fun finnUtbetalingData(fødselsnummer: String, organisasjonsnummer: String): List<Utbetaling> = finnJsonHvisFinnes(fødselsnummer, organisasjonsnummer).map { fromJson(it) }
+
+    private fun finnJsonHvisFinnes(fødselsnummer: String, organisasjonsnummer: String): List<String> {
+        sessionOf(dataSource).use { session ->
+            @Language("PostgreSQL")
+            val query = "SELECT data FROM utbetaling WHERE fnr = ? AND data->>'organisasjonsnummer' = ?"
+            return session.run(
+                queryOf(
+                    query,
+                    fødselsnummer,
+                    organisasjonsnummer
+                ).map { it.string("data") }.asList
             )
         }
     }
