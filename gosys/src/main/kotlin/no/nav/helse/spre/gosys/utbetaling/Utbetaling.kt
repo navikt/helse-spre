@@ -39,6 +39,10 @@ data class Utbetaling(
         return fom to vedtaksperiode.second
     }
 
+    fun erRevurdering(): Boolean {
+        return this.type == Utbetalingtype.REVURDERING
+    }
+
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
 
     companion object {

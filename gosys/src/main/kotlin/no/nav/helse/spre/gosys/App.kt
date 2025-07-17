@@ -12,13 +12,16 @@ import com.github.navikt.tbd_libs.speed.SpeedClient
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.*
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.http.ContentType
-import io.ktor.serialization.jackson.JacksonConverter
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import java.time.Duration
 import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helse.spre.gosys.annullering.AnnulleringDao
 import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
+import no.nav.helse.spre.gosys.annullering.TomAnnulleringRiver
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
@@ -29,7 +32,6 @@ import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import org.flywaydb.core.Flyway
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.Duration
 
 internal val objectMapper: ObjectMapper = jacksonObjectMapper()
     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -88,6 +90,7 @@ fun launchApplication(
 
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val utbetalingDao = UtbetalingDao(dataSource)
+    val annulleringDao = AnnulleringDao(dataSource)
 
     return RapidApplication.create(environment)
         .apply {
@@ -96,6 +99,7 @@ fun launchApplication(
                 feriepengerMediator = feriepengerMediator,
                 vedtakFattetDao = vedtakFattetDao,
                 utbetalingDao = utbetalingDao,
+                annulleringDao = annulleringDao,
                 pdfClient = pdfClient,
                 joarkClient = joarkClient,
                 eregClient = eregClient,
@@ -109,16 +113,18 @@ internal fun RapidsConnection.settOppRivers(
     feriepengerMediator: FeriepengerMediator,
     vedtakFattetDao: VedtakFattetDao,
     utbetalingDao: UtbetalingDao,
+    annulleringDao: AnnulleringDao,
     pdfClient: PdfClient,
     joarkClient: JoarkClient,
     eregClient: EregClient,
     speedClient: SpeedClient
 ) {
-    AnnulleringRiver(this, duplikatsjekkDao, pdfClient, eregClient, joarkClient, speedClient)
+    AnnulleringRiver(this, annulleringDao, duplikatsjekkDao, pdfClient, eregClient, joarkClient, speedClient)
     FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
     VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, pdfClient, joarkClient, eregClient, speedClient)
     UtbetalingUtbetaltRiver(this, utbetalingDao, duplikatsjekkDao)
     UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
+    TomAnnulleringRiver(this, annulleringDao, pdfClient, joarkClient, eregClient, speedClient)
 }
 
 

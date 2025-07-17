@@ -9,14 +9,14 @@ data class AnnulleringMessage(
     val hendelseId: UUID,
     val utbetalingId: UUID,
     val fødselsnummer: String,
-    private val fom: LocalDate,
-    private val tom: LocalDate,
+    val fom: LocalDate,
+    val tom: LocalDate,
     val organisasjonsnummer: String,
-    private val dato: LocalDateTime,
-    private val saksbehandlerIdent: String,
-    private val saksbehandlerEpost: String,
-    private val personFagsystemId: String?,
-    private val arbeidsgiverFagsystemId: String?,
+    val dato: LocalDateTime,
+    val saksbehandlerIdent: String,
+    val saksbehandlerEpost: String,
+    val personFagsystemId: String?,
+    val arbeidsgiverFagsystemId: String?,
 ) {
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val norskFom: String = fom.format(formatter)

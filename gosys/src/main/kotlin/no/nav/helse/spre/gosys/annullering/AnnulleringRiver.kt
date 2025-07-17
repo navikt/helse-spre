@@ -30,6 +30,7 @@ import no.nav.helse.spre.gosys.sikkerLogg
 
 class AnnulleringRiver(
     rapidsConnection: RapidsConnection,
+    private val annulleringDao: AnnulleringDao,
     private val duplikatsjekkDao: DuplikatsjekkDao,
     private val pdfClient: PdfClient,
     private val eregClient: EregClient,
@@ -93,6 +94,8 @@ class AnnulleringRiver(
             personFagsystemId = packet["personFagsystemId"].takeUnless { it.isMissingOrNull() }?.asText(),
             arbeidsgiverFagsystemId = packet["arbeidsgiverFagsystemId"].takeUnless { it.isMissingOrNull() }?.asText()
         )
+
+        annulleringDao.lagre(annulleringMessage)
 
         val pdf = lagPdf(annulleringMessage.organisasjonsnummer, annulleringMessage.fødselsnummer, annulleringMessage)
         val journalpostPayload = JournalpostPayload(
