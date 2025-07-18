@@ -21,6 +21,7 @@ import java.time.Duration
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.spre.gosys.annullering.AnnulleringDao
 import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
+import no.nav.helse.spre.gosys.annullering.TomAnnulleringRiver
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
@@ -28,7 +29,6 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
-import no.nav.helse.spre.gosys.vedtaksperiodeForkastet.VedtaksperiodeForkastetRiver
 import org.flywaydb.core.Flyway
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -124,7 +124,7 @@ internal fun RapidsConnection.settOppRivers(
     VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, pdfClient, joarkClient, eregClient, speedClient)
     UtbetalingUtbetaltRiver(this, utbetalingDao, duplikatsjekkDao)
     UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
-    VedtaksperiodeForkastetRiver(this, utbetalingDao, annulleringDao, pdfClient, joarkClient, eregClient, speedClient)
+    TomAnnulleringRiver(this, annulleringDao, pdfClient, joarkClient, eregClient, speedClient)
 }
 
 
