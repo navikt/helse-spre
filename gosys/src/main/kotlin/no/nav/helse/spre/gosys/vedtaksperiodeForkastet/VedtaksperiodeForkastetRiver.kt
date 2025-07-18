@@ -18,6 +18,7 @@ import no.nav.helse.spre.gosys.EregClient
 import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.PdfClient
+import no.nav.helse.spre.gosys.annullering.AnnulleringDao
 import no.nav.helse.spre.gosys.erUtvikling
 import no.nav.helse.spre.gosys.finnOrganisasjonsnavn
 import no.nav.helse.spre.gosys.hentNavn
@@ -31,6 +32,7 @@ import no.nav.helse.spre.gosys.vedtak.VedtakMessage
 internal class VedtaksperiodeForkastetRiver(
     rapidsConnection: RapidsConnection,
     private val utbetalingDao: UtbetalingDao,
+    private val annulleringDao: AnnulleringDao,
     private val pdfClient: PdfClient,
     private val joarkClient: JoarkClient,
     private val eregClient: EregClient,

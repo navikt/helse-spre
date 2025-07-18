@@ -12,31 +12,49 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.fullPath
 import io.ktor.serialization.jackson.*
 import io.mockk.every
 import io.mockk.mockk
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 import kotlinx.coroutines.runBlocking
 import kotliquery.queryOf
 import kotliquery.sessionOf
-import no.nav.helse.spre.gosys.*
+import no.nav.helse.spre.gosys.DuplikatsjekkDao
+import no.nav.helse.spre.gosys.EregClient
+import no.nav.helse.spre.gosys.JoarkClient
+import no.nav.helse.spre.gosys.JournalpostPayload
+import no.nav.helse.spre.gosys.PdfClient
+import no.nav.helse.spre.gosys.annullering.AnnulleringDao
+import no.nav.helse.spre.gosys.databaseContainer
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
 import no.nav.helse.spre.gosys.e2e.VedtakOgUtbetalingE2ETest.Companion.formatted
+import no.nav.helse.spre.gosys.eregResponse
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
+import no.nav.helse.spre.gosys.objectMapper
+import no.nav.helse.spre.gosys.settOppRivers
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
-import no.nav.helse.spre.gosys.vedtakFattet.*
-import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.*
-import no.nav.helse.spre.testhelpers.*
+import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.ANNET
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.OMREGNET_ÅRSINNTEKT
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.RAPPORTERT_ÅRSINNTEKT
+import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingårsak
+import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
+import no.nav.helse.spre.testhelpers.Dag
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
+import no.nav.helse.spre.testhelpers.Dagtype
+import no.nav.helse.spre.testhelpers.Oppdrag
+import no.nav.helse.spre.testhelpers.februar
+import no.nav.helse.spre.testhelpers.januar
+import no.nav.helse.spre.testhelpers.utbetalingsdager
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
 
 internal abstract class AbstractE2ETest {
 
@@ -73,6 +91,7 @@ internal abstract class AbstractE2ETest {
     protected lateinit var duplikatsjekkDao: DuplikatsjekkDao
     protected lateinit var vedtakFattetDao: VedtakFattetDao
     protected lateinit var utbetalingDao: UtbetalingDao
+    protected lateinit var annulleringDao: AnnulleringDao
     protected val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     @BeforeEach
@@ -82,12 +101,14 @@ internal abstract class AbstractE2ETest {
         duplikatsjekkDao = DuplikatsjekkDao(dataSource.ds)
         vedtakFattetDao = VedtakFattetDao(dataSource.ds)
         utbetalingDao = UtbetalingDao(dataSource.ds)
+        annulleringDao = AnnulleringDao(dataSource.ds)
 
         testRapid.settOppRivers(
             duplikatsjekkDao,
             feriepengerMediator,
             vedtakFattetDao,
             utbetalingDao,
+            annulleringDao,
             pdfClient,
             joarkClient,
             eregClient,
