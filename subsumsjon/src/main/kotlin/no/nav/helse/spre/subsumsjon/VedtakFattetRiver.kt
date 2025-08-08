@@ -19,10 +19,7 @@ class VedtakFattetRiver(
 
     init {
         River(rapidsConnection).apply {
-            precondition {
-                it.requireValue("@event_name", "vedtak_fattet")
-                it.forbidValue("yrkesaktivitetstype", "SELVSTENDIG")
-            }
+            precondition { it.requireValue("@event_name", "vedtak_fattet") }
             validate { message ->
                 message.requireKey(
                     "@id",
