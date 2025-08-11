@@ -49,6 +49,7 @@ internal class VedtakFattetRiver(
                 it.requireValue("@event_name", "vedtak_fattet")
                 it.requireKey("sykepengegrunnlagsfakta")
                 it.require("utbetalingId") { id -> UUID.fromString(id.asText()) }
+                it.forbidValue("yrkesaktivitetstype", "SELVSTENDIG")
             }
             validate { message ->
                 message.requireKey(
