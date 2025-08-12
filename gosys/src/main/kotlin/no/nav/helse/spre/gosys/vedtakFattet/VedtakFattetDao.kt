@@ -1,30 +1,28 @@
 package no.nav.helse.spre.gosys.vedtakFattet
 
 import com.fasterxml.jackson.databind.JsonNode
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.util.*
+import javax.sql.DataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.gosys.objectMapper
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetData.Companion.fromJson
 import org.intellij.lang.annotations.Language
-import java.time.*
-import java.util.*
-import javax.sql.DataSource
 
 class VedtakFattetDao(private val dataSource: DataSource) {
 
     companion object {
         val NITTEN_ÅTTI = LocalDateTime.of(1980, 1, 1, 0, 0, 0).toInstant(ZoneOffset.of("+00:00:00"))
-        fun fromJson(originalMessage: String): VedtakFattetData {
-            val jsonNode: JsonNode = objectMapper.readTree(originalMessage)
-            return fromJson(jsonNode)
-        }
     }
 
-    fun lagre(vedtakFattetData: VedtakFattetData, json: String): Int {
-        val id = vedtakFattetData.id
-        val utbetalingId = vedtakFattetData.utbetalingId
-        val fødselsnummer = vedtakFattetData.fødselsnummer
-
+    fun lagre(
+        id: UUID,
+        utbetalingId: UUID?,
+        fødselsnummer: String,
+        json: String
+    ): Int {
         @Language("PostgreSQL")
         val query = "INSERT INTO vedtak_fattet (id, utbetaling_id, fnr, data) values(?, ?, ?, to_json(?::json)) ON CONFLICT DO NOTHING"
         return sessionOf(dataSource).use { session ->
@@ -40,7 +38,7 @@ class VedtakFattetDao(private val dataSource: DataSource) {
         }
     }
 
-    fun journalført(vedtakFattetId: UUID) {
+    fun journalfør(vedtakFattetId: UUID) {
         @Language("PostgreSQL")
         val query = "UPDATE vedtak_fattet SET journalfort = now() WHERE id = ?"
         return sessionOf(dataSource).use { session ->
@@ -48,17 +46,27 @@ class VedtakFattetDao(private val dataSource: DataSource) {
         }
     }
 
-    fun erJournalført(vedtakFattetData: VedtakFattetData): Boolean {
+    fun erJournalført(vedtakFattetId: UUID): Boolean {
         @Language("PostgreSQL")
         val query = "SELECT journalfort FROM vedtak_fattet WHERE id = ?"
         val journalførtTidspunkt: Instant? = sessionOf(dataSource).use { session ->
-            session.run(queryOf(query, vedtakFattetData.id).map { row -> row.instantOrNull("journalfort") }.asSingle)
+            session.run(queryOf(query, vedtakFattetId).map { row -> row.instantOrNull("journalfort") }.asSingle)
         }
         return journalførtTidspunkt != null && journalførtTidspunkt > NITTEN_ÅTTI;
     }
 
-    internal fun finnVedtakFattetData(utbetalingId: UUID): VedtakFattetData? =
-        finnJsonHvisFinnes(utbetalingId).map { fromJson(it) }.singleOrNullOrThrow()
+    data class VedtakFattetIder(
+        val id: UUID,
+        val vedtaksperiodeId: UUID,
+    )
+    internal fun finnVedtakFattetData(utbetalingId: UUID): VedtakFattetIder? =
+        finnJsonHvisFinnes(utbetalingId).singleOrNullOrThrow()?.let {
+            val jsonNode: JsonNode = objectMapper.readTree(it)
+            VedtakFattetIder(
+                id = UUID.fromString(jsonNode["@id"].asText()),
+                vedtaksperiodeId = UUID.fromString(jsonNode["vedtaksperiodeId"].asText()),
+            )
+        }
 
     private fun finnJsonHvisFinnes(utbetalingId: UUID): List<String> =
         sessionOf(dataSource).use { session ->
