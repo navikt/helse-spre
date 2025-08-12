@@ -2,7 +2,6 @@ package no.nav.helse.spre.gosys.vedtak
 
 import java.time.LocalDate
 import java.time.LocalDateTime
-import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 
 data class VedtakPdfPayload(
     val fødselsnummer: String,
@@ -62,11 +61,11 @@ data class VedtakPdfPayload(
             }
         }
     }
-}
 
-
-fun List<VedtakPdfPayload.Linje>.slåSammen(other: List<VedtakPdfPayload.Linje>): List<VedtakPdfPayload.Linje> {
-    return (this + other)
-        .sortedBy { it.mottakerType }
-        .sortedByDescending { it.fom }
+    data class ArbeidsgiverData(
+        val organisasjonsnummer: String,
+        val omregnetÅrsinntekt: Double,
+        val innrapportertÅrsinntekt: Double,
+        val skjønnsfastsatt: Double?,
+    )
 }

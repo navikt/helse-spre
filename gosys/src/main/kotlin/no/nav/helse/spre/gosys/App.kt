@@ -29,6 +29,8 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
+import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfJournalfører
+import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfProduserer
 import org.flywaydb.core.Flyway
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -121,7 +123,21 @@ internal fun RapidsConnection.settOppRivers(
 ) {
     AnnulleringRiver(this, annulleringDao, duplikatsjekkDao, pdfClient, eregClient, joarkClient, speedClient)
     FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
-    VedtakFattetRiver(this, vedtakFattetDao, utbetalingDao, duplikatsjekkDao, pdfClient, joarkClient, eregClient, speedClient)
+    VedtakFattetRiver(
+        rapidsConnection = this,
+        vedtakFattetDao = vedtakFattetDao,
+        utbetalingDao = utbetalingDao,
+        duplikatsjekkDao = duplikatsjekkDao,
+        pdfProduserer = PdfProduserer(
+            pdfClient = pdfClient,
+            eregClient = eregClient,
+            speedClient = speedClient
+        ),
+        pdfJournalfører = PdfJournalfører(
+            vedtakFattetDao = vedtakFattetDao,
+            joarkClient = joarkClient
+        )
+    )
     UtbetalingUtbetaltRiver(this, utbetalingDao, duplikatsjekkDao)
     UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
     TomAnnulleringRiver(this, annulleringDao, pdfClient, joarkClient, eregClient, speedClient)

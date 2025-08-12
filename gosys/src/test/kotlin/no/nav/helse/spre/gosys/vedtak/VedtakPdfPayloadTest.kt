@@ -118,4 +118,10 @@ internal class VedtakPdfPayloadTest {
             totalbeløp = totalbeløp,
             erOpphørt
         )
+
+    private fun List<VedtakPdfPayload.Linje>.slåSammen(other: List<VedtakPdfPayload.Linje>): List<VedtakPdfPayload.Linje> {
+        return (this + other)
+            .sortedBy { it.mottakerType }
+            .sortedByDescending { it.fom }
+    }
 }

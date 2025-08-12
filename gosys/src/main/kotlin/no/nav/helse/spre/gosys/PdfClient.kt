@@ -23,7 +23,7 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
     private val encoder = Base64.getEncoder()
 
     suspend fun hentVedtakPdf(vedtak: VedtakPdfPayload) =
-        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/vedtak", vedtak)
+        produserPdfBytes("$baseUrl/api/v1/genpdf/spre-gosys/vedtak", vedtak)
 
     suspend fun hentAnnulleringPdf(annullering: AnnulleringPdfPayload) =
         hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/annullering", annullering)
@@ -35,12 +35,15 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
         hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/feriepenger", feriepenger)
 
     private suspend fun hentPdf(url: String, input: Any): String =
+        produserPdfBytes(url, input).let(encoder::encodeToString)
+
+    private suspend fun produserPdfBytes(url: String, input: Any): ByteArray =
         httpClient.preparePost(url) {
             contentType(Json)
             setBody(input)
             expectSuccess = true
         }.executeRetry { response ->
-            response.body<ByteArray>().let(encoder::encodeToString).also { if (it.isNullOrBlank()) error("Fikk tom pdf") }
+            response.body<ByteArray?>()?.takeUnless { it.isEmpty() } ?: error("Fikk tom pdf")
         }
 }
 
