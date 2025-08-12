@@ -2,7 +2,6 @@ package no.nav.helse.spre.gosys.vedtak
 
 import java.time.LocalDate
 import java.time.LocalDateTime
-import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 
 data class VedtakPdfPayload(
     val fødselsnummer: String,
@@ -62,6 +61,14 @@ data class VedtakPdfPayload(
             }
         }
     }
+
+
+    data class ArbeidsgiverData(
+        val organisasjonsnummer: String,
+        val omregnetÅrsinntekt: Double,
+        val innrapportertÅrsinntekt: Double,
+        val skjønnsfastsatt: Double?,
+    )
 }
 
 

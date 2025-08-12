@@ -36,7 +36,6 @@ import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.settOppRivers
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
-import no.nav.helse.spre.gosys.vedtakFattet.ArbeidsgiverData
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.ANNET
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.OMREGNET_ÅRSINNTEKT
@@ -207,8 +206,8 @@ internal abstract class AbstractE2ETest {
         avviksprosent: Double = 20.0,
         skjønnsfastsettingtype: Skjønnsfastsettingtype = OMREGNET_ÅRSINNTEKT,
         skjønnsfastsettingårsak: Skjønnsfastsettingårsak = Skjønnsfastsettingårsak.ANDRE_AVSNITT,
-        arbeidsgivere: List<ArbeidsgiverData> = listOf(
-            ArbeidsgiverData(
+        arbeidsgivere: List<VedtakPdfPayload.ArbeidsgiverData> = listOf(
+            VedtakPdfPayload.ArbeidsgiverData(
                 organisasjonsnummer = "123456789",
                 omregnetÅrsinntekt = 565260.0,
                 innrapportertÅrsinntekt = 500000.0,
