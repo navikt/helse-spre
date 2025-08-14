@@ -48,7 +48,7 @@ internal class TomAnnulleringE2ETest  : AbstractE2ETest() {
                 organisasjonsnummer = "123456789",
                 dato = LocalDateTime.of(2020, 5, 4, 8, 8, 0),
                 epost = "tbd@nav.no",
-                ident = "SPLEIS",
+                ident = "SPEIL",
                 personFagsystemId = null,
                 arbeidsgiverFagsystemId = null,
                 organisasjonsnavn = "PENGELØS SPAREBANK",
