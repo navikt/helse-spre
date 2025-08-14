@@ -25,7 +25,7 @@ data class TomAnnulleringMessage(
         organisasjonsnummer = organisasjonsnummer,
         dato = opprettet,
         epost = "tbd@nav.no",
-        ident = "SPLEIS",
+        ident = "SPEIL",
         personFagsystemId = null,
         arbeidsgiverFagsystemId = null,
         organisasjonsnavn = organisasjonsnavn,
