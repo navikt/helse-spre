@@ -1,19 +1,28 @@
 package no.nav.helse.spre.gosys.e2e
 
-import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.REVURDERING
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.IkkeUtbetalteDager
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.Linje
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.MottakerType
-import no.nav.helse.spre.testhelpers.*
-import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.REVURDERING
+import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
+import no.nav.helse.spre.testhelpers.andreYtelser
+import no.nav.helse.spre.testhelpers.arbeidsdager
+import no.nav.helse.spre.testhelpers.avvistDager
+import no.nav.helse.spre.testhelpers.desember
+import no.nav.helse.spre.testhelpers.februar
+import no.nav.helse.spre.testhelpers.feriedager
+import no.nav.helse.spre.testhelpers.fridager
+import no.nav.helse.spre.testhelpers.januar
+import no.nav.helse.spre.testhelpers.juni
+import no.nav.helse.spre.testhelpers.november
+import no.nav.helse.spre.testhelpers.oktober
+import no.nav.helse.spre.testhelpers.permisjonsdager
+import no.nav.helse.spre.testhelpers.utbetalingsdager
+import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
@@ -36,23 +45,23 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         )
 
         val expectedLinjer = listOf(
-            Linje(
+            VedtakPdfPayload.Linje(
                 fom = 1.januar,
                 tom = 31.januar,
                 grad = 100,
                 dagsats = 741,
                 mottaker = "Arbeidsgiver",
-                mottakerType = MottakerType.Arbeidsgiver,
+                mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
                 totalbeløp = 17043,
                 erOpphørt = false
             ),
-            Linje(
+            VedtakPdfPayload.Linje(
                 fom = 1.januar,
                 tom = 31.januar,
                 grad = 100,
                 dagsats = 700,
                 mottaker = "Molefonken",
-                mottakerType = MottakerType.Person,
+                mottakerType = VedtakPdfPayload.MottakerType.Person,
                 totalbeløp = 16100,
                 erOpphørt = false
             )
@@ -65,6 +74,65 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 totaltTilUtbetaling = 33143,
                 personOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdPerson"),
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver")
+            )
+        )
+    }
+
+    @Test
+    fun `selvstendig næringsdrivende`() {
+        // Given:
+        val vedtaksperiodeId = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+
+        // When:
+        sendBrukerutbetaling(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeIder = listOf(vedtaksperiodeId),
+            sykdomstidslinje = utbetalingsdager(1.januar, 31.januar)
+                + arbeidsdager(1.februar, 7.februar)
+                + utbetalingsdager(8.februar, 18.februar)
+        )
+        sendSNVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId
+        )
+
+        // Then:
+        assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
+        assertSNVedtakPdf(
+            expectedSNPdfPayload(
+                linjer = listOf(
+                    VedtakPdfPayload.Linje(
+                        fom = 8.februar,
+                        tom = 18.februar,
+                        grad = 100,
+                        dagsats = 1431,
+                        mottaker = "Molefonken",
+                        mottakerType = VedtakPdfPayload.MottakerType.Person,
+                        totalbeløp = 10017,
+                        erOpphørt = false
+                    ),
+                    VedtakPdfPayload.Linje(
+                        fom = 1.januar,
+                        tom = 31.januar,
+                        grad = 100,
+                        dagsats = 1431,
+                        mottaker = "Molefonken",
+                        mottakerType = VedtakPdfPayload.MottakerType.Person,
+                        totalbeløp = 32913,
+                        erOpphørt = false
+                    )
+                ),
+                totaltTilUtbetaling = 42930,
+                behandlingsdato = 18.februar, //TODO: Bruk `vedtakFattetTidspunkt` på vedtaket
+                personOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdPerson"),
+                ikkeUtbetalteDager = listOf(
+                    VedtakPdfPayload.IkkeUtbetalteDager(
+                        1.februar,
+                        7.februar,
+                        listOf("Arbeidsdag")
+                    )
+                )
             )
         )
     }
@@ -87,23 +155,23 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
 
         val expectedLinjer = listOf(
-            Linje(
+            VedtakPdfPayload.Linje(
                 fom = 8.februar,
                 tom = 18.februar,
                 grad = 100,
                 dagsats = 1431,
                 mottaker = "Molefonken",
-                mottakerType = MottakerType.Person,
+                mottakerType = VedtakPdfPayload.MottakerType.Person,
                 totalbeløp = 10017,
                 erOpphørt = false
             ),
-            Linje(
+            VedtakPdfPayload.Linje(
                 fom = 1.januar,
                 tom = 31.januar,
                 grad = 100,
                 dagsats = 1431,
                 mottaker = "Molefonken",
-                mottakerType = MottakerType.Person,
+                mottakerType = VedtakPdfPayload.MottakerType.Person,
                 totalbeløp = 32913,
                 erOpphørt = false
             )
@@ -116,7 +184,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 behandlingsdato = 18.februar, //TODO: Bruk `vedtakFattetTidspunkt` på vedtaket
                 personOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdPerson"),
                 ikkeUtbetalteDager = listOf(
-                    IkkeUtbetalteDager(
+                    VedtakPdfPayload.IkkeUtbetalteDager(
                         1.februar,
                         7.februar,
                         listOf("Arbeidsdag")
@@ -209,20 +277,20 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 totaltTilUtbetaling = 18603,
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
                 ikkeUtbetalteDager = listOf(
-                    IkkeUtbetalteDager(
+                    VedtakPdfPayload.IkkeUtbetalteDager(
                         fom = 18.januar,
                         tom = 22.januar,
                         begrunnelser = listOf("Arbeidsdag")
                     )
                 ),
                 linjer = listOf(
-                    Linje(
+                    VedtakPdfPayload.Linje(
                         fom = 1.januar,
                         tom = 17.januar,
                         grad = 100,
                         dagsats = 1431,
                         mottaker = "Arbeidsgiver",
-                        mottakerType = MottakerType.Arbeidsgiver,
+                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
                         totalbeløp = 18603,
                         erOpphørt = false
                     )
@@ -263,20 +331,20 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 totaltTilUtbetaling = 17172,
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
                 ikkeUtbetalteDager = listOf(
-                    IkkeUtbetalteDager(
+                    VedtakPdfPayload.IkkeUtbetalteDager(
                         fom = 17.januar,
                         tom = 17.januar,
                         begrunnelser = listOf("Personen er død")
                     )
                 ),
                 linjer = listOf(
-                    Linje(
+                    VedtakPdfPayload.Linje(
                         fom = 1.januar,
                         tom = 16.januar,
                         grad = 100,
                         dagsats = 1431,
                         mottaker = "Arbeidsgiver",
-                        mottakerType = MottakerType.Arbeidsgiver,
+                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
                         totalbeløp = 17172,
                         erOpphørt = false
                     )
@@ -315,7 +383,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 totaltTilUtbetaling = 0,
                 arbeidsgiverOppdrag = null,
                 ikkeUtbetalteDager = listOf(
-                    IkkeUtbetalteDager(
+                    VedtakPdfPayload.IkkeUtbetalteDager(
                         fom = 1.januar,
                         tom = 17.januar,
                         begrunnelser = listOf("Personen mottar Svangerskapspenger")
@@ -385,33 +453,33 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 godkjentAv = "K123456",
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
                 linjer = listOf(
-                    Linje(
+                    VedtakPdfPayload.Linje(
                         fom = 15.november(2021),
                         tom = 19.november(2021),
                         grad = 60,
                         dagsats = 700,
                         mottaker = "Arbeidsgiver",
-                        mottakerType = MottakerType.Arbeidsgiver,
+                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
                         erOpphørt = false,
                         totalbeløp = 3900
                     ),
-                    Linje(
+                    VedtakPdfPayload.Linje(
                         fom = 8.november(2021),
                         tom = 12.november(2021),
                         grad = 60,
                         dagsats = 700,
                         mottaker = "Arbeidsgiver",
-                        mottakerType = MottakerType.Arbeidsgiver,
+                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
                         erOpphørt = false,
                         totalbeløp = 3900
                     ),
-                    Linje(
+                    VedtakPdfPayload.Linje(
                         fom = 6.november(2021),
                         tom = 19.november(2021),
                         grad = 80,
                         dagsats = 1000,
                         mottaker = "Arbeidsgiver",
-                        mottakerType = MottakerType.Arbeidsgiver,
+                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
                         erOpphørt = true,
                         totalbeløp = 0
                     )
@@ -489,34 +557,34 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 godkjentAv = "K123456",
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
                 linjer = listOf(
-                    Linje(
+                    VedtakPdfPayload.Linje(
                         dagsats = 700,
                         fom = 15.november(2021),
                         tom = 19.november(2021),
                         grad = 60,
                         totalbeløp = 3900,
                         mottaker = "Arbeidsgiver",
-                        mottakerType = MottakerType.Arbeidsgiver,
+                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
                         erOpphørt = false
                     ),
-                    Linje(
+                    VedtakPdfPayload.Linje(
                         dagsats = 700,
                         fom = 8.november(2021),
                         tom = 12.november(2021),
                         grad = 60,
                         totalbeløp = 3900,
                         mottaker = "Arbeidsgiver",
-                        mottakerType = MottakerType.Arbeidsgiver,
+                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
                         erOpphørt = false
                     ),
-                    Linje(
+                    VedtakPdfPayload.Linje(
                         dagsats = 1000,
                         fom = 6.november(2021),
                         tom = 19.november(2021),
                         grad = 80,
                         totalbeløp = 0,
                         mottaker = "Arbeidsgiver",
-                        mottakerType = MottakerType.Arbeidsgiver,
+                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
                         erOpphørt = true
                     )
                 )

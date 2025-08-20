@@ -36,7 +36,6 @@ internal class VedtakFattetRiver(
                 it.requireValue("@event_name", EVENT_NAME)
                 it.requireKey("sykepengegrunnlagsfakta")
                 it.require("utbetalingId") { id -> UUID.fromString(id.asText()) }
-                it.forbidValue("yrkesaktivitetstype", "SELVSTENDIG")
             }
             validate { message ->
                 message.requireKey(
@@ -53,6 +52,7 @@ internal class VedtakFattetRiver(
                 message.interestedIn(
                     "begrunnelser",
                     "organisasjonsnummer",
+                    "yrkesaktivitetstype",
                 )
             }
         }.register(this)

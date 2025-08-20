@@ -1,28 +1,26 @@
 package no.nav.helse.spre.gosys.vedtakFattet.pdf
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import com.github.navikt.tbd_libs.speed.SpeedClient
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.EregClient
 import no.nav.helse.spre.gosys.PdfClient
-import no.nav.helse.spre.gosys.erUtvikling
 import no.nav.helse.spre.gosys.finnOrganisasjonsnavn
 import no.nav.helse.spre.gosys.hentNavn
 import no.nav.helse.spre.gosys.logg
-import no.nav.helse.spre.gosys.objectMapper
-import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Companion.IkkeUtbetalingsdagtyper
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.UtbetalingslinjeDto
 import no.nav.helse.spre.gosys.vedtak.AvvistPeriode
+import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.IkkeUtbetalteDager
-import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload.Oppdrag
 import no.nav.helse.spre.gosys.vedtak.slåSammenLikePerioder
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingårsak
@@ -38,26 +36,39 @@ class PdfProduserer(
         søknadsperiodeFom: LocalDate,
         søknadsperiodeTom: LocalDate
     ): ByteArray {
-        val organisasjonsnavn = runBlocking { finnOrganisasjonsnavn(eregClient, utbetaling.organisasjonsnummer) }
-        logg.debug("Hentet organisasjonsnavn")
-
         val søkernavn = hentNavn(speedClient, packet["fødselsnummer"].asText(), UUID.randomUUID().toString()) ?: ""
         logg.debug("Hentet søkernavn")
 
-        val vedtakPdfPayload = lagPdfPayload(
-            packet = packet,
-            utbetaling = utbetaling,
-            søknadsperiodeFom = søknadsperiodeFom,
-            søknadsperiodeTom = søknadsperiodeTom,
-            navn = søkernavn,
-            organisasjonsnavn = organisasjonsnavn
-        )
-        if (erUtvikling) sikkerLogg.info("Payload til PDF-generering: ${objectMapper.writeValueAsString(vedtakPdfPayload)}")
+        val pdf = if (packet["yrkesaktivitetstype"].asText() == "SELVSTENDIG") {
+            runBlocking {
+                pdfClient.hentSNVedtakPdf(
+                    lagSNPdfPayload(
+                        packet = packet,
+                        utbetaling = utbetaling,
+                        søknadsperiodeFom = søknadsperiodeFom,
+                        søknadsperiodeTom = søknadsperiodeTom,
+                        navn = søkernavn,
+                    )
+                )
+            }
+        } else {
+            val organisasjonsnavn = runBlocking { finnOrganisasjonsnavn(eregClient, utbetaling.organisasjonsnummer) }
+            logg.debug("Hentet organisasjonsnavn")
 
-        val pdf = runBlocking { pdfClient.hentVedtakPdf(vedtakPdfPayload) }
-
+            runBlocking {
+                pdfClient.hentVedtakPdf(
+                    lagPdfPayload(
+                        packet = packet,
+                        utbetaling = utbetaling,
+                        søknadsperiodeFom = søknadsperiodeFom,
+                        søknadsperiodeTom = søknadsperiodeTom,
+                        navn = søkernavn,
+                        organisasjonsnavn = organisasjonsnavn
+                    )
+                )
+            }
+        }
         logg.debug("Produserte pdf")
-
         return pdf
     }
 
@@ -71,26 +82,8 @@ class PdfProduserer(
     ): VedtakPdfPayload = VedtakPdfPayload(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
-        type = packet["begrunnelser"]
-            .takeUnless { it.isMissingOrNull() }
-            ?.map { begrunnelse -> begrunnelse["type"].asText() }
-            ?.find { it == "DelvisInnvilgelse" || it == "Avslag" }
-            ?.let {
-                when (it) {
-                    "DelvisInnvilgelse" -> "Delvis innvilgelse av"
-                    "Avslag" -> "Avslag av"
-                    else -> null
-                }
-            } ?: when (utbetaling.type) {
-            Utbetaling.Utbetalingtype.UTBETALING -> "utbetaling av"
-            Utbetaling.Utbetalingtype.ETTERUTBETALING -> "etterbetaling av"
-            Utbetaling.Utbetalingtype.REVURDERING -> "revurdering av"
-            Utbetaling.Utbetalingtype.ANNULLERING -> error("Forsøkte å opprette vedtaksnotat for annullering")
-        },
-        linjer = (utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.map { it.toLinje(navn = "Arbeidsgiver", mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver) }
-            + utbetaling.personOppdrag.utbetalingslinjer.map { it.toLinje(navn = navn.split(Regex("\\s"), 0).firstOrNull() ?: "", mottakerType = VedtakPdfPayload.MottakerType.Person) })
-            .sortedBy { it.mottakerType }
-            .sortedByDescending { it.fom },
+        type = begrunnelseToType(packet, utbetaling),
+        linjer = utbetaling.toLinjer(navn),
         personOppdrag = utbetaling.personOppdrag.takeUnless { it.utbetalingslinjer.isEmpty() }?.tilOppdrag(),
         arbeidsgiverOppdrag = utbetaling.arbeidsgiverOppdrag.takeUnless { it.utbetalingslinjer.isEmpty() }?.tilOppdrag(),
         fødselsnummer = utbetaling.fødselsnummer,
@@ -133,7 +126,49 @@ class PdfProduserer(
                 skjønnsfastsatt = arbeidsgiver["skjønnsfastsatt"]?.asDouble()
             )
         },
-        begrunnelser = packet["begrunnelser"].takeUnless { it.isMissingOrNull() }?.associate { node ->
+        begrunnelser = packet.toBegrunnelser(),
+        vedtakFattetTidspunkt = packet["vedtakFattetTidspunkt"].asLocalDateTime()
+    )
+
+    private fun lagSNPdfPayload(
+        packet: JsonMessage,
+        utbetaling: Utbetaling,
+        søknadsperiodeFom: LocalDate,
+        søknadsperiodeTom: LocalDate,
+        navn: String,
+    ): SNVedtakPdfPayload = SNVedtakPdfPayload(
+        sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
+        sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
+        type = begrunnelseToType(packet, utbetaling),
+        linjer = utbetaling.toLinjer(navn),
+        personOppdrag = utbetaling.personOppdrag.takeUnless { it.utbetalingslinjer.isEmpty() }?.tilOppdrag(),
+        arbeidsgiverOppdrag = utbetaling.arbeidsgiverOppdrag.takeUnless { it.utbetalingslinjer.isEmpty() }?.tilOppdrag(),
+        fødselsnummer = utbetaling.fødselsnummer,
+        fom = søknadsperiodeFom,
+        tom = søknadsperiodeTom,
+        behandlingsdato = utbetaling.opprettet.toLocalDate(),
+        dagerIgjen = utbetaling.gjenståendeSykedager,
+        automatiskBehandling = utbetaling.automatiskBehandling,
+        godkjentAv = utbetaling.ident,
+        maksdato = utbetaling.maksdato,
+        sykepengegrunnlag = packet["sykepengegrunnlag"].asBigDecimal(),
+        ikkeUtbetalteDager = ikkeUtbetalteDager(utbetaling = utbetaling, skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate()),
+        navn = navn,
+        skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),
+        beregningsgrunnlag = packet["sykepengegrunnlagsfakta"]["beregningsgrunnlag"].asBigDecimal(),
+        begrunnelser = packet.toBegrunnelser(),
+        vedtakFattetTidspunkt = packet["vedtakFattetTidspunkt"].asLocalDateTime()
+    )
+
+    private fun Utbetaling.toLinjer(
+        navn: String
+    ): List<VedtakPdfPayload.Linje> = (arbeidsgiverOppdrag.utbetalingslinjer.map { it.toLinje(navn = "Arbeidsgiver", mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver) }
+        + personOppdrag.utbetalingslinjer.map { it.toLinje(navn = navn.split(Regex("\\s"), 0).firstOrNull() ?: "", mottakerType = VedtakPdfPayload.MottakerType.Person) })
+        .sortedBy { it.mottakerType }
+        .sortedByDescending { it.fom }
+
+    private fun JsonMessage.toBegrunnelser(): Map<String, String>? =
+        this["begrunnelser"].takeUnless { it.isMissingOrNull() }?.associate { node ->
             when (val type = node["type"].asText()) {
                 "SkjønnsfastsattSykepengegrunnlagMal" -> "begrunnelseFraMal"
                 "SkjønnsfastsattSykepengegrunnlagFritekst" -> "begrunnelseFraFritekst"
@@ -143,11 +178,31 @@ class PdfProduserer(
                 "Innvilgelse" -> "innvilgelse"
                 else -> error("Ukjent begrunnelsetype: $type")
             } to node["begrunnelse"].asText()
-        },
-        vedtakFattetTidspunkt = packet["vedtakFattetTidspunkt"].asLocalDateTime()
-    )
+        }
 
-    private fun Utbetaling.OppdragDto.tilOppdrag(): Oppdrag = Oppdrag(fagsystemId)
+    private fun begrunnelseToType(
+        packet: JsonMessage,
+        utbetaling: Utbetaling
+    ): String = packet["begrunnelser"]
+        .takeUnless { it.isMissingOrNull() }
+        ?.map { begrunnelse -> begrunnelse["type"].asText() }
+        ?.find { it == "DelvisInnvilgelse" || it == "Avslag" }
+        ?.let {
+            when (it) {
+                "DelvisInnvilgelse" -> "Delvis innvilgelse av"
+                "Avslag" -> "Avslag av"
+                else -> null
+            }
+        } ?: when (utbetaling.type) {
+        Utbetaling.Utbetalingtype.UTBETALING -> "utbetaling av"
+        Utbetaling.Utbetalingtype.ETTERUTBETALING -> "etterbetaling av"
+        Utbetaling.Utbetalingtype.REVURDERING -> "revurdering av"
+        Utbetaling.Utbetalingtype.ANNULLERING -> error("Forsøkte å opprette vedtaksnotat for annullering")
+    }
+
+    private fun JsonNode.asBigDecimal(): BigDecimal = BigDecimal(asText())
+
+    private fun Utbetaling.OppdragDto.tilOppdrag(): VedtakPdfPayload.Oppdrag = VedtakPdfPayload.Oppdrag(fagsystemId)
 
     private fun UtbetalingslinjeDto.toLinje(
         navn: String,
@@ -166,7 +221,7 @@ class PdfProduserer(
     private fun ikkeUtbetalteDager(
         utbetaling: Utbetaling,
         skjæringstidspunkt: LocalDate
-    ): List<IkkeUtbetalteDager> = utbetaling
+    ): List<VedtakPdfPayload.IkkeUtbetalteDager> = utbetaling
         .utbetalingsdager
         .filter { it.type in IkkeUtbetalingsdagtyper }
         .filterNot { dag -> dag.dato < skjæringstidspunkt }
@@ -179,23 +234,23 @@ class PdfProduserer(
             )
         }
         .slåSammenLikePerioder()
-        .map {
-            val begrunnelser = it.begrunnelser
+        .map { avvistPeriode ->
+            val begrunnelser = avvistPeriode.begrunnelser
                 .takeIf { it.isNotEmpty() }
                 ?.map { begrunnelse ->
                     mapBegrunnelseTilIkkeUtbetalteDagBegrunnelse(begrunnelse)
                 } ?: listOf(
-                when (it.type) {
+                when (avvistPeriode.type) {
                     "Fridag" -> "Ferie/Permisjon"
                     "Feriedag" -> "Feriedag"
                     "Permisjonsdag" -> "Permisjonsdag"
                     "Arbeidsdag" -> "Arbeidsdag"
-                    else -> error("Ukjent dagtype uten begrunnelser: ${it.type}!")
+                    else -> error("Ukjent dagtype uten begrunnelser: ${avvistPeriode.type}!")
                 }
             )
-            IkkeUtbetalteDager(
-                fom = it.fom,
-                tom = it.tom,
+            VedtakPdfPayload.IkkeUtbetalteDager(
+                fom = avvistPeriode.fom,
+                tom = avvistPeriode.tom,
                 begrunnelser = begrunnelser
             )
         }

@@ -17,6 +17,7 @@ import net.logstash.logback.argument.StructuredArguments.kv
 import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayload
 import no.nav.helse.spre.gosys.annullering.TomAnnulleringMessage
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerPdfPayload
+import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 
 class PdfClient(private val httpClient: HttpClient, private val baseUrl: String) {
@@ -24,6 +25,9 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
 
     suspend fun hentVedtakPdf(vedtak: VedtakPdfPayload) =
         produserPdfBytes("$baseUrl/api/v1/genpdf/spre-gosys/vedtak", vedtak)
+
+    suspend fun hentSNVedtakPdf(vedtak: SNVedtakPdfPayload) =
+        produserPdfBytes("$baseUrl/api/v1/genpdf/spre-gosys/vedtak_selvstendig", vedtak)
 
     suspend fun hentAnnulleringPdf(annullering: AnnulleringPdfPayload) =
         hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/annullering", annullering)
@@ -37,14 +41,16 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
     private suspend fun hentPdf(url: String, input: Any): String =
         produserPdfBytes(url, input).let(encoder::encodeToString)
 
-    private suspend fun produserPdfBytes(url: String, input: Any): ByteArray =
-        httpClient.preparePost(url) {
+    private suspend fun produserPdfBytes(url: String, input: Any): ByteArray {
+        if (erUtvikling) sikkerLogg.info("Payload til PDF-generering: ${objectMapper.writeValueAsString(input)}")
+        return httpClient.preparePost(url) {
             contentType(Json)
             setBody(input)
             expectSuccess = true
         }.executeRetry { response ->
             response.body<ByteArray?>()?.takeUnless { it.isEmpty() } ?: error("Fikk tom pdf")
         }
+    }
 }
 
 suspend fun finnOrganisasjonsnavn(eregClient: EregClient, organisasjonsnummer: String, callId: UUID = UUID.randomUUID()): String {

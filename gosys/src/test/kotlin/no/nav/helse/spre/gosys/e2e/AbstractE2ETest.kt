@@ -15,6 +15,7 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.mockk.every
 import io.mockk.mockk
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -35,6 +36,7 @@ import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.settOppRivers
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
+import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.ANNET
@@ -135,6 +137,7 @@ internal abstract class AbstractE2ETest {
                         "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> handlerForJoark(request)
 
                         "/api/v1/genpdf/spre-gosys/vedtak",
+                        "/api/v1/genpdf/spre-gosys/vedtak_selvstendig",
                         "/api/v1/genpdf/spre-gosys/annullering" -> handlerForPdfKall(request)
 
                         "/v1/organisasjon/123456789" -> handlerForEregKall(request)
@@ -176,6 +179,11 @@ internal abstract class AbstractE2ETest {
 
     protected fun assertVedtakPdf(expected: VedtakPdfPayload = expectedPdfPayload()) {
         val pdfPayload = capturedPdfRequests.single().parsePayload<VedtakPdfPayload>()
+        Assertions.assertEquals(expected, pdfPayload)
+    }
+
+    protected fun assertSNVedtakPdf(expected: SNVedtakPdfPayload) {
+        val pdfPayload = capturedPdfRequests.single().parsePayload<SNVedtakPdfPayload>()
         Assertions.assertEquals(expected, pdfPayload)
     }
 
@@ -249,6 +257,48 @@ internal abstract class AbstractE2ETest {
                 Skjønnsfastsettingårsak.TREDJE_AVSNITT -> "Skjønnsfastsettelse ved mangelfull eller uriktig rapportering (§ 8-30 tredje avsnitt)"
             },
             arbeidsgivere = arbeidsgivere,
+            begrunnelser = begrunnelser,
+            vedtakFattetTidspunkt = vedtakFattetTidspunkt,
+        )
+
+    protected fun expectedSNPdfPayload(
+        fom: LocalDate = 1.januar,
+        tom: LocalDate = 31.januar,
+        utbetalingstype: Utbetalingstype = UTBETALING,
+        totaltTilUtbetaling: Int = 32913,
+        behandlingsdato: LocalDate = tom,
+        linjer: List<VedtakPdfPayload.Linje>,
+        arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag? = null,
+        personOppdrag: VedtakPdfPayload.Oppdrag? = null,
+        ikkeUtbetalteDager: List<VedtakPdfPayload.IkkeUtbetalteDager> = emptyList(),
+        maksdato: LocalDate = LocalDate.of(2021, 7, 15),
+        godkjentAv: String = "Automatisk behandlet",
+        dagerIgjen: Int = 31,
+        skjæringstidspunkt: LocalDate = fom,
+        beregningsgrunnlag: BigDecimal = BigDecimal("565260.0"),
+        begrunnelser: Map<String, String>? = mapOf("innvilgelse" to ""),
+        vedtakFattetTidspunkt: LocalDateTime = AbstractE2ETest.vedtakFattetTidspunkt,
+    ) =
+        SNVedtakPdfPayload(
+            fødselsnummer = "12345678910",
+            type = utbetalingstype.lesbarTittel,
+            fom = fom,
+            tom = tom,
+            linjer = linjer,
+            personOppdrag = personOppdrag,
+            arbeidsgiverOppdrag = arbeidsgiverOppdrag,
+            behandlingsdato = behandlingsdato,
+            dagerIgjen = dagerIgjen,
+            automatiskBehandling = godkjentAv == "Automatisk behandlet",
+            godkjentAv = godkjentAv,
+            sumNettoBeløp = totaltTilUtbetaling,
+            ikkeUtbetalteDager = ikkeUtbetalteDager,
+            maksdato = maksdato,
+            sykepengegrunnlag = BigDecimal("565260.0"),
+            sumTotalBeløp = linjer.sumOf { it.totalbeløp },
+            navn = "Molefonken Ert",
+            skjæringstidspunkt = skjæringstidspunkt,
+            beregningsgrunnlag = beregningsgrunnlag,
             begrunnelser = begrunnelser,
             vedtakFattetTidspunkt = vedtakFattetTidspunkt,
         )
@@ -362,6 +412,68 @@ internal abstract class AbstractE2ETest {
           "skjønnsfastsatt": 565260.0
         }
       ]
+    }
+}"""
+
+    @Language("json")
+    private fun vedtakFattetSN(
+        hendelseId: UUID = UUID.randomUUID(),
+        vedtaksperiodeId: UUID = UUID.randomUUID(),
+        utbetalingId: UUID? = UUID.randomUUID(),
+        fnr: String = "12345678910",
+        fom: LocalDate = 1.januar,
+        tom: LocalDate = 31.januar,
+        vedtakFattetTidspunkt: LocalDateTime,
+    ) = """{
+    "@id": "$hendelseId",
+    "vedtaksperiodeId": "$vedtaksperiodeId",
+    "fødselsnummer": "$fnr",
+    "utbetalingId": ${utbetalingId?.let { "\"$it\"" }},
+    "@event_name": "vedtak_fattet",
+    "@opprettet": "${tom.atStartOfDay()}",
+    "fom": "$fom",
+    "tom": "$tom",
+    "vedtakFattetTidspunkt": "$vedtakFattetTidspunkt",
+    "yrkesaktivitetstype": "SELVSTENDIG",
+    "@forårsaket_av": {
+        "behov": [
+            "Utbetaling"
+        ],
+        "event_name": "behov",
+        "id": "6c7d5e27-c9cf-4e74-8662-a977f3f6a587",
+        "opprettet": "2021-05-25T13:12:22.535549467"
+    },
+    "hendelser": [
+        "65ca68fa-0f12-40f3-ac34-141fa77c4270",
+        "6977170d-5a99-4e7f-8d5f-93bda94a9ba3",
+        "15aa9c84-a9cc-4787-b82a-d5447aa3fab1"
+    ],
+    "skjæringstidspunkt": "$fom",
+    "sykepengegrunnlag": 565260.0,
+    "grunnlagForSykepengegrunnlagPerArbeidsgiver": {
+      "123456789": 265260.0,
+      "987654321": 300000.21
+    },
+    "inntekt": 47105.0,
+    "aktørId": "123",
+    "organisasjonsnummer": "123456789",
+    "system_read_count": 0,
+    "begrunnelser": [
+        {
+            "type": "Innvilgelse",
+            "begrunnelse": "",
+            "perioder": [
+                {
+                    "fom": "2023-11-13",
+                    "tom": "2023-12-01"
+                }
+            ]
+        }
+    ],
+    "sykepengegrunnlagsfakta": {
+      "beregningsgrunnlag": 565260.0,
+      "seksG": 711720.0,
+      "tags": ["6GBegrenset"]
     }
 }"""
 
@@ -535,6 +647,28 @@ internal abstract class AbstractE2ETest {
         require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
         testRapid.sendTestMessage(
             vedtakFattet(
+                hendelseId = hendelseId,
+                fnr = fødselsnummer,
+                utbetalingId = utbetalingId,
+                vedtaksperiodeId = vedtaksperiodeId,
+                fom = sykdomstidslinje.first().dato,
+                tom = sykdomstidslinje.last().dato,
+                vedtakFattetTidspunkt = vedtakFattetTidspunkt
+            )
+        )
+    }
+
+    protected fun sendSNVedtakFattet(
+        hendelseId: UUID = UUID.randomUUID(),
+        vedtaksperiodeId: UUID = UUID.randomUUID(),
+        utbetalingId: UUID? = UUID.randomUUID(),
+        fødselsnummer: String = "12345678910",
+        sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
+        vedtakFattetTidspunkt: LocalDateTime = AbstractE2ETest.vedtakFattetTidspunkt,
+    ) {
+        require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
+        testRapid.sendTestMessage(
+            vedtakFattetSN(
                 hendelseId = hendelseId,
                 fnr = fødselsnummer,
                 utbetalingId = utbetalingId,
