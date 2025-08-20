@@ -32,7 +32,7 @@ internal class HendelseRiver(
             validate {
                 it.require("@opprettet") { opprettet -> opprettet.tidspunkt }
                 it.require("@id") { id -> UUID.fromString(id.asText()) }
-                it.requireKey("yrkesaktivitetstype")
+                it.interestedIn("yrkesaktivitetstype")
                 it.interestedIn("vedtaksperiodeId", "behandlingId")
                 valider(it)
             }
@@ -83,7 +83,7 @@ internal class HendelseRiver(
         internal val JsonMessage.opprettet get() = get("@opprettet").tidspunkt
         internal val JsonMessage.vedtaksperiodeId get() = UUID.fromString(this["vedtaksperiodeId"].asText())
         internal val JsonMessage.behandlingId get() = UUID.fromString(this["behandlingId"].asText())
-        internal val JsonMessage.yrkesaktivitetstype get() = this["yrkesaktivitetstype"].asText()
+        internal val JsonMessage.yrkesaktivitetstype get() = if(this["yrkesaktivitetstype"].isMissingOrNull()) "ARBEIDSTAKER" else this["yrkesaktivitetstype"].asText()
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
         internal fun JsonMessage.requireBehandlingId() = require("behandlingId") { behandlingId -> UUID.fromString(behandlingId.asText()) }
         internal fun JsonMessage.requireVedtaksperiodeId() = require("vedtaksperiodeId") { vedtaksperiodeId -> UUID.fromString(vedtaksperiodeId.asText()) }
