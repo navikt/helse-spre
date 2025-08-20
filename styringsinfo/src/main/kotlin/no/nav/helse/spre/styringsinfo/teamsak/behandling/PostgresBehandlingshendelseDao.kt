@@ -48,8 +48,8 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
 
     private fun TransactionalSession.lagre(behandling: Behandling, hendelseId: UUID) {
         val sql = """
-            insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste, hendelseId, er_korrigert) 
-            values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, true, :hendelseId, false)
+            insert into behandlingshendelse(sakId, behandlingId, yrkesaktivitetstype, funksjonellTid, versjon, data, siste, hendelseId, er_korrigert) 
+            values(:sakId, :behandlingId, :yrkesaktivitetstype, :funksjonellTid, :versjon, :data::jsonb, true, :hendelseId, false)
         """
 
         val data = objectMapper.createObjectNode().apply {
@@ -74,6 +74,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         check(run(queryOf(sql, mapOf(
             "sakId" to behandling.sakId.id,
             "behandlingId" to behandling.behandlingId.id,
+            "yrkesaktivitetstype" to behandling.yrkesaktivitetstype,
             "funksjonellTid" to behandling.funksjonellTid,
             "versjon" to versjon.toString(),
             "data" to data.toString(),
@@ -100,6 +101,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
         return Behandling(
             sakId = SakId(uuid("sakId")),
             behandlingId = BehandlingId(uuid("behandlingId")),
+            yrkesaktivitetstype = string("yrkesaktivitetstype"),
             relatertBehandlingId = data.path("relatertBehandlingId").uuidOrNull?.let { BehandlingId(it) },
             aktørId = data.path("aktørId").asText(),
             mottattTid = fraJson(data.path("mottattTid")),

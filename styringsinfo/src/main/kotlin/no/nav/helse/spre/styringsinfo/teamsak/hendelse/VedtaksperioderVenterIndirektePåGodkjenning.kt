@@ -15,11 +15,13 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.*
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class VedtaksperioderVenterIndirektePåGodkjenning(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
+    override val yrkesaktivitetstype: String,
     val venter: List<VedtaksperiodeVenterDto>
 ) : Hendelse {
     override val type = eventName
@@ -30,7 +32,7 @@ internal class VedtaksperioderVenterIndirektePåGodkjenning(
             .filterNot { t -> behandlingshendelseDao.hent(BehandlingId(t.behandlingId)).behandlingstatus == KOMPLETT_FAKTAGRUNNLAG }
             .map { t ->
                 val builder = behandlingshendelseDao.initialiser(BehandlingId(t.behandlingId))
-                val ny = builder.behandlingstatus(KOMPLETT_FAKTAGRUNNLAG).build(opprettet, AUTOMATISK) ?: return@map false
+                val ny = builder.behandlingstatus(KOMPLETT_FAKTAGRUNNLAG).build(opprettet, AUTOMATISK, yrkesaktivitetstype) ?: return@map false
                 behandlingshendelseDao.lagre(ny, id)
             }
             .any()
@@ -68,7 +70,8 @@ internal class VedtaksperioderVenterIndirektePåGodkjenning(
                     opprettet = packet.opprettet,
                     venter = packet["vedtaksperioder"].map { venter ->
                         objectMapper.convertValue<VedtaksperiodeVenterDto>(venter)
-                    }
+                    },
+                    yrkesaktivitetstype = packet.yrkesaktivitetstype
                 )
             }
         )

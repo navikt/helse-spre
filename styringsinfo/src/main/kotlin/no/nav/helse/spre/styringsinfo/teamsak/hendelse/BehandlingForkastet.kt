@@ -15,11 +15,13 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.UUID
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class BehandlingForkastet(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
+    override val yrkesaktivitetstype: String,
     behandlingId: UUID,
     automatiskBehandling: Boolean
 ) : Hendelse {
@@ -32,7 +34,7 @@ internal class BehandlingForkastet(
         val builder = behandlingshendelseDao.initialiser(behandlingId)
         val ny = builder
             .avslutt(AVBRUTT)
-            .build(opprettet, hendelsesmetode)
+            .build(opprettet, hendelsesmetode, yrkesaktivitetstype)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
@@ -59,7 +61,8 @@ internal class BehandlingForkastet(
                 data = packet.blob,
                 opprettet = packet.opprettet,
                 behandlingId = packet.behandlingId,
-                automatiskBehandling = packet.automatiskBehandling
+                automatiskBehandling = packet.automatiskBehandling,
+                yrkesaktivitetstype = packet.yrkesaktivitetstype
             )}
         )
 

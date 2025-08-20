@@ -25,16 +25,18 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.v
 import java.time.OffsetDateTime
 import java.util.UUID
 import no.nav.helse.spre.styringsinfo.sikkerLogg
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class BehandlingOpprettet(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
+    override val yrkesaktivitetstype: String,
     private val vedtaksperiodeId: UUID,
     private val behandlingId: UUID,
     private val aktørId: String,
     private val behandlingskilde: Behandlingskilde,
-    private val behandlingstype: Behandlingstype
+    private val behandlingstype: Behandlingstype,
 ) : Hendelse {
     override val type = eventName
 
@@ -59,7 +61,8 @@ internal class BehandlingOpprettet(
             behandlingstype = behandlingstype.behandlingstype,
             behandlingskilde = behandlingskilde,
             behandlingsmetode = AUTOMATISK,
-            hendelsesmetode = if (behandlingskilde == SAKSBEHANDLER) MANUELL else AUTOMATISK
+            hendelsesmetode = if (behandlingskilde == SAKSBEHANDLER) MANUELL else AUTOMATISK,
+            yrkesaktivitetstype = yrkesaktivitetstype
         )
         return behandlingshendelseDao.lagre(behandling, this.id)
     }
@@ -104,7 +107,8 @@ internal class BehandlingOpprettet(
                 registrert = packet["kilde.registrert"].tidspunkt,
                 avsender = Avsender(packet["kilde.avsender"].asText())
             ),
-            behandlingstype = Behandlingstype(packet["type"].asText())
+            behandlingstype = Behandlingstype(packet["type"].asText()),
+            yrkesaktivitetstype = packet.yrkesaktivitetstype
         )
 
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao, speedClient: SpeedClient) = HendelseRiver(

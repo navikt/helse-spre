@@ -14,7 +14,8 @@ import java.util.UUID
 internal class Hendelsefabrikk(
     private val sakId: SakId = nySakId(),
     private val behandlingId: BehandlingId = nyBehandlingId(),
-    private val aktørId: String = "1234"
+    private val aktørId: String = "1234",
+    private val yrkesaktivitetstype: String = "ARBEIDSTAKER"
 ) {
     internal fun behandlingOpprettet(
         sakId: SakId = this.sakId,
@@ -24,10 +25,10 @@ internal class Hendelsefabrikk(
         avsender: BehandlingOpprettet.Avsender = Sykmeldt,
         innsendt: OffsetDateTime = nesteTidspunkt,
         registrert: OffsetDateTime = nesteTidspunkt,
-        opprettet: OffsetDateTime = nesteTidspunkt,
+        opprettet: OffsetDateTime = nesteTidspunkt
     ): Triple<BehandlingId, BehandlingOpprettet, SakId> {
         val behandlingskilde = BehandlingOpprettet.Behandlingskilde(innsendt, registrert, avsender)
-        val behandlingOpprettet = BehandlingOpprettet(UUID.randomUUID(), opprettet, blob, sakId.id, behandlingId.id, aktørId, behandlingskilde, behandlingstype)
+        val behandlingOpprettet = BehandlingOpprettet(UUID.randomUUID(), opprettet, blob, yrkesaktivitetstype,sakId.id, behandlingId.id, aktørId, behandlingskilde, behandlingstype)
         return Triple(behandlingId, behandlingOpprettet, sakId)
     }
 
@@ -40,7 +41,8 @@ internal class Hendelsefabrikk(
         opprettet = nesteTidspunkt,
         data = blob,
         behandlingId = behandlingId.id,
-        tags = Tags(tags)
+        tags = Tags(tags),
+        yrkesaktivitetstype = yrkesaktivitetstype
     )
 
     internal fun utkastTilVedtak(
@@ -52,21 +54,24 @@ internal class Hendelsefabrikk(
         opprettet = nesteTidspunkt,
         data = blob,
         behandlingId = behandlingId.id,
-        tags = Tags(tags)
+        tags = Tags(tags),
+        yrkesaktivitetstype = yrkesaktivitetstype
     )
 
     internal fun avsluttetUtenVedtak(behandlingId: BehandlingId = this.behandlingId) = AvsluttetUtenVedtak(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         data = blob,
-        behandlingId = behandlingId.id
+        behandlingId = behandlingId.id,
+        yrkesaktivitetstype = yrkesaktivitetstype
     )
 
     internal fun behandlingForkastet(behandlingId: BehandlingId = this.behandlingId, hendelsesmetode: Behandling.Metode = Behandling.Metode.MANUELL) = BehandlingForkastet(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         data = blob, behandlingId = behandlingId.id,
-        automatiskBehandling = hendelsesmetode == AUTOMATISK
+        automatiskBehandling = hendelsesmetode == AUTOMATISK,
+        yrkesaktivitetstype = yrkesaktivitetstype
     )
 
     internal fun vedtaksperiodeGodkjent(behandlingId: BehandlingId = this.behandlingId, totrinnsbehandling: Boolean = false) = VedtaksperiodeGodkjent(
@@ -77,7 +82,8 @@ internal class Hendelsefabrikk(
         saksbehandlerEnhet = FunnetEnhet("SB123"),
         beslutterEnhet = FunnetEnhet("SB456").takeIf { totrinnsbehandling } ?: AutomatiskEnhet,
         automatiskBehandling = false,
-        totrinnsbehandling = totrinnsbehandling
+        totrinnsbehandling = totrinnsbehandling,
+        yrkesaktivitetstype = yrkesaktivitetstype
     )
 
     internal fun vedtaksperiodeAvvist(behandlingId: BehandlingId = this.behandlingId) = VedtaksperiodeAvvist(
@@ -86,14 +92,16 @@ internal class Hendelsefabrikk(
         data = blob,
         behandlingId = behandlingId.id,
         saksbehandlerEnhet = FunnetEnhet("SB123"),
-        automatiskBehandling = false
+        automatiskBehandling = false,
+        yrkesaktivitetstype = yrkesaktivitetstype
     )
 
     internal fun vedtaksperiodeAnnullert(behandlingId: BehandlingId = this.behandlingId) = VedtaksperiodeAnnullert(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         data = blob,
-        behandlingId = behandlingId.id
+        behandlingId = behandlingId.id,
+        yrkesaktivitetstype = yrkesaktivitetstype
     )
 
     internal companion object {

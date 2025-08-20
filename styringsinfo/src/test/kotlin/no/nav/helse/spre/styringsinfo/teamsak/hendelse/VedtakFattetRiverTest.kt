@@ -54,7 +54,8 @@ internal class VedtakFattetRiverTest {
       "@opprettet": "${LocalDateTime.now()}",
       "vedtaksperiodeId": "${UUID.randomUUID()}",
       "behandlingId": "$behandlingId",
-      "tags": ${tags.map { "\"$it\"" }}
+      "tags": ${tags.map { "\"$it\"" }},
+      "yrkesaktivitetstype": "ARBEIDSTAKER"
     }"""
 }
 

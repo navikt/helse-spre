@@ -48,7 +48,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
     fun `lagrer ikke ny rad som har lik funksjonell tid, selv om behandlingen har annen info (korringering)`() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
-        val behandling = nyBehandling(behandlingId, nå)
+        val behandling = nyBehandling(behandlingId, nå, yrkesaktivitetstype = "ARBEIDSTAKER")
         assertTrue(behandlingshendelseDao.lagre(behandling, hendelseId))
         assertEquals(1, behandlingId.rader)
         val korrigertInfo = behandling.copy(behandlingskilde = SAKSBEHANDLER)
@@ -60,7 +60,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
     fun `lagrer ikke ny rad som har tidligere funksjonell tid, selv om behandlingen har annen info (out-of-order)`() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
-        val behandling = nyBehandling(behandlingId, nå)
+        val behandling = nyBehandling(behandlingId, nå, yrkesaktivitetstype = "ARBEIDSTAKER")
         assertTrue(behandlingshendelseDao.lagre(behandling, hendelseId))
         assertEquals(1, behandlingId.rader)
         val korrigertInfo = behandling.copy(behandlingskilde = SAKSBEHANDLER, funksjonellTid = før)
@@ -72,7 +72,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
     fun `lagrer ny rad som har nyere funksjonell tid med funksjonell endring`() {
         val behandlingId = BehandlingId(UUID.randomUUID())
         assertEquals(0, behandlingId.rader)
-        val behandling = nyBehandling(behandlingId, nå)
+        val behandling = nyBehandling(behandlingId, nå, yrkesaktivitetstype = "ARBEIDSTAKER")
         assertTrue(behandlingshendelseDao.lagre(behandling, hendelseId))
         assertEquals(1, behandlingId.rader)
         val korrigertInfo = behandling.copy(behandlingskilde = SAKSBEHANDLER, funksjonellTid = etter)
@@ -89,7 +89,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
     } ?: 0
 
-    private fun nyBehandling(behandlingId: BehandlingId, funksjonellTid: OffsetDateTime, behandlingsmetode: Behandling.Metode = MANUELL) = Behandling(
+    private fun nyBehandling(behandlingId: BehandlingId, funksjonellTid: OffsetDateTime, behandlingsmetode: Behandling.Metode = MANUELL, yrkesaktivitetstype: String) = Behandling(
         sakId = SakId(UUID.randomUUID()),
         behandlingId = behandlingId,
         relatertBehandlingId = null,
@@ -102,6 +102,7 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         behandlingskilde = SYSTEM,
         behandlingsmetode = behandlingsmetode,
         saksbehandlerEnhet = "4488",
-        hendelsesmetode = AUTOMATISK
+        hendelsesmetode = AUTOMATISK,
+        yrkesaktivitetstype = yrkesaktivitetstype
     )
 }

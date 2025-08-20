@@ -3,6 +3,12 @@ package db.migration
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.test_support.TestDataSource
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatterBuilder
+import java.time.temporal.ChronoUnit
+import java.util.*
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.databaseContainer
@@ -14,13 +20,9 @@ import no.nav.helse.spre.testhelpers.januar
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.*
-import java.time.format.DateTimeFormatterBuilder
-import java.time.temporal.ChronoUnit
-import java.util.*
 
 class V49NyFunksjonellTidTest {
 
@@ -37,9 +39,11 @@ class V49NyFunksjonellTidTest {
             drop publication if exists spre_styringsinfo_publication; 
             select pg_drop_replication_slot('spre_styringsinfo_replication');
         """
-        kotlin.runCatching { sessionOf(dataSource.ds).use { session ->
-            session.run(queryOf(cleanupQuery).asExecute)
-        }}
+        kotlin.runCatching {
+            sessionOf(dataSource.ds).use { session ->
+                session.run(queryOf(cleanupQuery).asExecute)
+            }
+        }
         Flyway.configure()
             .dataSource(dataSource.ds)
             .cleanDisabled(false)
@@ -49,6 +53,7 @@ class V49NyFunksjonellTidTest {
                 it.migrate()
             }
     }
+
     @AfterEach
     fun tearDown() {
         databaseContainer.droppTilkobling(dataSource)
@@ -83,9 +88,9 @@ class V49NyFunksjonellTidTest {
         val henteSQL2 = """select funksjonellTid from behandlingshendelse where sekvensnummer = $skalIkkeEndres"""
 
         sessionOf(dataSource.ds).use { session ->
-            val skulleVærtEndra= session.run(queryOf(henteSQL1).map { it.zonedDateTime("funksjonellTid") }.asSingle)!!
+            val skulleVærtEndra = session.run(queryOf(henteSQL1).map { it.zonedDateTime("funksjonellTid") }.asSingle)!!
             assertTidssonerMedBareMikrosekunder(andreJanuar, skulleVærtEndra, "skulle skrive om; gjorde det ikke")
-            val skulleIkkeVærtEndra= session.run(queryOf(henteSQL2).map { it.zonedDateTime("funksjonellTid") }.asSingle)!!
+            val skulleIkkeVærtEndra = session.run(queryOf(henteSQL2).map { it.zonedDateTime("funksjonellTid") }.asSingle)!!
             assertTidssonerMedBareMikrosekunder(tredjeJanuar, skulleIkkeVærtEndra, "skulle ikke skrive om; gjorde det")
         }
     }
@@ -109,29 +114,37 @@ class V49NyFunksjonellTidTest {
             values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste, :hendelseId, :erKorrigert)
             """
 
-            val sekvensnummer = session.run(queryOf(sql, mapOf(
-                "sakId" to UUID.randomUUID(),
-                "behandlingId" to UUID.randomUUID(),
-                "funksjonellTid" to funksjonellTid,
-                "versjon" to "1.0.0",
-                "siste" to true,
-                "data" to objectMapper.readTree("""
+            val sekvensnummer = session.run(
+                queryOf(
+                    sql, mapOf(
+                    "sakId" to UUID.randomUUID(),
+                    "behandlingId" to UUID.randomUUID(),
+                    "funksjonellTid" to funksjonellTid,
+                    "versjon" to "1.0.0",
+                    "siste" to true,
+                    "data" to objectMapper.readTree(
+                        """
                     {
                     "registrertTid": "${registrertTid.format(tidsformatør)}"
                     }
-                """.trimIndent()).toString(),
-                "hendelseId" to hendelse.id,
-                "erKorrigert" to false
-            )).asUpdateAndReturnGeneratedKey)!!
+                """.trimIndent()
+                    ).toString(),
+                    "hendelseId" to hendelse.id,
+                    "erKorrigert" to false
+                )
+                ).asUpdateAndReturnGeneratedKey
+            )!!
             return sekvensnummer
         }
     }
 
+    private class PågåendeBehandling(override val id: UUID) : Hendelse {
+        override val opprettet: OffsetDateTime = OffsetDateTime.parse("1970-01-01T00:00+01:00")
+        override val type: String = "pågående_behandlinger"
+        override val yrkesaktivitetstype: String = "ARBEIDSTAKER"
+        override val data: JsonNode = jacksonObjectMapper().createObjectNode().apply { put("test", true) }
+        override fun håndter(behandlingshendelseDao: BehandlingshendelseDao) = throw IllegalStateException("Testehendelse skal ikke håndteres")
+    }
 }
 
-private class PågåendeBehandling(override val id: UUID) : Hendelse {
-    override val opprettet: OffsetDateTime = OffsetDateTime.parse("1970-01-01T00:00+01:00")
-    override val type: String = "pågående_behandlinger"
-    override val data: JsonNode = jacksonObjectMapper().createObjectNode().apply { put("test", true) }
-    override fun håndter(behandlingshendelseDao: BehandlingshendelseDao) = throw IllegalStateException("Testehendelse skal ikke håndteres")
-}
+

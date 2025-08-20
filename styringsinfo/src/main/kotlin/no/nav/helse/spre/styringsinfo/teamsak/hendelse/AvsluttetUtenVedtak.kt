@@ -13,11 +13,13 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.UUID
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class AvsluttetUtenVedtak(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
+    override val yrkesaktivitetstype: String,
     private val behandlingId: UUID
 ) : Hendelse {
     override val type = eventName
@@ -26,7 +28,7 @@ internal class AvsluttetUtenVedtak(
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
         val ny = builder
             .avslutt(IKKE_REALITETSBEHANDLET)
-            .build(opprettet, AUTOMATISK)
+            .build(opprettet, AUTOMATISK, yrkesaktivitetstype )
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
@@ -44,7 +46,8 @@ internal class AvsluttetUtenVedtak(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
-                behandlingId = packet.behandlingId
+                behandlingId = packet.behandlingId,
+                yrkesaktivitetstype = packet.yrkesaktivitetstype
             )}
         )
     }

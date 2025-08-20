@@ -13,11 +13,13 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.*
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class VedtakFattet(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
+    override val yrkesaktivitetstype: String,
     private val behandlingId: UUID,
     private val tags: Tags
 ) : Hendelse {
@@ -29,7 +31,7 @@ internal class VedtakFattet(
             .mottaker(tags.mottaker)
             .avslutt(tags.behandlingsresultat)
             .periodetype(tags.periodetype)
-            .build(opprettet, AUTOMATISK)
+            .build(opprettet, AUTOMATISK, yrkesaktivitetstype)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
@@ -47,7 +49,8 @@ internal class VedtakFattet(
             opprettet = packet.opprettet,
             data = packet.blob,
             behandlingId = packet.behandlingId,
-            tags = Tags(packet.tags)
+            tags = Tags(packet.tags),
+            yrkesaktivitetstype = packet.yrkesaktivitetstype
         )
 
         internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
