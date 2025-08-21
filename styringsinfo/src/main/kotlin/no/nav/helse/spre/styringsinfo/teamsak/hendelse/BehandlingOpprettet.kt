@@ -25,13 +25,14 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.v
 import java.time.OffsetDateTime
 import java.util.UUID
 import no.nav.helse.spre.styringsinfo.sikkerLogg
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class BehandlingOpprettet(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    override val yrkesaktivitetstype: String,
+    private val yrkesaktivitetstype: String,
     private val vedtaksperiodeId: UUID,
     private val behandlingId: UUID,
     private val aktørId: String,
@@ -92,6 +93,7 @@ internal class BehandlingOpprettet(
         internal fun valider(packet: JsonMessage) {
             packet.requireVedtaksperiodeId()
             packet.requireBehandlingId()
+            packet.interestedInYrkesaktivitetstype()
             packet.requireKey("fødselsnummer", "kilde.registrert", "kilde.innsendt", "kilde.avsender", "type")
         }
 

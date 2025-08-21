@@ -15,13 +15,14 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.UUID
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class BehandlingForkastet(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    override val yrkesaktivitetstype: String,
+    private val yrkesaktivitetstype: String,
     behandlingId: UUID,
     automatiskBehandling: Boolean
 ) : Hendelse {
@@ -55,6 +56,7 @@ internal class BehandlingForkastet(
             valider = { packet ->
                 packet.requireBehandlingId()
                 packet.require("automatiskBehandling", JsonNode::isBoolean)
+                packet.interestedInYrkesaktivitetstype()
             },
             opprett = { packet -> BehandlingForkastet(
                 id = packet.hendelseId,

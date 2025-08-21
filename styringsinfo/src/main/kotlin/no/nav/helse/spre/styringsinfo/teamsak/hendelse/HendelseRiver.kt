@@ -24,7 +24,7 @@ internal class HendelseRiver(
     rapidsConnection: RapidsConnection,
     private val hendelseDao: HendelseDao,
     private val behandlingshendelseDao: BehandlingshendelseDao
-): River.PacketListener {
+) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
@@ -41,8 +41,9 @@ internal class HendelseRiver(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
         withMDC(packet.mdcValues) {
-            try { håndterHendelse(packet) }
-            catch (throwable: Throwable) {
+            try {
+                håndterHendelse(packet)
+            } catch (throwable: Throwable) {
                 // Logger og kaster feil videre slik at vi ikke commiter offset. Men blir stående på den feilende meldingen.
                 packet.sikkerLogg("Feil ved håndtering av ${packet.eventName}: ${throwable.message}", throwable)
                 throw throwable
@@ -64,11 +65,12 @@ internal class HendelseRiver(
         if (throwable == null) sikkerLogg.info("$melding\n\t${toJson()}")
         else sikkerLogg.error("$melding\n\t${toJson()}", throwable)
 
-    private val JsonMessage.mdcValues get() = listOf("vedtaksperiodeId", "behandlingId", "@id", "@event_name")
-        .associate { key -> key.removePrefix("@") to get(key) }
-        .mapValues { (_, value) -> value.takeUnless { it.isMissingOrNull() }?.asText() }
-        .filterValues { it != null }
-        .mapValues { (_, value) -> value!! }
+    private val JsonMessage.mdcValues
+        get() = listOf("vedtaksperiodeId", "behandlingId", "@id", "@event_name")
+            .associate { key -> key.removePrefix("@") to get(key) }
+            .mapValues { (_, value) -> value.takeUnless { it.isMissingOrNull() }?.asText() }
+            .filterValues { it != null }
+            .mapValues { (_, value) -> value!! }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
         sikkerLogg.error("Forsto ikke $eventName:\n\t${problems.toExtendedReport()}")
@@ -83,9 +85,10 @@ internal class HendelseRiver(
         internal val JsonMessage.opprettet get() = get("@opprettet").tidspunkt
         internal val JsonMessage.vedtaksperiodeId get() = UUID.fromString(this["vedtaksperiodeId"].asText())
         internal val JsonMessage.behandlingId get() = UUID.fromString(this["behandlingId"].asText())
-        internal val JsonMessage.yrkesaktivitetstype get() = if(this["yrkesaktivitetstype"].isMissingOrNull()) "ARBEIDSTAKER" else this["yrkesaktivitetstype"].asText()
+        internal val JsonMessage.yrkesaktivitetstype get() = if (this["yrkesaktivitetstype"].isMissingOrNull()) "ARBEIDSTAKER" else this["yrkesaktivitetstype"].asText()
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
         internal fun JsonMessage.requireBehandlingId() = require("behandlingId") { behandlingId -> UUID.fromString(behandlingId.asText()) }
         internal fun JsonMessage.requireVedtaksperiodeId() = require("vedtaksperiodeId") { vedtaksperiodeId -> UUID.fromString(vedtaksperiodeId.asText()) }
+        internal fun JsonMessage.interestedInYrkesaktivitetstype() = this.interestedIn("yrkesaktivitetstype") { yrkesaktivitetstype -> yrkesaktivitetstype.asText() }
     }
 }

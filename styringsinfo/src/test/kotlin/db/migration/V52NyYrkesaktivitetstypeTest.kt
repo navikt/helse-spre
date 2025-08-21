@@ -60,45 +60,6 @@ class V52NyYrkesaktivitetstypeTest {
 
     private val tidsformatør = DateTimeFormatterBuilder().appendPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS").appendOffsetId().toFormatter()
 
-    private fun leggTilBehandlingshendelse(
-        funksjonellTid: ZonedDateTime = ZonedDateTime.now(),
-        hendelse: Hendelse,
-        registrertTid: ZonedDateTime
-    ): Long {
-        hendelseDao.lagre(hendelse)
-
-        sessionOf(dataSource.ds, returnGeneratedKey = true).use { session ->
-            val sql = """
-            insert into behandlingshendelse(sakId, behandlingId, yrkesaktivitetstype, funksjonellTid, versjon, data, siste, hendelseId, er_korrigert) 
-            values(:sakId, :behandlingId, :yrkesaktivitetstype, :funksjonellTid, :versjon, :data::jsonb, :siste, :hendelseId, :erKorrigert)
-            """
-
-            val sekvensnummer = session.run(
-                queryOf(
-                    sql, mapOf(
-                    "sakId" to UUID.randomUUID(),
-                    "behandlingId" to UUID.randomUUID(),
-                    "yrkesaktivitetstype" to hendelse.yrkesaktivitetstype,
-                    "funksjonellTid" to funksjonellTid,
-                    "versjon" to "1.0.0",
-                    "siste" to true,
-                    "data" to objectMapper.readTree(
-                        """
-                    {
-                    "registrertTid": "${registrertTid.format(tidsformatør)}",
-                    "mottattTid": "${ZonedDateTime.now().format(tidsformatør)}"
-                    }
-                """.trimIndent()
-                    ).toString(),
-                    "hendelseId" to hendelse.id,
-                    "erKorrigert" to false
-                )
-                ).asUpdateAndReturnGeneratedKey
-            )!!
-            return sekvensnummer
-        }
-    }
-
     private fun leggTilBehandlingshendelseDefaulteYrkesaktivitetstype(
         funksjonellTid: ZonedDateTime = ZonedDateTime.now(),
         hendelse: Hendelse,
@@ -139,7 +100,7 @@ class V52NyYrkesaktivitetstypeTest {
 
     @Test
     fun `sjekker at vi defaulter til arbeidstaker`() {
-        val hendelse = PågåendeBehandling(UUID.randomUUID(), "ARBEIDSTAKER")
+        val hendelse = PågåendeBehandling(UUID.randomUUID())
 
         val id = leggTilBehandlingshendelseDefaulteYrkesaktivitetstype(
             registrertTid = ZonedDateTime.now(),
@@ -149,33 +110,15 @@ class V52NyYrkesaktivitetstypeTest {
         val henteSQL = """select yrkesaktivitetstype from behandlingshendelse where sekvensnummer = $id"""
 
         sessionOf(dataSource.ds).use { session ->
-            val yrkesaktivitetstype = session.run(queryOf(henteSQL).map { row -> row.string("yrkesaktivitetstype") }.asSingle)!!
+            val yrkesaktivitetstype = session.run(queryOf(henteSQL).map { row -> row.string("yrkesaktivitetstype") }.asSingle)
             assertEquals("ARBEIDSTAKER", yrkesaktivitetstype)
-        }
-    }
-
-    @Test
-    fun `sjekker at vi legger til selvstendig`() {
-        val hendelse = PågåendeBehandling(UUID.randomUUID(), "SELVSTENDIG")
-
-        val id = leggTilBehandlingshendelse(
-            registrertTid = ZonedDateTime.now(),
-            hendelse = hendelse
-        )
-
-        val henteSQL = """select yrkesaktivitetstype from behandlingshendelse where sekvensnummer = $id"""
-
-        sessionOf(dataSource.ds).use { session ->
-            val yrkesaktivitetstype = session.run(queryOf(henteSQL).map { row -> row.string("yrkesaktivitetstype") }.asSingle)!!
-            assertEquals("SELVSTENDIG", yrkesaktivitetstype)
         }
     }
 }
 
-private class PågåendeBehandling(override val id: UUID, yrkesaktivtetstype: String) : Hendelse {
+private class PågåendeBehandling(override val id: UUID) : Hendelse {
     override val opprettet: OffsetDateTime = OffsetDateTime.parse("1970-01-01T00:00+01:00")
     override val type: String = "pågående_behandlinger"
-    override val yrkesaktivitetstype: String = yrkesaktivtetstype
     override val data: JsonNode = jacksonObjectMapper().createObjectNode().apply { put("test", true) }
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao) = throw IllegalStateException("Testehendelse skal ikke håndteres")
 }

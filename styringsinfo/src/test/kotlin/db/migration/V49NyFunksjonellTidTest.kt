@@ -141,7 +141,6 @@ class V49NyFunksjonellTidTest {
     private class PågåendeBehandling(override val id: UUID) : Hendelse {
         override val opprettet: OffsetDateTime = OffsetDateTime.parse("1970-01-01T00:00+01:00")
         override val type: String = "pågående_behandlinger"
-        override val yrkesaktivitetstype: String = "ARBEIDSTAKER"
         override val data: JsonNode = jacksonObjectMapper().createObjectNode().apply { put("test", true) }
         override fun håndter(behandlingshendelseDao: BehandlingshendelseDao) = throw IllegalStateException("Testehendelse skal ikke håndteres")
     }

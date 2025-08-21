@@ -16,6 +16,37 @@ import org.junit.jupiter.api.Test
 internal class AnnulleringTest: AbstractTeamSakTest() {
 
     @Test
+    fun `selvstendig - sak annulleres`() {
+        val sakId = Hendelsefabrikk.nySakId()
+        nyttVedtak(sakId = sakId)
+
+        val annulleringHendelsefabrikk = Hendelsefabrikk(sakId = sakId, yrkesaktivitetstype = "SELVSTENDIG")
+        val (behandlingIdAnnullert, behandlingOpprettet) = annulleringHendelsefabrikk.behandlingOpprettet(sakId = sakId, behandlingstype = Hendelsefabrikk.Revurdering)
+
+        val registrertAnnullering = behandlingOpprettet.håndter(behandlingIdAnnullert)
+        assertEquals(REGISTRERT, registrertAnnullering.behandlingstatus)
+        assertEquals(REVURDERING, registrertAnnullering.behandlingstype)
+        assertNull(registrertAnnullering.behandlingsresultat)
+        assertEquals("SELVSTENDIG", registrertAnnullering.yrkesaktivitetstype)
+
+        val annullertBehandling = annulleringHendelsefabrikk.vedtaksperiodeAnnullert(behandlingIdAnnullert).håndter(behandlingIdAnnullert)
+        assertEquals(AVSLUTTET, annullertBehandling.behandlingstatus)
+        assertEquals(REVURDERING, annullertBehandling.behandlingstype)
+        assertEquals(ANNULLERT, annullertBehandling.behandlingsresultat)
+        assertEquals("SELVSTENDIG", annullertBehandling.yrkesaktivitetstype)
+
+        val forkastetBehandling = annulleringHendelsefabrikk.behandlingForkastet(behandlingIdAnnullert).håndter(behandlingIdAnnullert)
+        assertEquals(AVSLUTTET, forkastetBehandling.behandlingstatus)
+        assertEquals(REVURDERING, forkastetBehandling.behandlingstype)
+        assertEquals(ANNULLERT, forkastetBehandling.behandlingsresultat)
+        assertEquals("SELVSTENDIG", forkastetBehandling.yrkesaktivitetstype)
+
+        assertEquals(MANUELL, forkastetBehandling.behandlingsmetode)
+        assertNull(forkastetBehandling.saksbehandlerEnhet)
+    }
+
+
+    @Test
     fun `sak annulleres`() {
         val sakId = Hendelsefabrikk.nySakId()
         nyttVedtak(sakId = sakId)
@@ -27,16 +58,19 @@ internal class AnnulleringTest: AbstractTeamSakTest() {
         assertEquals(REGISTRERT, registrertAnnullering.behandlingstatus)
         assertEquals(REVURDERING, registrertAnnullering.behandlingstype)
         assertNull(registrertAnnullering.behandlingsresultat)
+        assertEquals("ARBEIDSTAKER", registrertAnnullering.yrkesaktivitetstype)
 
         val annullertBehandling = annulleringHendelsefabrikk.vedtaksperiodeAnnullert(behandlingIdAnnullert).håndter(behandlingIdAnnullert)
         assertEquals(AVSLUTTET, annullertBehandling.behandlingstatus)
         assertEquals(REVURDERING, annullertBehandling.behandlingstype)
         assertEquals(ANNULLERT, annullertBehandling.behandlingsresultat)
+        assertEquals("ARBEIDSTAKER", annullertBehandling.yrkesaktivitetstype)
 
         val forkastetBehandling = annulleringHendelsefabrikk.behandlingForkastet(behandlingIdAnnullert).håndter(behandlingIdAnnullert)
         assertEquals(AVSLUTTET, forkastetBehandling.behandlingstatus)
         assertEquals(REVURDERING, forkastetBehandling.behandlingstype)
         assertEquals(ANNULLERT, forkastetBehandling.behandlingsresultat)
+        assertEquals("ARBEIDSTAKER", forkastetBehandling.yrkesaktivitetstype)
 
         assertEquals(MANUELL, forkastetBehandling.behandlingsmetode)
         assertNull(forkastetBehandling.saksbehandlerEnhet)

@@ -10,6 +10,5 @@ internal class Testhendelse(override val id: UUID) : Hendelse {
     override val opprettet: OffsetDateTime = OffsetDateTime.parse("1970-01-01T00:00+01:00")
     override val type: String = "TULLETYPE"
     override val data: JsonNode = jacksonObjectMapper().createObjectNode().apply { put("test", true) }
-    override val yrkesaktivitetstype: String = "ARBEIDSTAKER"
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao) = throw IllegalStateException("Testehendelse skal ikke håndteres")
 }

@@ -18,13 +18,14 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.r
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class VedtaksperiodeGodkjent(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    override val yrkesaktivitetstype: String,
+    private val yrkesaktivitetstype: String,
     private val behandlingId: UUID,
     private val saksbehandlerEnhet: Enhet,
     private val beslutterEnhet: Enhet,
@@ -63,6 +64,7 @@ internal class VedtaksperiodeGodkjent(
                 packet.requireVedtaksperiodeId()
                 packet.requireSaksbehandlerIdent()
                 packet.requireAutomatiskBehandling()
+                packet.interestedInYrkesaktivitetstype()
             },
             opprett = { packet -> VedtaksperiodeGodkjent(
                 id = packet.hendelseId,

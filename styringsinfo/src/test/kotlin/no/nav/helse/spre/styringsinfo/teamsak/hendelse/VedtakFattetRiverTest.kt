@@ -2,6 +2,8 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.mockk.mockk
+import java.time.LocalDateTime
+import java.util.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
@@ -11,8 +13,6 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
-import java.util.*
 
 internal class VedtakFattetRiverTest {
     val hendelseDao = TestHendelseDao()
@@ -71,7 +71,6 @@ internal class TestHendelseDao() : HendelseDao {
     override fun lagre(hendelse: Hendelse) {
         lagretHendelse = true
     }
-
 }
 
 internal class TestBehandlingshendelseDao : BehandlingshendelseDao {

@@ -15,13 +15,12 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.*
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
 
 internal class VedtaksperioderVenterIndirektePåGodkjenning(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    override val yrkesaktivitetstype: String,
     val venter: List<VedtaksperiodeVenterDto>
 ) : Hendelse {
     override val type = eventName
@@ -32,7 +31,7 @@ internal class VedtaksperioderVenterIndirektePåGodkjenning(
             .filterNot { t -> behandlingshendelseDao.hent(BehandlingId(t.behandlingId)).behandlingstatus == KOMPLETT_FAKTAGRUNNLAG }
             .map { t ->
                 val builder = behandlingshendelseDao.initialiser(BehandlingId(t.behandlingId))
-                val ny = builder.behandlingstatus(KOMPLETT_FAKTAGRUNNLAG).build(opprettet, AUTOMATISK, yrkesaktivitetstype) ?: return@map false
+                val ny = builder.behandlingstatus(KOMPLETT_FAKTAGRUNNLAG).build(opprettet, AUTOMATISK, t.yrkesaktivitetstype) ?: return@map false
                 behandlingshendelseDao.lagre(ny, id)
             }
             .any()
@@ -61,6 +60,7 @@ internal class VedtaksperioderVenterIndirektePåGodkjenning(
             valider = { packet ->
                 packet.requireArray("vedtaksperioder") {
                     requireBehandlingId()
+                    interestedInYrkesaktivitetstype()
                 }
             },
             opprett = { packet ->
@@ -70,8 +70,7 @@ internal class VedtaksperioderVenterIndirektePåGodkjenning(
                     opprettet = packet.opprettet,
                     venter = packet["vedtaksperioder"].map { venter ->
                         objectMapper.convertValue<VedtaksperiodeVenterDto>(venter)
-                    },
-                    yrkesaktivitetstype = packet.yrkesaktivitetstype
+                    }
                 )
             }
         )
@@ -82,7 +81,8 @@ internal class VedtaksperioderVenterIndirektePåGodkjenning(
 data class VedtaksperiodeVenterDto(
     val vedtaksperiodeId: UUID,
     val behandlingId: UUID,
-    val venterPå: VenterPå
+    val venterPå: VenterPå,
+    val yrkesaktivitetstype: String
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class VenterPå(

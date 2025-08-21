@@ -14,20 +14,21 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.*
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class UtkastTilVedtak(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    override val yrkesaktivitetstype: String,
+    private val yrkesaktivitetstype: String,
     private val behandlingId: UUID,
     private val tags: Tags
 ) : Hendelse {
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
-        val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId)) ?: return false
+        val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
         val ny = builder
             .behandlingstatus(AVVENTER_GODKJENNING)
             .mottaker(tags.mottaker)
@@ -48,6 +49,7 @@ internal class UtkastTilVedtak(
             valider = { packet ->
                 packet.requireBehandlingId()
                 packet.requireTags()
+                packet.interestedInYrkesaktivitetstype()
             },
             opprett = { packet -> UtkastTilVedtak(
                 id = packet.hendelseId,
