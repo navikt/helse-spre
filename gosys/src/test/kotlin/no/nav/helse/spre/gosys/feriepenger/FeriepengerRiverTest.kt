@@ -68,13 +68,21 @@ internal class FeriepengerRiverTest {
                         totalbeløp = 1000,
                         mottaker = "123456789",
                         fagsystemId ="88ABRH3QENHB5K4XUY4LQ7HRTY"
+                    ),
+                    OppdragPdfPayload(
+                        type = OppdragType.PERSON,
+                        fom = LocalDate.of(2021, 5, 1),
+                        tom = LocalDate.of(2021, 5, 31),
+                        totalbeløp = 0,
+                        mottaker = "20046912345",
+                        fagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY"
                     )
                 ),
                 utbetalt = utbetalt,
                 orgnummer = "123456789",
                 fødselsnummer = "20046912345",
-
-            ), capturedPdfPayload.captured
+            ),
+            capturedPdfPayload.captured
         )
     }
 

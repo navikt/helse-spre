@@ -19,7 +19,7 @@ class FeriepengerMessage(val hendelseId: UUID, packet: JsonMessage) {
         tom = tom,
         mottaker = packet["arbeidsgiverOppdrag.mottaker"].asText(),
         totalbeløp = packet["arbeidsgiverOppdrag.totalbeløp"].asInt()
-    ).takeIf { it.totalbeløp != 0 }
+    )
 
     private val personoppdrag = OppdragPdfPayload(
         type = OppdragType.PERSON,
@@ -28,7 +28,7 @@ class FeriepengerMessage(val hendelseId: UUID, packet: JsonMessage) {
         tom = tom,
         mottaker = packet["personOppdrag.mottaker"].asText(),
         totalbeløp = packet["personOppdrag.totalbeløp"].asInt()
-    ).takeIf { it.totalbeløp != 0 }
+    )
 
     val oppdrag = listOfNotNull(arbeidsgiveroppdrag, personoppdrag)
 
