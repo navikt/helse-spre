@@ -28,6 +28,7 @@ import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.PdfClient
 import no.nav.helse.spre.gosys.annullering.AnnulleringDao
+import no.nav.helse.spre.gosys.annullering.PlanlagtAnnulleringDao
 import no.nav.helse.spre.gosys.databaseContainer
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
 import no.nav.helse.spre.gosys.e2e.VedtakOgUtbetalingE2ETest.Companion.formatted
@@ -93,6 +94,7 @@ internal abstract class AbstractE2ETest {
     protected lateinit var vedtakFattetDao: VedtakFattetDao
     protected lateinit var utbetalingDao: UtbetalingDao
     protected lateinit var annulleringDao: AnnulleringDao
+    protected lateinit var planlagtAnnulleringDao: PlanlagtAnnulleringDao
     protected val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
     @BeforeEach
@@ -103,6 +105,7 @@ internal abstract class AbstractE2ETest {
         vedtakFattetDao = VedtakFattetDao(dataSource.ds)
         utbetalingDao = UtbetalingDao(dataSource.ds)
         annulleringDao = AnnulleringDao(dataSource.ds)
+        planlagtAnnulleringDao = PlanlagtAnnulleringDao(dataSource.ds)
 
         testRapid.settOppRivers(
             duplikatsjekkDao,
@@ -110,10 +113,12 @@ internal abstract class AbstractE2ETest {
             vedtakFattetDao,
             utbetalingDao,
             annulleringDao,
+            planlagtAnnulleringDao,
             pdfClient,
             joarkClient,
             eregClient,
-            speedClient
+            speedClient,
+            nyAnnullering = true
         )
         capturedJoarkRequests.clear()
         capturedPdfRequests.clear()
@@ -137,6 +142,7 @@ internal abstract class AbstractE2ETest {
                         "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> handlerForJoark(request)
 
                         "/api/v1/genpdf/spre-gosys/vedtak",
+                        "/api/v1/genpdf/spre-gosys/ferdig-annullering",
                         "/api/v1/genpdf/spre-gosys/vedtak_selvstendig",
                         "/api/v1/genpdf/spre-gosys/annullering" -> handlerForPdfKall(request)
 
