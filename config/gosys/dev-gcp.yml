@@ -10,6 +10,8 @@ gcp:
   databaseName: spre-gosys
   envVarPrefix: DB
   sqlInstanceTier: db-f1-micro
+replicas:
+  max: 2
 accessPolicy:
   outbound:
     - application: speed-api
