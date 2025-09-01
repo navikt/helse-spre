@@ -456,7 +456,7 @@ internal abstract class AbstractE2ETest {
     },
     "inntekt": 47105.0,
     "aktørId": "123",
-    "organisasjonsnummer": "123456789",
+    "organisasjonsnummer": "SELVSTENDIG",
     "system_read_count": 0,
     "begrunnelser": [
         {
@@ -471,9 +471,12 @@ internal abstract class AbstractE2ETest {
         }
     ],
     "sykepengegrunnlagsfakta": {
-      "beregningsgrunnlag": 565260.0,
+      "fastsatt": "EtterHovedregel",
       "seksG": 711720.0,
-      "tags": ["6GBegrenset"]
+      "tags": ["6GBegrenset"],
+      "selvstendig": {
+        "beregningsgrunnlag": 565260.0
+      }
     }
 }"""
 

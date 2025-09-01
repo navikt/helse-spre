@@ -155,7 +155,7 @@ class PdfProduserer(
         ikkeUtbetalteDager = ikkeUtbetalteDager(utbetaling = utbetaling, skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate()),
         navn = navn,
         skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),
-        beregningsgrunnlag = packet["sykepengegrunnlagsfakta"]["beregningsgrunnlag"].asBigDecimal(),
+        beregningsgrunnlag = packet["sykepengegrunnlagsfakta"]["selvstendig"]["beregningsgrunnlag"].asBigDecimal(),
         begrunnelser = packet.toBegrunnelser(),
         vedtakFattetTidspunkt = packet["vedtakFattetTidspunkt"].asLocalDateTime()
     )
