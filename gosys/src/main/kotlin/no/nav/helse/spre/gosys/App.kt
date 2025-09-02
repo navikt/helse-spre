@@ -21,6 +21,7 @@ import java.time.Duration
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.spre.gosys.annullering.AnnulleringDao
 import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
+import no.nav.helse.spre.gosys.annullering.PlanlagtAnnulleringDao
 import no.nav.helse.spre.gosys.annullering.TomAnnulleringRiver
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
@@ -91,6 +92,7 @@ fun launchApplication(
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val utbetalingDao = UtbetalingDao(dataSource)
     val annulleringDao = AnnulleringDao(dataSource)
+    val planlagtAnnulleringDao = PlanlagtAnnulleringDao(dataSource)
 
     return RapidApplication.create(environment)
         .apply {
@@ -100,6 +102,7 @@ fun launchApplication(
                 vedtakFattetDao = vedtakFattetDao,
                 utbetalingDao = utbetalingDao,
                 annulleringDao = annulleringDao,
+                planlagtAnnulleringDao = planlagtAnnulleringDao,
                 pdfClient = pdfClient,
                 joarkClient = joarkClient,
                 eregClient = eregClient,
@@ -114,6 +117,7 @@ internal fun RapidsConnection.settOppRivers(
     vedtakFattetDao: VedtakFattetDao,
     utbetalingDao: UtbetalingDao,
     annulleringDao: AnnulleringDao,
+    planlagtAnnulleringDao: PlanlagtAnnulleringDao,
     pdfClient: PdfClient,
     joarkClient: JoarkClient,
     eregClient: EregClient,
@@ -125,6 +129,8 @@ internal fun RapidsConnection.settOppRivers(
     UtbetalingUtbetaltRiver(this, utbetalingDao, duplikatsjekkDao)
     UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
     TomAnnulleringRiver(this, annulleringDao, pdfClient, joarkClient, eregClient, speedClient)
+    //PlanlagtAnnulleringRiver(this, planlagtAnnulleringDao)
+    //VedtaksperiodeAnnullertRiver(this, planlagtAnnulleringDao, pdfClient, joarkClient, eregClient, speedClient)
 }
 
 

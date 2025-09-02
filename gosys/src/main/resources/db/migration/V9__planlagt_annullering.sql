@@ -6,10 +6,10 @@ CREATE TABLE planlagt_annullering
     fom                 DATE                     NOT NULL,
     tom                 DATE                     NOT NULL,
     saksbehandler_ident VARCHAR                  NOT NULL,
-    arsaker             TEXT[]                   NOT NULL,
+    arsaker             VARCHAR                  NOT NULL,
     begrunnelse         VARCHAR                  NOT NULL,
-    annullert           TIMESTAMP WITH TIME ZONE,
-    opprettet           TIMESTAMP WITH TIME ZONE NOT NULL default (now() at time zone 'utc')
+    notat_opprettet     TIMESTAMP WITH TIME ZONE,
+    opprettet           TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
 CREATE TABLE vedtaksperioder_som_skal_annulleres
@@ -18,4 +18,4 @@ CREATE TABLE vedtaksperioder_som_skal_annulleres
     plan              UUID NOT NULL REFERENCES planlagt_annullering,
     annullert         TIMESTAMP WITH TIME ZONE,
     PRIMARY KEY (vedtaksperiode_id, plan)
-)
+);
