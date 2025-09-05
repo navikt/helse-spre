@@ -142,7 +142,7 @@ internal abstract class AbstractE2ETest {
                         "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> handlerForJoark(request)
 
                         "/api/v1/genpdf/spre-gosys/vedtak",
-                        "/api/v1/genpdf/spre-gosys/ferdig-annullering",
+                        "/api/v1/genpdf/spre-gosys/ferdig_annullering",
                         "/api/v1/genpdf/spre-gosys/vedtak_selvstendig",
                         "/api/v1/genpdf/spre-gosys/annullering" -> handlerForPdfKall(request)
 

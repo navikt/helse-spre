@@ -37,7 +37,7 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
         hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/annullering", tomAnnullering)
 
     suspend fun hentFerdigAnnulleringPdf(ferdigAnnullering: PlanlagtAnnullering.FerdigAnnulleringPdfPayload) =
-        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/ferdig-annullering", ferdigAnnullering)
+        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/ferdig_annullering", ferdigAnnullering)
 
     suspend fun hentFeriepengerPdf(feriepenger: FeriepengerPdfPayload) =
         hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/feriepenger", feriepenger)
