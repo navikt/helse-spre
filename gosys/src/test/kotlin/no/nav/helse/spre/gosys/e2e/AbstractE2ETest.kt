@@ -112,13 +112,11 @@ internal abstract class AbstractE2ETest {
             feriepengerMediator,
             vedtakFattetDao,
             utbetalingDao,
-            annulleringDao,
             planlagtAnnulleringDao,
             pdfClient,
             joarkClient,
             eregClient,
-            speedClient,
-            nyAnnullering = true
+            speedClient
         )
         capturedJoarkRequests.clear()
         capturedPdfRequests.clear()

@@ -19,11 +19,8 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import java.time.Duration
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.spre.gosys.annullering.AnnulleringDao
-import no.nav.helse.spre.gosys.annullering.AnnulleringRiver
 import no.nav.helse.spre.gosys.annullering.PlanlagtAnnulleringDao
 import no.nav.helse.spre.gosys.annullering.PlanlagtAnnulleringRiver
-import no.nav.helse.spre.gosys.annullering.TomAnnulleringRiver
 import no.nav.helse.spre.gosys.annullering.VedtaksperiodeAnnullertRiver
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
@@ -95,7 +92,6 @@ fun launchApplication(
 
     val vedtakFattetDao = VedtakFattetDao(dataSource)
     val utbetalingDao = UtbetalingDao(dataSource)
-    val annulleringDao = AnnulleringDao(dataSource)
     val planlagtAnnulleringDao = PlanlagtAnnulleringDao(dataSource)
 
     return RapidApplication.create(environment)
@@ -105,13 +101,11 @@ fun launchApplication(
                 feriepengerMediator = feriepengerMediator,
                 vedtakFattetDao = vedtakFattetDao,
                 utbetalingDao = utbetalingDao,
-                annulleringDao = annulleringDao,
                 planlagtAnnulleringDao = planlagtAnnulleringDao,
                 pdfClient = pdfClient,
                 joarkClient = joarkClient,
                 eregClient = eregClient,
-                speedClient = speedClient,
-                nyAnnullering = environment.getValue("NAIS_CLUSTER_NAME") == "dev-gcp"
+                speedClient = speedClient
             )
         }
 }
@@ -121,13 +115,11 @@ internal fun RapidsConnection.settOppRivers(
     feriepengerMediator: FeriepengerMediator,
     vedtakFattetDao: VedtakFattetDao,
     utbetalingDao: UtbetalingDao,
-    annulleringDao: AnnulleringDao,
     planlagtAnnulleringDao: PlanlagtAnnulleringDao,
     pdfClient: PdfClient,
     joarkClient: JoarkClient,
     eregClient: EregClient,
-    speedClient: SpeedClient,
-    nyAnnullering: Boolean
+    speedClient: SpeedClient
 ) {
     FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
     VedtakFattetRiver(
@@ -147,13 +139,8 @@ internal fun RapidsConnection.settOppRivers(
     )
     UtbetalingUtbetaltRiver(this, utbetalingDao, duplikatsjekkDao)
     UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
-    if (nyAnnullering) {
-        PlanlagtAnnulleringRiver(this, planlagtAnnulleringDao)
-        VedtaksperiodeAnnullertRiver(this, planlagtAnnulleringDao, pdfClient, joarkClient, eregClient, speedClient)
-    } else {
-        AnnulleringRiver(this, annulleringDao, duplikatsjekkDao, pdfClient, eregClient, joarkClient, speedClient)
-        TomAnnulleringRiver(this, annulleringDao, pdfClient, joarkClient, eregClient, speedClient)
-    }
+    PlanlagtAnnulleringRiver(this, planlagtAnnulleringDao)
+    VedtaksperiodeAnnullertRiver(this, planlagtAnnulleringDao, pdfClient, joarkClient, eregClient, speedClient)
 }
 
 internal suspend fun<T> HttpStatement.executeRetry(avbryt: (throwable: Throwable) -> Boolean = { false }, block: suspend (response: HttpResponse) -> T) =
