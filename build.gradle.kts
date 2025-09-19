@@ -12,7 +12,7 @@ val hikariCPVersion = "6.3.0"
 val kotliqueryVersion = "1.9.0"
 val postgresqlVersion = "42.7.5"
 val flywayCoreVersion = "11.5.0"
-val tbdLibsVersion = "2025.08.16-09.21-71db7cad"
+val tbdLibsVersion = "2025.09.19-13.31-61342e73"
 
 buildscript {
     repositories { mavenCentral() }
