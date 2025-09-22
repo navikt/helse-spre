@@ -2,9 +2,8 @@ annotations:
   - key: config.linkerd.io/proxy-outbound-connect-timeout
     value: 10s
 replicas:
-  min: 0
-  max: 0
-  disableAutoScaling: true
+  min: 1
+  max: 1
 kafkaPool: nav-dev
 azure:
   enabled: true
