@@ -9,7 +9,7 @@ kafkaPool: nav-prod
 azure:
   enabled: true
 gcp:
-  type: POSTGRES_15
+  type: POSTGRES_16
   databaseName: spre-gosys
   envVarPrefix: DB
 accessPolicy:
