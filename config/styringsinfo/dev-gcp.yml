@@ -1,9 +1,12 @@
+recreateStrategy: true
+replicas:
+  min: 2
+  max: 8
 kafkaPool: nav-dev
 kafkaConsumerGroup: tbd-spre-styringsinfo-v3
 kafkaResetPolicy: earliest
 livenessInitialDelay: 30
 readinessInitialDelay: 30
-recreateStrategy: true
 app:
   leaderElection: true
 gcp:

@@ -1,3 +1,6 @@
+replicas:
+  min: 2
+  max: 8
 kafkaPool: nav-dev
 gcp:
   type: POSTGRES_17

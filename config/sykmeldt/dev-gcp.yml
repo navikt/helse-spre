@@ -1,3 +1,6 @@
+replicas:
+  min: 2
+  max: 8
 kafkaPool: nav-dev
 kafkaConsumerGroup: tbd-spre-sykmeldt-v1
 kafkaResetPolicy: earliest

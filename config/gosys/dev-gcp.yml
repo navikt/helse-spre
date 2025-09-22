@@ -1,6 +1,10 @@
 annotations:
   - key: config.linkerd.io/proxy-outbound-connect-timeout
     value: 10s
+replicas:
+  min: 0
+  max: 0
+  disableAutoScaling: true
 kafkaPool: nav-dev
 azure:
   enabled: true
@@ -10,10 +14,6 @@ gcp:
   databaseName: spre-gosys
   envVarPrefix: DB
   sqlInstanceTier: db-f1-micro
-replicas:
-  min: 0
-  max: 0
-  disableAutoScaling: true
 accessPolicy:
   outbound:
     - application: speed-api
