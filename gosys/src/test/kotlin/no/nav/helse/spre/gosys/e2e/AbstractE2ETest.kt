@@ -37,6 +37,7 @@ import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.settOppRivers
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
+import no.nav.helse.spre.gosys.vedtak.PensjonsgivendeInntekt
 import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
@@ -282,6 +283,20 @@ internal abstract class AbstractE2ETest {
         beregningsgrunnlag: BigDecimal = BigDecimal("565260.0"),
         begrunnelser: Map<String, String>? = mapOf("innvilgelse" to ""),
         vedtakFattetTidspunkt: LocalDateTime = AbstractE2ETest.vedtakFattetTidspunkt,
+        pensjonsgivendeInntekter: List<PensjonsgivendeInntekt> = listOf(
+            PensjonsgivendeInntekt(
+                årstall = 2024,
+                beløp = BigDecimal("600000")
+            ),
+            PensjonsgivendeInntekt(
+                årstall = 2023,
+                beløp = BigDecimal("600000")
+            ),
+            PensjonsgivendeInntekt(
+                årstall = 2022,
+                beløp = BigDecimal("600000")
+            )
+        )
     ) =
         SNVedtakPdfPayload(
             fødselsnummer = "12345678910",
@@ -296,15 +311,16 @@ internal abstract class AbstractE2ETest {
             automatiskBehandling = godkjentAv == "Automatisk behandlet",
             godkjentAv = godkjentAv,
             sumNettoBeløp = totaltTilUtbetaling,
+            sumTotalBeløp = linjer.sumOf { it.totalbeløp },
             ikkeUtbetalteDager = ikkeUtbetalteDager,
             maksdato = maksdato,
             sykepengegrunnlag = BigDecimal("565260.0"),
-            sumTotalBeløp = linjer.sumOf { it.totalbeløp },
             navn = "Molefonken Ert",
             skjæringstidspunkt = skjæringstidspunkt,
-            beregningsgrunnlag = beregningsgrunnlag,
             begrunnelser = begrunnelser,
+            beregningsgrunnlag = beregningsgrunnlag,
             vedtakFattetTidspunkt = vedtakFattetTidspunkt,
+            pensjonsgivendeInntekter = pensjonsgivendeInntekter,
         )
 
     protected fun expectedJournalpost(
@@ -479,7 +495,21 @@ internal abstract class AbstractE2ETest {
       "seksG": 711720.0,
       "tags": ["6GBegrenset"],
       "selvstendig": {
-        "beregningsgrunnlag": 565260.0
+        "beregningsgrunnlag": 565260.0,
+        "pensjonsgivendeInntekter": [
+          {
+            "årstall": 2024,
+            "beløp": 600000
+          },
+          {
+            "årstall": 2023,
+            "beløp": 600000
+          },
+          {
+            "årstall": 2022,
+            "beløp": 600000
+          }
+        ]
       }
     }
 }"""

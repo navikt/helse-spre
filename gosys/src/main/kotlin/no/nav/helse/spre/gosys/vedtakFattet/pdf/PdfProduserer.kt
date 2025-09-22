@@ -19,6 +19,7 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Companion.IkkeUtbetalingsdagtyper
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.UtbetalingslinjeDto
 import no.nav.helse.spre.gosys.vedtak.AvvistPeriode
+import no.nav.helse.spre.gosys.vedtak.PensjonsgivendeInntekt
 import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.slåSammenLikePerioder
@@ -156,6 +157,12 @@ class PdfProduserer(
         navn = navn,
         skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),
         beregningsgrunnlag = packet["sykepengegrunnlagsfakta"]["selvstendig"]["beregningsgrunnlag"].asBigDecimal(),
+        pensjonsgivendeInntekter = packet["sykepengegrunnlagsfakta"]["selvstendig"]["pensjonsgivendeInntekter"].map {
+            PensjonsgivendeInntekt(
+                årstall = it["årstall"].asInt(),
+                beløp = it["beløp"].asBigDecimal()
+            )
+        },
         begrunnelser = packet.toBegrunnelser(),
         vedtakFattetTidspunkt = packet["vedtakFattetTidspunkt"].asLocalDateTime()
     )

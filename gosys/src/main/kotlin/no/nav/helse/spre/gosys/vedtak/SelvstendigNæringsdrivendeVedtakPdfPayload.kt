@@ -26,4 +26,10 @@ data class SNVedtakPdfPayload(
     val begrunnelser: Map<String, String>?,
     val beregningsgrunnlag: BigDecimal,
     val vedtakFattetTidspunkt: LocalDateTime,
+    val pensjonsgivendeInntekter: List<PensjonsgivendeInntekt>,
+)
+
+data class PensjonsgivendeInntekt(
+    val årstall: Int,
+    val beløp: BigDecimal,
 )
