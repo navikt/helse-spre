@@ -38,6 +38,7 @@ spec:
       maxUnavailable: 1
   {{/if}}
   replicas:
+    disableAutoScaling: {{#if replicas.disableAutoScaling }}{{ replicas.disableAutoScaling }}{{else}}false{{/if}}
     min: {{#if replicas.min }}{{ replicas.min }}{{else}}2{{/if}}
     max: {{#if replicas.max }}{{ replicas.max }}{{else}}8{{/if}}
     {{#if kafkaPool}}
