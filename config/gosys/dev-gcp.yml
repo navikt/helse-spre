@@ -6,7 +6,7 @@ azure:
   enabled: true
   tenant: trygdeetaten.no
 gcp:
-  type: POSTGRES_16
+  type: POSTGRES_17
   databaseName: spre-gosys
   envVarPrefix: DB
   sqlInstanceTier: db-f1-micro
