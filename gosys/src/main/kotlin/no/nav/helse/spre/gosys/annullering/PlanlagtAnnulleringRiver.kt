@@ -5,6 +5,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
@@ -29,7 +30,7 @@ internal class PlanlagtAnnulleringRiver(
                 message.requireKey(
                     "fødselsnummer",
                     "@id",
-                    "yrkesaktivitet",
+                    "yrkesaktivitetstype",
                     "ident",
                     "begrunnelse"
                 )
@@ -38,6 +39,7 @@ internal class PlanlagtAnnulleringRiver(
                 message.require("@opprettet", JsonNode::asLocalDateTime)
                 message.requireArray("vedtaksperioder")
                 message.requireArray("årsaker")
+                message.interestedIn("organisasjonsnummer")
             }
         }.register(this)
     }
@@ -66,14 +68,15 @@ internal class PlanlagtAnnulleringRiver(
         val planlagtAnnulleringMessage = PlanlagtAnnulleringMessage(
             hendelseId = meldingId,
             fødselsnummer = fnr,
-            yrkesaktivitet = packet["yrkesaktivitet"].asText(),
+            yrkesaktivitetstype = packet["yrkesaktivitetstype"].asText(),
             fom = packet["fom"].asLocalDate(),
             tom = packet["tom"].asLocalDate(),
             saksbehandlerIdent = packet["ident"].asText(),
             årsaker = packet["årsaker"].map { it.asText() },
             begrunnelse = packet["begrunnelse"].asText(),
             vedtaksperioder = packet["vedtaksperioder"].map { UUID.fromString(it.asText()) },
-            opprettet = packet["@opprettet"].asLocalDateTime()
+            opprettet = packet["@opprettet"].asLocalDateTime(),
+            organisasjonsnummer = packet["organisasjonsnummer"].takeUnless(JsonNode::isMissingOrNull)?.asText()
         )
 
         planlagtAnnulleringDao.lagre(planlagtAnnulleringMessage)

@@ -7,7 +7,8 @@ import java.util.*
 data class PlanlagtAnnulleringMessage(
     val hendelseId: UUID,
     val fødselsnummer: String,
-    val yrkesaktivitet: String,
+    val yrkesaktivitetstype: String,
+    val organisasjonsnummer: String?,
     val fom: LocalDate,
     val tom: LocalDate,
     val saksbehandlerIdent: String,

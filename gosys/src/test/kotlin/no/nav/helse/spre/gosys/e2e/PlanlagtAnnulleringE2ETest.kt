@@ -47,7 +47,8 @@ internal class PlanlagtAnnulleringE2ETest : AbstractE2ETest() {
 
             val expectedPdfPayload = FerdigAnnulleringPdfPayload(
                 fødselsnummer = "fnr",
-                yrkesaktivitet = "123456789",
+                yrkesaktivitetstype = "ARBEIDSTAKER",
+                organisasjonsnummer = "123456789",
                 fom = LocalDate.of(2018, 1, 1),
                 tom = LocalDate.of(2018, 1, 10),
                 saksbehandlerIdent = "A123456",
@@ -91,7 +92,8 @@ internal class PlanlagtAnnulleringE2ETest : AbstractE2ETest() {
 
             val expectedPdfPayload = FerdigAnnulleringPdfPayload(
                 fødselsnummer = "fnr",
-                yrkesaktivitet = "123456789",
+                yrkesaktivitetstype = "ARBEIDSTAKER",
+                organisasjonsnummer = "123456789",
                 fom = LocalDate.of(2018, 1, 1),
                 tom = LocalDate.of(2018, 1, 20),
                 saksbehandlerIdent = "A123456",
@@ -127,7 +129,8 @@ internal class PlanlagtAnnulleringE2ETest : AbstractE2ETest() {
             "@opprettet": "${LocalDateTime.of(2020, 5, 4, 8, 8, 0)}",
             "@id": "$id",
             "fødselsnummer": "fnr",
-            "yrkesaktivitet": "123456789",
+            "yrkesaktivitetstype": "ARBEIDSTAKER",
+            "organisasjonsnummer": "123456789",
             "tidspunkt": "2020-05-04T08:08:00.00000",
             "fom": "$fom",
             "tom": "$tom",

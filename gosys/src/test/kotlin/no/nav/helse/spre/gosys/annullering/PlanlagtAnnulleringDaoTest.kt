@@ -33,7 +33,8 @@ internal class PlanlagtAnnulleringDaoTest {
         val planlagtAnnulleringMessage = PlanlagtAnnulleringMessage(
             hendelseId = hendelseIdPlan,
             fødselsnummer = "1",
-            yrkesaktivitet = "2",
+            yrkesaktivitetstype = "ARBEIDSTAKER",
+            organisasjonsnummer = "2",
             fom = 1.januar,
             tom = 31.januar,
             saksbehandlerIdent = "3",

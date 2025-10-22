@@ -83,7 +83,7 @@ internal class VedtaksperiodeAnnullertRiver(
     }
 
     private fun lagPdf(plan: PlanlagtAnnullering): String {
-        val organisasjonsnavn = runBlocking { finnOrganisasjonsnavn(eregClient, plan.yrkesaktivitet) }
+        val organisasjonsnavn = if (plan.organisasjonsnummer != null) runBlocking { finnOrganisasjonsnavn(eregClient, plan.organisasjonsnummer) } else ""
         logg.debug("Hentet organisasjonsnavn")
         val navn = hentNavn(speedClient, plan.fnr, UUID.randomUUID().toString()) ?: ""
         logg.debug("Hentet søkernavn")

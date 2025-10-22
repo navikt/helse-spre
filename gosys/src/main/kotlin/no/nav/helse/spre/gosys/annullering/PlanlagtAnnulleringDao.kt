@@ -11,8 +11,8 @@ class PlanlagtAnnulleringDao(private val dataSource: DataSource) {
     fun lagre(plan: PlanlagtAnnulleringMessage) {
         @Language("PostgreSQL")
         val query = """
-            INSERT INTO planlagt_annullering(id, fnr, yrkesaktivitet, fom, tom, saksbehandler_ident, arsaker, begrunnelse, opprettet)
-            values(:id, :fnr, :yrkesaktivitet, :fom, :tom, :saksbehandler_ident, :arsaker, :begrunnelse, :opprettet) ON CONFLICT DO NOTHING"""
+            INSERT INTO planlagt_annullering(id, fnr, yrkesaktivitetstype, organisasjonsnummer, fom, tom, saksbehandler_ident, arsaker, begrunnelse, opprettet)
+            values(:id, :fnr, :yrkesaktivitetstype, :organisasjonsnummer, :fom, :tom, :saksbehandler_ident, :arsaker, :begrunnelse, :opprettet) ON CONFLICT DO NOTHING"""
 
         @Language("PostgreSQL")
         val insertVedtaksperioder = """
@@ -27,7 +27,8 @@ class PlanlagtAnnulleringDao(private val dataSource: DataSource) {
                     mapOf(
                         "id" to plan.hendelseId,
                         "fnr" to plan.fødselsnummer,
-                        "yrkesaktivitet" to plan.yrkesaktivitet,
+                        "yrkesaktivitetstype" to plan.yrkesaktivitetstype,
+                        "organisasjonsnummer" to plan.organisasjonsnummer,
                         "fom" to plan.fom,
                         "tom" to plan.tom,
                         "saksbehandler_ident" to plan.saksbehandlerIdent,
@@ -96,7 +97,8 @@ class PlanlagtAnnulleringDao(private val dataSource: DataSource) {
                 queryOf(query, planId).map { PlanlagtAnnullering(
                     id = it.uuid("id"),
                     fnr = it.string("fnr"),
-                    yrkesaktivitet = it.string("yrkesaktivitet"),
+                    yrkesaktivitetstype = it.string("yrkesaktivitetstype"),
+                    organisasjonsnummer = it.string("organisasjonsnummer"),
                     fom = it.localDate("fom"),
                     tom = it.localDate("tom"),
                     saksbehandlerIdent = it.string("saksbehandler_ident"),

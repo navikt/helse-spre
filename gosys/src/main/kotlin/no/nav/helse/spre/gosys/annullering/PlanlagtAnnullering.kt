@@ -8,7 +8,8 @@ import java.util.*
 data class PlanlagtAnnullering(
     val id: UUID,
     val fnr: String,
-    val yrkesaktivitet: String,
+    val yrkesaktivitetstype: String,
+    val organisasjonsnummer: String?,
     val fom: LocalDate,
     val tom: LocalDate,
     val saksbehandlerIdent: String,
@@ -32,7 +33,8 @@ data class PlanlagtAnnullering(
 
     internal fun toPdfPayload(organisasjonsnavn: String?, navn: String?) = FerdigAnnulleringPdfPayload(
         fødselsnummer = fnr,
-        yrkesaktivitet = yrkesaktivitet,
+        yrkesaktivitetstype = yrkesaktivitetstype,
+        organisasjonsnummer = organisasjonsnummer,
         fom = fom,
         tom = tom,
         saksbehandlerIdent = saksbehandlerIdent,
@@ -45,7 +47,8 @@ data class PlanlagtAnnullering(
 
     data class FerdigAnnulleringPdfPayload(
         val fødselsnummer: String,
-        val yrkesaktivitet: String,
+        val yrkesaktivitetstype: String,
+        val organisasjonsnummer: String?,
         val fom: LocalDate,
         val tom: LocalDate,
         val saksbehandlerIdent: String,
