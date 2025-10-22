@@ -98,7 +98,7 @@ class PlanlagtAnnulleringDao(private val dataSource: DataSource) {
                     id = it.uuid("id"),
                     fnr = it.string("fnr"),
                     yrkesaktivitetstype = it.string("yrkesaktivitetstype"),
-                    organisasjonsnummer = it.string("organisasjonsnummer"),
+                    organisasjonsnummer = it.stringOrNull("organisasjonsnummer"),
                     fom = it.localDate("fom"),
                     tom = it.localDate("tom"),
                     saksbehandlerIdent = it.string("saksbehandler_ident"),
