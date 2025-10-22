@@ -27,7 +27,6 @@ import no.nav.helse.spre.gosys.EregClient
 import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.PdfClient
-import no.nav.helse.spre.gosys.annullering.AnnulleringDao
 import no.nav.helse.spre.gosys.annullering.PlanlagtAnnulleringDao
 import no.nav.helse.spre.gosys.databaseContainer
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
@@ -94,7 +93,6 @@ internal abstract class AbstractE2ETest {
     protected lateinit var duplikatsjekkDao: DuplikatsjekkDao
     protected lateinit var vedtakFattetDao: VedtakFattetDao
     protected lateinit var utbetalingDao: UtbetalingDao
-    protected lateinit var annulleringDao: AnnulleringDao
     protected lateinit var planlagtAnnulleringDao: PlanlagtAnnulleringDao
     protected val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
@@ -105,7 +103,6 @@ internal abstract class AbstractE2ETest {
         duplikatsjekkDao = DuplikatsjekkDao(dataSource.ds)
         vedtakFattetDao = VedtakFattetDao(dataSource.ds)
         utbetalingDao = UtbetalingDao(dataSource.ds)
-        annulleringDao = AnnulleringDao(dataSource.ds)
         planlagtAnnulleringDao = PlanlagtAnnulleringDao(dataSource.ds)
 
         testRapid.settOppRivers(

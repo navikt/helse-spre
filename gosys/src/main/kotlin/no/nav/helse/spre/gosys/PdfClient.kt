@@ -14,9 +14,7 @@ import io.ktor.http.*
 import io.ktor.http.ContentType.Application.Json
 import java.util.*
 import net.logstash.logback.argument.StructuredArguments.kv
-import no.nav.helse.spre.gosys.annullering.AnnulleringPdfPayload
 import no.nav.helse.spre.gosys.annullering.PlanlagtAnnullering
-import no.nav.helse.spre.gosys.annullering.TomAnnulleringMessage
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerPdfPayload
 import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
@@ -29,12 +27,6 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
 
     suspend fun hentSNVedtakPdf(vedtak: SNVedtakPdfPayload) =
         produserPdfBytes("$baseUrl/api/v1/genpdf/spre-gosys/vedtak_selvstendig", vedtak)
-
-    suspend fun hentAnnulleringPdf(annullering: AnnulleringPdfPayload) =
-        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/annullering", annullering)
-
-    suspend fun hentAnnulleringPdf(tomAnnullering: TomAnnulleringMessage.TomAnnulleringPdfPayload) =
-        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/annullering", tomAnnullering)
 
     suspend fun hentFerdigAnnulleringPdf(ferdigAnnullering: PlanlagtAnnullering.FerdigAnnulleringPdfPayload) =
         hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/ferdig_annullering", ferdigAnnullering)
