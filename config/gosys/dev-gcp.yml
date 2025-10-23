@@ -18,16 +18,16 @@ accessPolicy:
     - application: speed-api
     - application: spre-gosys-pdf
   external:
-    - dokarkiv.dev-fss-pub.nais.io
-    - ereg-services-q1.dev-fss-pub.nais.io
+    - dokarkiv-q2.dev-fss-pub.nais.io
+    - ereg-services.dev-fss-pub.nais.io
 env:
   - name: KAFKA_MAX_RECORDS
     value: "50"
   - name: KAFKA_MAX_POLL_INTERVAL_MS
     value: "500000"
   - name: JOARK_BASE_URL
-    value: https://dokarkiv.dev-fss-pub.nais.io
+    value: https://dokarkiv-q2.dev-fss-pub.nais.io
   - name: JOARK_SCOPE
-    value: api://dev-fss.teamdokumenthandtering.dokarkiv-q1/.default
+    value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
   - name: EREG_BASE_URL
-    value: https://ereg-services-q1.dev-fss-pub.nais.io
+    value: https://ereg-services.dev-fss-pub.nais.io
