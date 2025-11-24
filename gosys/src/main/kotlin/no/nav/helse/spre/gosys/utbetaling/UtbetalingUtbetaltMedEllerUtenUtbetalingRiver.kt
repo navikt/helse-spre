@@ -12,8 +12,8 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import java.util.*
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
+import no.nav.helse.spre.gosys.journalfør
 import no.nav.helse.spre.gosys.logg
-import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfJournalfører
@@ -86,43 +86,17 @@ internal class UtbetalingUtbetaltMedEllerUtenUtbetalingRiver(
         }
         val utbetaling = Utbetaling.fromJson(packet)
 
-        if (utbetalingDao.finnUtbetalingData(utbetaling.utbetalingId) != null) return
+        if (utbetalingDao.finnUtbetalingData(utbetaling.utbetalingId) != null)
+            return logg.info("Har allerede lagret en utbetaling med utbetalingId=${utbetaling.utbetalingId}")
 
-        lagreUtbetaling(id, packet, utbetalingDao)
+        utbetalingDao.lagre(id, eventName, utbetaling, packet.toJson())
 
-        val vedtakFattetRad = vedtakFattetDao.finn(utbetaling.utbetalingId) ?: return
-        if (vedtakFattetDao.erJournalført(vedtakFattetRad.id)) return
+        val vedtakFattetRad = vedtakFattetDao.finn(utbetaling.utbetalingId)
+            ?: return logg.info("Utbetaling lagret, venter på melding om vedtak")
 
-        val meldingOmVedtakJson = objectMapper.readTree(vedtakFattetRad.data)
+        if (vedtakFattetRad.erJournalført())
+            error("Fant et journalført vedtak for en utbetaling vi ikke har lagret")
 
-        val (søknadsperiodeFom, søknadsperiodeTom) = utbetaling.søknadsperiode(meldingOmVedtakJson["fom"].asLocalDate() to meldingOmVedtakJson["tom"].asLocalDate())
-
-        val pdfBytes = pdfProduserer.lagPdf(
-            meldingOmVedtakJson = objectMapper.readTree(vedtakFattetRad.data),
-            utbetaling = utbetaling,
-            søknadsperiodeFom = søknadsperiodeFom,
-            søknadsperiodeTom = søknadsperiodeTom
-        )
-
-        pdfJournalfører.journalførPdf(
-            pdfBytes = pdfBytes,
-            vedtakFattetMeldingId = vedtakFattetRad.id,
-            utbetaling = utbetaling,
-            søknadsperiodeFom = søknadsperiodeFom,
-            søknadsperiodeTom = søknadsperiodeTom
-        )
-
-        duplikatsjekkDao.insertTilDuplikatsjekk(id)
+        journalfør(id, utbetaling, vedtakFattetRad, pdfProduserer, pdfJournalfører, duplikatsjekkDao)
     }
-}
-
-internal fun lagreUtbetaling(hendelseId: UUID, packet: JsonMessage, utbetalingDao: UtbetalingDao): Utbetaling {
-    val utbetalingId = packet["utbetalingId"].asText().let { UUID.fromString(it) }
-    val event = packet["@event_name"].asText()
-    logg.info("$event lest inn for utbetaling med id $utbetalingId")
-
-    val utbetalingData = Utbetaling.fromJson(packet)
-    utbetalingDao.lagre(hendelseId, event, utbetalingData, packet.toJson())
-    logg.info("$event lagret for utbetaling med id $utbetalingId på id $hendelseId")
-    return utbetalingData
 }

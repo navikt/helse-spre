@@ -19,7 +19,7 @@ class PdfJournalfører(
 
     fun journalførPdf(
         pdfBytes: ByteArray,
-        vedtakFattetMeldingId: UUID,
+        vedtakFattetRad: VedtakFattetDao.VedtakFattetRad,
         utbetaling: Utbetaling,
         søknadsperiodeFom: LocalDate,
         søknadsperiodeTom: LocalDate
@@ -38,7 +38,8 @@ class PdfJournalfører(
 
         if (!journalførPdf(utbetaling.utbetalingId, journalpostPayload)) return logg.warn("Feil oppstod under journalføring av vedtak")
 
-        vedtakFattetDao.journalfør(vedtakFattetMeldingId)
+        vedtakFattetRad.journalfør()
+        vedtakFattetDao.lagre(vedtakFattetRad)
 
         logg.info("Vedtak journalført for utbetalingId: ${utbetaling.utbetalingId}")
         sikkerLogg.info("Vedtak journalført for fødselsnummer=${utbetaling.fødselsnummer} utbetalingId: ${utbetaling.utbetalingId}")

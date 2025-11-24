@@ -14,9 +14,9 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
         val utbetalingId = UUID.randomUUID()
         sendUtbetaling(utbetalingId = utbetalingId)
         sendVedtakFattet(utbetalingId = utbetalingId)
-        val vedtak = vedtakFattetDao.finnVedtakFattetData(utbetalingId)
-        assertNotNull(vedtak)
-        assertTrue(vedtakFattetDao.erJournalført(vedtak!!.id))
+        val vedtakFattetRad = vedtakFattetDao.finn(utbetalingId)
+        assertNotNull(vedtakFattetRad)
+        assertTrue(vedtakFattetRad!!.erJournalført())
     }
 
     @Test
@@ -33,7 +33,9 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
         val vedtaksperiodeId = UUID.randomUUID()
         sendUtbetaling(utbetalingId = utbetalingId)
         sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
-        assertTrue(vedtakFattetDao.erJournalført(vedtakFattetDao.finnVedtakFattetData(utbetalingId)!!.id))
+        val vedtakFattetRad = vedtakFattetDao.finn(utbetalingId)
+        assertNotNull(vedtakFattetRad)
+        assertTrue(vedtakFattetRad!!.erJournalført())
         sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
     }
 

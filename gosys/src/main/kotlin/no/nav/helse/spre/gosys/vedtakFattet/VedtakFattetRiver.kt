@@ -6,7 +6,6 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers.toUUID
-import com.github.navikt.tbd_libs.rapids_and_rivers.withMDC
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
@@ -17,8 +16,8 @@ import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.sikkerLogg
-import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
+import no.nav.helse.spre.gosys.journalfør
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfJournalfører
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfProduserer
 
@@ -73,81 +72,47 @@ internal class VedtakFattetRiver(
 
         val utbetalingId = packet["utbetalingId"].asText().toUUID()
         val vedtaksperiodeId = UUID.fromString(packet["vedtaksperiodeId"].asText())
-        withMDC(
-            mapOf(
-                "meldingsreferanseId" to "$id",
-                "vedtaksperiodeId" to "$vedtaksperiodeId",
-                "utbetalingId" to "$utbetalingId"
-            )
-        ) {
-            behandleMelding(
-                packet = packet,
-                meldingId = id,
-                utbetalingId = utbetalingId,
-                vedtaksperiodeId = vedtaksperiodeId
-            )
-        }
-
-        duplikatsjekkDao.insertTilDuplikatsjekk(id)
-    }
-
-    private fun behandleMelding(
-        packet: JsonMessage,
-        meldingId: UUID,
-        utbetalingId: UUID,
-        vedtaksperiodeId: UUID
-    ) {
         logg.info("$EVENT_NAME leses inn for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId")
 
-        if (vedtakFattetDao.erDuplikatBehandling(utbetalingId, vedtaksperiodeId))
+        if (erDuplikatBehandling(utbetalingId, vedtaksperiodeId))
             return logg.warn("har allerede behandlet $EVENT_NAME for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
 
         val vedtakFattetRad = VedtakFattetDao.VedtakFattetRad(
-            id = meldingId,
+            id = id,
             utbetalingId = utbetalingId,
             fødselsnummer = packet["fødselsnummer"].asText(),
-            journalført = null,
+            journalførtTidspunkt = null,
             data = packet.toJson()
         )
         vedtakFattetDao.lagre(vedtakFattetRad)
-        logg.info("$EVENT_NAME lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $meldingId")
+        logg.info("$EVENT_NAME lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
 
-        val utbetaling = utbetalingDao.finnUtbetalingData(utbetalingId) ?: return
+        val utbetaling = utbetalingDao.finnUtbetalingData(utbetalingId) ?:
+            return logg.info("Melding om vedtak lagret, venter på utbetaling")
 
-        check(utbetaling.type in setOf(Utbetaling.Utbetalingtype.UTBETALING, Utbetaling.Utbetalingtype.REVURDERING)) {
-            "vedtaket for $vedtaksperiodeId peker på utbetalingtype ${utbetaling.type}. Forventer kun Utbetaling/Revurdering"
+        journalfør(
+            meldingId = id,
+            utbetaling = utbetaling,
+            vedtakFattetRad = vedtakFattetRad,
+            pdfProduserer = pdfProduserer,
+            pdfJournalfører = pdfJournalfører,
+            duplikatsjekkDao = duplikatsjekkDao
+        )
+    }
+
+    private fun erDuplikatBehandling(utbetalingId: UUID, vedtaksperiodeId: UUID): Boolean {
+        val tidligereVedtakFattetRad = vedtakFattetDao.finn(utbetalingId) ?: return false
+        val tidligereVedtakFattetRadVedtaksperiodeId = objectMapper.readTree(tidligereVedtakFattetRad.data)["vedtaksperiodeId"].asText().let { UUID.fromString(it) }
+
+        check(vedtaksperiodeId == tidligereVedtakFattetRadVedtaksperiodeId) {
+            "det finnes et tidligere vedtak (vedtaksperiode ${tidligereVedtakFattetRadVedtaksperiodeId}) " +
+                "med samme utbetalingId, som er ulik vedtaksperiode $vedtaksperiodeId"
         }
-        // justerer perioden ved å hoppe over AIG-dager i snuten (todo: gjøre dette i spleis?)
-        val (søknadsperiodeFom, søknadsperiodeTom) = utbetaling.søknadsperiode(packet["fom"].asLocalDate() to packet["tom"].asLocalDate())
 
-        val pdfBytes = pdfProduserer.lagPdf(
-            meldingOmVedtakJson = objectMapper.readTree(vedtakFattetRad.data),
-            utbetaling = utbetaling,
-            søknadsperiodeFom = søknadsperiodeFom,
-            søknadsperiodeTom = søknadsperiodeTom
-        )
-
-        pdfJournalfører.journalførPdf(
-            pdfBytes = pdfBytes,
-            vedtakFattetMeldingId = meldingId,
-            utbetaling = utbetaling,
-            søknadsperiodeFom = søknadsperiodeFom,
-            søknadsperiodeTom = søknadsperiodeTom
-        )
+        return tidligereVedtakFattetRad.erJournalført()
     }
 
     companion object {
         private const val EVENT_NAME = "vedtak_fattet"
-        internal fun VedtakFattetDao.erDuplikatBehandling(utbetalingId: UUID, vedtaksperiodeId: UUID): Boolean {
-            val tidligereVedtakFattetRad = this.finn(utbetalingId) ?: return false
-            val tidligereVedtakFattetRadVedtaksperiodeId = objectMapper.readTree(tidligereVedtakFattetRad.data)["vedtaksperiodeId"].asText().let { UUID.fromString(it) }
-
-            check(vedtaksperiodeId == tidligereVedtakFattetRadVedtaksperiodeId) {
-                "det finnes et tidligere vedtak (vedtaksperiode ${tidligereVedtakFattetRadVedtaksperiodeId}) " +
-                    "med samme utbetalingId, som er ulik vedtaksperiode $vedtaksperiodeId"
-            }
-
-            return tidligereVedtakFattetRad.journalført != null
-        }
     }
 }
