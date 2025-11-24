@@ -44,7 +44,7 @@ import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.ANNET
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.OMREGNET_ÅRSINNTEKT
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.RAPPORTERT_ÅRSINNTEKT
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingårsak
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
+import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtakRepository
 import no.nav.helse.spre.testhelpers.Dag
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
 import no.nav.helse.spre.testhelpers.Dagtype
@@ -91,7 +91,7 @@ internal abstract class AbstractE2ETest {
     }
 
     protected lateinit var duplikatsjekkDao: DuplikatsjekkDao
-    protected lateinit var vedtakFattetDao: VedtakFattetDao
+    protected lateinit var meldingOmVedtakRepository: MeldingOmVedtakRepository
     protected lateinit var utbetalingDao: UtbetalingDao
     protected lateinit var planlagtAnnulleringDao: PlanlagtAnnulleringDao
     protected val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
@@ -101,14 +101,14 @@ internal abstract class AbstractE2ETest {
         dataSource = databaseContainer.nyTilkobling()
 
         duplikatsjekkDao = DuplikatsjekkDao(dataSource.ds)
-        vedtakFattetDao = VedtakFattetDao(dataSource.ds)
+        meldingOmVedtakRepository = MeldingOmVedtakRepository(dataSource.ds)
         utbetalingDao = UtbetalingDao(dataSource.ds)
         planlagtAnnulleringDao = PlanlagtAnnulleringDao(dataSource.ds)
 
         testRapid.settOppRivers(
             duplikatsjekkDao,
             feriepengerMediator,
-            vedtakFattetDao,
+            meldingOmVedtakRepository,
             utbetalingDao,
             planlagtAnnulleringDao,
             pdfClient,

@@ -23,7 +23,7 @@ import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfProduserer
 
 internal class VedtakFattetRiver(
     rapidsConnection: RapidsConnection,
-    private val vedtakFattetDao: VedtakFattetDao,
+    private val meldingOmVedtakRepository: MeldingOmVedtakRepository,
     private val utbetalingDao: UtbetalingDao,
     private val duplikatsjekkDao: DuplikatsjekkDao,
     private val pdfProduserer: PdfProduserer,
@@ -77,14 +77,14 @@ internal class VedtakFattetRiver(
         if (erDuplikatBehandling(utbetalingId, vedtaksperiodeId))
             return logg.warn("har allerede behandlet $EVENT_NAME for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
 
-        val vedtakFattetRad = VedtakFattetDao.VedtakFattetRad(
+        val meldingOmVedtak = MeldingOmVedtak(
             id = id,
             utbetalingId = utbetalingId,
             fødselsnummer = packet["fødselsnummer"].asText(),
             journalførtTidspunkt = null,
-            data = packet.toJson()
+            json = packet.toJson()
         )
-        vedtakFattetDao.lagre(vedtakFattetRad)
+        meldingOmVedtakRepository.lagre(meldingOmVedtak)
         logg.info("$EVENT_NAME lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $id")
 
         val utbetaling = utbetalingDao.finnUtbetalingData(utbetalingId) ?:
@@ -93,7 +93,7 @@ internal class VedtakFattetRiver(
         journalfør(
             meldingId = id,
             utbetaling = utbetaling,
-            vedtakFattetRad = vedtakFattetRad,
+            meldingOmVedtak = meldingOmVedtak,
             pdfProduserer = pdfProduserer,
             pdfJournalfører = pdfJournalfører,
             duplikatsjekkDao = duplikatsjekkDao
@@ -101,15 +101,15 @@ internal class VedtakFattetRiver(
     }
 
     private fun erDuplikatBehandling(utbetalingId: UUID, vedtaksperiodeId: UUID): Boolean {
-        val tidligereVedtakFattetRad = vedtakFattetDao.finn(utbetalingId) ?: return false
-        val tidligereVedtakFattetRadVedtaksperiodeId = objectMapper.readTree(tidligereVedtakFattetRad.data)["vedtaksperiodeId"].asText().let { UUID.fromString(it) }
+        val tidligereMeldingOmVedtak = meldingOmVedtakRepository.finn(utbetalingId) ?: return false
+        val tidligereMeldingOmVedtakVedtaksperiodeId = objectMapper.readTree(tidligereMeldingOmVedtak.json)["vedtaksperiodeId"].asText().let { UUID.fromString(it) }
 
-        check(vedtaksperiodeId == tidligereVedtakFattetRadVedtaksperiodeId) {
-            "det finnes et tidligere vedtak (vedtaksperiode ${tidligereVedtakFattetRadVedtaksperiodeId}) " +
+        check(vedtaksperiodeId == tidligereMeldingOmVedtakVedtaksperiodeId) {
+            "det finnes et tidligere vedtak (vedtaksperiode ${tidligereMeldingOmVedtakVedtaksperiodeId}) " +
                 "med samme utbetalingId, som er ulik vedtaksperiode $vedtaksperiodeId"
         }
 
-        return tidligereVedtakFattetRad.erJournalført()
+        return tidligereMeldingOmVedtak.erJournalført()
     }
 
     companion object {

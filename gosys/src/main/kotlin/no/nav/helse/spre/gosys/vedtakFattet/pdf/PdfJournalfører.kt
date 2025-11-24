@@ -9,17 +9,18 @@ import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
+import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtak
+import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtakRepository
 
 class PdfJournalfører(
-    private val vedtakFattetDao: VedtakFattetDao,
+    private val meldingOmVedtakRepository: MeldingOmVedtakRepository,
     private val joarkClient: JoarkClient
 ) {
     private val encoder = Base64.getEncoder()
 
     fun journalførPdf(
         pdfBytes: ByteArray,
-        vedtakFattetRad: VedtakFattetDao.VedtakFattetRad,
+        meldingOmVedtak: MeldingOmVedtak,
         utbetaling: Utbetaling,
         søknadsperiodeFom: LocalDate,
         søknadsperiodeTom: LocalDate
@@ -38,8 +39,8 @@ class PdfJournalfører(
 
         if (!journalførPdf(utbetaling.utbetalingId, journalpostPayload)) return logg.warn("Feil oppstod under journalføring av vedtak")
 
-        vedtakFattetRad.journalfør()
-        vedtakFattetDao.lagre(vedtakFattetRad)
+        meldingOmVedtak.journalfør()
+        meldingOmVedtakRepository.lagre(meldingOmVedtak)
 
         logg.info("Vedtak journalført for utbetalingId: ${utbetaling.utbetalingId}")
         sikkerLogg.info("Vedtak journalført for fødselsnummer=${utbetaling.fødselsnummer} utbetalingId: ${utbetaling.utbetalingId}")

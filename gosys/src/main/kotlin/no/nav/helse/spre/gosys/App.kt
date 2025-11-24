@@ -26,7 +26,7 @@ import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltMedEllerUtenUtbetalingRiver
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
+import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtakRepository
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfJournalfører
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfProduserer
@@ -89,7 +89,7 @@ fun launchApplication(
 
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
-    val vedtakFattetDao = VedtakFattetDao(dataSource)
+    val meldingOmVedtakRepository = MeldingOmVedtakRepository(dataSource)
     val utbetalingDao = UtbetalingDao(dataSource)
     val planlagtAnnulleringDao = PlanlagtAnnulleringDao(dataSource)
 
@@ -98,7 +98,7 @@ fun launchApplication(
             settOppRivers(
                 duplikatsjekkDao = duplikatsjekkDao,
                 feriepengerMediator = feriepengerMediator,
-                vedtakFattetDao = vedtakFattetDao,
+                meldingOmVedtakRepository = meldingOmVedtakRepository,
                 utbetalingDao = utbetalingDao,
                 planlagtAnnulleringDao = planlagtAnnulleringDao,
                 pdfClient = pdfClient,
@@ -112,7 +112,7 @@ fun launchApplication(
 internal fun RapidsConnection.settOppRivers(
     duplikatsjekkDao: DuplikatsjekkDao,
     feriepengerMediator: FeriepengerMediator,
-    vedtakFattetDao: VedtakFattetDao,
+    meldingOmVedtakRepository: MeldingOmVedtakRepository,
     utbetalingDao: UtbetalingDao,
     planlagtAnnulleringDao: PlanlagtAnnulleringDao,
     pdfClient: PdfClient,
@@ -123,7 +123,7 @@ internal fun RapidsConnection.settOppRivers(
     FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
     VedtakFattetRiver(
         rapidsConnection = this,
-        vedtakFattetDao = vedtakFattetDao,
+        meldingOmVedtakRepository = meldingOmVedtakRepository,
         utbetalingDao = utbetalingDao,
         duplikatsjekkDao = duplikatsjekkDao,
         pdfProduserer = PdfProduserer(
@@ -132,7 +132,7 @@ internal fun RapidsConnection.settOppRivers(
             speedClient = speedClient
         ),
         pdfJournalfører = PdfJournalfører(
-            vedtakFattetDao = vedtakFattetDao,
+            meldingOmVedtakRepository = meldingOmVedtakRepository,
             joarkClient = joarkClient
         )
     )
@@ -144,10 +144,10 @@ internal fun RapidsConnection.settOppRivers(
             speedClient = speedClient
         ),
         pdfJournalfører = PdfJournalfører(
-            vedtakFattetDao = vedtakFattetDao,
+            meldingOmVedtakRepository = meldingOmVedtakRepository,
             joarkClient = joarkClient
         ),
-        vedtakFattetDao = vedtakFattetDao,
+        meldingOmVedtakRepository = meldingOmVedtakRepository,
     )
 //    UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
     PlanlagtAnnulleringRiver(this, planlagtAnnulleringDao)

@@ -15,7 +15,7 @@ import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.journalfør
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.sikkerLogg
-import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
+import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtakRepository
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfJournalfører
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfProduserer
 
@@ -25,7 +25,7 @@ internal class UtbetalingUtbetaltMedEllerUtenUtbetalingRiver(
     private val duplikatsjekkDao: DuplikatsjekkDao,
     private val pdfProduserer: PdfProduserer,
     private val pdfJournalfører: PdfJournalfører,
-    private val vedtakFattetDao: VedtakFattetDao
+    private val meldingOmVedtakRepository: MeldingOmVedtakRepository
 ) : River.PacketListener {
 
     init {
@@ -91,7 +91,7 @@ internal class UtbetalingUtbetaltMedEllerUtenUtbetalingRiver(
 
         utbetalingDao.lagre(id, eventName, utbetaling, packet.toJson())
 
-        val vedtakFattetRad = vedtakFattetDao.finn(utbetaling.utbetalingId)
+        val vedtakFattetRad = meldingOmVedtakRepository.finn(utbetaling.utbetalingId)
             ?: return logg.info("Utbetaling lagret, venter på melding om vedtak")
 
         if (vedtakFattetRad.erJournalført())
