@@ -51,22 +51,6 @@ class UtbetalingDao(private val dataSource: DataSource) {
             )
         }
     }
-
-    internal fun finnUtbetalingData(fødselsnummer: String, organisasjonsnummer: String): List<Utbetaling> = finnJsonHvisFinnes(fødselsnummer, organisasjonsnummer).map { fromJson(it) }
-
-    private fun finnJsonHvisFinnes(fødselsnummer: String, organisasjonsnummer: String): List<String> {
-        sessionOf(dataSource).use { session ->
-            @Language("PostgreSQL")
-            val query = "SELECT data FROM utbetaling WHERE fnr = ? AND data->>'organisasjonsnummer' = ?"
-            return session.run(
-                queryOf(
-                    query,
-                    fødselsnummer,
-                    organisasjonsnummer
-                ).map { it.string("data") }.asList
-            )
-        }
-    }
 }
 
 
