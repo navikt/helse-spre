@@ -25,8 +25,7 @@ import no.nav.helse.spre.gosys.annullering.VedtaksperiodeAnnullertRiver
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
-import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltRiver
-import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtenUtbetalingRiver
+import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltMedEllerUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfJournalfører
@@ -137,8 +136,20 @@ internal fun RapidsConnection.settOppRivers(
             joarkClient = joarkClient
         )
     )
-    UtbetalingUtbetaltRiver(this, utbetalingDao, duplikatsjekkDao)
-    UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
+    UtbetalingUtbetaltMedEllerUtenUtbetalingRiver(
+        this, utbetalingDao, duplikatsjekkDao,
+        pdfProduserer = PdfProduserer(
+            pdfClient = pdfClient,
+            eregClient = eregClient,
+            speedClient = speedClient
+        ),
+        pdfJournalfører = PdfJournalfører(
+            vedtakFattetDao = vedtakFattetDao,
+            joarkClient = joarkClient
+        ),
+        vedtakFattetDao = vedtakFattetDao,
+    )
+//    UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
     PlanlagtAnnulleringRiver(this, planlagtAnnulleringDao)
     VedtaksperiodeAnnullertRiver(this, planlagtAnnulleringDao, pdfClient, joarkClient, eregClient, speedClient)
 }

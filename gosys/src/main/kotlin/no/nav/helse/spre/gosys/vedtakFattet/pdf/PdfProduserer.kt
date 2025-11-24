@@ -32,19 +32,19 @@ class PdfProduserer(
     private val speedClient: SpeedClient
 ) {
     fun lagPdf(
-        packet: JsonMessage,
+        meldingOmVedtakJson: JsonNode,
         utbetaling: Utbetaling,
         søknadsperiodeFom: LocalDate,
         søknadsperiodeTom: LocalDate
     ): ByteArray {
-        val søkernavn = hentNavn(speedClient, packet["fødselsnummer"].asText(), UUID.randomUUID().toString()) ?: ""
+        val søkernavn = hentNavn(speedClient, meldingOmVedtakJson["fødselsnummer"].asText(), UUID.randomUUID().toString()) ?: ""
         logg.debug("Hentet søkernavn")
 
-        val pdf = if (packet["yrkesaktivitetstype"].asText() == "SELVSTENDIG") {
+        val pdf = if (meldingOmVedtakJson["yrkesaktivitetstype"].asText() == "SELVSTENDIG") {
             runBlocking {
                 pdfClient.hentSNVedtakPdf(
                     lagSNPdfPayload(
-                        packet = packet,
+                        meldingOmVedtakJson = meldingOmVedtakJson,
                         utbetaling = utbetaling,
                         søknadsperiodeFom = søknadsperiodeFom,
                         søknadsperiodeTom = søknadsperiodeTom,
@@ -59,7 +59,7 @@ class PdfProduserer(
             runBlocking {
                 pdfClient.hentVedtakPdf(
                     lagPdfPayload(
-                        packet = packet,
+                        meldingOmVedtakJson = meldingOmVedtakJson,
                         utbetaling = utbetaling,
                         søknadsperiodeFom = søknadsperiodeFom,
                         søknadsperiodeTom = søknadsperiodeTom,
@@ -74,7 +74,7 @@ class PdfProduserer(
     }
 
     private fun lagPdfPayload(
-        packet: JsonMessage,
+        meldingOmVedtakJson: JsonNode,
         utbetaling: Utbetaling,
         søknadsperiodeFom: LocalDate,
         søknadsperiodeTom: LocalDate,
@@ -83,7 +83,7 @@ class PdfProduserer(
     ): VedtakPdfPayload = VedtakPdfPayload(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
-        type = begrunnelseToType(packet, utbetaling),
+        type = begrunnelseToType(meldingOmVedtakJson, utbetaling),
         linjer = utbetaling.toLinjer(navn),
         personOppdrag = utbetaling.personOppdrag.takeUnless { it.utbetalingslinjer.isEmpty() }?.tilOppdrag(),
         arbeidsgiverOppdrag = utbetaling.arbeidsgiverOppdrag.takeUnless { it.utbetalingslinjer.isEmpty() }?.tilOppdrag(),
@@ -96,14 +96,14 @@ class PdfProduserer(
         automatiskBehandling = utbetaling.automatiskBehandling,
         godkjentAv = utbetaling.ident,
         maksdato = utbetaling.maksdato,
-        sykepengegrunnlag = packet["sykepengegrunnlag"].asDouble(),
-        ikkeUtbetalteDager = ikkeUtbetalteDager(utbetaling, packet["skjæringstidspunkt"].asLocalDate()),
+        sykepengegrunnlag = meldingOmVedtakJson["sykepengegrunnlag"].asDouble(),
+        ikkeUtbetalteDager = ikkeUtbetalteDager(utbetaling, meldingOmVedtakJson["skjæringstidspunkt"].asLocalDate()),
         navn = navn,
         organisasjonsnavn = organisasjonsnavn,
-        skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),
-        avviksprosent = packet["sykepengegrunnlagsfakta"]["avviksprosent"]?.asDouble(),
-        skjønnsfastsettingtype = if (packet["sykepengegrunnlagsfakta"]["skjønnsfastsettingårsak"]?.let { enumValueOf<Skjønnsfastsettingårsak>(it.asText()) } == Skjønnsfastsettingårsak.ANDRE_AVSNITT) {
-            packet["sykepengegrunnlagsfakta"]["skjønnsfastsettingtype"]?.let {
+        skjæringstidspunkt = meldingOmVedtakJson["skjæringstidspunkt"].asLocalDate(),
+        avviksprosent = meldingOmVedtakJson["sykepengegrunnlagsfakta"]["avviksprosent"]?.asDouble(),
+        skjønnsfastsettingtype = if (meldingOmVedtakJson["sykepengegrunnlagsfakta"]["skjønnsfastsettingårsak"]?.let { enumValueOf<Skjønnsfastsettingårsak>(it.asText()) } == Skjønnsfastsettingårsak.ANDRE_AVSNITT) {
+            meldingOmVedtakJson["sykepengegrunnlagsfakta"]["skjønnsfastsettingtype"]?.let {
                 when (enumValueOf<Skjønnsfastsettingtype>(it.asText())) {
                     Skjønnsfastsettingtype.OMREGNET_ÅRSINNTEKT -> "Omregnet årsinntekt"
                     Skjønnsfastsettingtype.RAPPORTERT_ÅRSINNTEKT -> "Rapportert årsinntekt"
@@ -113,13 +113,13 @@ class PdfProduserer(
         } else {
             null
         },
-        skjønnsfastsettingårsak = packet["sykepengegrunnlagsfakta"]["skjønnsfastsettingårsak"]?.let {
+        skjønnsfastsettingårsak = meldingOmVedtakJson["sykepengegrunnlagsfakta"]["skjønnsfastsettingårsak"]?.let {
             when (enumValueOf<Skjønnsfastsettingårsak>(it.asText())) {
                 Skjønnsfastsettingårsak.ANDRE_AVSNITT -> "Skjønnsfastsettelse ved mer enn 25 % avvik (§ 8-30 andre avsnitt)"
                 Skjønnsfastsettingårsak.TREDJE_AVSNITT -> "Skjønnsfastsettelse ved mangelfull eller uriktig rapportering (§ 8-30 tredje avsnitt)"
             }
         },
-        arbeidsgivere = packet["sykepengegrunnlagsfakta"]["arbeidsgivere"]?.map { arbeidsgiver ->
+        arbeidsgivere = meldingOmVedtakJson["sykepengegrunnlagsfakta"]["arbeidsgivere"]?.map { arbeidsgiver ->
             VedtakPdfPayload.ArbeidsgiverData(
                 organisasjonsnummer = arbeidsgiver["arbeidsgiver"].asText(),
                 omregnetÅrsinntekt = arbeidsgiver["omregnetÅrsinntekt"].asDouble(),
@@ -127,12 +127,12 @@ class PdfProduserer(
                 skjønnsfastsatt = arbeidsgiver["skjønnsfastsatt"]?.asDouble()
             )
         },
-        begrunnelser = packet.toBegrunnelser(),
-        vedtakFattetTidspunkt = packet["vedtakFattetTidspunkt"].asLocalDateTime()
+        begrunnelser = meldingOmVedtakJson.toBegrunnelser(),
+        vedtakFattetTidspunkt = meldingOmVedtakJson["vedtakFattetTidspunkt"].asLocalDateTime()
     )
 
     private fun lagSNPdfPayload(
-        packet: JsonMessage,
+        meldingOmVedtakJson: JsonNode,
         utbetaling: Utbetaling,
         søknadsperiodeFom: LocalDate,
         søknadsperiodeTom: LocalDate,
@@ -140,7 +140,7 @@ class PdfProduserer(
     ): SNVedtakPdfPayload = SNVedtakPdfPayload(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
-        type = begrunnelseToType(packet, utbetaling),
+        type = begrunnelseToType(meldingOmVedtakJson, utbetaling),
         linjer = utbetaling.toLinjer(navn),
         personOppdrag = utbetaling.personOppdrag.takeUnless { it.utbetalingslinjer.isEmpty() }?.tilOppdrag(),
         arbeidsgiverOppdrag = utbetaling.arbeidsgiverOppdrag.takeUnless { it.utbetalingslinjer.isEmpty() }?.tilOppdrag(),
@@ -152,19 +152,19 @@ class PdfProduserer(
         automatiskBehandling = utbetaling.automatiskBehandling,
         godkjentAv = utbetaling.ident,
         maksdato = utbetaling.maksdato,
-        sykepengegrunnlag = packet["sykepengegrunnlag"].asBigDecimal(),
-        ikkeUtbetalteDager = ikkeUtbetalteDager(utbetaling = utbetaling, skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate()),
+        sykepengegrunnlag = meldingOmVedtakJson["sykepengegrunnlag"].asBigDecimal(),
+        ikkeUtbetalteDager = ikkeUtbetalteDager(utbetaling = utbetaling, skjæringstidspunkt = meldingOmVedtakJson["skjæringstidspunkt"].asLocalDate()),
         navn = navn,
-        skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),
-        beregningsgrunnlag = packet["sykepengegrunnlagsfakta"]["selvstendig"]["beregningsgrunnlag"].asBigDecimal(),
-        pensjonsgivendeInntekter = packet["sykepengegrunnlagsfakta"]["selvstendig"]["pensjonsgivendeInntekter"].map {
+        skjæringstidspunkt = meldingOmVedtakJson["skjæringstidspunkt"].asLocalDate(),
+        beregningsgrunnlag = meldingOmVedtakJson["sykepengegrunnlagsfakta"]["selvstendig"]["beregningsgrunnlag"].asBigDecimal(),
+        pensjonsgivendeInntekter = meldingOmVedtakJson["sykepengegrunnlagsfakta"]["selvstendig"]["pensjonsgivendeInntekter"].map {
             PensjonsgivendeInntekt(
                 årstall = it["årstall"].asInt(),
                 beløp = it["beløp"].asBigDecimal()
             )
         },
-        begrunnelser = packet.toBegrunnelser(),
-        vedtakFattetTidspunkt = packet["vedtakFattetTidspunkt"].asLocalDateTime()
+        begrunnelser = meldingOmVedtakJson.toBegrunnelser(),
+        vedtakFattetTidspunkt = meldingOmVedtakJson["vedtakFattetTidspunkt"].asLocalDateTime()
     )
 
     private fun Utbetaling.toLinjer(
@@ -174,7 +174,7 @@ class PdfProduserer(
         .sortedBy { it.mottakerType }
         .sortedByDescending { it.fom }
 
-    private fun JsonMessage.toBegrunnelser(): Map<String, String>? =
+    private fun JsonNode.toBegrunnelser(): Map<String, String>? =
         this["begrunnelser"].takeUnless { it.isMissingOrNull() }?.associate { node ->
             when (val type = node["type"].asText()) {
                 "SkjønnsfastsattSykepengegrunnlagMal" -> "begrunnelseFraMal"
@@ -188,9 +188,9 @@ class PdfProduserer(
         }
 
     private fun begrunnelseToType(
-        packet: JsonMessage,
+        meldingOmVedtakJson: JsonNode,
         utbetaling: Utbetaling
-    ): String = packet["begrunnelser"]
+    ): String = meldingOmVedtakJson["begrunnelser"]
         .takeUnless { it.isMissingOrNull() }
         ?.map { begrunnelse -> begrunnelse["type"].asText() }
         ?.find { it == "DelvisInnvilgelse" || it == "Avslag" }

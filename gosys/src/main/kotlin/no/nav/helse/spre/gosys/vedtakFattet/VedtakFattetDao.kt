@@ -38,6 +38,42 @@ class VedtakFattetDao(private val dataSource: DataSource) {
         }
     }
 
+    fun lagre(vedtakFattetRad: VedtakFattetRad) {
+        @Language("PostgreSQL")
+        val query = "INSERT INTO vedtak_fattet (id, utbetaling_id, fnr, data) values(?, ?, ?, to_json(?::json)) ON CONFLICT DO NOTHING"
+        sessionOf(dataSource).use { session ->
+            session.run(
+                queryOf(
+                    query,
+                    vedtakFattetRad.id,
+                    vedtakFattetRad.utbetalingId,
+                    vedtakFattetRad.fødselsnummer,
+                    vedtakFattetRad.data
+                ).asUpdate
+            )
+        }
+    }
+
+    internal fun finn(utbetalingId: UUID): VedtakFattetRad? =
+        sessionOf(dataSource, strict = true).use { session ->
+            @Language("PostgreSQL")
+            val query = "SELECT id, fnr, journalfort, data FROM vedtak_fattet WHERE utbetaling_id = ?"
+            return session.run(
+                queryOf(
+                    query,
+                    utbetalingId,
+                ).map {
+                    VedtakFattetRad(
+                        id = UUID.fromString(it.string("id")),
+                        utbetalingId = utbetalingId,
+                        journalført = it.instantOrNull("journalfort"),
+                        fødselsnummer = it.string("fnr"),
+                        data = it.string("data"),
+                    )
+                }.asSingle
+            )
+        }
+
     fun journalfør(vedtakFattetId: UUID) {
         @Language("PostgreSQL")
         val query = "UPDATE vedtak_fattet SET journalfort = now() WHERE id = ?"
@@ -59,6 +95,15 @@ class VedtakFattetDao(private val dataSource: DataSource) {
         val id: UUID,
         val vedtaksperiodeId: UUID,
     )
+
+    data class VedtakFattetRad(
+        val id: UUID,
+        val utbetalingId: UUID?,
+        val fødselsnummer: String,
+        val journalført: Instant?,
+        val data: String,
+    )
+
     internal fun finnVedtakFattetData(utbetalingId: UUID): VedtakFattetIder? =
         finnJsonHvisFinnes(utbetalingId).singleOrNullOrThrow()?.let {
             val jsonNode: JsonNode = objectMapper.readTree(it)

@@ -376,6 +376,7 @@ internal abstract class AbstractE2ETest {
     "fom": "$fom",
     "tom": "$tom",
     "vedtakFattetTidspunkt": "$vedtakFattetTidspunkt",
+    "yrkesaktivitetstype": "ARBEIDSTAKER",
     "@forårsaket_av": {
         "behov": [
             "Utbetaling"
@@ -600,6 +601,7 @@ internal abstract class AbstractE2ETest {
         utbetalingId: UUID = UUID.randomUUID(),
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
+        opprettet: LocalDate = sykdomstidslinje.last().dato,
     ) {
         require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
         testRapid.sendTestMessage(
@@ -608,7 +610,8 @@ internal abstract class AbstractE2ETest {
                 hendelseId = hendelseId,
                 utbetalingId = utbetalingId,
                 sykdomstidslinje = sykdomstidslinje,
-                type = type
+                type = type,
+                opprettet = opprettet.atStartOfDay(),
             )
         )
     }

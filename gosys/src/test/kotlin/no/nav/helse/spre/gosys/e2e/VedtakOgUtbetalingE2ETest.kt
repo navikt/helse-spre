@@ -226,9 +226,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
     @Test
     fun `journalfører ikke uten å ha mottatt utbetaling`() {
-        assertThrows<IllegalStateException> {
-            sendVedtakFattet()
-        }
+        sendVedtakFattet()
         assertEquals(0, capturedJoarkRequests.size)
         assertEquals(0, capturedPdfRequests.size)
     }
@@ -246,6 +244,104 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         sendUtbetaling()
         assertEquals(0, capturedJoarkRequests.size)
         assertEquals(0, capturedPdfRequests.size)
+    }
+
+    @Test
+    fun `journalfør når melding om vedtak kommer først og deretter utbetaling`() {
+        val utbetalingId = UUID.randomUUID()
+        sendVedtakFattet(utbetalingId = utbetalingId)
+        sendUtbetaling(utbetalingId = utbetalingId)
+        assertEquals(1, capturedPdfRequests.size)
+        assertEquals(1, capturedJoarkRequests.size)
+    }
+
+    @Test
+    fun `journalfør når utbetaling kommer først og deretter melding om vedtak`() {
+        val utbetalingId = UUID.randomUUID()
+        sendUtbetaling(utbetalingId = utbetalingId)
+        sendVedtakFattet(utbetalingId = utbetalingId)
+        assertEquals(1, capturedPdfRequests.size)
+        assertEquals(1, capturedJoarkRequests.size)
+    }
+
+    @Test
+    fun `journalfør når melding om vedtak kommer først og deretter utbetaling uten utbetaling`() {
+        val utbetalingId = UUID.randomUUID()
+        sendVedtakFattet(utbetalingId = utbetalingId)
+        sendUtbetaling(utbetalingId = utbetalingId, sykdomstidslinje = feriedager(1.januar, 31.januar))
+        assertEquals(1, capturedPdfRequests.size)
+        assertEquals(1, capturedJoarkRequests.size)
+    }
+
+    @Test
+    fun `journalfør når utbetaling uten utbetaling kommer først og deretter melding om vedtak`() {
+        val utbetalingId = UUID.randomUUID()
+        sendUtbetaling(utbetalingId = utbetalingId, sykdomstidslinje = feriedager(1.januar, 31.januar))
+        sendVedtakFattet(utbetalingId = utbetalingId)
+        assertEquals(1, capturedPdfRequests.size)
+        assertEquals(1, capturedJoarkRequests.size)
+    }
+
+    @Test
+    fun `pdfgen basert på fom og tom fra melding om vedtak`() {
+        val utbetalingId = UUID.randomUUID()
+        sendVedtakFattet(
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = utbetalingsdager(2.januar, 30.januar)
+        )
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = utbetalingsdager(1.januar, 31.januar),
+            opprettet = 31.januar
+        )
+        assertVedtakPdf(
+            expected = expectedPdfPayload(
+                fom = 2.januar,
+                tom = 30.januar,
+                skjæringstidspunkt = 2.januar,
+                behandlingsdato = 31.januar,
+                arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
+                linjer = listOf(
+                    VedtakPdfPayload.Linje(
+                        fom = 1.januar,
+                        tom = 31.januar,
+                        grad = 100,
+                        dagsats = 1431,
+                        mottaker = "Arbeidsgiver",
+                        totalbeløp = 23 * 1431, // trekker fra helger, 1. januar 2018 er en mandag
+                        erOpphørt = false,
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `Skal kun journalføre én gang uavhengig av hvor mange ganger vi mottar melding om vedtak og utbetaling for samme periode og utbetaling`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        sendUtbetaling(utbetalingId = utbetalingId)
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+        sendUtbetaling(utbetalingId = utbetalingId)
+        sendUtbetaling(utbetalingId = utbetalingId)
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+        assertEquals(1, capturedPdfRequests.size)
+        assertEquals(1, capturedJoarkRequests.size)
+    }
+
+    @Test
+    fun `Skal kun journalføre én gang uavhengig av hvor mange ganger vi mottar melding om vedtak og utbetaling uten utbetaling for samme periode og utbetaling`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        sendUtbetaling(utbetalingId = utbetalingId, sykdomstidslinje = feriedager(1.januar, 31.januar))
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+        sendUtbetaling(utbetalingId = utbetalingId, sykdomstidslinje = feriedager(1.januar, 31.januar))
+        sendUtbetaling(utbetalingId = utbetalingId, sykdomstidslinje = feriedager(1.januar, 31.januar))
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+        sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
+        assertEquals(1, capturedPdfRequests.size)
+        assertEquals(1, capturedJoarkRequests.size)
     }
 
     @Test

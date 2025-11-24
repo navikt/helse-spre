@@ -15,6 +15,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import java.util.*
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.logg
+import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
@@ -98,20 +99,21 @@ internal class VedtakFattetRiver(
     ) {
         logg.info("$EVENT_NAME leses inn for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId")
 
-        if (erDuplikatBehandling(utbetalingId, vedtaksperiodeId))
+        if (vedtakFattetDao.erDuplikatBehandling(utbetalingId, vedtaksperiodeId))
             return logg.warn("har allerede behandlet $EVENT_NAME for vedtaksperiode $vedtaksperiodeId og utbetaling $utbetalingId")
 
-        vedtakFattetDao.lagre(
+        val vedtakFattetRad = VedtakFattetDao.VedtakFattetRad(
             id = meldingId,
             utbetalingId = utbetalingId,
             fødselsnummer = packet["fødselsnummer"].asText(),
-            json = packet.toJson()
+            journalført = null,
+            data = packet.toJson()
         )
+        vedtakFattetDao.lagre(vedtakFattetRad)
         logg.info("$EVENT_NAME lagret for vedtaksperiode med vedtaksperiodeId $vedtaksperiodeId på id $meldingId")
 
-        val utbetaling = checkNotNull(utbetalingDao.finnUtbetalingData(utbetalingId)) {
-            "forventer å finne utbetaling for vedtak for $vedtaksperiodeId"
-        }
+        val utbetaling = utbetalingDao.finnUtbetalingData(utbetalingId) ?: return
+
         check(utbetaling.type in setOf(Utbetaling.Utbetalingtype.UTBETALING, Utbetaling.Utbetalingtype.REVURDERING)) {
             "vedtaket for $vedtaksperiodeId peker på utbetalingtype ${utbetaling.type}. Forventer kun Utbetaling/Revurdering"
         }
@@ -119,7 +121,7 @@ internal class VedtakFattetRiver(
         val (søknadsperiodeFom, søknadsperiodeTom) = utbetaling.søknadsperiode(packet["fom"].asLocalDate() to packet["tom"].asLocalDate())
 
         val pdfBytes = pdfProduserer.lagPdf(
-            packet = packet,
+            meldingOmVedtakJson = objectMapper.readTree(vedtakFattetRad.data),
             utbetaling = utbetaling,
             søknadsperiodeFom = søknadsperiodeFom,
             søknadsperiodeTom = søknadsperiodeTom
@@ -134,18 +136,18 @@ internal class VedtakFattetRiver(
         )
     }
 
-    private fun erDuplikatBehandling(utbetalingId: UUID, vedtaksperiodeId: UUID): Boolean {
-        val tidligereVedtakFattet = vedtakFattetDao.finnVedtakFattetData(utbetalingId) ?: return false
-
-        check(tidligereVedtakFattet.vedtaksperiodeId == vedtaksperiodeId) {
-            "det finnes et tidligere vedtak (vedtaksperiode ${tidligereVedtakFattet.vedtaksperiodeId}) " +
-                "med samme utbetalingId, som er ulik vedtaksperiode $vedtaksperiodeId"
-        }
-
-        return vedtakFattetDao.erJournalført(tidligereVedtakFattet.id)
-    }
-
     companion object {
         private const val EVENT_NAME = "vedtak_fattet"
+        internal fun VedtakFattetDao.erDuplikatBehandling(utbetalingId: UUID, vedtaksperiodeId: UUID): Boolean {
+            val tidligereVedtakFattetRad = this.finn(utbetalingId) ?: return false
+            val tidligereVedtakFattetRadVedtaksperiodeId = objectMapper.readTree(tidligereVedtakFattetRad.data)["vedtaksperiodeId"].asText().let { UUID.fromString(it) }
+
+            check(vedtaksperiodeId == tidligereVedtakFattetRadVedtaksperiodeId) {
+                "det finnes et tidligere vedtak (vedtaksperiode ${tidligereVedtakFattetRadVedtaksperiodeId}) " +
+                    "med samme utbetalingId, som er ulik vedtaksperiode $vedtaksperiodeId"
+            }
+
+            return tidligereVedtakFattetRad.journalført != null
+        }
     }
 }

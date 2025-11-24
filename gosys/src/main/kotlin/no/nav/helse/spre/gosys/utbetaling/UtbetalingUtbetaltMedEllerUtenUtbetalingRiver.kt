@@ -13,17 +13,24 @@ import io.micrometer.core.instrument.MeterRegistry
 import java.util.*
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.logg
+import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.sikkerLogg
+import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetDao
+import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfJournalfører
+import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfProduserer
 
-internal class UtbetalingUtbetaltRiver(
+internal class UtbetalingUtbetaltMedEllerUtenUtbetalingRiver(
     rapidsConnection: RapidsConnection,
     private val utbetalingDao: UtbetalingDao,
-    private val duplikatsjekkDao: DuplikatsjekkDao
+    private val duplikatsjekkDao: DuplikatsjekkDao,
+    private val pdfProduserer: PdfProduserer,
+    private val pdfJournalfører: PdfJournalfører,
+    private val vedtakFattetDao: VedtakFattetDao
 ) : River.PacketListener {
 
     init {
         River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "utbetaling_utbetalt") }
+            precondition { it.requireAny("@event_name", listOf("utbetaling_utbetalt", "utbetaling_uten_utbetaling")) }
             validate {
                 it.requireKey(
                     "fødselsnummer",
@@ -66,21 +73,46 @@ internal class UtbetalingUtbetaltRiver(
     }
 
     override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
-        logg.error("forstod ikke utbetaling_utbetalt. (se sikkerlogg for melding)")
-        sikkerLogg.error("forstod ikke utbetaling_utbetalt:\n${problems.toExtendedReport()}")
+        logg.error("forstod ikke utbetaling-melding. (se sikkerlogg for melding)")
+        sikkerLogg.error("forstod ikke utbetaling-melding:\n${problems.toExtendedReport()}")
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+        val eventName = packet["@event_name"].asText()
         val id = UUID.fromString(packet["@id"].asText())
-        try {
-            duplikatsjekkDao.sjekkDuplikat(id) {
-                lagreUtbetaling(id, packet, utbetalingDao)
-            }
-        } catch (err: Exception) {
-            logg.error("Feil i melding $id i utbetaling utbetalt-river: ${err.message}", err)
-            sikkerLogg.error("Feil i melding $id i utbetaling utbetalt-river: ${err.message}", err)
-            throw err
+        if (duplikatsjekkDao.erDuplikat(id)) {
+            logg.info("Hopper over ${eventName}-melding $id som allerede er behandlet (duplikatsjekk)")
+            return
         }
+        val utbetaling = Utbetaling.fromJson(packet)
+
+        if (utbetalingDao.finnUtbetalingData(utbetaling.utbetalingId) != null) return
+
+        lagreUtbetaling(id, packet, utbetalingDao)
+
+        val vedtakFattetRad = vedtakFattetDao.finn(utbetaling.utbetalingId) ?: return
+        if (vedtakFattetDao.erJournalført(vedtakFattetRad.id)) return
+
+        val meldingOmVedtakJson = objectMapper.readTree(vedtakFattetRad.data)
+
+        val (søknadsperiodeFom, søknadsperiodeTom) = utbetaling.søknadsperiode(meldingOmVedtakJson["fom"].asLocalDate() to meldingOmVedtakJson["tom"].asLocalDate())
+
+        val pdfBytes = pdfProduserer.lagPdf(
+            meldingOmVedtakJson = objectMapper.readTree(vedtakFattetRad.data),
+            utbetaling = utbetaling,
+            søknadsperiodeFom = søknadsperiodeFom,
+            søknadsperiodeTom = søknadsperiodeTom
+        )
+
+        pdfJournalfører.journalførPdf(
+            pdfBytes = pdfBytes,
+            vedtakFattetMeldingId = vedtakFattetRad.id,
+            utbetaling = utbetaling,
+            søknadsperiodeFom = søknadsperiodeFom,
+            søknadsperiodeTom = søknadsperiodeTom
+        )
+
+        duplikatsjekkDao.insertTilDuplikatsjekk(id)
     }
 }
 
