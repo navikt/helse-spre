@@ -27,6 +27,7 @@ import no.nav.helse.spre.gosys.feriepenger.FeriepengerRiver
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingUtbetaltMedEllerUtenUtbetalingRiver
 import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtakRepository
+import no.nav.helse.spre.gosys.vedtakFattet.SessionFactory
 import no.nav.helse.spre.gosys.vedtakFattet.VedtakFattetRiver
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfJournalfører
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfProduserer
@@ -89,9 +90,11 @@ fun launchApplication(
 
     val feriepengerMediator = FeriepengerMediator(pdfClient, joarkClient)
 
-    val meldingOmVedtakRepository = MeldingOmVedtakRepository(dataSource)
-    val utbetalingDao = UtbetalingDao(dataSource)
+    val meldingOmVedtakRepository = MeldingOmVedtakRepository()
+    val utbetalingDao = UtbetalingDao()
     val planlagtAnnulleringDao = PlanlagtAnnulleringDao(dataSource)
+
+    val sessionFactory = SessionFactory(dataSource)
 
     return RapidApplication.create(environment)
         .apply {
@@ -104,7 +107,8 @@ fun launchApplication(
                 pdfClient = pdfClient,
                 joarkClient = joarkClient,
                 eregClient = eregClient,
-                speedClient = speedClient
+                speedClient = speedClient,
+                sessionFactory = sessionFactory
             )
         }
 }
@@ -118,7 +122,8 @@ internal fun RapidsConnection.settOppRivers(
     pdfClient: PdfClient,
     joarkClient: JoarkClient,
     eregClient: EregClient,
-    speedClient: SpeedClient
+    speedClient: SpeedClient,
+    sessionFactory: SessionFactory
 ) {
     FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
     VedtakFattetRiver(
@@ -132,27 +137,29 @@ internal fun RapidsConnection.settOppRivers(
             speedClient = speedClient
         ),
         pdfJournalfører = PdfJournalfører(
-            meldingOmVedtakRepository = meldingOmVedtakRepository,
             joarkClient = joarkClient
-        )
+        ),
+        sessionFactory = sessionFactory,
     )
     UtbetalingUtbetaltMedEllerUtenUtbetalingRiver(
-        this, utbetalingDao, duplikatsjekkDao,
+        rapidsConnection = this,
+        utbetalingDao = utbetalingDao,
+        duplikatsjekkDao = duplikatsjekkDao,
         pdfProduserer = PdfProduserer(
             pdfClient = pdfClient,
             eregClient = eregClient,
             speedClient = speedClient
         ),
         pdfJournalfører = PdfJournalfører(
-            meldingOmVedtakRepository = meldingOmVedtakRepository,
             joarkClient = joarkClient
         ),
         meldingOmVedtakRepository = meldingOmVedtakRepository,
+        sessionFactory = sessionFactory,
     )
 //    UtbetalingUtenUtbetalingRiver(this, utbetalingDao, duplikatsjekkDao)
     PlanlagtAnnulleringRiver(this, planlagtAnnulleringDao)
     VedtaksperiodeAnnullertRiver(this, planlagtAnnulleringDao, pdfClient, joarkClient, eregClient, speedClient)
 }
 
-internal suspend fun<T> HttpStatement.executeRetry(avbryt: (throwable: Throwable) -> Boolean = { false }, block: suspend (response: HttpResponse) -> T) =
+internal suspend fun <T> HttpStatement.executeRetry(avbryt: (throwable: Throwable) -> Boolean = { false }, block: suspend (response: HttpResponse) -> T) =
     retry(avbryt = avbryt) { execute { block(it) } }

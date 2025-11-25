@@ -1,12 +1,15 @@
 package no.nav.helse.spre.gosys
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
+import java.util.*
+import kotliquery.TransactionalSession
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
+import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtak
+import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtakRepository
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfJournalfører
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfProduserer
-import java.util.UUID
-import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtak
 
+context(session: TransactionalSession)
 internal fun journalfør(
     meldingId: UUID,
     utbetaling: Utbetaling,
@@ -14,6 +17,7 @@ internal fun journalfør(
     pdfProduserer: PdfProduserer,
     pdfJournalfører: PdfJournalfører,
     duplikatsjekkDao: DuplikatsjekkDao,
+    meldingOmVedtakRepository: MeldingOmVedtakRepository,
 ) {
     check(utbetaling.type in setOf(Utbetaling.Utbetalingtype.UTBETALING, Utbetaling.Utbetalingtype.REVURDERING)) {
         "Vedtaket gjelder en utbetaling av type ${utbetaling.type}. Forventer kun Utbetaling/Revurdering"
@@ -30,11 +34,13 @@ internal fun journalfør(
 
     pdfJournalfører.journalførPdf(
         pdfBytes = pdfBytes,
-        meldingOmVedtak = meldingOmVedtak,
         utbetaling = utbetaling,
         søknadsperiodeFom = søknadsperiodeFom,
         søknadsperiodeTom = søknadsperiodeTom
     )
+
+    meldingOmVedtak.journalfør()
+    meldingOmVedtakRepository.lagre(meldingOmVedtak)
 
     duplikatsjekkDao.insertTilDuplikatsjekk(meldingId)
 }

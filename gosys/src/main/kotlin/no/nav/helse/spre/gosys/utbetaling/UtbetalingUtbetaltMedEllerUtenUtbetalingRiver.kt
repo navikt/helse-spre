@@ -16,6 +16,7 @@ import no.nav.helse.spre.gosys.journalfør
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtakRepository
+import no.nav.helse.spre.gosys.vedtakFattet.SessionFactory
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfJournalfører
 import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfProduserer
 
@@ -25,7 +26,8 @@ internal class UtbetalingUtbetaltMedEllerUtenUtbetalingRiver(
     private val duplikatsjekkDao: DuplikatsjekkDao,
     private val pdfProduserer: PdfProduserer,
     private val pdfJournalfører: PdfJournalfører,
-    private val meldingOmVedtakRepository: MeldingOmVedtakRepository
+    private val meldingOmVedtakRepository: MeldingOmVedtakRepository,
+    private val sessionFactory: SessionFactory,
 ) : River.PacketListener {
 
     init {
@@ -52,16 +54,20 @@ internal class UtbetalingUtbetaltMedEllerUtenUtbetalingRiver(
                 it.require("@opprettet", JsonNode::asLocalDateTime)
                 it.require("utbetalingId") { id -> UUID.fromString(id.asText()) }
 
-                it.requireKey("arbeidsgiverOppdrag.mottaker", "arbeidsgiverOppdrag.fagområde", "arbeidsgiverOppdrag.fagsystemId",
-                    "arbeidsgiverOppdrag.nettoBeløp")
+                it.requireKey(
+                    "arbeidsgiverOppdrag.mottaker", "arbeidsgiverOppdrag.fagområde", "arbeidsgiverOppdrag.fagsystemId",
+                    "arbeidsgiverOppdrag.nettoBeløp"
+                )
                 it.requireArray("arbeidsgiverOppdrag.linjer") {
                     require("fom", JsonNode::asLocalDate)
                     require("tom", JsonNode::asLocalDate)
                     requireKey("sats", "totalbeløp", "grad", "stønadsdager")
                     interestedIn("statuskode")
                 }
-                it.requireKey("personOppdrag.mottaker", "personOppdrag.fagområde", "personOppdrag.fagsystemId",
-                    "personOppdrag.nettoBeløp")
+                it.requireKey(
+                    "personOppdrag.mottaker", "personOppdrag.fagområde", "personOppdrag.fagsystemId",
+                    "personOppdrag.nettoBeløp"
+                )
                 it.requireArray("personOppdrag.linjer") {
                     require("fom", JsonNode::asLocalDate)
                     require("tom", JsonNode::asLocalDate)
@@ -78,25 +84,35 @@ internal class UtbetalingUtbetaltMedEllerUtenUtbetalingRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
-        val eventName = packet["@event_name"].asText()
-        val id = UUID.fromString(packet["@id"].asText())
-        if (duplikatsjekkDao.erDuplikat(id)) {
-            logg.info("Hopper over ${eventName}-melding $id som allerede er behandlet (duplikatsjekk)")
-            return
+        sessionFactory.transactionally {
+            val eventName = packet["@event_name"].asText()
+            val id = UUID.fromString(packet["@id"].asText())
+            if (duplikatsjekkDao.erDuplikat(id)) {
+                logg.info("Hopper over ${eventName}-melding $id som allerede er behandlet (duplikatsjekk)")
+                return
+            }
+            val utbetaling = Utbetaling.fromJson(packet)
+
+            if (utbetalingDao.finnUtbetalingData(utbetaling.utbetalingId) != null)
+                return logg.info("Har allerede lagret en utbetaling med utbetalingId=${utbetaling.utbetalingId}")
+
+            utbetalingDao.lagre(id, eventName, utbetaling, packet.toJson())
+
+            val vedtakFattetRad = meldingOmVedtakRepository.finn(utbetaling.utbetalingId)
+                ?: return logg.info("Utbetaling lagret, venter på melding om vedtak")
+
+            if (vedtakFattetRad.erJournalført())
+                error("Fant et journalført vedtak for en utbetaling vi ikke har lagret")
+
+            journalfør(
+                meldingId = id,
+                utbetaling = utbetaling,
+                meldingOmVedtak = vedtakFattetRad,
+                pdfProduserer = pdfProduserer,
+                pdfJournalfører = pdfJournalfører,
+                duplikatsjekkDao = duplikatsjekkDao,
+                meldingOmVedtakRepository = meldingOmVedtakRepository
+            )
         }
-        val utbetaling = Utbetaling.fromJson(packet)
-
-        if (utbetalingDao.finnUtbetalingData(utbetaling.utbetalingId) != null)
-            return logg.info("Har allerede lagret en utbetaling med utbetalingId=${utbetaling.utbetalingId}")
-
-        utbetalingDao.lagre(id, eventName, utbetaling, packet.toJson())
-
-        val vedtakFattetRad = meldingOmVedtakRepository.finn(utbetaling.utbetalingId)
-            ?: return logg.info("Utbetaling lagret, venter på melding om vedtak")
-
-        if (vedtakFattetRad.erJournalført())
-            error("Fant et journalført vedtak for en utbetaling vi ikke har lagret")
-
-        journalfør(id, utbetaling, vedtakFattetRad, pdfProduserer, pdfJournalfører, duplikatsjekkDao)
     }
 }

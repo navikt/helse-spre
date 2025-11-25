@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 val ktorVersion: String by project
 val mockkVersion: String by project
 val hikariCPVersion: String by project
@@ -38,4 +40,10 @@ dependencies {
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("org.wiremock:wiremock:$wiremockVersion")
+}
+
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        freeCompilerArgs.set(listOf("-Xcontext-parameters"))
+    }
 }

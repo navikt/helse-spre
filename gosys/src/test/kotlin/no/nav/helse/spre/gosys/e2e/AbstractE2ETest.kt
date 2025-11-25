@@ -39,12 +39,13 @@ import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
 import no.nav.helse.spre.gosys.vedtak.PensjonsgivendeInntekt
 import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
+import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtakRepository
+import no.nav.helse.spre.gosys.vedtakFattet.SessionFactory
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.ANNET
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.OMREGNET_ÅRSINNTEKT
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingtype.RAPPORTERT_ÅRSINNTEKT
 import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingårsak
-import no.nav.helse.spre.gosys.vedtakFattet.MeldingOmVedtakRepository
 import no.nav.helse.spre.testhelpers.Dag
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
 import no.nav.helse.spre.testhelpers.Dagtype
@@ -62,6 +63,7 @@ internal abstract class AbstractE2ETest {
 
     protected val testRapid = TestRapid()
     protected lateinit var dataSource: TestDataSource
+    protected lateinit var sessionFactory: SessionFactory
     protected var capturedJoarkRequests = mutableListOf<HttpRequestData>()
     protected var capturedPdfRequests = mutableListOf<HttpRequestData>()
 
@@ -99,22 +101,24 @@ internal abstract class AbstractE2ETest {
     @BeforeEach
     internal fun abstractSetup() {
         dataSource = databaseContainer.nyTilkobling()
+        sessionFactory = SessionFactory(dataSource.ds)
 
         duplikatsjekkDao = DuplikatsjekkDao(dataSource.ds)
-        meldingOmVedtakRepository = MeldingOmVedtakRepository(dataSource.ds)
-        utbetalingDao = UtbetalingDao(dataSource.ds)
+        meldingOmVedtakRepository = MeldingOmVedtakRepository()
+        utbetalingDao = UtbetalingDao()
         planlagtAnnulleringDao = PlanlagtAnnulleringDao(dataSource.ds)
 
         testRapid.settOppRivers(
-            duplikatsjekkDao,
-            feriepengerMediator,
-            meldingOmVedtakRepository,
-            utbetalingDao,
-            planlagtAnnulleringDao,
-            pdfClient,
-            joarkClient,
-            eregClient,
-            speedClient
+            duplikatsjekkDao = duplikatsjekkDao,
+            feriepengerMediator = feriepengerMediator,
+            meldingOmVedtakRepository = meldingOmVedtakRepository,
+            utbetalingDao = utbetalingDao,
+            planlagtAnnulleringDao = planlagtAnnulleringDao,
+            pdfClient = pdfClient,
+            joarkClient = joarkClient,
+            eregClient = eregClient,
+            speedClient = speedClient,
+            sessionFactory = sessionFactory
         )
         capturedJoarkRequests.clear()
         capturedPdfRequests.clear()

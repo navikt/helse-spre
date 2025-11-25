@@ -1,11 +1,12 @@
 package no.nav.helse.spre.gosys.vedtakFattet
 
+import java.util.*
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.*
 
 internal class VedtakFattetRiverTest : AbstractE2ETest() {
 
@@ -14,7 +15,7 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
         val utbetalingId = UUID.randomUUID()
         sendUtbetaling(utbetalingId = utbetalingId)
         sendVedtakFattet(utbetalingId = utbetalingId)
-        val meldingOmVedtak = meldingOmVedtakRepository.finn(utbetalingId)
+        val meldingOmVedtak = sessionFactory.transactionally { meldingOmVedtakRepository.finn(utbetalingId) }
         assertNotNull(meldingOmVedtak)
         assertTrue(meldingOmVedtak!!.erJournalført())
     }
@@ -33,7 +34,7 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
         val vedtaksperiodeId = UUID.randomUUID()
         sendUtbetaling(utbetalingId = utbetalingId)
         sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
-        val meldingOmVedtak = meldingOmVedtakRepository.finn(utbetalingId)
+        val meldingOmVedtak = sessionFactory.transactionally { meldingOmVedtakRepository.finn(utbetalingId) }
         assertNotNull(meldingOmVedtak)
         assertTrue(meldingOmVedtak!!.erJournalført())
         sendVedtakFattet(utbetalingId = utbetalingId, vedtaksperiodeId = vedtaksperiodeId)
