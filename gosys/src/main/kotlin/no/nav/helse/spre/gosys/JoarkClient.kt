@@ -7,10 +7,10 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import net.logstash.logback.argument.StructuredArguments.keyValue
 import java.util.*
 import javax.net.ssl.SSLHandshakeException
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import net.logstash.logback.argument.StructuredArguments.keyValue
 
 class JoarkClient(
     private val baseUrl: String,
@@ -27,16 +27,35 @@ class JoarkClient(
             setBody(journalpostPayload)
         }
             .executeRetry(avbryt = { it::class !in forsøkPåNy }) {
-                if (it.status.value !in ((200..300) + 409)) {
-                    val error = it.body<String>()
-                    logg.error("Feil fra Joark: {}", keyValue("response", error))
-                    sikkerLogg.error("Feil fra Joark: {}, {}", keyValue(journalpostPayload.bruker.idType, journalpostPayload.bruker.id), keyValue("response", error))
-                    throw JoarkClientException("Feil fra Joark: $error")
-                } else true
+                when (it.status.value) {
+                    in (200 until 300) -> true
+
+                    409 -> {
+                        logg.warn(
+                            "Fikk HTTP 409 (Conflict) fra Joark ved journalføring," +
+                                " går videre ettersom dette skal bety at noe allerede er journalført knyttet til denne utbetalingen" +
+                                " (eksternReferanseId ${journalpostPayload.eksternReferanseId})"
+                        )
+                        true
+                    }
+
+                    else -> {
+                        val error = it.body<String>()
+                        logg.error("Feil fra Joark: {}", keyValue("response", error))
+                        sikkerLogg.error(
+                            "Feil fra Joark: {}, {}",
+                            keyValue(journalpostPayload.bruker.idType, journalpostPayload.bruker.id),
+                            keyValue("response", error)
+                        )
+                        throw JoarkClientException("Feil fra Joark: $error")
+                    }
+                }
             }
     }
+
     internal companion object {
-        internal class JoarkClientException(feil: String): RuntimeException(feil)
+        internal class JoarkClientException(feil: String) : RuntimeException(feil)
+
         private val forsøkPåNy = setOf(ClosedReceiveChannelException::class, SSLHandshakeException::class, HttpRequestTimeoutException::class, JoarkClientException::class)
     }
 }

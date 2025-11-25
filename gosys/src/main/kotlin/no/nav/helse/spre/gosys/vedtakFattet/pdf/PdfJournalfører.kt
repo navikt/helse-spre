@@ -33,7 +33,7 @@ class PdfJournalfører(
             eksternReferanseId = utbetaling.utbetalingId.toString(),
         )
 
-        if (!journalførPdf(utbetaling.utbetalingId, journalpostPayload)) return logg.warn("Feil oppstod under journalføring av vedtak")
+        if (!journalførPdf(utbetaling.utbetalingId, journalpostPayload)) error("Feil oppstod under journalføring av vedtak")
 
         logg.info("Vedtak journalført for utbetalingId: ${utbetaling.utbetalingId}")
         sikkerLogg.info("Vedtak journalført for fødselsnummer=${utbetaling.fødselsnummer} utbetalingId: ${utbetaling.utbetalingId}")
