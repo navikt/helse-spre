@@ -1,12 +1,6 @@
 replicas:
   min: 2
   max: 8
-azure:
-  enabled: true
-  tenant: trygdeetaten.no
-accessPolicy:
-  outbound:
-    - application: spedisjon
 kafkaPool: nav-dev
 kafkaConsumerGroup: tbd-spre-subsumsjon-v3
 kafkaResetPolicy: earliest

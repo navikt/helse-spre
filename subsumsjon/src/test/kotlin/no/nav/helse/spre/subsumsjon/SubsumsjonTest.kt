@@ -2,41 +2,26 @@ package no.nav.helse.spre.subsumsjon
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import com.github.navikt.tbd_libs.result_object.ok
-import com.github.navikt.tbd_libs.spedisjon.HentMeldingResponse
-import com.github.navikt.tbd_libs.spedisjon.HentMeldingerResponse
-import com.github.navikt.tbd_libs.spedisjon.SpedisjonClient
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
 import com.networknt.schema.ValidationMessage
 import io.kotest.matchers.collections.shouldBeIn
-import io.kotest.matchers.collections.shouldNotBeIn
-import io.mockk.clearMocks
-import io.mockk.every
-import io.mockk.mockk
 import java.net.URI
-import java.time.LocalDateTime
 import java.util.*
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
 
 internal class SubsumsjonTest {
     private val testRapid = TestRapid()
     private val resultater = mutableListOf<Pair<String, JsonNode>>()
-    private val spedisjonClient = mockk<SpedisjonClient>()
 
     @BeforeEach
     fun before() {
-        every {
-            spedisjonClient.hentMeldinger(any(), any())
-        } returns HentMeldingerResponse(emptyList()).ok()
-
-        SubsumsjonV1_0_0River(testRapid, spedisjonClient) { fnr, melding ->
+        SubsumsjonV1_0_0River(testRapid) { fnr, melding ->
             resultater.add(fnr to objectMapper.readTree(melding))
         }
         SubsumsjonV1_1_0River(testRapid) { fnr, melding ->
@@ -45,69 +30,6 @@ internal class SubsumsjonTest {
         SubsumsjonUkjentVersjonRiver(testRapid)
     }
 
-    @Test
-    fun `En subsumsjon blir publisert`() {
-        val sykmeldingId = UUID.randomUUID()
-        val søknadId = UUID.randomUUID()
-        val inntektsmeldingId = UUID.randomUUID()
-
-        val sykmeldingDokumentId = UUID.randomUUID()
-        val sykemeldingDuplikatDokumentId = UUID.randomUUID()
-        val søknadDokumentId = UUID.randomUUID()
-        val søknadDuplikatDokumentId = UUID.randomUUID()
-        val inntektsmeldingDokumentId = UUID.randomUUID()
-        val inntektsmeldingDuplikatDokumentId = UUID.randomUUID()
-
-        clearMocks(spedisjonClient)
-        every {
-            spedisjonClient.hentMeldinger(any(), any())
-        } returns HentMeldingerResponse(listOf(
-            HentMeldingResponse(
-                type = "ny_søknad",
-                fnr = "",
-                internDokumentId = sykmeldingId,
-                eksternDokumentId = sykmeldingDokumentId,
-                rapportertDato = LocalDateTime.now(),
-                duplikatkontroll = "unik nøkkel",
-                jsonBody = "{}"
-            ),
-            HentMeldingResponse(
-                type = "sendt_søknad_nav",
-                fnr = "",
-                internDokumentId = søknadId,
-                eksternDokumentId = søknadDokumentId,
-                rapportertDato = LocalDateTime.now(),
-                duplikatkontroll = "unik nøkkel",
-                jsonBody = "{}"
-            ),
-            HentMeldingResponse(
-                type = "inntektsmelding",
-                fnr = "",
-                internDokumentId = inntektsmeldingId,
-                eksternDokumentId = inntektsmeldingDokumentId,
-                rapportertDato = LocalDateTime.now(),
-                duplikatkontroll = "unik nøkkel",
-                jsonBody = "{}"
-            ),
-        )).ok()
-
-        testRapid.sendTestMessage(testSubsumsjon(
-            sykmeldingIder = listOf(sykmeldingId),
-            søknadIder = listOf(søknadId),
-            inntektsmeldingIder = listOf(inntektsmeldingId)
-        ))
-
-        assertEquals("02126721911", resultater.last().first)
-        val subsumsjonMelding = resultater.last().second
-        sykmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
-        sykemeldingDuplikatDokumentId shouldNotBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
-
-        søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
-        søknadDuplikatDokumentId shouldNotBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
-
-        inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
-        inntektsmeldingDuplikatDokumentId shouldNotBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
-    }
     @Test
     fun `v1_1_0 - En subsumsjon blir publisert`() {
         val vedtaksperiodeId = UUID.randomUUID()
@@ -123,173 +45,18 @@ internal class SubsumsjonTest {
     }
 
     @Test
-    fun `Subsumsjon uten sykmeldingIder`() {
-        val søknadId = UUID.randomUUID()
-        val inntektsmeldingId = UUID.randomUUID()
-
-        val sykmeldingDokumentId = UUID.randomUUID()
-        val søknadDokumentId = UUID.randomUUID()
-        val inntektsmeldingDokumentId = UUID.randomUUID()
-
-        clearMocks(spedisjonClient)
-        every {
-            spedisjonClient.hentMeldinger(any(), any())
-        } returns HentMeldingerResponse(listOf(
-            HentMeldingResponse(
-                type = "sendt_søknad_nav",
-                fnr = "",
-                internDokumentId = søknadId,
-                eksternDokumentId = søknadDokumentId,
-                rapportertDato = LocalDateTime.now(),
-                duplikatkontroll = "unik nøkkel",
-                jsonBody = """{ "sykmeldingId": "$sykmeldingDokumentId" }"""
-            ),
-            HentMeldingResponse(
-                type = "inntektsmelding",
-                fnr = "",
-                internDokumentId = inntektsmeldingId,
-                eksternDokumentId = inntektsmeldingDokumentId,
-                rapportertDato = LocalDateTime.now(),
-                duplikatkontroll = "unik nøkkel",
-                jsonBody = "{}"
-            ),
-        )).ok()
-
-        testRapid.sendTestMessage(testSubsumsjon(
-            sykmeldingIder = emptyList(),
-            søknadIder = listOf(søknadId),
-            inntektsmeldingIder = listOf(inntektsmeldingId)
-        ))
-
-        val subsumsjonMelding = resultater.last().second
-
-        sykmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
-        søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
-        inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
-    }
-
-    @Test
-    fun `godta at vi ikke har sykmeldingId for gamle søknader`() {
-        val sykmeldingId = UUID.randomUUID()
-        val søknadId = UUID.randomUUID()
-        val inntektsmeldingId = UUID.randomUUID()
-
-        val sykmeldingDokumentId = UUID.randomUUID()
-        val søknadDokumentId = UUID.randomUUID()
-        val inntektsmeldingDokumentId = UUID.randomUUID()
-
-        clearMocks(spedisjonClient)
-        every {
-            spedisjonClient.hentMeldinger(any(), any())
-        } returns HentMeldingerResponse(listOf(
-            HentMeldingResponse(
-                type = "ny_søknad",
-                fnr = "",
-                internDokumentId = sykmeldingId,
-                eksternDokumentId = sykmeldingDokumentId,
-                rapportertDato = LocalDateTime.now(),
-                duplikatkontroll = "unik nøkkel",
-                jsonBody = "{}"
-            ),
-            HentMeldingResponse(
-                type = "sendt_søknad_nav",
-                fnr = "",
-                internDokumentId = søknadId,
-                eksternDokumentId = søknadDokumentId,
-                rapportertDato = LocalDateTime.of(2020, 1, 1, 12, 0),
-                duplikatkontroll = "unik nøkkel",
-                jsonBody = "{}"
-            ),
-            HentMeldingResponse(
-                type = "inntektsmelding",
-                fnr = "",
-                internDokumentId = inntektsmeldingId,
-                eksternDokumentId = inntektsmeldingDokumentId,
-                rapportertDato = LocalDateTime.now(),
-                duplikatkontroll = "unik nøkkel",
-                jsonBody = "{}"
-            ),
-        )).ok()
-
-        assertDoesNotThrow {
-            testRapid.sendTestMessage(
-                testSubsumsjon(
-                    sykmeldingIder = listOf(sykmeldingId),
-                    søknadIder = listOf(søknadId),
-                    inntektsmeldingIder = listOf(inntektsmeldingId)
-                )
-            )
-        }
-        val subsumsjonMelding = resultater.last().second
-        sykmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.sykmelding").toUUIDs()
-        søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
-        inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
-    }
-
-    @Test
-    fun `gammel vedtaksperiode som ble opprettet av søknad`() {
-        val søknadId = UUID.randomUUID()
-        val inntektsmeldingId = UUID.randomUUID()
-
-        val søknadDokumentId = UUID.randomUUID()
-        val inntektsmeldingDokumentId = UUID.randomUUID()
-
-        clearMocks(spedisjonClient)
-        every {
-            spedisjonClient.hentMeldinger(any(), any())
-        } returns HentMeldingerResponse(listOf(
-            HentMeldingResponse(
-                type = "sendt_søknad_nav",
-                fnr = "",
-                internDokumentId = søknadId,
-                eksternDokumentId = søknadDokumentId,
-                rapportertDato = LocalDateTime.of(2022, 1, 1, 12, 0),
-                duplikatkontroll = "unik nøkkel",
-                jsonBody = "{}"
-            ),
-            HentMeldingResponse(
-                type = "inntektsmelding",
-                fnr = "",
-                internDokumentId = inntektsmeldingId,
-                eksternDokumentId = inntektsmeldingDokumentId,
-                rapportertDato = LocalDateTime.now(),
-                duplikatkontroll = "unik nøkkel",
-                jsonBody = "{}"
-            ),
-        )).ok()
-
-        assertDoesNotThrow {
-            testRapid.sendTestMessage(
-                testSubsumsjon(
-                    sykmeldingIder = emptyList(),
-                    søknadIder = listOf(søknadId),
-                    inntektsmeldingIder = listOf(inntektsmeldingId)
-                )
-            )
-        }
-        val subsumsjonMelding = resultater.last().second
-        assertEquals(emptyList<UUID>(), subsumsjonMelding.node("sporing.sykmelding").toUUIDs())
-        søknadDokumentId shouldBeIn subsumsjonMelding.node("sporing.soknad").toUUIDs()
-        inntektsmeldingDokumentId shouldBeIn subsumsjonMelding.node("sporing.inntektsmelding").toUUIDs()
-    }
-
-    @Test
     fun `En dårlig subsumsjon resulterer i exception`() {
         assertThrows<IllegalStateException> { testRapid.sendTestMessage(badTestMessage) }
     }
 
     @Test
     fun `En ukjent versjon resulterer i exception`() {
-        assertThrows<IllegalStateException> { testRapid.sendTestMessage(testSubsumsjon(emptyList(), emptyList(), emptyList(), versjon = "2.0.0")) }
+        assertThrows<IllegalStateException> { testRapid.sendTestMessage(testSubsumsjon(versjon = "2.0.0")) }
     }
 
     @Test
     fun `schema validation`() {
-        testRapid.sendTestMessage(testSubsumsjon(
-            sykmeldingIder = emptyList(),
-            søknadIder = emptyList(),
-            inntektsmeldingIder = emptyList()
-        ))
+        testRapid.sendTestMessage(testSubsumsjon())
         assertSubsumsjonsmelding(resultater.last().second)
     }
 
@@ -301,12 +68,7 @@ internal class SubsumsjonTest {
     }
 
     @Language("JSON")
-    private fun testSubsumsjon(
-        sykmeldingIder: List<UUID>,
-        søknadIder: List<UUID>,
-        inntektsmeldingIder: List<UUID>,
-        versjon: String = "1.0.0",
-    ) = """
+    private fun testSubsumsjon(versjon: String = "1.0.0") = """
   {
     "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
     "@event_name": "subsumsjon",
@@ -319,9 +81,6 @@ internal class SubsumsjonTest {
       "fodselsnummer": "02126721911",
       "sporing": {
         "vedtaksperiode": ["8fe5da85-d00b-4570-afaa-3a3e9403240e"],
-        "sykmelding": ${objectMapper.writeValueAsString(sykmeldingIder)},
-        "soknad":${objectMapper.writeValueAsString(søknadIder)},
-        "inntektsmelding": ${objectMapper.writeValueAsString(inntektsmeldingIder)},
         "organisasjonsnummer":["947064649"]
       },
       "lovverk": "folketrygdloven",

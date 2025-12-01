@@ -1,12 +1,6 @@
 replicas:
   min: 2
   max: 8
-azure:
-  enabled: true
-  tenant: nav.no
-accessPolicy:
-  outbound:
-    - application: spedisjon
 kafkaPool: nav-prod
 kafkaResetPolicy: earliest
 env:

@@ -8,15 +8,11 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import com.github.navikt.tbd_libs.result_object.getOrThrow
-import com.github.navikt.tbd_libs.retry.retryBlocking
-import com.github.navikt.tbd_libs.spedisjon.SpedisjonClient
 import io.micrometer.core.instrument.MeterRegistry
 import java.util.UUID
 
 internal class SubsumsjonV1_0_0River(
     rapidsConnection: RapidsConnection,
-    private val spedisjonClient: SpedisjonClient,
     private val subsumsjonPublisher: (key: String, value: String) -> Unit
 ) : River.PacketListener {
 
@@ -44,9 +40,6 @@ internal class SubsumsjonV1_0_0River(
             validate { it.interestedIn("subsumsjon.ledd") }
             validate { it.interestedIn("subsumsjon.punktum") }
             validate { it.interestedIn("subsumsjon.bokstav") }
-            validate { it.interestedIn("subsumsjon.sporing.sykmelding") }
-            validate { it.interestedIn("subsumsjon.sporing.soknad") }
-            validate { it.interestedIn("subsumsjon.sporing.inntektsmelding") }
         }.register(this)
     }
 
@@ -66,47 +59,6 @@ internal class SubsumsjonV1_0_0River(
     }
 
     private fun subsumsjonMelding(packet: JsonMessage): String {
-        val internSykmeldingIder = packet["subsumsjon.sporing.sykmelding"].toUUIDs()
-        val internSøknadIder = packet["subsumsjon.sporing.soknad"].toUUIDs()
-        val internInntektsmeldingIder = packet["subsumsjon.sporing.inntektsmelding"].toUUIDs()
-
-        val meldingerFraSpedisjon = retryBlocking {
-            spedisjonClient.hentMeldinger(internSykmeldingIder + internSøknadIder + internInntektsmeldingIder).getOrThrow()
-        }
-
-        val sykmeldingIder = buildSet {
-            internSykmeldingIder.forEach { internId ->
-                meldingerFraSpedisjon.meldinger
-                    .firstOrNull { response -> response.internDokumentId == internId }
-                    ?.eksternDokumentId
-                    ?.also { add(it) }
-            }
-
-            // legger til sykmeldingId basert på søknader
-            internSøknadIder.mapNotNull { internId ->
-                meldingerFraSpedisjon.meldinger
-                    .firstOrNull { response -> response.internDokumentId == internId }
-                    ?.jsonBody
-                    ?.let { it -> objectMapper.readTree(it).path("sykmeldingId").takeIf { it.isTextual }?.asText() }
-                    ?.let { string -> try { UUID.fromString(string) } catch (_: IllegalArgumentException) { null } }
-                    ?.also { add(it) }
-            }
-        }
-
-        val søknadIder = internSøknadIder.mapNotNull { internId ->
-            meldingerFraSpedisjon.meldinger
-                .firstOrNull { response -> response.internDokumentId == internId }
-                ?.eksternDokumentId
-        }
-        val inntektsmeldingIder = internInntektsmeldingIder.mapNotNull { internId ->
-            meldingerFraSpedisjon.meldinger
-                .firstOrNull { response -> response.internDokumentId == internId }
-                ?.eksternDokumentId
-        }
-
-        log.info("Mapper subsumsjons sporing sykmelding: $internSykmeldingIder til $sykmeldingIder søknad: $internSøknadIder til $søknadIder " +
-                "inntektsmelding: $internInntektsmeldingIder til $inntektsmeldingIder")
-
         val subsumsjonsmelding = buildMap {
             this["id"] = packet["@id"]
             this["eventName"] = "subsumsjon"
@@ -116,9 +68,9 @@ internal class SubsumsjonV1_0_0River(
             this["versjonAvKode"] = packet["subsumsjon.versjonAvKode"]
             this["fodselsnummer"] = packet["subsumsjon.fodselsnummer"]
             this["sporing"] = mapOf(
-                "sykmelding" to sykmeldingIder,
-                "soknad" to søknadIder,
-                "inntektsmelding" to inntektsmeldingIder
+                "sykmelding" to emptyList<Nothing>(),
+                "soknad" to emptyList(),
+                "inntektsmelding" to emptyList()
             )
             this["lovverk"] = packet["subsumsjon.lovverk"]
             this["lovverksversjon"] = packet["subsumsjon.lovverksversjon"]
