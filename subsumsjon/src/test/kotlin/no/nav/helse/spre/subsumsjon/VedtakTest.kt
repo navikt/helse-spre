@@ -71,7 +71,7 @@ private fun testVedtakFattet(id: String, opprettet: LocalDateTime = LocalDateTim
       "@event_name": "vedtak_fattet",
       "@id": "$id",
       "@opprettet": "$opprettet",
-      "fødselsnummer": "31056203918",
+      "fødselsnummer": "12345678901",
       "aktørId": "2298954396024",
       "organisasjonsnummer": "947064649",
       "vedtaksperiodeId": "c249e73d-53dc-4237-9f8d-8d7cf58dfb80"
@@ -85,7 +85,7 @@ private fun testVedtaksperiodeForkastet(id: String, opprettet: LocalDateTime = L
       "@event_name": "vedtaksperiode_forkastet",
       "@id": "$id",
       "@opprettet": "$opprettet",
-      "fødselsnummer": "16029121021",
+      "fødselsnummer": "12345678901",
       "organisasjonsnummer": "947064649",
       "vedtaksperiodeId": "049aa630-c361-45fb-9aae-f86db7978c88"
     }
