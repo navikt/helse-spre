@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version "2.2.21"
 }
 
-val junitJupiterVersion = "5.12.1"
+val junitJupiterVersion = "6.0.1"
 val rapidsAndRiversVersion = "2025110410191762247980.5e0592e08597"
 val ktorVersion = "3.2.3" // should be set to same value as rapids and rivers
 val mockkVersion = "1.13.17"
