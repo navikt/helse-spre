@@ -16,7 +16,7 @@ val tbdLibsVersion = "2025.11.04-10.12-3a167132"
 
 buildscript {
     repositories { mavenCentral() }
-    dependencies { "classpath"(group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.16.1") }
+    dependencies { "classpath"(group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.20.1") }
 }
 
 val mapper = ObjectMapper()
