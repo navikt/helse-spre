@@ -1,7 +1,6 @@
 package no.nav.helse.spre.gosys.vedtakFattet.pdf
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
@@ -19,6 +18,7 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Companion.IkkeUtbetalingsdagtyper
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.UtbetalingslinjeDto
 import no.nav.helse.spre.gosys.vedtak.AvvistPeriode
+import no.nav.helse.spre.gosys.vedtak.Dekning
 import no.nav.helse.spre.gosys.vedtak.PensjonsgivendeInntekt
 import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
@@ -164,7 +164,8 @@ class PdfProduserer(
             )
         },
         begrunnelser = meldingOmVedtakJson.toBegrunnelser(),
-        vedtakFattetTidspunkt = meldingOmVedtakJson["vedtakFattetTidspunkt"].asLocalDateTime()
+        vedtakFattetTidspunkt = meldingOmVedtakJson["vedtakFattetTidspunkt"].asLocalDateTime(),
+        dekning = meldingOmVedtakJson["dekning"].toDekning()
     )
 
     private fun Utbetaling.toLinjer(
@@ -186,6 +187,11 @@ class PdfProduserer(
                 else -> error("Ukjent begrunnelsetype: $type")
             } to node["begrunnelse"].asText()
         }
+
+    private fun JsonNode.toDekning() = Dekning(
+        dekningsgrad = this["dekningsgrad"].asInt(),
+        gjelderFraDag = this["gjelderFraDag"].asInt(),
+    )
 
     private fun begrunnelseToType(
         meldingOmVedtakJson: JsonNode,
