@@ -32,7 +32,8 @@ internal class HendelseRiver(
             validate {
                 it.require("@opprettet") { opprettet -> opprettet.tidspunkt }
                 it.require("@id") { id -> UUID.fromString(id.asText()) }
-                // Interessted in fordi vi logger alle som MDV-verdier om verdiene er satt
+                // Interessted in fordi vi logger alle som MDC-verdier om verdiene er satt selv om det er tilfeller ingen er satt
+                // De fleste meldinger har kun `behandlingId`. behandling_opprettet har alle disse 3 verdiene, mens vedtaksperioder_venter har ingen ettersom de der er i en liste av fler perioder.
                 it.interestedIn("vedtaksperiodeId", "behandlingId", "yrkesaktivitetstype")
                 valider(it)
             }

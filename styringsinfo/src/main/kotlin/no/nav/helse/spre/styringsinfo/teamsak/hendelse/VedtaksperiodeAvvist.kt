@@ -15,10 +15,10 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.b
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 
 internal class VedtaksperiodeAvvist(
     override val id: UUID,
@@ -56,7 +56,7 @@ internal class VedtaksperiodeAvvist(
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
-                packet.requireVedtaksperiodeId()
+                packet.requireBehandlingId()
                 packet.requireSaksbehandlerIdent()
                 packet.requireAutomatiskBehandling()
             },
