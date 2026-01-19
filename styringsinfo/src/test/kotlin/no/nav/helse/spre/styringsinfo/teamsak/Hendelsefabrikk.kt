@@ -97,6 +97,13 @@ internal class Hendelsefabrikk(
         behandlingId = behandlingId.id
     )
 
+    internal fun vedtaksperiodeVenter(venterPå: List<VedtaksperiodeVenterDto>) = VedtaksperioderVenterIndirektePåGodkjenning(
+        id = UUID.randomUUID(),
+        opprettet = nesteTidspunkt,
+        venter = venterPå,
+        data = blob
+    )
+
     internal companion object {
         private val nå = OffsetDateTime.now()
         private var teller = 1L
