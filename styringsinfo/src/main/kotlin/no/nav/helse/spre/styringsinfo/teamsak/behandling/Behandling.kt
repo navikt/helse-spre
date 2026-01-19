@@ -124,7 +124,7 @@ internal data class Behandling(
             this.behandlingsresultat = behandlingsresultat
         }
 
-        internal fun build(funksjonellTid: OffsetDateTime, hendelsesmetode: Metode, yrkesaktivitetstype: String): Behandling? {
+        internal fun build(funksjonellTid: OffsetDateTime, hendelsesmetode: Metode): Behandling? {
             val ny = Behandling(
                 funksjonellTid = funksjonellTid,
                 hendelsesmetode = hendelsesmetode,
@@ -143,7 +143,7 @@ internal data class Behandling(
                 saksbehandlerEnhet = saksbehandlerEnhet ?: forrige.saksbehandlerEnhet,
                 beslutterEnhet = beslutterEnhet ?: forrige.beslutterEnhet,
                 mottaker = mottaker ?: forrige.mottaker,
-                yrkesaktivitetstype = yrkesaktivitetstype
+                yrkesaktivitetstype = forrige.yrkesaktivitetstype
             )
 
             if (ny.funksjoneltLik(forrige)) {

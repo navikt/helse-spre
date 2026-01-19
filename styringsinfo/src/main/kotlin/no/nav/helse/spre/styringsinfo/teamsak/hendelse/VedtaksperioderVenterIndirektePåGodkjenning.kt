@@ -15,7 +15,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.*
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireYrkesaktivitetstype
 
 internal class VedtaksperioderVenterIndirektePåGodkjenning(
     override val id: UUID,
@@ -31,7 +31,7 @@ internal class VedtaksperioderVenterIndirektePåGodkjenning(
             .filterNot { t -> behandlingshendelseDao.hent(BehandlingId(t.behandlingId)).behandlingstatus == KOMPLETT_FAKTAGRUNNLAG }
             .map { t ->
                 val builder = behandlingshendelseDao.initialiser(BehandlingId(t.behandlingId))
-                val ny = builder.behandlingstatus(KOMPLETT_FAKTAGRUNNLAG).build(opprettet, AUTOMATISK, t.yrkesaktivitetstype) ?: return@map false
+                val ny = builder.behandlingstatus(KOMPLETT_FAKTAGRUNNLAG).build(opprettet, AUTOMATISK) ?: return@map false
                 behandlingshendelseDao.lagre(ny, id)
             }
             .any()
@@ -60,7 +60,7 @@ internal class VedtaksperioderVenterIndirektePåGodkjenning(
             valider = { packet ->
                 packet.requireArray("vedtaksperioder") {
                     requireBehandlingId()
-                    interestedInYrkesaktivitetstype()
+                    requireYrkesaktivitetstype()
                 }
             },
             opprett = { packet ->

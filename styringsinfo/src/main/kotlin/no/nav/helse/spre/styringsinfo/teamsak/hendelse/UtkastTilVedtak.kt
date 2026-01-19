@@ -14,14 +14,11 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.*
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class UtkastTilVedtak(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    private val yrkesaktivitetstype: String,
     private val behandlingId: UUID,
     private val tags: Tags
 ) : Hendelse {
@@ -33,7 +30,7 @@ internal class UtkastTilVedtak(
             .behandlingstatus(AVVENTER_GODKJENNING)
             .mottaker(tags.mottaker)
             .periodetype(tags.periodetype)
-            .build(opprettet, AUTOMATISK, yrkesaktivitetstype)
+            .build(opprettet, AUTOMATISK)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
@@ -49,15 +46,13 @@ internal class UtkastTilVedtak(
             valider = { packet ->
                 packet.requireBehandlingId()
                 packet.requireTags()
-                packet.interestedInYrkesaktivitetstype()
             },
             opprett = { packet -> UtkastTilVedtak(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
                 behandlingId = packet.behandlingId,
-                tags = Tags(packet.tags),
-                yrkesaktivitetstype = packet.yrkesaktivitetstype
+                tags = Tags(packet.tags)
             )}
         )
 

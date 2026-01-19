@@ -32,8 +32,8 @@ internal class HendelseRiver(
             validate {
                 it.require("@opprettet") { opprettet -> opprettet.tidspunkt }
                 it.require("@id") { id -> UUID.fromString(id.asText()) }
-                it.interestedIn("yrkesaktivitetstype")
-                it.interestedIn("vedtaksperiodeId", "behandlingId")
+                // Interessted in fordi vi logger alle som MDV-verdier om verdiene er satt
+                it.interestedIn("vedtaksperiodeId", "behandlingId", "yrkesaktivitetstype")
                 valider(it)
             }
         }.register(this)
@@ -66,7 +66,7 @@ internal class HendelseRiver(
         else sikkerLogg.error("$melding\n\t${toJson()}", throwable)
 
     private val JsonMessage.mdcValues
-        get() = listOf("vedtaksperiodeId", "behandlingId", "@id", "@event_name")
+        get() = listOf("vedtaksperiodeId", "behandlingId", "yrkesaktivitetstype", "@id", "@event_name")
             .associate { key -> key.removePrefix("@") to get(key) }
             .mapValues { (_, value) -> value.takeUnless { it.isMissingOrNull() }?.asText() }
             .filterValues { it != null }
@@ -80,15 +80,17 @@ internal class HendelseRiver(
         private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
         private val objectMapper = jacksonObjectMapper()
         private val JsonMessage.eventName get() = this["@event_name"].asText()
+
         internal val JsonMessage.hendelseId get() = UUID.fromString(this["@id"].asText())
         internal val JsonNode.tidspunkt get() = asText().offsetDateTimeOslo
         internal val JsonMessage.opprettet get() = get("@opprettet").tidspunkt
         internal val JsonMessage.vedtaksperiodeId get() = UUID.fromString(this["vedtaksperiodeId"].asText())
         internal val JsonMessage.behandlingId get() = UUID.fromString(this["behandlingId"].asText())
-        internal val JsonMessage.yrkesaktivitetstype get() = if (this["yrkesaktivitetstype"].isMissingOrNull()) "ARBEIDSTAKER" else this["yrkesaktivitetstype"].asText()
+        internal val JsonMessage.yrkesaktivitetstype get() = this["yrkesaktivitetstype"].asText().also { check(it.isNotBlank()) }
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
+
         internal fun JsonMessage.requireBehandlingId() = require("behandlingId") { behandlingId -> UUID.fromString(behandlingId.asText()) }
         internal fun JsonMessage.requireVedtaksperiodeId() = require("vedtaksperiodeId") { vedtaksperiodeId -> UUID.fromString(vedtaksperiodeId.asText()) }
-        internal fun JsonMessage.interestedInYrkesaktivitetstype() = this.interestedIn("yrkesaktivitetstype") { yrkesaktivitetstype -> yrkesaktivitetstype.asText() }
+        internal fun JsonMessage.requireYrkesaktivitetstype() = require("yrkesaktivitetstype") { yrkesaktivitetstype -> yrkesaktivitetstype.asText() }
     }
 }

@@ -20,8 +20,8 @@ internal class AnnulleringTest: AbstractTeamSakTest() {
         val sakId = Hendelsefabrikk.nySakId()
         nyttVedtak(sakId = sakId)
 
-        val annulleringHendelsefabrikk = Hendelsefabrikk(sakId = sakId, yrkesaktivitetstype = "SELVSTENDIG")
-        val (behandlingIdAnnullert, behandlingOpprettet) = annulleringHendelsefabrikk.behandlingOpprettet(sakId = sakId, behandlingstype = Hendelsefabrikk.Revurdering)
+        val annulleringHendelsefabrikk = Hendelsefabrikk(sakId = sakId)
+        val (behandlingIdAnnullert, behandlingOpprettet) = annulleringHendelsefabrikk.behandlingOpprettet(sakId = sakId, behandlingstype = Hendelsefabrikk.Revurdering, yrkesaktivitetstype = "SELVSTENDIG")
 
         val registrertAnnullering = behandlingOpprettet.håndter(behandlingIdAnnullert)
         assertEquals(REGISTRERT, registrertAnnullering.behandlingstatus)

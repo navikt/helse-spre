@@ -14,14 +14,11 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.*
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class VedtaksperiodeAnnullert(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    private val yrkesaktivitetstype: String,
     behandlingId: UUID
 ) : Hendelse {
     override val type = eventName
@@ -32,7 +29,7 @@ internal class VedtaksperiodeAnnullert(
         val ny = builder
             .avslutt(ANNULLERT)
             .enheter(saksbehandler = ManglendeEnhet) // Vi henter ikke enhet på annuleringer
-            .build(opprettet, MANUELL, yrkesaktivitetstype)
+            .build(opprettet, MANUELL)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
@@ -51,14 +48,12 @@ internal class VedtaksperiodeAnnullert(
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
                 packet.requireBehandlingId()
-                packet.interestedInYrkesaktivitetstype()
             },
             opprett = { packet -> VedtaksperiodeAnnullert(
                 id = packet.hendelseId,
                 data = packet.blob,
                 opprettet = packet.opprettet,
-                behandlingId = packet.behandlingId,
-                yrkesaktivitetstype = packet.yrkesaktivitetstype,
+                behandlingId = packet.behandlingId
             )}
         )
     }

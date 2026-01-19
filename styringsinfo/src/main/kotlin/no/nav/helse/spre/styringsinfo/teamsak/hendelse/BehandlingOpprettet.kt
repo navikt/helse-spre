@@ -25,7 +25,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.v
 import java.time.OffsetDateTime
 import java.util.UUID
 import no.nav.helse.spre.styringsinfo.sikkerLogg
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireYrkesaktivitetstype
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class BehandlingOpprettet(
@@ -93,7 +93,7 @@ internal class BehandlingOpprettet(
         internal fun valider(packet: JsonMessage) {
             packet.requireVedtaksperiodeId()
             packet.requireBehandlingId()
-            packet.interestedInYrkesaktivitetstype()
+            packet.requireYrkesaktivitetstype()
             packet.requireKey("fødselsnummer", "kilde.registrert", "kilde.innsendt", "kilde.avsender", "type")
         }
 
@@ -120,9 +120,7 @@ internal class BehandlingOpprettet(
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet -> valider(packet) },
             opprett = { packet ->
-                val aktørId = retryBlocking {
-                    speedClient.hentFødselsnummerOgAktørId(packet["fødselsnummer"].asText(), packet.hendelseId.toString()).getOrThrow()
-                }.aktørId
+                val aktørId = retryBlocking { speedClient.hentFødselsnummerOgAktørId(packet["fødselsnummer"].asText(), packet.hendelseId.toString()).getOrThrow() }.aktørId
                 opprett(packet, aktørId)
             }
         )

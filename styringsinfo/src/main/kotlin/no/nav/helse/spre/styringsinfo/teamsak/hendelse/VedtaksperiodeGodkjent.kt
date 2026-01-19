@@ -18,14 +18,11 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.r
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class VedtaksperiodeGodkjent(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    private val yrkesaktivitetstype: String,
     private val behandlingId: UUID,
     private val saksbehandlerEnhet: Enhet,
     private val beslutterEnhet: Enhet,
@@ -41,7 +38,7 @@ internal class VedtaksperiodeGodkjent(
         val ny = builder
             .behandlingstatus(GODKJENT)
             .enheter(saksbehandlerEnhet, beslutterEnhet)
-            .build(opprettet, hendelsesmetode, yrkesaktivitetstype)
+            .build(opprettet, hendelsesmetode)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
@@ -64,7 +61,6 @@ internal class VedtaksperiodeGodkjent(
                 packet.requireVedtaksperiodeId()
                 packet.requireSaksbehandlerIdent()
                 packet.requireAutomatiskBehandling()
-                packet.interestedInYrkesaktivitetstype()
             },
             opprett = { packet -> VedtaksperiodeGodkjent(
                 id = packet.hendelseId,
@@ -74,8 +70,7 @@ internal class VedtaksperiodeGodkjent(
                 saksbehandlerEnhet = packet.enhet(nom, packet.saksbehandlerIdent),
                 beslutterEnhet = packet.enhet(nom, packet.beslutterIdent),
                 automatiskBehandling = packet.automatiskBehandling,
-                totrinnsbehandling = packet.saksbehandlerIdent != null && packet.beslutterIdent != null,
-                yrkesaktivitetstype = packet.yrkesaktivitetstype
+                totrinnsbehandling = packet.saksbehandlerIdent != null && packet.beslutterIdent != null
             )}
         )
 

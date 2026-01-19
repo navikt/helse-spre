@@ -16,8 +16,8 @@ internal class BuilderTest {
     @Test
     fun `ignorerer funksjonelt like behandlinger`() {
         val forrige = lagBehandling()
-        assertNull(Behandling.Builder(forrige).build(nå.plusDays(1), AUTOMATISK, forrige.yrkesaktivitetstype))
-        val ny = Behandling.Builder(forrige).enheter(saksbehandler = FunnetEnhet("1234")).build(nå.plusDays(1), AUTOMATISK, "ARBEIDSTAKER")
+        assertNull(Behandling.Builder(forrige).build(nå.plusDays(1), AUTOMATISK))
+        val ny = Behandling.Builder(forrige).enheter(saksbehandler = FunnetEnhet("1234")).build(nå.plusDays(1), AUTOMATISK)
         assertNotNull(ny)
         assertEquals("1234", ny!!.saksbehandlerEnhet)
     }
@@ -25,7 +25,7 @@ internal class BuilderTest {
     @Test
     fun `får ikke en feil om man prøver å legge til ny rad etter at noe er avsluttet`() {
         val forrige = lagBehandling().copy(behandlingsresultat = Behandling.Behandlingsresultat.INNVILGET, behandlingstatus = Behandling.Behandlingstatus.AVSLUTTET)
-        assertNull(Behandling.Builder(forrige).enheter(saksbehandler = FunnetEnhet("1234")).build(etterpå, MANUELL, "ARBEIDSTAKER"))
+        assertNull(Behandling.Builder(forrige).enheter(saksbehandler = FunnetEnhet("1234")).build(etterpå, MANUELL))
     }
 
     @Test
@@ -67,8 +67,9 @@ internal class BuilderTest {
 
     // Setter bare resultat for å vite at det ikke blir null 💡
     private fun Behandling.Builder.build(hendelsemetode: Behandling.Metode) =
-        behandlingsresultat(IKKE_REALITETSBEHANDLET).build(OffsetDateTime.now(), hendelsemetode, "ARBEIDSTAKER")!!
-    private fun lagBehandling() = Behandling(
+        behandlingsresultat(IKKE_REALITETSBEHANDLET).build(OffsetDateTime.now(), hendelsemetode)!!
+
+    private fun lagBehandling(yrkesaktivitetstype: String = "ARBEIDSTAKER") = Behandling(
         sakId = SakId(UUID.randomUUID()),
         behandlingId = BehandlingId(UUID.randomUUID()),
         relatertBehandlingId = null,
@@ -86,6 +87,6 @@ internal class BuilderTest {
         saksbehandlerEnhet = null,
         beslutterEnhet = null,
         hendelsesmetode = AUTOMATISK,
-        yrkesaktivitetstype = "ARBEIDSTAKER",
+        yrkesaktivitetstype = yrkesaktivitetstype,
     )
 }

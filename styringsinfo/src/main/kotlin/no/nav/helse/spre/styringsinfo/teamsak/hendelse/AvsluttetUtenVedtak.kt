@@ -13,14 +13,11 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.b
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.interestedInYrkesaktivitetstype
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class AvsluttetUtenVedtak(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    private val yrkesaktivitetstype: String,
     private val behandlingId: UUID
 ) : Hendelse {
     override val type = eventName
@@ -29,7 +26,7 @@ internal class AvsluttetUtenVedtak(
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
         val ny = builder
             .avslutt(IKKE_REALITETSBEHANDLET)
-            .build(opprettet, AUTOMATISK, yrkesaktivitetstype)
+            .build(opprettet, AUTOMATISK)
             ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
@@ -44,15 +41,13 @@ internal class AvsluttetUtenVedtak(
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet ->
                 packet.requireBehandlingId()
-                packet.interestedInYrkesaktivitetstype()
             },
             opprett = { packet ->
                 AvsluttetUtenVedtak(
                     id = packet.hendelseId,
                     data = packet.blob,
                     opprettet = packet.opprettet,
-                    behandlingId = packet.behandlingId,
-                    yrkesaktivitetstype = packet.yrkesaktivitetstype
+                    behandlingId = packet.behandlingId
                 )
             }
         )
