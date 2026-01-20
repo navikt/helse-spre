@@ -30,11 +30,7 @@ internal class HendelseRiver(
         River(rapidsConnection).apply {
             precondition { it.requireAny("@event_name", listOf(eventName, "${eventName}_styringsinfo_replay")) }
             validate {
-                it.require("@opprettet") { opprettet -> opprettet.tidspunkt }
-                it.require("@id") { id -> UUID.fromString(id.asText()) }
-                // Interessted in fordi vi logger alle som MDC-verdier om verdiene er satt selv om det er tilfeller ingen er satt
-                // De fleste meldinger har kun `behandlingId`. behandling_opprettet har alle disse 3 verdiene, mens vedtaksperioder_venter har ingen ettersom de der er i en liste av fler perioder.
-                it.interestedIn("vedtaksperiodeId", "behandlingId", "yrkesaktivitetstype")
+                fellesValidering(it)
                 valider(it)
             }
         }.register(this)
@@ -78,6 +74,14 @@ internal class HendelseRiver(
     }
 
     internal companion object {
+        internal fun fellesValidering(packet: JsonMessage) {
+            packet.require("@opprettet") { opprettet -> opprettet.tidspunkt }
+            packet.require("@id") { id -> UUID.fromString(id.asText()) }
+            // Interessted in fordi vi logger alle som MDC-verdier om verdiene er satt selv om det er tilfeller ingen er satt
+            // De fleste meldinger har kun `behandlingId`. behandling_opprettet har alle disse 3 verdiene, mens vedtaksperioder_venter har ingen ettersom de der er i en liste av fler perioder.
+            packet.interestedIn("vedtaksperiodeId", "behandlingId", "yrkesaktivitetstype")
+        }
+
         private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
         private val objectMapper = jacksonObjectMapper()
         private val JsonMessage.eventName get() = this["@event_name"].asText()

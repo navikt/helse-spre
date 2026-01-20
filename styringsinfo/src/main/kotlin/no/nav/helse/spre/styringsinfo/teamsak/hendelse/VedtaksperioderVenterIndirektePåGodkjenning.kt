@@ -3,6 +3,7 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.spre.styringsinfo.objectMapper
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.KOMPLETT_FAKTAGRUNNLAG
@@ -17,7 +18,7 @@ import java.time.OffsetDateTime
 import java.util.*
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireYrkesaktivitetstype
 
-internal class VedtaksperioderVenterIndirektePåGodkjenning(
+internal data class VedtaksperioderVenterIndirektePåGodkjenning(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
@@ -48,6 +49,22 @@ internal class VedtaksperioderVenterIndirektePåGodkjenning(
     internal companion object {
         private const val eventName = "vedtaksperioder_venter"
 
+        internal fun valider(packet: JsonMessage) {
+            packet.requireArray("vedtaksperioder") {
+                requireBehandlingId()
+                requireYrkesaktivitetstype()
+            }
+        }
+
+        internal fun opprettet(packet: JsonMessage) = VedtaksperioderVenterIndirektePåGodkjenning(
+            id = packet.hendelseId,
+            data = packet.blob,
+            opprettet = packet.opprettet,
+            venter = packet["vedtaksperioder"].map { venter ->
+                objectMapper.convertValue<VedtaksperiodeVenterDto>(venter)
+            }
+        )
+
         internal fun river(
             rapidsConnection: RapidsConnection,
             hendelseDao: HendelseDao,
@@ -57,22 +74,8 @@ internal class VedtaksperioderVenterIndirektePåGodkjenning(
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
-            valider = { packet ->
-                packet.requireArray("vedtaksperioder") {
-                    requireBehandlingId()
-                    requireYrkesaktivitetstype()
-                }
-            },
-            opprett = { packet ->
-                VedtaksperioderVenterIndirektePåGodkjenning(
-                    id = packet.hendelseId,
-                    data = packet.blob,
-                    opprettet = packet.opprettet,
-                    venter = packet["vedtaksperioder"].map { venter ->
-                        objectMapper.convertValue<VedtaksperiodeVenterDto>(venter)
-                    }
-                )
-            }
+            valider = ::valider,
+            opprett = ::opprettet
         )
     }
 }
