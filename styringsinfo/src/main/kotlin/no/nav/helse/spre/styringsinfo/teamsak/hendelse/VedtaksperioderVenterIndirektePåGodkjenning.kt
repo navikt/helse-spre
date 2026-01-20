@@ -1,11 +1,8 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.convertValue
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import no.nav.helse.spre.styringsinfo.objectMapper
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.KOMPLETT_FAKTAGRUNNLAG
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
@@ -16,13 +13,13 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.o
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.OffsetDateTime
 import java.util.*
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireYrkesaktivitetstype
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 
 internal data class VedtaksperioderVenterIndirektePåGodkjenning(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    val venter: List<VedtaksperiodeVenterDto>
+    val venter: List<VedtaksperiodeVenter>
 ) : Hendelse {
     override val type = eventName
 
@@ -38,8 +35,8 @@ internal data class VedtaksperioderVenterIndirektePåGodkjenning(
             .any()
     }
 
-    private fun venterPåGodkjenningOgAnnenVedtaksperiode(venter: VedtaksperiodeVenterDto): Boolean {
-        if (venter.venterPå.venteårsak.hva != "GODKJENNING") return false
+    private fun venterPåGodkjenningOgAnnenVedtaksperiode(venter: VedtaksperiodeVenter): Boolean {
+        if (venter.venterPå.venteårsak != "GODKJENNING") return false
         return venter.vedtaksperiodeId != venter.venterPå.vedtaksperiodeId
     }
 
@@ -52,7 +49,9 @@ internal data class VedtaksperioderVenterIndirektePåGodkjenning(
         internal fun valider(packet: JsonMessage) {
             packet.requireArray("vedtaksperioder") {
                 requireBehandlingId()
-                requireYrkesaktivitetstype()
+                requireVedtaksperiodeId()
+                require("venterPå.vedtaksperiodeId") { UUID.fromString(it.asText()) }
+                requireKey("venterPå.venteårsak.hva")
             }
         }
 
@@ -60,8 +59,15 @@ internal data class VedtaksperioderVenterIndirektePåGodkjenning(
             id = packet.hendelseId,
             data = packet.blob,
             opprettet = packet.opprettet,
-            venter = packet["vedtaksperioder"].map { venter ->
-                objectMapper.convertValue<VedtaksperiodeVenterDto>(venter)
+            venter = packet["vedtaksperioder"].map { vedtaksperiodeVenter ->
+                VedtaksperiodeVenter(
+                    vedtaksperiodeId = UUID.fromString(vedtaksperiodeVenter.path("vedtaksperiodeId").asText()),
+                    behandlingId = UUID.fromString(vedtaksperiodeVenter.path("behandlingId").asText()),
+                    venterPå = VedtaksperiodeVenter.VenterPå(
+                        vedtaksperiodeId = UUID.fromString(vedtaksperiodeVenter.path("venterPå").path("vedtaksperiodeId").asText()),
+                        venteårsak = vedtaksperiodeVenter.path("venterPå").path("venteårsak").path("hva").asText()
+                    )
+                )
             }
         )
 
@@ -80,21 +86,13 @@ internal data class VedtaksperioderVenterIndirektePåGodkjenning(
     }
 }
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class VedtaksperiodeVenterDto(
+data class VedtaksperiodeVenter(
     val vedtaksperiodeId: UUID,
     val behandlingId: UUID,
-    val venterPå: VenterPå,
-    val yrkesaktivitetstype: String
+    val venterPå: VenterPå
 ) {
-    @JsonIgnoreProperties(ignoreUnknown = true)
     data class VenterPå(
         val vedtaksperiodeId: UUID,
-        val venteårsak: Venteårsak
-    )
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Venteårsak(
-        val hva : String
+        val venteårsak: String
     )
 }

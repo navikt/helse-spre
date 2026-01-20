@@ -3,7 +3,7 @@ package no.nav.helse.spre.styringsinfo.teamsak
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeVenterDto
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeVenter
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -64,13 +64,12 @@ internal class VedtaksperiodeVenterTest: AbstractTeamSakTest() {
         Assertions.assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         Assertions.assertNull(behandling.behandlingsresultat)
         behandling = hendelsefabrikk.vedtaksperiodeVenter(venterPå = listOf(
-            VedtaksperiodeVenterDto(
+            VedtaksperiodeVenter(
                 vedtaksperiodeId = behandling.sakId.id,
                 behandlingId = behandling.behandlingId.id,
-                yrkesaktivitetstype = behandling.yrkesaktivitetstype,
-                venterPå = VedtaksperiodeVenterDto.VenterPå(
+                venterPå = VedtaksperiodeVenter.VenterPå(
                     vedtaksperiodeId = venterPå.sakId.id,
-                    venteårsak = VedtaksperiodeVenterDto.Venteårsak(venterPåHva)
+                    venteårsak = venterPåHva
                 )
             )
         )).håndter(behandlingId)

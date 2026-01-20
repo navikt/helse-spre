@@ -97,7 +97,7 @@ internal class Hendelsefabrikk(
         behandlingId = behandlingId.id
     )
 
-    internal fun vedtaksperiodeVenter(venterPå: List<VedtaksperiodeVenterDto>) = VedtaksperioderVenterIndirektePåGodkjenning(
+    internal fun vedtaksperiodeVenter(venterPå: List<VedtaksperiodeVenter>) = VedtaksperioderVenterIndirektePåGodkjenning(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         venter = venterPå,
