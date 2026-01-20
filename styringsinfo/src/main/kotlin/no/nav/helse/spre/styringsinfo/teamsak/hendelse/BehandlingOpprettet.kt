@@ -25,7 +25,6 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.v
 import java.time.OffsetDateTime
 import java.util.UUID
 import no.nav.helse.spre.styringsinfo.sikkerLogg
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireYrkesaktivitetstype
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.yrkesaktivitetstype
 
 internal class BehandlingOpprettet(
@@ -124,5 +123,7 @@ internal class BehandlingOpprettet(
                 opprett(packet, aktørId)
             }
         )
+
+        private fun JsonMessage.requireYrkesaktivitetstype() = require("yrkesaktivitetstype") { yrkesaktivitetstype -> yrkesaktivitetstype.asText() }
     }
 }

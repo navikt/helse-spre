@@ -96,6 +96,5 @@ internal class HendelseRiver(
 
         internal fun JsonMessage.requireBehandlingId() = require("behandlingId") { behandlingId -> UUID.fromString(behandlingId.asText()) }
         internal fun JsonMessage.requireVedtaksperiodeId() = require("vedtaksperiodeId") { vedtaksperiodeId -> UUID.fromString(vedtaksperiodeId.asText()) }
-        internal fun JsonMessage.requireYrkesaktivitetstype() = require("yrkesaktivitetstype") { yrkesaktivitetstype -> yrkesaktivitetstype.asText() }
     }
 }
