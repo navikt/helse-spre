@@ -9,8 +9,8 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperiodeVenter
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperioderVenterIndirektePåGodkjenning
 import org.intellij.lang.annotations.Language
-import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 internal class KontraktTest {
 
