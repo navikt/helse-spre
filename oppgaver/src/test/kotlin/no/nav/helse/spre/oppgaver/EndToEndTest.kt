@@ -253,7 +253,7 @@ class EndToEndTest {
     }
 
     @Test
-    fun `spleis replayer søknad👽`() = e2e {
+    fun `spleis replayer søknad`() = e2e {
         val søknad1HendelseId = UUID.randomUUID()
         val søknad1DokumentId = UUID.randomUUID()
 
