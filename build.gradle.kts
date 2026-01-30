@@ -24,7 +24,7 @@ val mapper = ObjectMapper()
 fun getBuildableProjects(): List<Project> {
     val changedFiles = System.getenv("CHANGED_FILES")?.split(",") ?: emptyList()
     val commonChanges = changedFiles.any {
-        it.startsWith("felles/") || it.contains("config/nais.yml") || it.startsWith("build.gradle.kts") || it == ".github/workflows/build.yml"
+        it.startsWith("felles/") || it.contains("config/nais.yml") || it.startsWith("build.gradle.kts") || it == ".github/workflows/build.yml" || it == "Dockerfile"
     }
     if (changedFiles.isEmpty() || commonChanges) return subprojects.toList()
     return subprojects.filter { project -> changedFiles.any { path -> path.contains("${project.name}/") } }
