@@ -1,7 +1,7 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 
 plugins {
-    kotlin("jvm") version "2.3.0"
+    kotlin("jvm") version "2.3.10"
 }
 
 val junitJupiterVersion = "5.12.1"
