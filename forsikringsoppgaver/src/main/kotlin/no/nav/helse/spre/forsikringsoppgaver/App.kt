@@ -1,4 +1,4 @@
-package no.nav.helse.forsikringsoppgaver
+package no.nav.helse.spre.forsikringsoppgaver
 
 import java.util.UUID
 import no.nav.helse.rapids_rivers.RapidApplication

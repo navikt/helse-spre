@@ -1,4 +1,4 @@
-package no.nav.helse.forsikringsoppgaver
+package no.nav.helse.spre.forsikringsoppgaver
 
 import com.fasterxml.jackson.databind.JsonNode
 import java.util.UUID

@@ -1,4 +1,4 @@
-package no.nav.helse.forsikringsoppgaver
+package no.nav.helse.spre.forsikringsoppgaver
 
 enum class Årsak {
     UtbetaltFraDagÉnOgDekningsgrad80Prosent,

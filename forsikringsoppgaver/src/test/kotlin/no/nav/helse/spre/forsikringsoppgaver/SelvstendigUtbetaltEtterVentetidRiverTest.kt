@@ -1,4 +1,4 @@
-package no.nav.helse.forsikringsoppgaver
+package no.nav.helse.spre.forsikringsoppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import java.util.*
