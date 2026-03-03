@@ -38,7 +38,7 @@ class SelvstendigUtbetaltEtterVentetidRiver(
             teamLogs.info("Det finnes allerede en oppgave om forsikring med tema <tema her> for vedtaksperiodeId $vedtaksperiodeId")
             return
         }
-        if (fårUtbetaltSykepengerFraDagÉn(forsikringsgrunnlag) && forsikretMedDekningsgrad80Prosent(forsikringsgrunnlag)) {
+        if (forsikringsgrunnlag.fårUtbetaltSykepengerFraDagÉn() && forsikringsgrunnlag.forsikretMedDekningsgrad80Prosent()) {
             oppgaveClient.lagOppgave(
                 gosysOppgaveId,
                 fødselsnummer,
@@ -47,7 +47,7 @@ class SelvstendigUtbetaltEtterVentetidRiver(
         }
     }
 
-    private fun forsikretMedDekningsgrad80Prosent(forsikringsgrunnlag: Forsikringsgrunnlag): Boolean = forsikringsgrunnlag.dekningsgrad == 80
+    private fun Forsikringsgrunnlag.forsikretMedDekningsgrad80Prosent(): Boolean = dekningsgrad == 80
 
-    private fun fårUtbetaltSykepengerFraDagÉn(forsikringsgrunnlag: Forsikringsgrunnlag): Boolean = forsikringsgrunnlag.dag1Eller17 == 1
+    private fun Forsikringsgrunnlag.fårUtbetaltSykepengerFraDagÉn(): Boolean = dag1Eller17 == 1
 }
