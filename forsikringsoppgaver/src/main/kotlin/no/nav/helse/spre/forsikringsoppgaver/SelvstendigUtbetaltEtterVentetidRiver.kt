@@ -13,7 +13,7 @@ class SelvstendigUtbetaltEtterVentetidRiver(
     private val oppgaveClient: OppgaveoppretterClient,
     private val forsikringsgrunnlagClient: ForsikringsgrunnlagClient
 ) : River.PacketListener {
-    private val namespace = "foo"
+    private val namespace = "selvstendigUtbetaltFraDagÉnOgDekningsgrad80Prosent"
     init {
         River(rapidsConnection).apply {
             precondition {
