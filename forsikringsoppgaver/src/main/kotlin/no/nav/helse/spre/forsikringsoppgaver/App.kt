@@ -28,15 +28,17 @@ fun main() {
         gosysScope = gosysScope
     )
 
+    val spiskammersetBaseUrl = env.getValue("SPISKAMMERSET_BASE_URL")
+    val spiskammersetScope = env.getValue("SPISKAMMERSET_SCOPE")
 
+    val spiskammersetClient = SpiskammersetClient(
+        baseUrl = spiskammersetBaseUrl,
+        tokenClient = azureClient,
+        httpClient = httpClient,
+        spiskammersetScope = spiskammersetScope
+    )
 
-    val forsikringsgrunnlagClient =
-        object : ForsikringsgrunnlagClient {
-            override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag? {
-                TODO("Not yet implemented")
-            }
-        }
-    SelvstendigUtbetaltEtterVentetidRiver(rapidApp, gosysOppgaveClient, forsikringsgrunnlagClient)
-    SelvstendigIngenDagerIgjenRiver(rapidApp, gosysOppgaveClient, forsikringsgrunnlagClient)
+    SelvstendigUtbetaltEtterVentetidRiver(rapidApp, gosysOppgaveClient, spiskammersetClient)
+    SelvstendigIngenDagerIgjenRiver(rapidApp, gosysOppgaveClient, spiskammersetClient)
     rapidApp.start()
 }
