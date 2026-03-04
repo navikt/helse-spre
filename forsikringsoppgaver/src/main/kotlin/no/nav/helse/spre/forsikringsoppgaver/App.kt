@@ -1,24 +1,42 @@
 package no.nav.helse.spre.forsikringsoppgaver
 
-import java.util.UUID
+import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.jackson.*
 import no.nav.helse.rapids_rivers.RapidApplication
 
 fun main() {
-    val rapidApp = RapidApplication.create(System.getenv())
-    val oppgaveClient =
-        object : OppgaveoppretterClient {
-            override fun lagOppgave(gosysOppgaveId: UUID, fødselsnummer: String, årsak: Årsak) {}
-            override fun finnesDetOppgaveFor(gosysOppgaveId: UUID): Boolean {
-                TODO("Not yet implemented")
-            }
+    val env = System.getenv()
+    val rapidApp = RapidApplication.create(env)
+    val azureClient = createAzureTokenClientFromEnvironment(env)
+
+    val httpClient = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            jackson()
         }
+    }
+
+    val gosysScope = env.getValue("GOSYS_SCOPE")
+    val gosysBaseUrl = env.getValue("GOSYS_BASE_URL")
+
+    val gosysOppgaveClient = GosysOppgaveClient(
+        baseUrl = gosysBaseUrl,
+        tokenClient = azureClient,
+        httpClient = httpClient,
+        gosysScope = gosysScope
+    )
+
+
+
     val forsikringsgrunnlagClient =
         object : ForsikringsgrunnlagClient {
             override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag? {
                 TODO("Not yet implemented")
             }
         }
-    SelvstendigUtbetaltEtterVentetidRiver(rapidApp, oppgaveClient, forsikringsgrunnlagClient)
-    SelvstendigIngenDagerIgjenRiver(rapidApp, oppgaveClient, forsikringsgrunnlagClient)
+    SelvstendigUtbetaltEtterVentetidRiver(rapidApp, gosysOppgaveClient, forsikringsgrunnlagClient)
+    SelvstendigIngenDagerIgjenRiver(rapidApp, gosysOppgaveClient, forsikringsgrunnlagClient)
     rapidApp.start()
 }

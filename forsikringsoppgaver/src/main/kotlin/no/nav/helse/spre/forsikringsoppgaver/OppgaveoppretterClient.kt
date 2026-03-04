@@ -1,8 +1,7 @@
 package no.nav.helse.spre.forsikringsoppgaver
 
-import java.util.UUID
+import java.util.*
 
 interface OppgaveoppretterClient {
-    fun lagOppgave(gosysOppgaveId: UUID, fødselsnummer: String, årsak: Årsak)
-    fun finnesDetOppgaveFor(gosysOppgaveId: UUID): Boolean
+    fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak)
 }

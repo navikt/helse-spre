@@ -30,18 +30,15 @@ class VedtakFattetRiverTest {
     private val oppgaveClient = object : OppgaveoppretterClient {
         var oppgavedings: Oppgavedings? = null
             private set
-        var finnesDetOppgaveFor: Boolean? = null
-        override fun lagOppgave(gosysOppgaveId: UUID, fødselsnummer: String, årsak: Årsak) {
+
+        override fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak) {
             oppgavedings = Oppgavedings(
                 fødselsnummer = fødselsnummer,
-                oppgaveId = gosysOppgaveId,
+                oppgaveId = duplikatkontrollId,
                 årsak = årsak
             )
         }
 
-        override fun finnesDetOppgaveFor(gosysOppgaveId: UUID): Boolean {
-            return finnesDetOppgaveFor ?: false
-        }
     }
 
     init {
@@ -56,8 +53,6 @@ class VedtakFattetRiverTest {
             dekningsgrad = 80,
             premiegrunnlag = BigDecimal("200000")
         )
-
-        oppgaveClient.finnesDetOppgaveFor = false
 
         // when
         testRapid.sendTestMessage(event.trimIndent())
@@ -78,8 +73,6 @@ class VedtakFattetRiverTest {
             premiegrunnlag = BigDecimal("400000")
         )
 
-        oppgaveClient.finnesDetOppgaveFor = false
-
         // when
         testRapid.sendTestMessage(event.trimIndent())
 
@@ -92,7 +85,6 @@ class VedtakFattetRiverTest {
     fun `mangler forsikring`() {
         // given
         forsikringsgrunnlagClient.forsikringsgrunnlag = null
-        oppgaveClient.finnesDetOppgaveFor = false
 
         // then
         assertFailsWith<IllegalStateException> {
@@ -103,34 +95,18 @@ class VedtakFattetRiverTest {
         assertNull(oppgaveClient.oppgavedings)
     }
 
-    @Test
-    fun `oppgave finnes allerede`() {
-        // given
-        forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
-            dag1Eller17 = 1,
-            dekningsgrad = 80,
-            premiegrunnlag = null
-        )
-        oppgaveClient.finnesDetOppgaveFor = true
-
-        // when
-        testRapid.sendTestMessage(event.trimIndent())
-
-        // then
-        assertNull(oppgaveClient.oppgavedings)
-    }
 
     @Language("JSON")
     private val event = """
             {
                 "@event_name": "vedtak_fattet",
+                "@id": "${UUID.randomUUID()}",
                 "yrkesaktivitetstype": "SELVSTENDIG",
                 "tags": ["Førstegangsbehandling"],
                 "skjæringstidspunkt": "2024-01-01",
                 "sykepengegrunnlag": 400000,
                 "fødselsnummer": "$fødselsnummer",
-                "behandlingId": "${UUID.randomUUID()}",
-                "vedtaksperiodeId": "${UUID.randomUUID()}"
+                "behandlingId": "${UUID.randomUUID()}"
             }
         """
 

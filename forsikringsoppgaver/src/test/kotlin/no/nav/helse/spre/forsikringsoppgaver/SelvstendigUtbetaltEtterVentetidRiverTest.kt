@@ -29,18 +29,14 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
     private val oppgaveClient = object : OppgaveoppretterClient {
         var oppgavedings: Oppgavedings? = null
         private set
-        var finnesDetOppgaveFor: Boolean? = null
-        override fun lagOppgave(gosysOppgaveId: UUID, fødselsnummer: String, årsak: Årsak) {
+        override fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak) {
             oppgavedings = Oppgavedings(
                 fødselsnummer = fødselsnummer,
-                oppgaveId = gosysOppgaveId,
+                oppgaveId = duplikatkontrollId,
                 årsak = årsak
             )
         }
 
-        override fun finnesDetOppgaveFor(gosysOppgaveId: UUID): Boolean {
-            return finnesDetOppgaveFor ?: false
-        }
     }
 
     init {
@@ -55,7 +51,6 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
             dekningsgrad = 80,
             premiegrunnlag = null
         )
-        oppgaveClient.finnesDetOppgaveFor = false
 
         // when
         testRapid.sendTestMessage(event.trimIndent())
@@ -71,7 +66,6 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
     fun `mangler forsikring`() {
         // given
         forsikringsgrunnlagClient.forsikringsgrunnlag = null
-        oppgaveClient.finnesDetOppgaveFor = false
 
         // then
         assertFailsWith<IllegalStateException> {
@@ -83,23 +77,6 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
     }
 
     @Test
-    fun `oppgave finnes allerede`() {
-        // given
-        forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
-            dag1Eller17 = 1,
-            dekningsgrad = 80,
-            premiegrunnlag = null
-        )
-        oppgaveClient.finnesDetOppgaveFor = true
-
-        // when
-        testRapid.sendTestMessage(event.trimIndent())
-
-        // then
-        assertNull(oppgaveClient.oppgavedings)
-    }
-
-    @Test
     fun `får ikke utbetalt sykepenger fra dag én`() {
         // given
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
@@ -107,7 +84,6 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
             dekningsgrad = 80,
             premiegrunnlag = null
         )
-        oppgaveClient.finnesDetOppgaveFor = false
 
         // when
         testRapid.sendTestMessage(event.trimIndent())
@@ -124,7 +100,6 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
             dekningsgrad = 100,
             premiegrunnlag = null
         )
-        oppgaveClient.finnesDetOppgaveFor = false
 
         // when
         testRapid.sendTestMessage(event.trimIndent())
@@ -137,9 +112,9 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
     private val event = """
             {
                 "@event_name": "selvstendig_utbetalt_etter_ventetid",
+                "@id": "${UUID.randomUUID()}",
                 "fødselsnummer": "$fødselsnummer",
-                "behandlingId": "${UUID.randomUUID()}",
-                "vedtaksperiodeId": "${UUID.randomUUID()}"
+                "behandlingId": "${UUID.randomUUID()}"
             }
         """
 }
