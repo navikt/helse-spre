@@ -27,7 +27,7 @@ fun getBuildableProjects(): List<Project> {
         it.startsWith("felles/") || it.contains("config/nais.yml") || it.startsWith("build.gradle.kts") || it == ".github/workflows/build.yml" || it == "Dockerfile"
     }
     if (changedFiles.isEmpty() || commonChanges) return subprojects.toList()
-    return subprojects.filter { project -> changedFiles.any { path -> path.contains("${project.name}/") } }
+    return subprojects.filter { project -> changedFiles.any { path -> path.split("/").firstOrNull() == project.name } }
 }
 
 fun getDeployableProjects() = getBuildableProjects()
