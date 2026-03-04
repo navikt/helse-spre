@@ -26,3 +26,5 @@ env:
     value: "http://spiskammerset"
   - name: SPISKAMMERSET_SCOPE
     value: "api://dev-gcp.tbd.spiskammerset/.default"
+  - name: KAFKA_RESET_POLICY
+    value: LATEST
