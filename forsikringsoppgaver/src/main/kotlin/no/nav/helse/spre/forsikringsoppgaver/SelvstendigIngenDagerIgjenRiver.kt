@@ -14,6 +14,6 @@ class SelvstendigIngenDagerIgjenRiver(rapidsConnection: RapidsConnection, oppgav
         }.register(this)
     }
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
-        TODO("Not yet implemented")
+        //todo ("Not yet implemented")
     }
 }
