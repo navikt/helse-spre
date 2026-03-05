@@ -81,6 +81,8 @@ jobs:
           key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
       - name: test and build
         run: ./gradlew ${{ matrix.project }}:build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Check app.jar existence
         id: app_jar
         uses: andstor/file-existence-action@v3
