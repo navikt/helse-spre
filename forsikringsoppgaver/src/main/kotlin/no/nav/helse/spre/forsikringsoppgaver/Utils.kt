@@ -11,7 +11,7 @@ fun JsonNode.asBigDecimal() = BigDecimal(asText())
 val AKSEPTABELT_AVVIK = BigDecimal("30")
 
 /**
- * Beregner prosentvis avvik mellom sykepengegrunnlag, og premiegrunnlag og returnerer true hvis avviket er større enn det akseptable avviket.
+ * Beregner prosentvis avvik mellom sykepengegrunnlag og premiegrunnlag og returnerer true hvis avviket er større enn det akseptable avviket.
  *
  * @param sykepengegrunnlag Det beregnede sykepengegrunnlaget.
  * @param premiegrunnlag Det registrerte premiegrunnlaget.
