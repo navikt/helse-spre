@@ -35,6 +35,8 @@ jobs:
 
       - name: Build
         run: ./gradlew build -x test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
