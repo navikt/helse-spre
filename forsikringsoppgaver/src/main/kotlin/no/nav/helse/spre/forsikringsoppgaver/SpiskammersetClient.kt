@@ -18,7 +18,7 @@ class SpiskammersetClient(
     override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag {
         return runBlocking {
             retry {
-                val response = httpClient.prepareGet("$baseUrl/behandling/$behandlingId/forsikring") {
+                val response = httpClient.prepareGet("$baseUrl/behandling/${behandlingId.value}/forsikring") {
                     accept(ContentType.Application.Json)
                     val bearerToken = tokenClient.bearerToken(spiskammersetScope).getOrThrow()
                     bearerAuth(bearerToken.token)
