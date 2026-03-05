@@ -4,10 +4,9 @@ replicas:
 kafkaPool: nav-dev
 accessPolicy:
   outbound:
-    - rules:
-      - namespace: tbd
-        name: spiskammerset
-    - external:
+    rules:
+      - application: spiskammerset
+    external:
       - host: "oppgave.intern.dev.nav.no"
 
 azure:
