@@ -13,6 +13,7 @@ data class VedtakPdfPayload(
     val arbeidsgiverOppdrag: Oppdrag?,
     val organisasjonsnummer: String,
     val behandlingsdato: LocalDate,
+    val forbrukteSykedager: Int,
     val dagerIgjen: Int,
     val automatiskBehandling: Boolean,
     val godkjentAv: String,

@@ -22,7 +22,6 @@ import no.nav.helse.spre.testhelpers.utbetalingsdager
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
 
@@ -545,6 +544,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 maksdato = 19.oktober(2022),
                 utbetalingstype = REVURDERING,
                 behandlingsdato = 2.desember(2021),
+                forbrukteSykedager = 10,
                 dagerIgjen = 238,
                 godkjentAv = "K123456",
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
@@ -611,6 +611,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 maksdato = 27.juni(2024),
                 utbetalingstype = REVURDERING,
                 behandlingsdato = LocalDate.now(),
+                forbrukteSykedager = 33,
                 dagerIgjen = 215,
                 godkjentAv = "test",
                 linjer = emptyList(),
@@ -649,6 +650,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 maksdato = 19.oktober(2022),
                 utbetalingstype = REVURDERING,
                 behandlingsdato = 2.desember(2021),
+                forbrukteSykedager = 10,
                 dagerIgjen = 238,
                 godkjentAv = "K123456",
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),

@@ -13,6 +13,7 @@ data class SNVedtakPdfPayload(
     val personOppdrag: VedtakPdfPayload.Oppdrag?,
     val arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag?,
     val behandlingsdato: LocalDate,
+    val forbrukteSykedager: Int,
     val dagerIgjen: Int,
     val automatiskBehandling: Boolean,
     val godkjentAv: String,
