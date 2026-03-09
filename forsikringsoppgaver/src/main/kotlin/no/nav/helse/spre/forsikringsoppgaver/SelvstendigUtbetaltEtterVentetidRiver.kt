@@ -2,6 +2,7 @@ package no.nav.helse.spre.forsikringsoppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
@@ -19,13 +20,14 @@ class SelvstendigUtbetaltEtterVentetidRiver(
                 it.requireValue("@event_name", "selvstendig_utbetalt_etter_ventetid")
             }
             validate {
-                it.requireKey("fødselsnummer", "behandlingId", "@id")
+                it.requireKey("fødselsnummer", "behandlingId", "@id", "skjæringstidspunkt")
             }
         }.register(this)
     }
     override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
         val fødselsnummer = packet["fødselsnummer"].asText()
         val behandlingId = BehandlingId(packet["behandlingId"].asUuid())
+        val skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate()
         val forsikringsgrunnlag = forsikringsgrunnlagClient
             .forsikringsgrunnlag(behandlingId)
             ?: error("Fant ikke forsikringsgrunnlag for $behandlingId")
@@ -36,7 +38,8 @@ class SelvstendigUtbetaltEtterVentetidRiver(
             oppgaveClient.lagOppgave(
                 meldingId,
                 fødselsnummer,
-                Årsak.UtbetaltFraDagÉnOgDekningsgrad80Prosent
+                Årsak.UtbetaltFraDagÉnOgDekningsgrad80Prosent,
+                skjæringstidspunkt
             )
         }
     }

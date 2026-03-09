@@ -3,12 +3,10 @@ package no.nav.helse.spre.forsikringsoppgaver
 import com.fasterxml.jackson.databind.JsonNode
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.UUID
+import java.util.*
 
 fun JsonNode.asUuid(): UUID = UUID.fromString(asText())
 fun JsonNode.asBigDecimal() = BigDecimal(asText())
-
-val AKSEPTABELT_AVVIK = BigDecimal("30")
 
 /**
  * Beregner prosentvis avvik mellom sykepengegrunnlag og premiegrunnlag og returnerer true hvis avviket er større enn det akseptable avviket.
@@ -20,11 +18,13 @@ val AKSEPTABELT_AVVIK = BigDecimal("30")
  * Formel: Avvik (%) = (|sykepengegrunnlag - premiegrunnlag|) / ((sykepengegrunnlag + premiegrunnlag) / 2) * 100
  */
 
-fun forStortAvvik(sykepengegrunnlag: BigDecimal, premiegrunnlag: BigDecimal): Boolean {
-    if (premiegrunnlag == BigDecimal.ZERO) return true
+fun String.toBigDecimal(scale: Int = 10): BigDecimal {
+    return BigDecimal(this).setScale(scale, RoundingMode.HALF_UP)
+}
+
+fun beregnAvvik(sykepengegrunnlag: BigDecimal, premiegrunnlag: BigDecimal): BigDecimal {
     val differansen = (sykepengegrunnlag.subtract(premiegrunnlag)).abs()
-    val gjennomsnittet = (sykepengegrunnlag.add(premiegrunnlag)).divide(BigDecimal(2), RoundingMode.HALF_UP)
-    val prosentAvvik = differansen.divide(gjennomsnittet, RoundingMode.HALF_UP).multiply(BigDecimal("100"))
-    return prosentAvvik > AKSEPTABELT_AVVIK
+    val gjennomsnittet = (sykepengegrunnlag.add(premiegrunnlag)).divide(BigDecimal("2"), RoundingMode.HALF_UP)
+    return differansen.divide(gjennomsnittet, RoundingMode.HALF_UP).multiply(BigDecimal("100")).setScale(2, RoundingMode.HALF_UP)
 }
 

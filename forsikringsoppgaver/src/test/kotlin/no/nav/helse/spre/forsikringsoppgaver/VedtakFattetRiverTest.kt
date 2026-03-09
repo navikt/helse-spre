@@ -2,7 +2,8 @@ package no.nav.helse.spre.forsikringsoppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import java.math.BigDecimal
-import java.util.UUID
+import java.time.LocalDate
+import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -31,14 +32,13 @@ class VedtakFattetRiverTest {
         var oppgavedings: Oppgavedings? = null
             private set
 
-        override fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak) {
+        override fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak, skjæringstidspunkt: LocalDate) {
             oppgavedings = Oppgavedings(
                 fødselsnummer = fødselsnummer,
                 oppgaveId = duplikatkontrollId,
                 årsak = årsak
             )
         }
-
     }
 
     init {
@@ -48,10 +48,11 @@ class VedtakFattetRiverTest {
     @Test
     fun `Lager oppgave når vi har for stort avvik`() {
         // given
+        val premiegrunnlag = "200000"
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
             dag1Eller17 = 1,
             dekningsgrad = 80,
-            premiegrunnlag = BigDecimal("200000")
+            premiegrunnlag = premiegrunnlag
         )
 
         // when
@@ -60,7 +61,7 @@ class VedtakFattetRiverTest {
         // then
         val actual = oppgaveClient.oppgavedings
         assertNotNull(actual)
-        assertEquals(Årsak.ForStortAvvikMellomSykepengegrunnlagOgPremiegrunnlag, actual.årsak)
+        assertEquals(Årsak.ForStortAvvikMellomSykepengegrunnlagOgPremiegrunnlag("400000".toBigDecimal(), premiegrunnlag.toBigDecimal(), "66.67".toBigDecimal(2)), actual.årsak)
         assertEquals(fødselsnummer, actual.fødselsnummer)
     }
 
@@ -70,7 +71,7 @@ class VedtakFattetRiverTest {
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
             dag1Eller17 = 1,
             dekningsgrad = 80,
-            premiegrunnlag = BigDecimal("400000")
+            premiegrunnlag = "400000"
         )
 
         // when
@@ -95,7 +96,6 @@ class VedtakFattetRiverTest {
         assertNull(oppgaveClient.oppgavedings)
     }
 
-
     @Language("JSON")
     private val event = """
             {
@@ -109,5 +109,4 @@ class VedtakFattetRiverTest {
                 "behandlingId": "${UUID.randomUUID()}"
             }
         """
-
 }

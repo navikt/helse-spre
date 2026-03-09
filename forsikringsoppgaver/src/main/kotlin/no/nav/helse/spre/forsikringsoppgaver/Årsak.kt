@@ -1,7 +1,9 @@
 package no.nav.helse.spre.forsikringsoppgaver
 
-enum class Årsak {
-    UtbetaltFraDagÉnOgDekningsgrad80Prosent,
-    SykepengerettOpphørtPåGrunnAvMaksdatoAlderEllerDød,
-    ForStortAvvikMellomSykepengegrunnlagOgPremiegrunnlag
+import java.math.BigDecimal
+
+sealed interface Årsak {
+    object UtbetaltFraDagÉnOgDekningsgrad80Prosent : Årsak
+    object SykepengerettOpphørtPåGrunnAvMaksdatoAlderEllerDød : Årsak
+    data class ForStortAvvikMellomSykepengegrunnlagOgPremiegrunnlag(val sykepengegrunnlag: BigDecimal, val premiegrunnlag: BigDecimal, val avviksprosent: BigDecimal) : Årsak
 }

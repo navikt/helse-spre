@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.UUID.randomUUID
 import kotlinx.coroutines.runBlocking
@@ -20,7 +21,12 @@ class GosysOppgaveClient(
     private val gosysScope: String,
 ) : OppgaveoppretterClient {
 
-    override fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak) {
+    override fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak, skjæringstidspunkt: LocalDate) {
+        val årsakTekst = when (årsak) {
+            Årsak.UtbetaltFraDagÉnOgDekningsgrad80Prosent -> "Det er utbetalt sykepenger fra dag én og vedkommende har 80% dekningsgrad"
+            Årsak.SykepengerettOpphørtPåGrunnAvMaksdatoAlderEllerDød -> "Sykepengerett har opphørt som følge av ingen gjenstående dager"
+            is Årsak.ForStortAvvikMellomSykepengegrunnlagOgPremiegrunnlag -> "For stort avvik mellom sykepengegrunnlag, ${årsak.sykepengegrunnlag.setScale(2)}, og premiegrunnlag, ${årsak.premiegrunnlag.setScale(2)}. Avviket er ${årsak.avviksprosent.setScale(2)}"
+        }
         runBlocking {
             retry {
                 val response = httpClient.preparePost("$baseUrl/api/v1/oppgaver") {
@@ -30,13 +36,14 @@ class GosysOppgaveClient(
                     bearerAuth(bearerToken.token)
                     setBody(
                         OpprettOppgaveRequest(
+                            personident = fødselsnummer,
                             uuid = duplikatkontrollId.toString(),
                             aktivDato = LocalDate.now(),
                             prioritet = Prioritet.NORM,
                             oppgavetype = "VURD_HENV",
                             tema = "FOS",
                             behandingstype = "ae0221",
-                            beskrivelse = "Vi kommer tilbake til deg"
+                            beskrivelse = "Årsak: $årsakTekst. Skjæringstidspunkt: ${skjæringstidspunkt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}."
                         )
                     )
                     header("X-Correlation-ID", randomUUID().toString())
@@ -53,6 +60,7 @@ class GosysOppgaveClient(
 
 @Serializable
 data class OpprettOppgaveRequest(
+    val personident: String,
     val uuid: String,
     val aktivDato: LocalDate,
     val prioritet: Prioritet,

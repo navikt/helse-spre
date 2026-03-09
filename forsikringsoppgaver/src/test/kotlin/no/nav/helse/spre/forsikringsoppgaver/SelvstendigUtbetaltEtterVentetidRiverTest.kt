@@ -1,6 +1,7 @@
 package no.nav.helse.spre.forsikringsoppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
+import java.time.LocalDate
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -29,7 +30,7 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
     private val oppgaveClient = object : OppgaveoppretterClient {
         var oppgavedings: Oppgavedings? = null
         private set
-        override fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak) {
+        override fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak, skjæringstidspunkt: LocalDate) {
             oppgavedings = Oppgavedings(
                 fødselsnummer = fødselsnummer,
                 oppgaveId = duplikatkontrollId,
@@ -114,6 +115,7 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
                 "@event_name": "selvstendig_utbetalt_etter_ventetid",
                 "@id": "${UUID.randomUUID()}",
                 "fødselsnummer": "$fødselsnummer",
+                "skjæringstidspunkt": "2018-01-01",
                 "behandlingId": "${UUID.randomUUID()}"
             }
         """
