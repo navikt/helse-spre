@@ -6,7 +6,10 @@ import java.math.RoundingMode
 import java.util.*
 
 fun JsonNode.asUuid(): UUID = UUID.fromString(asText())
-fun JsonNode.asBigDecimal() = BigDecimal(asText())
+
+fun String.toBigDecimal(scale: Int = 10): BigDecimal {
+    return BigDecimal(this).setScale(scale, RoundingMode.HALF_UP)
+}
 
 /**
  * Beregner prosentvis avvik mellom sykepengegrunnlag og premiegrunnlag og returnerer true hvis avviket er større enn det akseptable avviket.
@@ -17,10 +20,6 @@ fun JsonNode.asBigDecimal() = BigDecimal(asText())
  *
  * Formel: Avvik (%) = (|sykepengegrunnlag - premiegrunnlag|) / ((sykepengegrunnlag + premiegrunnlag) / 2) * 100
  */
-
-fun String.toBigDecimal(scale: Int = 10): BigDecimal {
-    return BigDecimal(this).setScale(scale, RoundingMode.HALF_UP)
-}
 
 fun beregnAvvik(sykepengegrunnlag: BigDecimal, premiegrunnlag: BigDecimal): BigDecimal {
     val differansen = (sykepengegrunnlag.subtract(premiegrunnlag)).abs()

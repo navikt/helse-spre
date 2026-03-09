@@ -1,7 +1,6 @@
 package no.nav.helse.spre.forsikringsoppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
 import kotlin.test.Test
