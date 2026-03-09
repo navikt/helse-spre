@@ -1,5 +1,6 @@
 val tbdLibsVersion: String by project
 val ktorVersion: String by project
+val mockkVersion: String by project
 
 dependencies {
     implementation("com.github.navikt.tbd-libs:azure-token-client-default:${tbdLibsVersion}")
@@ -8,5 +9,9 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:${ktorVersion}")
     implementation("io.ktor:ktor-serialization-jackson:${ktorVersion}")
     testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
+    testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
+    testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    testImplementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation(kotlin("test"))
 }
