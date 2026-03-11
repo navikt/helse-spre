@@ -8,12 +8,9 @@ azure:
 
 accessPolicy:
   outbound:
-    rules:
-      - application: spiskammerset
-        namespace: tbd
-        cluster: dev-gcp
-    external:
-      - host: "oppgave.intern.dev.nav.no"
+    - application: spiskammerset
+  external:
+    - "oppgave.intern.dev.nav.no"
 
 env:
   - name: KAFKA_MAX_RECORDS
