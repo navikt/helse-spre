@@ -13,19 +13,23 @@ class SpiskammersetClient(
     private val baseUrl: String,
     private val tokenClient: AzureTokenProvider,
     private val httpClient: HttpClient,
-    private val spiskammersetScope: String,
+    private val spiskammersetScope: String
 ) : ForsikringsgrunnlagClient {
-    override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag {
-        return runBlocking {
-            retry {
-                val response = httpClient.prepareGet("$baseUrl/behandling/${behandlingId.value}/forsikring") {
-                    accept(ContentType.Application.Json)
-                    val bearerToken = tokenClient.bearerToken(spiskammersetScope).getOrThrow()
-                    bearerAuth(bearerToken.token)
-                }.execute()
-                response.body<Forsikringsgrunnlag>()
+    override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag? =
+        runBlocking {
+            val response =
+                retry {
+                    httpClient
+                        .prepareGet("$baseUrl/behandling/${behandlingId.value}/forsikring") {
+                            accept(ContentType.Application.Json)
+                            val bearerToken = tokenClient.bearerToken(spiskammersetScope).getOrThrow()
+                            bearerAuth(bearerToken.token)
+                        }.execute()
+                }
+            when (response.status) {
+                HttpStatusCode.OK -> response.body<Forsikringsgrunnlag>()
+                HttpStatusCode.NotFound -> null
+                else -> error("Feil ved henting av forsikringsgrunnlag for behandling $behandlingId: ${response.status}")
             }
         }
-    }
 }
-

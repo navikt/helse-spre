@@ -40,6 +40,6 @@ fun main() {
 
     SelvstendigUtbetaltEtterVentetidRiver(rapidApp, gosysOppgaveClient, spiskammersetClient)
     VedtakFattetRiver(rapidApp, gosysOppgaveClient, spiskammersetClient)
-    SelvstendigIngenDagerIgjenRiver(rapidApp, gosysOppgaveClient)
+    SelvstendigIngenDagerIgjenRiver(rapidApp, gosysOppgaveClient, spiskammersetClient)
     rapidApp.start()
 }
