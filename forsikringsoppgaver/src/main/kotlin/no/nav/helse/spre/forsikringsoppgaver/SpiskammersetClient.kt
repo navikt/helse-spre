@@ -2,7 +2,6 @@ package no.nav.helse.spre.forsikringsoppgaver
 
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import com.github.navikt.tbd_libs.result_object.getOrThrow
-import com.github.navikt.tbd_libs.retry.retry
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -18,14 +17,12 @@ class SpiskammersetClient(
     override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag? =
         runBlocking {
             val response =
-                retry {
-                    httpClient
-                        .prepareGet("$baseUrl/behandling/${behandlingId.value}/forsikring") {
-                            accept(ContentType.Application.Json)
-                            val bearerToken = tokenClient.bearerToken(spiskammersetScope).getOrThrow()
-                            bearerAuth(bearerToken.token)
-                        }.execute()
-                }
+                httpClient
+                    .prepareGet("$baseUrl/behandling/${behandlingId.value}/forsikring") {
+                        accept(ContentType.Application.Json)
+                        val bearerToken = tokenClient.bearerToken(spiskammersetScope).getOrThrow()
+                        bearerAuth(bearerToken.token)
+                    }.execute()
             when (response.status) {
                 HttpStatusCode.OK -> response.body<Forsikringsgrunnlag>()
                 HttpStatusCode.NotFound -> null
