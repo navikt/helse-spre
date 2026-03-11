@@ -1,7 +1,6 @@
 package no.nav.helse.spre.forsikringsoppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import java.time.LocalDate
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,31 +13,8 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
     private val testRapid = TestRapid()
     private val fødselsnummer = "12345678910"
 
-    private class Oppgavedings(
-        val fødselsnummer: String,
-        val oppgaveId: UUID,
-        val årsak: Årsak,
-    )
-
-    private val forsikringsgrunnlagClient = object : ForsikringsgrunnlagClient {
-        var forsikringsgrunnlag: Forsikringsgrunnlag? = null
-        override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag? {
-            return forsikringsgrunnlag
-        }
-    }
-
-    private val oppgaveClient = object : OppgaveoppretterClient {
-        var oppgavedings: Oppgavedings? = null
-        private set
-        override fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak, skjæringstidspunkt: LocalDate) {
-            oppgavedings = Oppgavedings(
-                fødselsnummer = fødselsnummer,
-                oppgaveId = duplikatkontrollId,
-                årsak = årsak
-            )
-        }
-
-    }
+    private val forsikringsgrunnlagClient = TestForsikringsgrunnlagClient()
+    private val oppgaveClient = TestOppgaveClient()
 
     init {
         SelvstendigUtbetaltEtterVentetidRiver(testRapid, oppgaveClient, forsikringsgrunnlagClient)
@@ -57,7 +33,7 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
         testRapid.sendTestMessage(event.trimIndent())
 
         // then
-        val actual = oppgaveClient.oppgavedings
+        val actual = oppgaveClient.oppgaveParams
         assertNotNull(actual)
         assertEquals(Årsak.UtbetaltFraDagÉnOgDekningsgrad80Prosent, actual.årsak)
         assertEquals(fødselsnummer, actual.fødselsnummer)
@@ -74,7 +50,7 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
             testRapid.sendTestMessage(event.trimIndent())
         }
 
-        assertNull(oppgaveClient.oppgavedings)
+        assertNull(oppgaveClient.oppgaveParams)
     }
 
     @Test
@@ -90,7 +66,7 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
         testRapid.sendTestMessage(event.trimIndent())
 
         // then
-        assertNull(oppgaveClient.oppgavedings)
+        assertNull(oppgaveClient.oppgaveParams)
     }
 
     @Test
@@ -106,7 +82,7 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
         testRapid.sendTestMessage(event.trimIndent())
 
         // then
-        assertNull(oppgaveClient.oppgavedings)
+        assertNull(oppgaveClient.oppgaveParams)
     }
 
     @Language("JSON")

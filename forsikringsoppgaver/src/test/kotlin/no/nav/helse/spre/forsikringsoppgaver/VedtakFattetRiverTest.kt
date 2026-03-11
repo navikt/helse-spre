@@ -1,7 +1,6 @@
 package no.nav.helse.spre.forsikringsoppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import java.time.LocalDate
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,31 +13,8 @@ class VedtakFattetRiverTest {
     private val testRapid = TestRapid()
     private val fødselsnummer = "12345678910"
 
-    private class Oppgavedings(
-        val fødselsnummer: String,
-        val oppgaveId: UUID,
-        val årsak: Årsak,
-    )
-
-    private val forsikringsgrunnlagClient = object : ForsikringsgrunnlagClient {
-        var forsikringsgrunnlag: Forsikringsgrunnlag? = null
-        override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag? {
-            return forsikringsgrunnlag
-        }
-    }
-
-    private val oppgaveClient = object : OppgaveoppretterClient {
-        var oppgavedings: Oppgavedings? = null
-            private set
-
-        override fun lagOppgave(duplikatkontrollId: UUID, fødselsnummer: String, årsak: Årsak, skjæringstidspunkt: LocalDate) {
-            oppgavedings = Oppgavedings(
-                fødselsnummer = fødselsnummer,
-                oppgaveId = duplikatkontrollId,
-                årsak = årsak
-            )
-        }
-    }
+    private val forsikringsgrunnlagClient = TestForsikringsgrunnlagClient()
+    private val oppgaveClient = TestOppgaveClient()
 
     init {
         VedtakFattetRiver(testRapid, oppgaveClient, forsikringsgrunnlagClient)
@@ -58,7 +34,7 @@ class VedtakFattetRiverTest {
         testRapid.sendTestMessage(event.trimIndent())
 
         // then
-        val actual = oppgaveClient.oppgavedings
+        val actual = oppgaveClient.oppgaveParams
         assertNotNull(actual)
         assertEquals(Årsak.ForStortAvvikMellomSykepengegrunnlagOgPremiegrunnlag("400000".toBigDecimal(), premiegrunnlag.toBigDecimal(), "66.67".toBigDecimal(2)), actual.årsak)
         assertEquals(fødselsnummer, actual.fødselsnummer)
@@ -77,7 +53,7 @@ class VedtakFattetRiverTest {
         testRapid.sendTestMessage(event.trimIndent())
 
         // then
-        val actual = oppgaveClient.oppgavedings
+        val actual = oppgaveClient.oppgaveParams
         assertNull(actual)
     }
 
@@ -92,7 +68,7 @@ class VedtakFattetRiverTest {
             testRapid.sendTestMessage(event.trimIndent())
         }
 
-        assertNull(oppgaveClient.oppgavedings)
+        assertNull(oppgaveClient.oppgaveParams)
     }
 
     @Language("JSON")

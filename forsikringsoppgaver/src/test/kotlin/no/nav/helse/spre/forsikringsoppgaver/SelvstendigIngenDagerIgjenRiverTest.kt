@@ -1,7 +1,6 @@
 package no.nav.helse.spre.forsikringsoppgaver
 
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import java.time.LocalDate
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,38 +12,8 @@ class SelvstendigIngenDagerIgjenRiverTest {
     private val testRapid = TestRapid()
     private val fødselsnummer = "12345678910"
 
-    private class Oppgavedings(
-        val fødselsnummer: String,
-        val oppgaveId: UUID,
-        val årsak: Årsak
-    )
-
-    private val forsikringsgrunnlagClient =
-        object : ForsikringsgrunnlagClient {
-            var forsikringsgrunnlag: Forsikringsgrunnlag? = null
-
-            override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag? = forsikringsgrunnlag
-        }
-
-    private val oppgaveClient =
-        object : OppgaveoppretterClient {
-            var oppgavedings: Oppgavedings? = null
-                private set
-
-            override fun lagOppgave(
-                duplikatkontrollId: UUID,
-                fødselsnummer: String,
-                årsak: Årsak,
-                skjæringstidspunkt: LocalDate
-            ) {
-                oppgavedings =
-                    Oppgavedings(
-                        fødselsnummer = fødselsnummer,
-                        oppgaveId = duplikatkontrollId,
-                        årsak = årsak
-                    )
-            }
-        }
+    private val forsikringsgrunnlagClient = TestForsikringsgrunnlagClient()
+    private val oppgaveClient = TestOppgaveClient()
 
     init {
         SelvstendigIngenDagerIgjenRiver(testRapid, oppgaveClient, forsikringsgrunnlagClient)
@@ -63,7 +32,7 @@ class SelvstendigIngenDagerIgjenRiverTest {
         testRapid.sendTestMessage(event.trimIndent())
 
         // then
-        val actual = oppgaveClient.oppgavedings
+        val actual = oppgaveClient.oppgaveParams
         assertNotNull(actual)
         assertEquals(Årsak.SykepengerettOpphørtPåGrunnAvMaksdatoAlderEllerDød, actual.årsak)
         assertEquals(fødselsnummer, actual.fødselsnummer)
@@ -78,7 +47,7 @@ class SelvstendigIngenDagerIgjenRiverTest {
         testRapid.sendTestMessage(event.trimIndent())
 
         // then
-        val actual = oppgaveClient.oppgavedings
+        val actual = oppgaveClient.oppgaveParams
         assertNull(actual)
     }
 
