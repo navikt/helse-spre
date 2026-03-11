@@ -71,6 +71,23 @@ class VedtakFattetRiverTest {
         assertNull(oppgaveClient.oppgaveParams)
     }
 
+    @Test
+    fun `Lager ingen oppgave når det ikke er noe premiegrunnlag`() {
+        // given
+        forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
+            dag1Eller17 = 1,
+            dekningsgrad = 80,
+            premiegrunnlag = null
+        )
+
+        // when
+        testRapid.sendTestMessage(event.trimIndent())
+
+        // then
+        val actual = oppgaveClient.oppgaveParams
+        assertNull(actual)
+    }
+
     @Language("JSON")
     private val event = """
             {
