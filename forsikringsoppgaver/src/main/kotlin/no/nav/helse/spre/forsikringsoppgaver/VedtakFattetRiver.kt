@@ -43,12 +43,6 @@ class VedtakFattetRiver(
 
         val duplikatkontrollId = packet["@id"].asUuid()
 
-        val erJordbruker = forsikringsgrunnlag.premiegrunnlag == null
-        if (erJordbruker) {
-            teamLogs.info("Behandlingen er jordbruker. Skal ikke lage oppgave i disse tilfellene.\nForsikringsgrunnlag: ${forsikringsgrunnlag.toJsonString()}")
-            return
-        }
-
         val avviksprosent = beregnAvvik(sykepengegrunnlag, forsikringsgrunnlag.premiegrunnlag.toBigDecimal())
         if (avviksprosent > AKSEPTABELT_AVVIK) {
             teamLogs.info(

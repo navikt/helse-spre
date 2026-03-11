@@ -26,7 +26,7 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
             dag1Eller17 = 1,
             dekningsgrad = 80,
-            premiegrunnlag = null
+            premiegrunnlag = "400000"
         )
 
         // when
@@ -59,7 +59,7 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
             dag1Eller17 = 17,
             dekningsgrad = 80,
-            premiegrunnlag = null
+            premiegrunnlag = "400000"
         )
 
         // when
@@ -75,7 +75,7 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
             dag1Eller17 = 1,
             dekningsgrad = 100,
-            premiegrunnlag = null
+            premiegrunnlag = "400000"
         )
 
         // when
