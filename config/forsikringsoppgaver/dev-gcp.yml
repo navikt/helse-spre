@@ -24,7 +24,7 @@ env:
   - name: GOSYS_SCOPE
     value: "api://dev-fss.oppgavehandtering.oppgave/.default"
   - name: SPISKAMMERSET_BASE_URL
-    value: "http://spiskammerset.tbd.svc.cluster.local"
+    value: "http://spiskammerset"
   - name: SPISKAMMERSET_SCOPE
     value: "api://dev-gcp.tbd.spiskammerset/.default"
   - name: KAFKA_RESET_POLICY
