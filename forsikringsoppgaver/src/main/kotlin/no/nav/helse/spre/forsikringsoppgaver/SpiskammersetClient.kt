@@ -4,7 +4,6 @@ import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import com.github.navikt.tbd_libs.result_object.getOrThrow
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
@@ -17,25 +16,17 @@ class SpiskammersetClient(
 ) : ForsikringsgrunnlagClient {
     override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag? =
         runBlocking {
-            teamLogs.info("Prøver å gå mot spiskammerset")
-            try {
-                val response =
-                    httpClient
-                        .prepareGet("$baseUrl/behandling/${behandlingId.value}/forsikring") {
-                            accept(ContentType.Application.Json)
-                            val bearerToken = tokenClient.bearerToken(spiskammersetScope).getOrThrow()
-                            teamLogs.info("Fått en token, wii hoooo")
-                            bearerAuth(bearerToken.token)
-                        }.execute()
-                when (response.status) {
-                    HttpStatusCode.OK -> response.body<Forsikringsgrunnlag>()
-                    HttpStatusCode.NotFound -> null
-                    else -> error("Feil ved henting av forsikringsgrunnlag for behandling $behandlingId: ${response.status}")
-                }
-            }
-            catch (e: ConnectTimeoutException) {
-                teamLogs.error("Klarte ikke å koble til spiskammerset for behandling $behandlingId. Feilmelding: ${e.message}")
-                throw e
+            val response =
+                httpClient
+                    .prepareGet("$baseUrl/behandling/${behandlingId.value}/forsikring") {
+                        accept(ContentType.Application.Json)
+                        val bearerToken = tokenClient.bearerToken(spiskammersetScope).getOrThrow()
+                        bearerAuth(bearerToken.token)
+                    }.execute()
+            when (response.status) {
+                HttpStatusCode.OK -> response.body<Forsikringsgrunnlag>()
+                HttpStatusCode.NoContent -> null
+                else -> error("Feil ved henting av forsikringsgrunnlag for behandling $behandlingId: ${response.status}")
             }
         }
 }
