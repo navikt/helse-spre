@@ -22,7 +22,7 @@ class VedtakFattetRiverTest {
 
     @Test
     fun `Lager oppgave når vi har for stort avvik`() {
-        // givens
+        // given
         val premiegrunnlag = "200000"
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
             dag1Eller17 = 1,
