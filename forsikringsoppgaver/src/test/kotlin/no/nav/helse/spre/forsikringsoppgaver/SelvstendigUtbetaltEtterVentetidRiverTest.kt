@@ -22,7 +22,7 @@ class SelvstendigUtbetaltEtterVentetidRiverTest {
 
     @Test
     fun `oppretter gosysoppgave`() {
-        // givens
+        // given
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
             dag1Eller17 = 1,
             dekningsgrad = 80,
