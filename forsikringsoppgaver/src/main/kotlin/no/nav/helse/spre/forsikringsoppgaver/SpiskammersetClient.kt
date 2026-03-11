@@ -16,11 +16,13 @@ class SpiskammersetClient(
 ) : ForsikringsgrunnlagClient {
     override fun forsikringsgrunnlag(behandlingId: BehandlingId): Forsikringsgrunnlag? =
         runBlocking {
+            teamLogs.info("Prøver å gå mot spiskammerset")
             val response =
                 httpClient
                     .prepareGet("$baseUrl/behandling/${behandlingId.value}/forsikring") {
                         accept(ContentType.Application.Json)
                         val bearerToken = tokenClient.bearerToken(spiskammersetScope).getOrThrow()
+                        teamLogs.info("Fått en token, wii hoooo")
                         bearerAuth(bearerToken.token)
                     }.execute()
             when (response.status) {
