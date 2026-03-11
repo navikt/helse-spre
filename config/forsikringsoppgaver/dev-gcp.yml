@@ -21,12 +21,12 @@ env:
   - name: KAFKA_MAX_POLL_INTERVAL_MS
     value: "500000"
   - name: GOSYS_BASE_URL
-    value: "https://oppgave.intern.dev.nav.no"
+    value: https://oppgave.intern.dev.nav.no
   - name: GOSYS_SCOPE
-    value: "api://dev-fss.oppgavehandtering.oppgave/.default"
+    value: api://dev-fss.oppgavehandtering.oppgave/.default
   - name: SPISKAMMERSET_BASE_URL
-    value: "http://spiskammerset"
+    value: http://spiskammerset
   - name: SPISKAMMERSET_SCOPE
-    value: "api://dev-gcp.tbd.spiskammerset/.default"
+    value: api://dev-gcp.tbd.spiskammerset/.default
   - name: KAFKA_RESET_POLICY
     value: LATEST
