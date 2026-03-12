@@ -42,7 +42,7 @@ class GosysOppgaveClient(
                             prioritet = Prioritet.NORM,
                             oppgavetype = "VURD_HENV",
                             tema = "FOS",
-                            behandingstype = "ae0221",
+                            behandlingstype = "ae0221",
                             beskrivelse = "Årsak: $årsakTekst. Skjæringstidspunkt: ${skjæringstidspunkt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}."
                         )
                     )
@@ -66,7 +66,7 @@ data class OpprettOppgaveRequest(
     val prioritet: Prioritet,
     val oppgavetype: String,
     val tema: String,
-    val behandingstype: String,
+    val behandlingstype: String,
     val beskrivelse: String,
 )
 

@@ -59,7 +59,7 @@ class GosysOppgaveClientTest {
         assertEquals(Prioritet.NORM, requestBody.prioritet)
         assertEquals("VURD_HENV", requestBody.oppgavetype)
         assertEquals("FOS", requestBody.tema)
-        assertEquals("ae0221", requestBody.behandingstype)
+        assertEquals("ae0221", requestBody.behandlingstype)
         assertEquals(fødselsnummer, requestBody.personident)
         assertEquals("Årsak: Det er utbetalt sykepenger fra dag én og vedkommende har 80% dekningsgrad. Skjæringstidspunkt: 15.01.2024.", requestBody.beskrivelse)
     }
