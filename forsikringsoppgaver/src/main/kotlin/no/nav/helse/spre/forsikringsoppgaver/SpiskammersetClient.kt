@@ -25,7 +25,11 @@ class SpiskammersetClient(
                     }.execute()
             when (response.status) {
                 HttpStatusCode.OK -> response.body<Forsikringsgrunnlag>()
-                HttpStatusCode.NoContent -> null
+                HttpStatusCode.NoContent -> Forsikringsgrunnlag(
+                    dekningsgrad = 80,
+                    dag1Eller17 = 1,
+                    premiegrunnlag = "18000000"
+                )
                 else -> error("Feil ved henting av forsikringsgrunnlag for behandling $behandlingId: ${response.status}")
             }
         }
