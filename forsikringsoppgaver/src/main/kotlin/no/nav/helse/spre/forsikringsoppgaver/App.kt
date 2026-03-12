@@ -1,5 +1,7 @@
 package no.nav.helse.spre.forsikringsoppgaver
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -14,7 +16,10 @@ fun main() {
 
     val httpClient = HttpClient(CIO) {
         install(ContentNegotiation) {
-            jackson()
+            jackson {
+                registerModule(JavaTimeModule())
+                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            }
         }
     }
 
