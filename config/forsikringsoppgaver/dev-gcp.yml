@@ -10,7 +10,7 @@ accessPolicy:
   outbound:
     - application: spiskammerset
   external:
-    - oppgave.intern.dev.nav.no
+    - oppgave.dev-fss-pub.nais.io
 
 env:
   - name: KAFKA_MAX_RECORDS
@@ -18,7 +18,7 @@ env:
   - name: KAFKA_MAX_POLL_INTERVAL_MS
     value: "500000"
   - name: GOSYS_BASE_URL
-    value: https://oppgave.intern.dev.nav.no
+    value: https://oppgave.dev-fss-pub.nais.io
   - name: GOSYS_SCOPE
     value: api://dev-fss.oppgavehandtering.oppgave/.default
   - name: SPISKAMMERSET_BASE_URL
