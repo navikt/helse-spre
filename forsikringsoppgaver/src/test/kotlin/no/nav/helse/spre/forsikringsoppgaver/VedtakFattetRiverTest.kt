@@ -21,7 +21,7 @@ class VedtakFattetRiverTest {
     }
 
     @Test
-    fun `Lager oppgave når vi har for stort avvik`() {
+    fun `Lager oppgave når vi har avvik`() {
         // given
         val premiegrunnlag = "200000"
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
@@ -36,12 +36,12 @@ class VedtakFattetRiverTest {
         // then
         val actual = oppgaveClient.oppgaveParams
         assertNotNull(actual)
-        assertEquals(Årsak.ForStortAvvikMellomSykepengegrunnlagOgPremiegrunnlag("400000".toBigDecimal(), premiegrunnlag.toBigDecimal(), "66.67".toBigDecimal(2)), actual.årsak)
+        assertEquals(Årsak.ForStortAvvikMellomSykepengegrunnlagOgPremiegrunnlag("400000".toBigDecimal(), premiegrunnlag.toBigDecimal(), "50.00".toBigDecimal(2)), actual.årsak)
         assertEquals(fødselsnummer, actual.fødselsnummer)
     }
 
     @Test
-    fun `Lager ingen oppgave når det ikke er for stort avvik`() {
+    fun `Lager ingen oppgave når det ikke er avvik`() {
         // given
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
             dag1Eller17 = 1,

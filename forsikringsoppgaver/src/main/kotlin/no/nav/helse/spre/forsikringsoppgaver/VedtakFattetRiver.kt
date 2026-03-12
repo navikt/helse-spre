@@ -16,9 +16,6 @@ class VedtakFattetRiver(
     private val oppgaveClient: OppgaveoppretterClient,
     private val forsikringsgrunnlagClient: ForsikringsgrunnlagClient
 ) : River.PacketListener {
-    companion object {
-        private val AKSEPTABELT_AVVIK = BigDecimal("30")
-    }
     init {
         River(rapidsConnection).apply {
             precondition {
@@ -40,13 +37,14 @@ class VedtakFattetRiver(
         val forsikringsgrunnlag = forsikringsgrunnlagClient
             .forsikringsgrunnlag(behandlingId)
             ?: error("Fant ikke forsikringsgrunnlag for $behandlingId")
+        val premiegrunnlag = forsikringsgrunnlag.premiegrunnlag.toBigDecimal()
 
         val duplikatkontrollId = packet["@id"].asUuid()
 
-        val avviksprosent = beregnAvvik(sykepengegrunnlag, forsikringsgrunnlag.premiegrunnlag.toBigDecimal())
-        if (avviksprosent > AKSEPTABELT_AVVIK) {
+        if (sykepengegrunnlag != premiegrunnlag) {
+            val avviksprosent = beregnAvvik(sykepengegrunnlag, premiegrunnlag)
             teamLogs.info(
-                """Avviket mellom sykepengegrunnlaget og premiegrunnlaget er større enn $AKSEPTABELT_AVVIK %. Oppretter oppgave.
+                """Avvik mellom sykepengegrunnlag og premiegrunnlag. Oppretter oppgave.
                    Sykepengegrunnlag: ${sykepengegrunnlag.setScale(2)}
                    Premiegrunnlag: ${forsikringsgrunnlag.premiegrunnlag}
                    Avviksprosent: ${avviksprosent.setScale(2)}
@@ -56,15 +54,14 @@ class VedtakFattetRiver(
             oppgaveClient.lagOppgave(
                 duplikatkontrollId,
                 fødselsnummer,
-                Årsak.ForStortAvvikMellomSykepengegrunnlagOgPremiegrunnlag(sykepengegrunnlag, forsikringsgrunnlag.premiegrunnlag.toBigDecimal(), avviksprosent),
+                Årsak.ForStortAvvikMellomSykepengegrunnlagOgPremiegrunnlag(sykepengegrunnlag, premiegrunnlag, avviksprosent),
                 skjæringstidspunkt
             )
         } else {
             teamLogs.info(
-                """Avviket mellom sykepengegrunnlaget og premiegrunnlaget er mindre enn eller likt $AKSEPTABELT_AVVIK %. Oppretter ikke oppgave.
+                """Ikke avvik mellom sykepengegrunnlag og premiegrunnlag. Oppretter ikke oppgave.
                    Sykepengegrunnlag: ${sykepengegrunnlag.setScale(2)}
                    Premiegrunnlag: ${forsikringsgrunnlag.premiegrunnlag}
-                   Avviksprosent: ${avviksprosent.setScale(2)}
                    Forsikringsgrunnlag: ${forsikringsgrunnlag.toJsonString()}
                 """.trimIndent()
             )

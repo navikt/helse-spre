@@ -12,18 +12,17 @@ fun String.toBigDecimal(scale: Int = 10): BigDecimal {
 }
 
 /**
- * Beregner prosentvis avvik mellom sykepengegrunnlag og premiegrunnlag og returnerer true hvis avviket er større enn det akseptable avviket.
+ * Beregner og returnerer prosentvis avvik mellom sykepengegrunnlag og premiegrunnlag.
  *
  * @param sykepengegrunnlag Det beregnede sykepengegrunnlaget.
  * @param premiegrunnlag Det registrerte premiegrunnlaget.
- * @return true hvis avviket er større enn det akseptable avviket, ellers false.
+ * @return prosent avvik mellom sykepengegrunnlaget og premiegrunnlaget
  *
- * Formel: Avvik (%) = (|sykepengegrunnlag - premiegrunnlag|) / ((sykepengegrunnlag + premiegrunnlag) / 2) * 100
+ * Formel: Avvik (%) = ((Fastsatt sykepengegrunnlag - fastsatt premiegrunnlag) / fastsatt sykepengegrunnlag) * 100
  */
 
 fun beregnAvvik(sykepengegrunnlag: BigDecimal, premiegrunnlag: BigDecimal): BigDecimal {
     val differansen = (sykepengegrunnlag.subtract(premiegrunnlag)).abs()
-    val gjennomsnittet = (sykepengegrunnlag.add(premiegrunnlag)).divide(BigDecimal("2"), RoundingMode.HALF_UP)
-    return differansen.divide(gjennomsnittet, RoundingMode.HALF_UP).multiply(BigDecimal("100")).setScale(2, RoundingMode.HALF_UP)
+    return differansen.divide(sykepengegrunnlag, RoundingMode.HALF_UP).multiply(BigDecimal("100")).setScale(2, RoundingMode.HALF_UP)
 }
 
