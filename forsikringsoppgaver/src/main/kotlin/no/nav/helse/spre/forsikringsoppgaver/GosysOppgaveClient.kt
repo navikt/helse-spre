@@ -71,4 +71,7 @@ data class OpprettOppgaveRequest(
 )
 
 @Serializable
-enum class Prioritet { HOY, NORM, LAV }
+enum class Prioritet {
+    @Suppress("unused") HOY,
+    NORM,
+    @Suppress("unused") LAV }
