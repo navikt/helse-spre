@@ -29,6 +29,7 @@ class GosysOppgaveClient(
         }
         runBlocking {
             retry {
+                teamLogs.info("Forsøker å opprette oppgave i Gosys.")
                 val response = httpClient.preparePost("$baseUrl/api/v1/oppgaver") {
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Application.Json)
@@ -53,6 +54,8 @@ class GosysOppgaveClient(
                     teamLogs.error("Vi fikk status code ${response.status} tilbake med følgende respons: ${response.bodyAsText()}.")
                     throw IllegalStateException("Feil ved forsøk på å opprette oppgave")
                 }
+
+                teamLogs.info("Har opprettet oppgave i Gosys med responsKode: ${response.status}")
             }
         }
     }
