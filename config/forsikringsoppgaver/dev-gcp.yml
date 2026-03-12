@@ -10,7 +10,7 @@ accessPolicy:
   outbound:
     - application: spiskammerset
   external:
-    - "oppgave.intern.dev.nav.no"
+    - oppgave.intern.dev.nav.no
 
 env:
   - name: KAFKA_MAX_RECORDS

@@ -21,7 +21,7 @@ class SelvstendigIngenDagerIgjenRiverTest {
 
     @Test
     fun `oppretter gosysoppgave`() {
-        // given
+        // givens
         forsikringsgrunnlagClient.forsikringsgrunnlag = Forsikringsgrunnlag(
             premiegrunnlag = "1000",
             dag1Eller17 = 1,
