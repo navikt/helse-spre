@@ -28,7 +28,7 @@ fun main() {
     )
     // Noen ganger kommer det av ukjente årsaker vedtak_fattet _uten_ tags.
     // Dette løses ved å ta meldingen som mangler tags i en scratchfil og legge til de riktige tagsene (ved f.eks. å spore opp utkast_til_vedtak og finne tags der)
-    // Når det er 🦌 kan du kjøre denne funksjonen.
+    // Når det er 🦌 kan du kjøre denne funksjonen
     // KOMMENTER MEG UT OM DU IKKE SKAL HÅNDETER EN VEDTAK_FATTET
     manuell.håndterVedtakFattet(
         path = "<path-til-json-meldingen-appen-ikke-har-håndtert-f-eks-absolute-path-til-scratchfil>"
