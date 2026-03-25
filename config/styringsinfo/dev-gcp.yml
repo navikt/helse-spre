@@ -5,8 +5,8 @@ replicas:
 kafkaPool: nav-dev
 kafkaConsumerGroup: tbd-spre-styringsinfo-v3
 kafkaResetPolicy: earliest
-livenessInitialDelay: 30
-readinessInitialDelay: 30
+livenessInitialDelay: 60
+readinessInitialDelay: 60
 app:
   leaderElection: true
 gcp:
