@@ -111,7 +111,7 @@ spec:
         {{/if}}
 
         {{#if gcp.cascadeDelete}}
-        cascadeDelete: {{ gcp.cascadeDelete }}
+        cascadingDelete: {{ gcp.cascadingDelete }}
         {{/if}}
   {{/if}}
   prometheus:
