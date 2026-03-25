@@ -109,6 +109,10 @@ spec:
           - name: cloudsql.logical_decoding
             value: "on"
         {{/if}}
+
+        {{#if gcp.cascadeDelete}}
+        cascadeDelete: {{ gcp.cascadeDelete }}
+        {{/if}}
   {{/if}}
   prometheus:
     enabled: true

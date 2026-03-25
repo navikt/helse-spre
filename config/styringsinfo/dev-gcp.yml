@@ -15,6 +15,7 @@ gcp:
   envVarPrefix: DATABASE
   datastream: true
   sqlInstanceTier: db-f1-micro
+  cascadeDelete: true
 azure:
   enabled: true
   tenant: trygdeetaten.no
