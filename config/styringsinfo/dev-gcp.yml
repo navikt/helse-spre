@@ -9,7 +9,12 @@ livenessInitialDelay: 30
 readinessInitialDelay: 30
 app:
   leaderElection: true
-
+gcp:
+  type: POSTGRES_17
+  databaseName: spre-styringsinfo
+  envVarPrefix: DATABASE
+  datastream: true
+  sqlInstanceTier: db-f1-micro
 azure:
   enabled: true
   tenant: trygdeetaten.no
