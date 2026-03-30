@@ -30,7 +30,10 @@ internal class DataSourceBuilder(env: Map<String, String>) {
         initializationFailTimeout = Duration.ofMinutes(1).toMillis()
         connectionTimeout = Duration.ofSeconds(5).toMillis()
         leakDetectionThreshold = Duration.ofSeconds(10).toMillis()
-        addDataSourceProperty("sslmode", "disable") // Cloud SQL Auth Proxy handles SSL
+        // Direct private-IP connection to Cloud SQL — SSL required by pg_hba.conf.
+        // NonValidatingFactory uses SSL (encrypted) without PKIX chain validation,
+        // equivalent to psql sslmode=require on a private VPC connection.
+        addDataSourceProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory")
         metricRegistry = PrometheusMeterRegistry(
             PrometheusConfig.DEFAULT,
             PrometheusRegistry.defaultRegistry,
@@ -46,7 +49,7 @@ internal class DataSourceBuilder(env: Map<String, String>) {
         connectionTimeout = Duration.ofSeconds(30).toMillis()
         maximumPoolSize = 4
         minimumIdle = 2
-        addDataSourceProperty("sslmode", "disable") // Cloud SQL Auth Proxy handles SSL
+        addDataSourceProperty("sslfactory", "org.postgresql.ssl.NonValidatingFactory")
     }
 
     private fun runMigration(dataSource: DataSource) =
