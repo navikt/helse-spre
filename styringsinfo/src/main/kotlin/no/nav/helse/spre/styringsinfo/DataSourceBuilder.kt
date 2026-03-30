@@ -11,10 +11,13 @@ import javax.sql.DataSource
 import org.flywaydb.core.Flyway
 
 internal class DataSourceBuilder(env: Map<String, String>) {
+    private val databaseHost: String = requireNotNull(env["DATABASE_HOST"]) { "host må settes" }
+    private val databasePort: String = requireNotNull(env["DATABASE_PORT"]) { "port må settes" }
+    private val databaseName: String = requireNotNull(env["DATABASE_DATABASE"]) { "databasenavn må settes" }
     private val databaseUsername: String = requireNotNull(env["DATABASE_USERNAME"]) { "brukernavn må settes" }
     private val databasePassword: String = requireNotNull(env["DATABASE_PASSWORD"]) { "passord må settes" }
 
-    private val dbUrl: String = requireNotNull(env["DATABASE_JDBC_URL"]) { "jdbc url må settes" }
+    private val dbUrl = "jdbc:postgresql://$databaseHost:$databasePort/$databaseName"
 
     private val hikariConfig = HikariConfig().apply {
         jdbcUrl = dbUrl
