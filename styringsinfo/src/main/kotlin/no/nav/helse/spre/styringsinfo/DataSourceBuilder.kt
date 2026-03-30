@@ -27,6 +27,7 @@ internal class DataSourceBuilder(env: Map<String, String>) {
         initializationFailTimeout = Duration.ofMinutes(1).toMillis()
         connectionTimeout = Duration.ofSeconds(5).toMillis()
         leakDetectionThreshold = Duration.ofSeconds(10).toMillis()
+        addDataSourceProperty("sslmode", "disable") // Cloud SQL Auth Proxy handles SSL
         metricRegistry = PrometheusMeterRegistry(
             PrometheusConfig.DEFAULT,
             PrometheusRegistry.defaultRegistry,
@@ -42,6 +43,7 @@ internal class DataSourceBuilder(env: Map<String, String>) {
         connectionTimeout = Duration.ofSeconds(30).toMillis()
         maximumPoolSize = 4
         minimumIdle = 2
+        addDataSourceProperty("sslmode", "disable") // Cloud SQL Auth Proxy handles SSL
     }
 
     private fun runMigration(dataSource: DataSource) =
