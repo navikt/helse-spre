@@ -21,13 +21,16 @@ buildscript {
 
 val mapper = ObjectMapper()
 
+val dedicatedWorkflowProjects = setOf("forsikringsoppgaver")
+
 fun getBuildableProjects(): List<Project> {
     val changedFiles = System.getenv("CHANGED_FILES")?.split(",") ?: emptyList()
     val commonChanges = changedFiles.any {
         it.startsWith("felles/") || it.contains("config/nais.yml") || it.startsWith("build.gradle.kts") || it == ".github/workflows/build.yml" || it == "Dockerfile"
     }
-    if (changedFiles.isEmpty() || commonChanges) return subprojects.toList()
-    return subprojects.filter { project -> changedFiles.any { path -> path.split("/").firstOrNull() == project.name } }
+    val candidates = subprojects.filter { it.name !in dedicatedWorkflowProjects }
+    if (changedFiles.isEmpty() || commonChanges) return candidates
+    return candidates.filter { project -> changedFiles.any { path -> path.split("/").firstOrNull() == project.name } }
 }
 
 fun getDeployableProjects() = getBuildableProjects()
