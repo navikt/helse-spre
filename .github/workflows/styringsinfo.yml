@@ -1,0 +1,91 @@
+name: Build and deploy styringsinfo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/styringsinfo.yml
+      - styringsinfo/**
+      - felles/**
+      - config/styringsinfo/**
+      - config/nais.yml
+      - Dockerfile
+      - build.gradle.kts
+      - settings.gradle.kts
+      - gradle.properties
+      - gradle/**
+  schedule:
+    - cron: '5 9 * * 3'
+      timezone: 'Europe/Oslo'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      id-token: write
+    name: build
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: cache gradle wrapper
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+      - name: cache gradle caches
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/build.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-caches-
+      - name: test and build
+        run: ./gradlew styringsinfo:build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: build docker image
+        uses: nais/docker-build-push@v0
+        id: docker-build-push
+        with:
+          team: tbd
+          image_suffix: styringsinfo
+          dockerfile: Dockerfile
+          docker_context: styringsinfo
+    outputs:
+      image: ${{ steps.docker-build-push.outputs.image }}
+
+  deploy-dev:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: dev-gcp
+          RESOURCE: config/nais.yml
+          VAR: app=styringsinfo
+          VARS: config/styringsinfo/dev-gcp.yml
+          IMAGE: ${{ needs.build.outputs.image }}
+
+  deploy-prod:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: config/nais.yml
+          VAR: app=styringsinfo
+          VARS: config/styringsinfo/prod-gcp.yml
+          IMAGE: ${{ needs.build.outputs.image }}
