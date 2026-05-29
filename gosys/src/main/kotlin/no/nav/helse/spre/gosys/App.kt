@@ -63,7 +63,7 @@ fun launchApplication(
         install(HttpTimeout) { requestTimeoutMillis = 10000 }
     }
     val joarkClient = JoarkClient(environment.getValue("JOARK_BASE_URL"), azureClient, environment.getValue("JOARK_SCOPE"), httpClient)
-    val pdfClient = PdfClient(httpClient, "http://spre-gosys-pdf")
+    val pdfClient = PdfClient(httpClient, "http://sprinter")
     val eregClient = EregClient(environment.getValue("EREG_BASE_URL"), httpClient)
     val speedClient = SpeedClient(
         httpClient = java.net.http.HttpClient.newHttpClient(),

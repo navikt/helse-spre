@@ -14,7 +14,6 @@ gcp:
 accessPolicy:
   outbound:
     - application: speed-api
-    - application: spre-gosys-pdf
     - application: sprinter
   external:
     - dokarkiv.prod-fss-pub.nais.io
