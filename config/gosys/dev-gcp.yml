@@ -17,6 +17,7 @@ accessPolicy:
   outbound:
     - application: speed-api
     - application: spre-gosys-pdf
+    - application: sprinter
   external:
     - dokarkiv-q2.dev-fss-pub.nais.io
     - ereg-services.dev-fss-pub.nais.io
