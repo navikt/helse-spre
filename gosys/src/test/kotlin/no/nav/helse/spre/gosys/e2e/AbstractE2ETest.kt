@@ -230,7 +230,7 @@ internal abstract class AbstractE2ETest {
                 skjønnsfastsatt = 565260.0
             )
         ),
-        begrunnelser: Map<String, String>? = mapOf("innvilgelse" to ""),
+        begrunnelser: Map<String, String>? = mapOf("innvilgelse" to "En begrunnelse med '"),
         vedtakFattetTidspunkt: LocalDateTime = AbstractE2ETest.vedtakFattetTidspunkt,
     ) =
         VedtakPdfPayload(
@@ -416,7 +416,7 @@ internal abstract class AbstractE2ETest {
     "begrunnelser": [
         {
             "type": "Innvilgelse",
-            "begrunnelse": "",
+            "begrunnelse": "En begrunnelse med \u0092",
             "perioder": [
                 {
                     "fom": "2023-11-13",

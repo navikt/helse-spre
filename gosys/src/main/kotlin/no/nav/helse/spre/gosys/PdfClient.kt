@@ -38,10 +38,11 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
         produserPdfBytes(url, input).let(encoder::encodeToString)
 
     private suspend fun produserPdfBytes(url: String, input: Any): ByteArray {
-        if (erUtvikling) sikkerLogg.info("Payload til PDF-generering: ${objectMapper.writeValueAsString(input)}")
+        val body = objectMapper.writeValueAsString(input).replace("\u0092", "'")
+        if (erUtvikling) sikkerLogg.info("Payload til PDF-generering: $body")
         return httpClient.preparePost(url) {
             contentType(Json)
-            setBody(input)
+            setBody(body)
             expectSuccess = true
         }.executeRetry { response ->
             response.body<ByteArray?>()?.takeUnless { it.isEmpty() } ?: error("Fikk tom pdf")
