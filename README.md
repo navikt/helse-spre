@@ -1,17 +1,23 @@
-# Spre [![Build](https://github.com/navikt/helse-spre/actions/workflows/build.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/build.yml)
+# Spre
+[![Build forsikringsoppgaver](https://github.com/navikt/helse-spre/actions/workflows/forsikringsoppgaver.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/forsikringsoppgaver.yml)
+[![Build gosys](https://github.com/navikt/helse-spre/actions/workflows/gosys.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/gosys.yml)
+[![Build oppgaver](https://github.com/navikt/helse-spre/actions/workflows/oppgaver.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/oppgaver.yml)
+[![Build styringsinfo](https://github.com/navikt/helse-spre/actions/workflows/styringsinfo.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/styringsinfo.yml)
+[![Build subsumsjon](https://github.com/navikt/helse-spre/actions/workflows/subsumsjon.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/subsumsjon.yml)
+[![Build sykmeldt](https://github.com/navikt/helse-spre/actions/workflows/sykmeldt.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/sykmeldt.yml)
 
-## Legge til en ny gradlemodul
+## Legge til en ny gradle-modul
 
-1. Lag en mappe og sørg for at det finnes en `build.gradle.kts` der
+Lag en mappe og sørg for at det finnes en `build.gradle.kts` der.
 
 ## Legge til ny app
 
-Alle gradlemodulene bygges og releases automatisk. Ved hver pakke som blir lastet opp trigges en deployment workflow for
+Alle gradle-modulene bygges og releases automatisk. Ved hver pakke som blir lastet opp trigges en deployment workflow for
 den pakken.
 
 Navnet på appen prefikses med `spre-` i nais.yml, slik at navnet på modulen skal være uten.
 
-1. Gjør 'Legge til en ny gradlemodul'. Mappenavnet korresponderer med appnavnet
+1. Gjør 'Legge til en ny gradle-modul'. Mappenavnet korresponderer med appnavnet
 2. Lag `config/[app]/[cluster].yml` for de klustrene appen skal deployes til.
 3. Lag en minimal `App.kt` så appen kan starte opp.
 4. Push endringene
