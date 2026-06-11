@@ -40,13 +40,20 @@ class PdfClient(private val httpClient: HttpClient, private val baseUrl: String)
     private suspend fun produserPdfBytes(url: String, input: Any): ByteArray {
         val body = objectMapper.writeValueAsString(input).replace("\u0092", "'")
         if (erUtvikling) sikkerLogg.info("Payload til PDF-generering: $body")
-        return httpClient.preparePost(url) {
-            contentType(Json)
-            setBody(body)
-            expectSuccess = true
-        }.executeRetry { response ->
-            response.body<ByteArray?>()?.takeUnless { it.isEmpty() } ?: error("Fikk tom pdf")
+        return runCatching {
+            httpClient.preparePost(url) {
+                contentType(Json)
+                setBody(body)
+                expectSuccess = true
+            }.executeRetry { response ->
+                response.body<ByteArray?>()?.takeUnless { it.isEmpty() } ?: error("Fikk tom pdf")
+            }
         }
+            .onFailure {
+                sikkerLogg.info("Payload som ble brukt til å generere PDF: $body")
+                sikkerLogg.error("Feil ved generering av PDF for url=$url", it)
+            }
+            .getOrThrow()
     }
 }
 
