@@ -23,13 +23,25 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
     companion object {
         private const val dollar = '$'
 
-        internal fun JsonNode.enhet(gyldigPåDato: LocalDate): String? {
+        internal fun JsonNode.tilknytning(gyldigPåDato: LocalDate) : Tilknytning =
+            orgTilknytning(gyldigPåDato)?.let {
+                FunnetTilknytning(
+                    enhet = it.enhet,
+                    avdeling = it.avdeling,
+                )
+            } ?: ManglendeTilknytning
+
+        internal fun JsonNode.enhet(gyldigPåDato: LocalDate) : String? =
+            orgTilknytning(gyldigPåDato)?.enhet
+
+        private fun JsonNode.orgTilknytning(gyldigPåDato: LocalDate): OrgTilknytning? {
             val tilknytninger = this["data"]["ressurs"]["orgTilknytning"].map {
-                Tilknytning(
+                OrgTilknytning(
                     gyldigFom = it["gyldigFom"].asLocalDate(),
                     gyldigTom = it["gyldigTom"].asOptionalLocalDate(),
                     orgEnhetsType = it["orgEnhet"]["orgEnhetsType"].asText(),
-                    enhet = it["orgEnhet"]["remedyEnhetId"].asText()
+                    enhet = it["orgEnhet"]["remedyEnhetId"].asText(),
+                    avdeling = it["orgEnhet"]["id"].asText(),
                 )
             }
             return tilknytninger
@@ -39,14 +51,15 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
                         "NAV_ARBEID_OG_YTELSER" -> -1
                         else -> 0
                     }
-                }.firstOrNull()?.enhet
+                }.firstOrNull()
         }
 
-        private data class Tilknytning(
+        private data class OrgTilknytning(
             val gyldigFom: LocalDate,
             val gyldigTom: LocalDate?,
             val orgEnhetsType: String,
-            val enhet: String
+            val enhet: String,
+            val avdeling: String,
         )
     }
     internal fun hentEnhet(ident: String, gyldigPåDato: LocalDate, hendelseId: String): Enhet {

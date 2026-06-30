@@ -6,6 +6,7 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.NavOrganisasjonsmasterClient.Companion.tilknytning
 
 class NavOrganisasjonsmasterClientTest {
 
@@ -14,6 +15,8 @@ class NavOrganisasjonsmasterClientTest {
         val dato = LocalDate.of(2024, 1, 1)
         val actual = objectMapper.readTree(personMedEnEnhet).enhet(dato)
         assertEquals("6650", actual)
+        val actualTilknytning = objectMapper.readTree(personMedEnEnhet).tilknytning(dato)
+        assertEquals(FunnetTilknytning(enhet = "6650", avdeling = "ab666b"), actualTilknytning)
     }
 
     @Test
@@ -21,12 +24,17 @@ class NavOrganisasjonsmasterClientTest {
         val dato = LocalDate.of(2024, 1, 1)
         val actual = objectMapper.readTree(personUtenEnhet).enhet(dato)
         assertEquals(null, actual)
+        val actualTilknytning = objectMapper.readTree(personUtenEnhet).tilknytning(dato)
+        assertEquals(ManglendeTilknytning, actualTilknytning)
     }
+
     @Test
     fun `person uten enhet på dato`() {
         val dato = LocalDate.of(2019, 1, 1)
         val actual = objectMapper.readTree(personMedEnEnhet).enhet(dato)
         assertEquals(null, actual)
+        val actualTilknytning = objectMapper.readTree(personMedEnEnhet).tilknytning(dato)
+        assertEquals(ManglendeTilknytning, actualTilknytning)
     }
 
     @Test
@@ -34,6 +42,8 @@ class NavOrganisasjonsmasterClientTest {
         val dato = LocalDate.of(2024, 1, 1)
         val actual = objectMapper.readTree(personMedFlereEnheter).enhet(dato)
         assertEquals("4200", actual)
+        val actualTilknytning = objectMapper.readTree(personMedFlereEnheter).tilknytning(dato)
+        assertEquals(FunnetTilknytning(enhet = "4200", avdeling = "ab666b"), actualTilknytning)
     }
 
     @Test
@@ -41,6 +51,8 @@ class NavOrganisasjonsmasterClientTest {
         val dato = LocalDate.of(2020, 10, 26)
         val actual = objectMapper.readTree(personMedEnEnhet).enhet(dato)
         assertEquals("1350", actual)
+        val actualTilknytning = objectMapper.readTree(personMedEnEnhet).tilknytning(dato)
+        assertEquals(FunnetTilknytning(enhet = "1350", avdeling = "ab666a"), actualTilknytning)
     }
 
     @Test
@@ -48,6 +60,8 @@ class NavOrganisasjonsmasterClientTest {
         val dato = LocalDate.of(2022, 11, 27)
         val actual = objectMapper.readTree(personMedEnEnhet).enhet(dato)
         assertEquals("1350", actual)
+        val actualTilknytning = objectMapper.readTree(personMedEnEnhet).tilknytning(dato)
+        assertEquals(FunnetTilknytning(enhet = "1350", avdeling = "ab666a"), actualTilknytning)
     }
 
 
@@ -72,7 +86,7 @@ class NavOrganisasjonsmasterClientTest {
                   "gyldigFom": "2022-11-28",
                   "gyldigTom": null,
                   "orgEnhet": {
-                    "id": "ab666a",
+                    "id": "ab666b",
                     "navn": "OI utvikling 2",
                     "remedyEnhetId": "6650",
                     "orgEnhetsType": "DIREKTORAT"
@@ -106,7 +120,7 @@ class NavOrganisasjonsmasterClientTest {
                   "gyldigFom": "2022-11-28",
                   "gyldigTom": null,
                   "orgEnhet": {
-                    "id": "ab666a",
+                    "id": "ab666b",
                     "navn": "OI utvikling 2",
                     "remedyEnhetId": "4200",
                     "orgEnhetsType": "NAV_ARBEID_OG_YTELSER"
