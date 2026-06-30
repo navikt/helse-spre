@@ -13,6 +13,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import java.math.BigDecimal
@@ -27,6 +28,7 @@ import no.nav.helse.spre.gosys.EregClient
 import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.PdfClient
+import no.nav.helse.spre.gosys.SpForsikringClient
 import no.nav.helse.spre.gosys.annullering.PlanlagtAnnulleringDao
 import no.nav.helse.spre.gosys.databaseContainer
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.UTBETALING
@@ -81,6 +83,9 @@ internal abstract class AbstractE2ETest {
     }
     protected val joarkClient = JoarkClient("https://url.no", azureMock, "JOARK_SCOPE", mockClient)
     protected val eregClient = EregClient("https://url.no", mockClient)
+    protected val spForsikringClient: SpForsikringClient = mockk {
+        coEvery { hentDekning(any()) } returns null
+    }
     protected val speedClient = mockk<SpeedClient> {
         every { hentPersoninfo(any(), any()) } returns PersonResponse(
             fødselsdato = LocalDate.now(),
@@ -118,6 +123,7 @@ internal abstract class AbstractE2ETest {
             pdfClient = pdfClient,
             joarkClient = joarkClient,
             eregClient = eregClient,
+            spForsikringClient = spForsikringClient,
             speedClient = speedClient,
             sessionFactory = sessionFactory
         )
@@ -301,7 +307,8 @@ internal abstract class AbstractE2ETest {
                 årstall = 2022,
                 beløp = BigDecimal("600000")
             )
-        )
+        ),
+        dekning: Dekning = Dekning(dekningsgrad = 80, gjelderFraDag = 17),
     ) =
         SNVedtakPdfPayload(
             fødselsnummer = "12345678910",
@@ -327,10 +334,7 @@ internal abstract class AbstractE2ETest {
             beregningsgrunnlag = beregningsgrunnlag,
             vedtakFattetTidspunkt = vedtakFattetTidspunkt,
             pensjonsgivendeInntekter = pensjonsgivendeInntekter,
-            dekning = Dekning(
-                dekningsgrad = 80,
-                gjelderFraDag = 17,
-            ),
+            dekning = dekning,
         )
 
     protected fun expectedJournalpost(
@@ -455,6 +459,7 @@ internal abstract class AbstractE2ETest {
         fom: LocalDate = 1.januar,
         tom: LocalDate = 31.januar,
         vedtakFattetTidspunkt: LocalDateTime,
+        forsikringsvurderingId: UUID? = UUID.randomUUID(),
     ) = """{
     "@id": "$hendelseId",
     "vedtaksperiodeId": "$vedtaksperiodeId",
@@ -523,10 +528,7 @@ internal abstract class AbstractE2ETest {
         ]
       }
     },
-    "dekning": {
-      "dekningsgrad": 80,
-      "gjelderFraDag": 17
-    }
+    "forsikringsvurderingId": ${forsikringsvurderingId?.let { "\"$it\"" } ?: ""}
 }"""
 
     @Language("json")
@@ -719,6 +721,7 @@ internal abstract class AbstractE2ETest {
         fødselsnummer: String = "12345678910",
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         vedtakFattetTidspunkt: LocalDateTime = AbstractE2ETest.vedtakFattetTidspunkt,
+        forsikringsvurderingId: UUID? = UUID.randomUUID(),
     ) {
         require(sykdomstidslinje.isNotEmpty()) { "Sykdomstidslinjen kan ikke være tom!" }
         testRapid.sendTestMessage(
@@ -729,7 +732,8 @@ internal abstract class AbstractE2ETest {
                 vedtaksperiodeId = vedtaksperiodeId,
                 fom = sykdomstidslinje.first().dato,
                 tom = sykdomstidslinje.last().dato,
-                vedtakFattetTidspunkt = vedtakFattetTidspunkt
+                vedtakFattetTidspunkt = vedtakFattetTidspunkt,
+                forsikringsvurderingId = forsikringsvurderingId,
             )
         )
     }

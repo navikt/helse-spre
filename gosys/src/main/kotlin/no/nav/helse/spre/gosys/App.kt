@@ -65,6 +65,12 @@ fun launchApplication(
     val joarkClient = JoarkClient(environment.getValue("JOARK_BASE_URL"), azureClient, environment.getValue("JOARK_SCOPE"), httpClient)
     val pdfClient = PdfClient(httpClient, "http://sprinter")
     val eregClient = EregClient(environment.getValue("EREG_BASE_URL"), httpClient)
+    val spForsikringClient = SpForsikringClient(
+        baseUrl = environment.getValue("SP_FORSIKRING_BASE_URL"),
+        azureClient = azureClient,
+        scope = environment.getValue("SP_FORSIKRING_SCOPE"),
+        httpClient = httpClient,
+    )
     val speedClient = SpeedClient(
         httpClient = java.net.http.HttpClient.newHttpClient(),
         objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()),
@@ -107,6 +113,7 @@ fun launchApplication(
                 pdfClient = pdfClient,
                 joarkClient = joarkClient,
                 eregClient = eregClient,
+                spForsikringClient = spForsikringClient,
                 speedClient = speedClient,
                 sessionFactory = sessionFactory
             )
@@ -122,6 +129,7 @@ internal fun RapidsConnection.settOppRivers(
     pdfClient: PdfClient,
     joarkClient: JoarkClient,
     eregClient: EregClient,
+    spForsikringClient: SpForsikringClient,
     speedClient: SpeedClient,
     sessionFactory: SessionFactory
 ) {
@@ -134,7 +142,8 @@ internal fun RapidsConnection.settOppRivers(
         pdfProduserer = PdfProduserer(
             pdfClient = pdfClient,
             eregClient = eregClient,
-            speedClient = speedClient
+            speedClient = speedClient,
+            spForsikringClient = spForsikringClient,
         ),
         pdfJournalfører = PdfJournalfører(
             joarkClient = joarkClient
@@ -148,7 +157,8 @@ internal fun RapidsConnection.settOppRivers(
         pdfProduserer = PdfProduserer(
             pdfClient = pdfClient,
             eregClient = eregClient,
-            speedClient = speedClient
+            speedClient = speedClient,
+            spForsikringClient = spForsikringClient,
         ),
         pdfJournalfører = PdfJournalfører(
             joarkClient = joarkClient

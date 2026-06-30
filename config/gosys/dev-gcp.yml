@@ -17,6 +17,7 @@ accessPolicy:
   outbound:
     - application: speed-api
     - application: sprinter
+    - application: sp-forsikring
   external:
     - dokarkiv-q2.dev-fss-pub.nais.io
     - ereg-services.dev-fss-pub.nais.io
@@ -31,3 +32,7 @@ env:
     value: api://dev-fss.teamdokumenthandtering.dokarkiv/.default
   - name: EREG_BASE_URL
     value: https://ereg-services.dev-fss-pub.nais.io
+  - name: SP_FORSIKRING_BASE_URL
+    value: http://sp-forsikring
+  - name: SP_FORSIKRING_SCOPE
+    value: api://dev-gcp.tbd.sp-forsikring/.default

@@ -11,6 +11,7 @@ import java.util.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.EregClient
 import no.nav.helse.spre.gosys.PdfClient
+import no.nav.helse.spre.gosys.SpForsikringClient
 import no.nav.helse.spre.gosys.finnOrganisasjonsnavn
 import no.nav.helse.spre.gosys.hentNavn
 import no.nav.helse.spre.gosys.logg
@@ -29,7 +30,8 @@ import no.nav.helse.spre.gosys.vedtakFattet.Skjønnsfastsettingårsak
 class PdfProduserer(
     private val pdfClient: PdfClient,
     private val eregClient: EregClient,
-    private val speedClient: SpeedClient
+    private val speedClient: SpeedClient,
+    private val spForsikringClient: SpForsikringClient,
 ) {
     fun lagPdf(
         meldingOmVedtakJson: JsonNode,
@@ -49,6 +51,11 @@ class PdfProduserer(
                         søknadsperiodeFom = søknadsperiodeFom,
                         søknadsperiodeTom = søknadsperiodeTom,
                         navn = søkernavn,
+                        dekning = meldingOmVedtakJson["forsikringsvurderingId"]
+                            ?.takeUnless { it.isMissingOrNull() }
+                            ?.let { UUID.fromString(it.asText()) }
+                            ?.let { spForsikringClient.hentDekning(it) }
+                            ?: Dekning(dekningsgrad = 80, gjelderFraDag = 17),
                     )
                 )
             }
@@ -138,6 +145,7 @@ class PdfProduserer(
         søknadsperiodeFom: LocalDate,
         søknadsperiodeTom: LocalDate,
         navn: String,
+        dekning: Dekning,
     ): SNVedtakPdfPayload = SNVedtakPdfPayload(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
@@ -167,7 +175,7 @@ class PdfProduserer(
         },
         begrunnelser = meldingOmVedtakJson.toBegrunnelser(),
         vedtakFattetTidspunkt = meldingOmVedtakJson["vedtakFattetTidspunkt"].asLocalDateTime(),
-        dekning = meldingOmVedtakJson["dekning"].toDekning()
+        dekning = dekning
     )
 
     private fun Utbetaling.toLinjer(
@@ -189,11 +197,6 @@ class PdfProduserer(
                 else -> error("Ukjent begrunnelsetype: $type")
             } to node["begrunnelse"].asText()
         }
-
-    private fun JsonNode.toDekning() = Dekning(
-        dekningsgrad = this["dekningsgrad"].asInt(),
-        gjelderFraDag = this["gjelderFraDag"].asInt(),
-    )
 
     private fun begrunnelseToType(
         meldingOmVedtakJson: JsonNode,
