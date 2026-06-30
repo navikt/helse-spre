@@ -5,9 +5,13 @@ import java.time.OffsetDateTime.MIN
 import java.util.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskEnhet
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskTilknytning
 import no.nav.helse.spre.styringsinfo.teamsak.enhet.Enhet
 import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetEnhet
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetTilknytning
 import no.nav.helse.spre.styringsinfo.teamsak.enhet.ManglendeEnhet
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.ManglendeTilknytning
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.Tilknytning
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -38,6 +42,8 @@ internal data class Behandling(
     internal val mottaker: Mottaker? = null,
     internal val saksbehandlerEnhet: String? = null,
     internal val beslutterEnhet: String? = null,
+    internal val saksbehandlerAvdeling: String? = null,
+    internal val beslutterAvdeling: String? = null,
 ) {
     internal enum class Behandlingstatus {
         REGISTRERT,
@@ -99,6 +105,8 @@ internal data class Behandling(
         private var mottaker: Mottaker? = null
         private var saksbehandlerEnhet: String? = null
         private var beslutterEnhet: String? = null
+        private var saksbehandlerAvdeling: String? = null
+        private var beslutterAvdeling: String? = null
         private var behandlingsmetode: Metode = Metode.AUTOMATISK
 
         internal fun behandlingstatus(behandlingstatus: Behandlingstatus) = apply {
@@ -117,6 +125,18 @@ internal data class Behandling(
             }
             this.saksbehandlerEnhet = saksbehandler.id
             this.beslutterEnhet = beslutter.id
+        }
+
+        internal fun tilknytninger(saksbehandler: Tilknytning = AutomatiskTilknytning, beslutter: Tilknytning = AutomatiskTilknytning) = apply {
+            if (saksbehandler is AutomatiskTilknytning && beslutter is AutomatiskTilknytning) return@apply
+            this.behandlingsmetode = when (beslutter) {
+                is FunnetTilknytning, ManglendeTilknytning -> Metode.TOTRINNS
+                is AutomatiskTilknytning -> Metode.MANUELL
+            }
+            this.saksbehandlerEnhet = (saksbehandler as? FunnetTilknytning)?.enhet
+            this.saksbehandlerAvdeling = (saksbehandler as? FunnetTilknytning)?.avdeling
+            this.beslutterEnhet = (beslutter as? FunnetTilknytning)?.enhet
+            this.beslutterAvdeling = (beslutter as? FunnetTilknytning)?.avdeling
         }
 
         internal fun avslutt(behandlingsresultat: Behandlingsresultat) = apply {
@@ -142,6 +162,8 @@ internal data class Behandling(
                 behandlingsresultat = behandlingsresultat ?: forrige.behandlingsresultat,
                 saksbehandlerEnhet = saksbehandlerEnhet ?: forrige.saksbehandlerEnhet,
                 beslutterEnhet = beslutterEnhet ?: forrige.beslutterEnhet,
+                saksbehandlerAvdeling = saksbehandlerAvdeling ?: forrige.saksbehandlerAvdeling,
+                beslutterAvdeling = beslutterAvdeling ?: forrige.beslutterAvdeling,
                 mottaker = mottaker ?: forrige.mottaker,
                 yrkesaktivitetstype = forrige.yrkesaktivitetstype
             )

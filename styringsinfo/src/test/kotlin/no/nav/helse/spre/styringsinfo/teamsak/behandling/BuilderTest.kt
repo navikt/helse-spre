@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 import java.util.UUID
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetTilknytning
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.ManglendeTilknytning
 
 internal class BuilderTest {
 
@@ -57,6 +59,52 @@ internal class BuilderTest {
         Behandling.Builder(lagBehandling()).enheter(saksbehandler = FunnetEnhet("1234"), beslutter = FunnetEnhet("5678")).build(AUTOMATISK).let {
             assertEquals("1234", it.saksbehandlerEnhet)
             assertEquals("5678", it.beslutterEnhet)
+            assertEquals(TOTRINNS, it.behandlingsmetode)
+            assertEquals(AUTOMATISK, it.hendelsesmetode)
+        }
+    }
+
+    @Test
+    fun `behandlingsmetode utledes fra tilknytninger, mens hendelsemetode mates direkte inn`() {
+        Behandling.Builder(lagBehandling()).tilknytninger().build(TOTRINNS).let {
+            assertNull(it.saksbehandlerEnhet)
+            assertNull(it.saksbehandlerAvdeling)
+            assertNull(it.beslutterEnhet)
+            assertNull(it.beslutterAvdeling)
+            assertEquals(AUTOMATISK, it.behandlingsmetode)
+            assertEquals(TOTRINNS, it.hendelsesmetode)
+        }
+        Behandling.Builder(lagBehandling()).tilknytninger(saksbehandler = ManglendeTilknytning).build(TOTRINNS).let {
+            assertNull(it.saksbehandlerEnhet)
+            assertNull(it.saksbehandlerAvdeling)
+            assertNull(it.beslutterEnhet)
+            assertNull(it.beslutterAvdeling)
+            assertEquals(MANUELL, it.behandlingsmetode)
+            assertEquals(TOTRINNS, it.hendelsesmetode)
+        }
+        Behandling.Builder(lagBehandling()).tilknytninger(saksbehandler = FunnetTilknytning(enhet = "1234", avdeling = "ab123c")).build(TOTRINNS).let {
+            assertEquals("1234", it.saksbehandlerEnhet)
+            assertEquals("ab123c", it.saksbehandlerAvdeling)
+            assertNull(it.beslutterEnhet)
+            assertNull(it.beslutterAvdeling)
+            assertEquals(MANUELL, it.behandlingsmetode)
+            assertEquals(TOTRINNS, it.hendelsesmetode)
+        }
+        Behandling.Builder(lagBehandling()).tilknytninger(saksbehandler = ManglendeTilknytning, beslutter = ManglendeTilknytning).build(AUTOMATISK).let {
+            assertNull(it.saksbehandlerEnhet)
+            assertNull(it.saksbehandlerAvdeling)
+            assertNull(it.beslutterEnhet)
+            assertNull(it.beslutterAvdeling)
+            assertEquals(TOTRINNS, it.behandlingsmetode)
+            assertEquals(AUTOMATISK, it.hendelsesmetode)
+        }
+        Behandling.Builder(lagBehandling()).tilknytninger(
+            saksbehandler = FunnetTilknytning(enhet = "1234", avdeling = "ab123c"),
+            beslutter = FunnetTilknytning(enhet = "5678", avdeling = "ab123d")).build(AUTOMATISK).let {
+            assertEquals("1234", it.saksbehandlerEnhet)
+            assertEquals("ab123c", it.saksbehandlerAvdeling)
+            assertEquals("5678", it.beslutterEnhet)
+            assertEquals("ab123d", it.beslutterAvdeling)
             assertEquals(TOTRINNS, it.behandlingsmetode)
             assertEquals(AUTOMATISK, it.hendelsesmetode)
         }
