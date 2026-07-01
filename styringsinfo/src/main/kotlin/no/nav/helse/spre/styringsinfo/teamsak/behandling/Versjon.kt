@@ -70,6 +70,7 @@ internal class Versjon private constructor(
             Minor("Legger til behandlingstatus KOMPLETT_FAKTAGRUNNLAG"),
             LeggTilOgFjern(setOf("behandlingstype"), setOf("behandlingtype")),
             Patch("Setter kun MANUELL/TOTRINNS når vi har eller har forsøkt å slå opp enhet"),
+            LeggTil("saksbehandlerAvdeling", "beslutterAvdeling"),
         ).genererVersjoner
 
         internal val List<Versjonsutleder>.genererVersjoner: Map<Set<String>, Versjon> get() {

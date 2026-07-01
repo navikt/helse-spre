@@ -67,6 +67,8 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             putString("saksbehandlerEnhet", behandling.saksbehandlerEnhet)
             putString("beslutterEnhet", behandling.beslutterEnhet)
             putString("mottaker", behandling.mottaker?.toString())
+            putString("saksbehandlerAvdeling", behandling.saksbehandlerAvdeling)
+            putString("beslutterAvdeling", behandling.beslutterAvdeling)
         }
 
         val versjon = Versjon.of(data.felter)
@@ -115,7 +117,9 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             behandlingsmetode = Behandling.Metode.valueOf(data.path("behandlingsmetode").asText()),
             hendelsesmetode = Behandling.Metode.valueOf(data.path("hendelsesmetode").asText()),
             saksbehandlerEnhet = data.path("saksbehandlerEnhet").textOrNull,
+            saksbehandlerAvdeling = data.path("saksbehandlerAvdeling").textOrNull,
             beslutterEnhet = data.path("beslutterEnhet").textOrNull,
+            beslutterAvdeling = data.path("beslutterAvdeling").textOrNull,
             mottaker = data.path("mottaker").textOrNull?.let { Behandling.Mottaker.valueOf(it) }
         )
     }

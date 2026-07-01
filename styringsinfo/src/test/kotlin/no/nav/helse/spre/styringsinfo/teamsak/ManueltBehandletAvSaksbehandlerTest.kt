@@ -23,7 +23,9 @@ internal class ManueltBehandletAvSaksbehandlerTest: AbstractTeamSakTest() {
         assertEquals(AVBRUTT, behandling.behandlingsresultat)
         assertEquals(AVSLUTTET, behandling.behandlingstatus)
         assertEquals("SB123", behandling.saksbehandlerEnhet)
+        assertEquals("ab123a", behandling.saksbehandlerAvdeling)
         assertNull(behandling.beslutterEnhet)
+        assertNull(behandling.beslutterAvdeling)
     }
 
     @Test
@@ -39,5 +41,10 @@ internal class ManueltBehandletAvSaksbehandlerTest: AbstractTeamSakTest() {
         val (behandling, _) = nyttVedtak(totrinnsbehandling = true)
         assertEquals(TOTRINNS, behandling.behandlingsmetode)
         assertEquals(AUTOMATISK, behandling.hendelsesmetode)
+
+        assertEquals("SB123", behandling.saksbehandlerEnhet)
+        assertEquals("ab123a", behandling.saksbehandlerAvdeling)
+        assertEquals("SB456", behandling.beslutterEnhet)
+        assertEquals("ab123b", behandling.beslutterAvdeling)
     }
 }
