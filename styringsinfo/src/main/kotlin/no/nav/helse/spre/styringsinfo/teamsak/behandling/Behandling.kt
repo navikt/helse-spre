@@ -4,12 +4,8 @@ import java.time.OffsetDateTime
 import java.time.OffsetDateTime.MIN
 import java.util.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskEnhet
 import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskTilknytning
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.Enhet
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetEnhet
 import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetTilknytning
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.ManglendeEnhet
 import no.nav.helse.spre.styringsinfo.teamsak.enhet.ManglendeTilknytning
 import no.nav.helse.spre.styringsinfo.teamsak.enhet.Tilknytning
 import org.slf4j.Logger
@@ -117,15 +113,6 @@ internal data class Behandling(
         internal fun periodetype(periodetype: Periodetype) = apply { this.periodetype = periodetype }
         internal fun behandlingsresultat(behandlingsresultat: Behandlingsresultat?) = apply { this.behandlingsresultat = behandlingsresultat }
         internal fun mottaker(mottaker: Mottaker?) = apply { this.mottaker = mottaker }
-        internal fun enheter(saksbehandler: Enhet = AutomatiskEnhet, beslutter: Enhet = AutomatiskEnhet) = apply {
-            if (saksbehandler is AutomatiskEnhet && beslutter is AutomatiskEnhet) return@apply
-            this.behandlingsmetode = when (beslutter) {
-                is FunnetEnhet, ManglendeEnhet -> Metode.TOTRINNS
-                is AutomatiskEnhet -> Metode.MANUELL
-            }
-            this.saksbehandlerEnhet = saksbehandler.id
-            this.beslutterEnhet = beslutter.id
-        }
 
         internal fun tilknytninger(saksbehandler: Tilknytning = AutomatiskTilknytning, beslutter: Tilknytning = AutomatiskTilknytning) = apply {
             if (saksbehandler is AutomatiskTilknytning && beslutter is AutomatiskTilknytning) return@apply
@@ -183,11 +170,6 @@ internal data class Behandling(
 
         private companion object {
             private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
-            private val Enhet.id
-                get() = when (this) {
-                    is FunnetEnhet -> id
-                    is ManglendeEnhet, AutomatiskEnhet -> null
-                }
 
             private operator fun Metode.plus(ny: Metode) = when (this) {
                 Metode.AUTOMATISK -> ny

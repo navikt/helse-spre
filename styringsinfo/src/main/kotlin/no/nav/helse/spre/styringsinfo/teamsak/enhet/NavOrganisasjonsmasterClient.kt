@@ -31,9 +31,6 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
                 )
             } ?: ManglendeTilknytning
 
-        internal fun JsonNode.enhet(gyldigPåDato: LocalDate) : String? =
-            orgTilknytning(gyldigPåDato)?.enhet
-
         private fun JsonNode.orgTilknytning(gyldigPåDato: LocalDate): OrgTilknytning? {
             val tilknytninger = this["data"]["ressurs"]["orgTilknytning"].map {
                 OrgTilknytning(
@@ -62,15 +59,15 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
             val avdeling: String,
         )
     }
-    internal fun hentEnhet(ident: String, gyldigPåDato: LocalDate, hendelseId: String): Enhet {
+    internal fun hentTilknytning(ident: String, gyldigPåDato: LocalDate, hendelseId: String): Tilknytning {
         return try {
-            retryBlocking(utsettelser = NomUtsettelser()) { requestEnhet(ident, gyldigPåDato, hendelseId) }
+            retryBlocking(utsettelser = NomUtsettelser()) { requestTilknytning(ident, gyldigPåDato, hendelseId) }
         } catch (exception: Exception) {
             sikkerLogg.error("Feil oppsto ved kall mot NOM for ident $ident og hendelse $hendelseId", exception)
-            ManglendeEnhet
+            ManglendeTilknytning
         }
     }
-    private fun requestEnhet(ident: String, gyldigPåDato: LocalDate, hendelseId: String): Enhet {
+    private fun requestTilknytning(ident: String, gyldigPåDato: LocalDate, hendelseId: String): Tilknytning {
         val accessToken = azureClient.bearerToken(scope).getOrThrow().token
 
         val body =
@@ -97,7 +94,7 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
         if (responseBody.containsErrors()) {
             throw RuntimeException("errors from NOM: ${responseBody["errors"].errorMsgs()}")
         }
-        return responseBody.enhet(gyldigPåDato = gyldigPåDato)?.let { FunnetEnhet(it) } ?: ManglendeEnhet
+        return responseBody.tilknytning(gyldigPåDato = gyldigPåDato)
     }
 
     private data class NomQuery(
