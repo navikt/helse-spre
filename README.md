@@ -1,5 +1,4 @@
 # Spre
-[![Build forsikringsoppgaver](https://github.com/navikt/helse-spre/actions/workflows/forsikringsoppgaver.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/forsikringsoppgaver.yml)
 [![Build gosys](https://github.com/navikt/helse-spre/actions/workflows/gosys.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/gosys.yml)
 [![Build oppgaver](https://github.com/navikt/helse-spre/actions/workflows/oppgaver.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/oppgaver.yml)
 [![Build styringsinfo](https://github.com/navikt/helse-spre/actions/workflows/styringsinfo.yml/badge.svg)](https://github.com/navikt/helse-spre/actions/workflows/styringsinfo.yml)
