@@ -28,12 +28,18 @@ data class SNVedtakPdfPayload(
     val beregningsgrunnlag: BigDecimal,
     val vedtakFattetTidspunkt: LocalDateTime,
     val pensjonsgivendeInntekter: List<PensjonsgivendeInntekt>,
-    val dekning: Dekning
+    val dekning: Dekning,
+    val forsikringskategori: String?
 )
 
 data class PensjonsgivendeInntekt(
     val årstall: Int,
     val beløp: BigDecimal,
+)
+
+data class Forsikringsvurdering(
+    val dekning: Dekning,
+    val forsikringskategori: String?,
 )
 
 data class Dekning(

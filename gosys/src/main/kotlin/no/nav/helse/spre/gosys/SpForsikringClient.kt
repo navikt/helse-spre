@@ -10,6 +10,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import no.nav.helse.spre.gosys.vedtak.Dekning
 import java.util.UUID
+import no.nav.helse.spre.gosys.vedtak.Forsikringsvurdering
 
 class SpForsikringClient(
     private val baseUrl: String,
@@ -17,7 +18,7 @@ class SpForsikringClient(
     private val scope: String,
     private val httpClient: HttpClient,
 ) {
-    suspend fun hentDekning(forsikringsvurderingId: UUID): Dekning? {
+    suspend fun hentForsikringsvurdering(forsikringsvurderingId: UUID): Forsikringsvurdering? {
         val callId = UUID.randomUUID()
         logg.info("Henter forsikringsvurdering for id $forsikringsvurderingId")
         val response = httpClient.get("$baseUrl/forsikringsvurderinger/$forsikringsvurderingId") {
@@ -29,9 +30,12 @@ class SpForsikringClient(
             200 -> {
                 val json = objectMapper.readValue<JsonNode>(response.bodyAsText())
                 json["dekning"]?.takeUnless { it.isNull }?.let { dekning ->
-                    Dekning(
-                        dekningsgrad = dekning["grad"].asInt(),
-                        gjelderFraDag = dekning["fraDag"].asInt(),
+                    Forsikringsvurdering(
+                        dekning = Dekning(
+                            dekningsgrad = dekning["grad"].asInt(),
+                            gjelderFraDag = dekning["fraDag"].asInt(),
+                        ),
+                        forsikringskategori = json["forsikringskategori"].asText(),
                     )
                 }
             }

@@ -84,7 +84,7 @@ internal abstract class AbstractE2ETest {
     protected val joarkClient = JoarkClient("https://url.no", azureMock, "JOARK_SCOPE", mockClient)
     protected val eregClient = EregClient("https://url.no", mockClient)
     protected val spForsikringClient: SpForsikringClient = mockk {
-        coEvery { hentDekning(any()) } returns null
+        coEvery { hentForsikringsvurdering(any()) } returns null
     }
     protected val speedClient = mockk<SpeedClient> {
         every { hentPersoninfo(any(), any()) } returns PersonResponse(
@@ -309,6 +309,7 @@ internal abstract class AbstractE2ETest {
             )
         ),
         dekning: Dekning = Dekning(dekningsgrad = 80, gjelderFraDag = 17),
+        forsikringskategori: String? = null,
     ) =
         SNVedtakPdfPayload(
             fødselsnummer = "12345678910",
@@ -335,6 +336,7 @@ internal abstract class AbstractE2ETest {
             vedtakFattetTidspunkt = vedtakFattetTidspunkt,
             pensjonsgivendeInntekter = pensjonsgivendeInntekter,
             dekning = dekning,
+            forsikringskategori = forsikringskategori,
         )
 
     protected fun expectedJournalpost(

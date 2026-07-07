@@ -20,6 +20,7 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Companion.IkkeUtbetalingsda
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.UtbetalingslinjeDto
 import no.nav.helse.spre.gosys.vedtak.AvvistPeriode
 import no.nav.helse.spre.gosys.vedtak.Dekning
+import no.nav.helse.spre.gosys.vedtak.Forsikringsvurdering
 import no.nav.helse.spre.gosys.vedtak.PensjonsgivendeInntekt
 import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
@@ -51,11 +52,14 @@ class PdfProduserer(
                         søknadsperiodeFom = søknadsperiodeFom,
                         søknadsperiodeTom = søknadsperiodeTom,
                         navn = søkernavn,
-                        dekning = meldingOmVedtakJson["forsikringsvurderingId"]
+                        forsikringsvurdering = meldingOmVedtakJson["forsikringsvurderingId"]
                             ?.takeUnless { it.isMissingOrNull() }
                             ?.let { UUID.fromString(it.asText()) }
-                            ?.let { spForsikringClient.hentDekning(it) }
-                            ?: Dekning(dekningsgrad = 80, gjelderFraDag = 17),
+                            ?.let { spForsikringClient.hentForsikringsvurdering(it) }
+                            ?: Forsikringsvurdering(
+                                dekning = Dekning(dekningsgrad = 80, gjelderFraDag = 17),
+                                forsikringskategori = null
+                            ),
                     )
                 )
             }
@@ -145,7 +149,7 @@ class PdfProduserer(
         søknadsperiodeFom: LocalDate,
         søknadsperiodeTom: LocalDate,
         navn: String,
-        dekning: Dekning,
+        forsikringsvurdering: Forsikringsvurdering,
     ): SNVedtakPdfPayload = SNVedtakPdfPayload(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
@@ -175,7 +179,8 @@ class PdfProduserer(
         },
         begrunnelser = meldingOmVedtakJson.toBegrunnelser(),
         vedtakFattetTidspunkt = meldingOmVedtakJson["vedtakFattetTidspunkt"].asLocalDateTime(),
-        dekning = dekning
+        dekning = forsikringsvurdering.dekning,
+        forsikringskategori = forsikringsvurdering.forsikringskategori,
     )
 
     private fun Utbetaling.toLinjer(
