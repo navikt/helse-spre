@@ -296,6 +296,8 @@ class PdfProduserer(
         "AndreYtelserOpplaringspenger" -> "Personen mottar Opplæringspenger"
         "AndreYtelserPleiepenger" -> "Personen mottar Pleiepenger"
         "AndreYtelserSvangerskapspenger" -> "Personen mottar Svangerskapspenger"
+        "MeldingTilNavDagUtenforVentetid" -> "Melding til Nav dag utenfor ventetid"
+        "AvslattMeldingTilNavDag" -> "Melding til Nav dag avslått av saksbehandler"
         else -> {
             logg.error("Ukjent begrunnelse $begrunnelse")
             "Ukjent begrunnelse: \"${begrunnelse}\""
