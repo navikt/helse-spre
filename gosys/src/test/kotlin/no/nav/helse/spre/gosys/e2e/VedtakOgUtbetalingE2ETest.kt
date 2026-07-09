@@ -517,6 +517,45 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     }
 
     @Test
+    fun `Melding til Nav-dager før skjæringstidspunkt inkluderes`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        val sykdomstidslinje = utbetalingsdager(3.januar, 31.januar)
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = avvistDager(1.januar, begrunnelser = listOf("MeldingTilNavDagUtenforVentetid")) +
+                avvistDager(2.januar, begrunnelser = listOf("AvslåttMeldingTilNavDag")) +
+                sykdomstidslinje
+        )
+        sendVedtakFattet(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeId = vedtaksperiodeId,
+            sykdomstidslinje = sykdomstidslinje
+        )
+
+        assertJournalpost(expectedJournalpost(fom = 3.januar, tom = 31.januar, eksternReferanseId = utbetalingId))
+
+        assertVedtakPdf(expectedPdfPayload(
+            fom = 3.januar,
+            tom = 31.januar,
+            totaltTilUtbetaling = 30051, // 21 stønadsdager (ukedager) * 1431 kr
+            ikkeUtbetalteDager = listOf(
+                VedtakPdfPayload.IkkeUtbetalteDager(
+                    fom = 1.januar,
+                    tom = 1.januar,
+                    begrunnelser = listOf("Melding til Nav dag utenfor ventetid")
+                ),
+                VedtakPdfPayload.IkkeUtbetalteDager(
+                    fom = 2.januar,
+                    tom = 2.januar,
+                    begrunnelser = listOf("Melding til Nav dag avslått av saksbehandler")
+                )
+            ),
+            arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver")
+        ))
+    }
+
+    @Test
     fun `markerer linjer utbetaling_utbetalt som er opphørt`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()

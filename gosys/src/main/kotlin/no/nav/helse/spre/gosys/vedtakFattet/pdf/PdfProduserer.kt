@@ -247,7 +247,10 @@ class PdfProduserer(
     ): List<VedtakPdfPayload.IkkeUtbetalteDager> = utbetaling
         .utbetalingsdager
         .filter { it.type in IkkeUtbetalingsdagtyper }
-        .filterNot { dag -> dag.dato < skjæringstidspunkt }
+        .filter { dag ->
+            dag.dato >= skjæringstidspunkt ||
+            dag.begrunnelser.any { it == "MeldingTilNavDagUtenforVentetid" || it == "AvslåttMeldingTilNavDag" }
+        }
         .map { dag ->
             AvvistPeriode(
                 fom = dag.dato,
