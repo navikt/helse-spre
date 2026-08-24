@@ -8,7 +8,6 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import no.nav.helse.spre.gosys.vedtak.Dekning
 import java.util.UUID
 import no.nav.helse.spre.gosys.vedtak.Forsikringsvurdering
 
@@ -29,20 +28,17 @@ class SpForsikringClient(
         return when (response.status.value) {
             200 -> {
                 val json = objectMapper.readValue<JsonNode>(response.bodyAsText())
-                json["dekning"]?.takeUnless { it.isNull }?.let { dekning ->
-                    Forsikringsvurdering(
-                        dekning = Dekning(
-                            dekningsgrad = dekning["grad"].asInt(),
-                            gjelderFraDag = dekning["fraDag"].asInt(),
-                        ),
-                        forsikringskategori = json["forsikringskategori"].asText(),
-                    )
-                }
+                Forsikringsvurdering(
+                    indivieduellForsikringNavn = json["navKjøpteForsikringer"].find { it["lagtTilGrunn"].asBoolean() }?.let { it["navn"].asText() },
+                    kollektivForsikringNavn = json["kollektivForsikring"].let { it["navn"].asText() },
+                )
             }
+
             404 -> {
                 logg.warn("Fant ikke forsikringsvurdering med id $forsikringsvurderingId")
                 null
             }
+
             else -> {
                 logg.error("Feil ved henting av forsikringsvurdering: status=${response.status.value}")
                 error("Feil fra sp-forsikring: ${response.status.value}")

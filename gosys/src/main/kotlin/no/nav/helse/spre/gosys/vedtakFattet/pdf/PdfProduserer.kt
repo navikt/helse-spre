@@ -19,7 +19,6 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Companion.IkkeUtbetalingsdagtyper
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.UtbetalingslinjeDto
 import no.nav.helse.spre.gosys.vedtak.AvvistPeriode
-import no.nav.helse.spre.gosys.vedtak.Dekning
 import no.nav.helse.spre.gosys.vedtak.Forsikringsvurdering
 import no.nav.helse.spre.gosys.vedtak.PensjonsgivendeInntekt
 import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
@@ -56,10 +55,6 @@ class PdfProduserer(
                             ?.takeUnless { it.isMissingOrNull() }
                             ?.let { UUID.fromString(it.asText()) }
                             ?.let { spForsikringClient.hentForsikringsvurdering(it) }
-                            ?: Forsikringsvurdering(
-                                dekning = Dekning(dekningsgrad = 80, gjelderFraDag = 17),
-                                forsikringskategori = null
-                            ),
                     )
                 )
             }
@@ -149,7 +144,7 @@ class PdfProduserer(
         søknadsperiodeFom: LocalDate,
         søknadsperiodeTom: LocalDate,
         navn: String,
-        forsikringsvurdering: Forsikringsvurdering,
+        forsikringsvurdering: Forsikringsvurdering?,
     ): SNVedtakPdfPayload = SNVedtakPdfPayload(
         sumNettoBeløp = utbetaling.arbeidsgiverOppdrag.nettoBeløp + utbetaling.personOppdrag.nettoBeløp,
         sumTotalBeløp = utbetaling.arbeidsgiverOppdrag.utbetalingslinjer.sumOf { it.totalbeløp } + utbetaling.personOppdrag.utbetalingslinjer.sumOf { it.totalbeløp },
@@ -179,8 +174,8 @@ class PdfProduserer(
         },
         begrunnelser = meldingOmVedtakJson.toBegrunnelser(),
         vedtakFattetTidspunkt = meldingOmVedtakJson["vedtakFattetTidspunkt"].asLocalDateTime(),
-        dekning = forsikringsvurdering.dekning,
-        forsikringskategori = forsikringsvurdering.forsikringskategori,
+        indivieduellForsikringNavn = forsikringsvurdering?.indivieduellForsikringNavn,
+        kollektivForsikringNavn = forsikringsvurdering?.kollektivForsikringNavn,
     )
 
     private fun Utbetaling.toLinjer(

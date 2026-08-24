@@ -38,7 +38,6 @@ import no.nav.helse.spre.gosys.feriepenger.FeriepengerMediator
 import no.nav.helse.spre.gosys.objectMapper
 import no.nav.helse.spre.gosys.settOppRivers
 import no.nav.helse.spre.gosys.utbetaling.UtbetalingDao
-import no.nav.helse.spre.gosys.vedtak.Dekning
 import no.nav.helse.spre.gosys.vedtak.PensjonsgivendeInntekt
 import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
@@ -308,8 +307,8 @@ internal abstract class AbstractE2ETest {
                 beløp = BigDecimal("600000")
             )
         ),
-        dekning: Dekning = Dekning(dekningsgrad = 80, gjelderFraDag = 17),
-        forsikringskategori: String? = null,
+        indivieduellForsikringNavn: String? = null,
+        kollektivForsikringNavn: String? = null,
     ) =
         SNVedtakPdfPayload(
             fødselsnummer = "12345678910",
@@ -335,8 +334,8 @@ internal abstract class AbstractE2ETest {
             beregningsgrunnlag = beregningsgrunnlag,
             vedtakFattetTidspunkt = vedtakFattetTidspunkt,
             pensjonsgivendeInntekter = pensjonsgivendeInntekter,
-            dekning = dekning,
-            forsikringskategori = forsikringskategori,
+            indivieduellForsikringNavn = indivieduellForsikringNavn,
+            kollektivForsikringNavn = kollektivForsikringNavn,
         )
 
     protected fun expectedJournalpost(
