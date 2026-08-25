@@ -24,7 +24,7 @@ tbd-libs-speed-client = { module = "com.github.navikt.tbd-libs:speed-client", ve
 
 json-schema-validator = "com.networknt:json-schema-validator:1.0.65"
 jsonassert = "org.skyscreamer:jsonassert:1.5.1"
-kotest-assertions-core = "io.kotest:kotest-assertions-core:5.1.0"
+kotest-assertions-core = "io.kotest:kotest-assertions-core:6.2.4"
 ktor-client-mock = { module = "io.ktor:ktor-client-mock-jvm", version.ref = "ktor" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 mockk = "io.mockk:mockk:1.14.11"
