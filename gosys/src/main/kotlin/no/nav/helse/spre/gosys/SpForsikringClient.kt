@@ -36,8 +36,8 @@ class SpForsikringClient(
                             gjelderFraDag = dekning["fraDag"].asInt(),
                         )
                     },
-                    indivieduellForsikringNavn = json["navKjøpteForsikringer"].find { it["lagtTilGrunn"].asBoolean() }?.let { it["navn"].asText() },
-                    kollektivForsikringNavn = json["kollektivForsikring"].let { it["navn"].asText() },
+                    indivieduellForsikringNavn = json["navKjøpteForsikringer"].find { it["lagtTilGrunn"].asBoolean() }?.get("navn")?.asText(),
+                    kollektivForsikringNavn = json["kollektivForsikring"]?.get("navn")?.asText(),
                 )
             }
 

@@ -115,6 +115,45 @@ internal class SpForsikringClientTest {
     }
 
     @Test
+    fun `kollektiv forsikringsnavn blir null når kollektivForsikring er null`() = runBlocking {
+        val id = UUID.randomUUID()
+        stubForsikringsvurdering(
+            id, 200, """
+            {
+              "navKjøpteForsikringer": [
+                { "navn": "Valgt individuell forsikring", "lagtTilGrunn": true }
+              ],
+              "kollektivForsikring": null
+            }
+        """.trimIndent()
+        )
+
+        val forsikringsvurdering = client.hentForsikringsvurdering(id)
+
+        assertEquals("Valgt individuell forsikring", forsikringsvurdering?.indivieduellForsikringNavn)
+        assertNull(forsikringsvurdering?.kollektivForsikringNavn)
+    }
+
+    @Test
+    fun `kollektiv forsikringsnavn blir null når feltet mangler`() = runBlocking {
+        val id = UUID.randomUUID()
+        stubForsikringsvurdering(
+            id, 200, """
+            {
+              "navKjøpteForsikringer": [
+                { "navn": "Valgt individuell forsikring", "lagtTilGrunn": true }
+              ]
+            }
+        """.trimIndent()
+        )
+
+        val forsikringsvurdering = client.hentForsikringsvurdering(id)
+
+        assertEquals("Valgt individuell forsikring", forsikringsvurdering?.indivieduellForsikringNavn)
+        assertNull(forsikringsvurdering?.kollektivForsikringNavn)
+    }
+
+    @Test
     fun `returnerer null ved 404`() = runBlocking {
         val id = UUID.randomUUID()
         stubForsikringsvurdering(id, 404, "")
