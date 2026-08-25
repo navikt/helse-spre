@@ -1,3 +1,4 @@
+app: sykmeldt
 replicas:
   min: 2
   max: 8

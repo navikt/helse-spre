@@ -1,3 +1,4 @@
+app: gosys
 annotations:
   - key: config.linkerd.io/proxy-outbound-connect-timeout
     value: 10s

@@ -1,3 +1,4 @@
+app: oppgaver
 replicas:
   min: 2
   max: 5

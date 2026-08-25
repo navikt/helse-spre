@@ -1,3 +1,4 @@
+app: styringsinfo
 recreateStrategy: true
 replicas:
   min: 2

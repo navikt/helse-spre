@@ -1,8 +1,10 @@
-val rapidsAndRiversVersion: String by project
-val ktorVersion: String by project
+plugins {
+    id("no.nav.helse.sas.sas-kotlin")
+}
 
 dependencies {
-    api("com.github.navikt:rapids-and-rivers:$rapidsAndRiversVersion")
-    testImplementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    testImplementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    api(libs.rapids.and.rivers)
+
+    testImplementation(libs.ktor.server.content.negotiation)
+    testImplementation(libs.ktor.serialization.jackson)
 }

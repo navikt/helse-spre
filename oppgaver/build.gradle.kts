@@ -1,15 +1,19 @@
-val hikariCPVersion: String by project
-val postgresqlVersion: String by project
-val kotliqueryVersion: String by project
-val flywayCoreVersion: String by project
-val tbdLibsVersion: String by project
+plugins {
+    id("no.nav.helse.sas.sas-deployable")
+}
+
+sasDeployable {
+    mainClass = "no.nav.helse.spre.oppgaver.AppKt"
+    imageName = "helse-spre-oppgaver"
+}
 
 dependencies {
-    implementation("com.zaxxer:HikariCP:$hikariCPVersion")
-    implementation("org.postgresql:postgresql:$postgresqlVersion")
-    implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
-    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
+    implementation(project(":felles"))
+    implementation(libs.hikaricp)
+    implementation(libs.postgresql)
+    implementation(libs.flyway.database.postgresql)
+    implementation(libs.kotliquery)
 
-    testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
-    testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:$tbdLibsVersion")
+    testImplementation(libs.tbd.libs.rapids.and.rivers.test)
+    testImplementation(libs.tbd.libs.postgres.testdatabaser)
 }

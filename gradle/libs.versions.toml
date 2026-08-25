@@ -1,0 +1,38 @@
+[versions]
+flyway = "11.5.0"
+ktor = "3.5.2"
+sasGradlePlugins = "20260807.0944"
+tbd-libs = "2026.01.22-09.16-1d3f6039"
+
+[libraries]
+flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+hikaricp = "com.zaxxer:HikariCP:6.3.0"
+kotliquery = "com.github.seratch:kotliquery:1.9.1"
+postgresql = "org.postgresql:postgresql:42.7.7"
+rapids-and-rivers = "com.github.navikt:rapids-and-rivers:2026011411051768385145.e8ebad1177b4"
+
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-jackson = { module = "io.ktor:ktor-client-jackson", version.ref = "ktor" }
+ktor-serialization-jackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
+ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+
+tbd-libs-azure = { module = "com.github.navikt.tbd-libs:azure-token-client-default", version.ref = "tbd-libs" }
+tbd-libs-retry = { module = "com.github.navikt.tbd-libs:retry", version.ref = "tbd-libs" }
+tbd-libs-speed-client = { module = "com.github.navikt.tbd-libs:speed-client", version.ref = "tbd-libs" }
+
+json-schema-validator = "com.networknt:json-schema-validator:1.0.65"
+jsonassert = "org.skyscreamer:jsonassert:1.5.1"
+kotest-assertions-core = "io.kotest:kotest-assertions-core:5.1.0"
+ktor-client-mock = { module = "io.ktor:ktor-client-mock-jvm", version.ref = "ktor" }
+ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
+mockk = "io.mockk:mockk:1.14.11"
+tbd-libs-postgres-testdatabaser = { module = "com.github.navikt.tbd-libs:postgres-testdatabaser", version.ref = "tbd-libs" }
+tbd-libs-rapids-and-rivers-test = { module = "com.github.navikt.tbd-libs:rapids-and-rivers-test", version.ref = "tbd-libs" }
+wiremock = "org.wiremock:wiremock-jetty12:3.13.2"
+
+[plugins]
+sas-deployable = { id = "no.nav.helse.sas.sas-deployable", version.ref = "sasGradlePlugins" }
+sas-kotlin = { id = "no.nav.helse.sas.sas-kotlin", version.ref = "sasGradlePlugins" }
+sas-root = { id = "no.nav.helse.sas.sas-root", version.ref = "sasGradlePlugins" }

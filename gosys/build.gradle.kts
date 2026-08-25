@@ -1,49 +1,48 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val ktorVersion: String by project
-val mockkVersion: String by project
-val hikariCPVersion: String by project
-val postgresqlVersion: String by project
-val kotliqueryVersion: String by project
-val flywayCoreVersion: String by project
-val tbdLibsVersion: String by project
-val wiremockVersion = "3.3.1"
-val jsonassertVersion = "1.5.0"
-
-val kotlinxSerializationJsonVersion = "1.7.3"
-
 plugins {
-    kotlin("plugin.serialization") version "2.0.21"
+    id("no.nav.helse.sas.sas-deployable")
+}
+
+sasDeployable {
+    mainClass = "no.nav.helse.spre.gosys.AppKt"
+    imageName = "helse-spre-gosys"
 }
 
 dependencies {
-    implementation("com.github.navikt.tbd-libs:azure-token-client-default:$tbdLibsVersion")
-    implementation("com.github.navikt.tbd-libs:retry:$tbdLibsVersion")
-    implementation("com.github.navikt.tbd-libs:speed-client:$tbdLibsVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion") {
+    implementation(project(":felles"))
+    implementation(libs.tbd.libs.azure)
+    implementation(libs.tbd.libs.retry)
+    implementation(libs.tbd.libs.speed.client)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.jackson)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.jackson)
+    implementation(libs.ktor.server.auth.jwt) {
         exclude(group = "junit")
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationJsonVersion")
-    implementation("com.zaxxer:HikariCP:$hikariCPVersion")
-    implementation("org.postgresql:postgresql:$postgresqlVersion")
-    implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
-    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
+    implementation(libs.hikaricp)
+    implementation(libs.postgresql)
+    implementation(libs.flyway.database.postgresql)
+    implementation(libs.kotliquery)
 
-    testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:$tbdLibsVersion")
-    testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
-    testImplementation("io.mockk:mockk:$mockkVersion")
-    testImplementation("org.skyscreamer:jsonassert:$jsonassertVersion")
-    testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
-    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
-    testImplementation("org.wiremock:wiremock:$wiremockVersion")
+    testImplementation(libs.tbd.libs.postgres.testdatabaser)
+    testImplementation(libs.tbd.libs.rapids.and.rivers.test)
+    testImplementation(libs.mockk)
+    testImplementation(libs.jsonassert)
+    testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.ktor.server.test.host)
+    testImplementation(libs.wiremock)
 }
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
         freeCompilerArgs.set(listOf("-Xcontext-parameters"))
     }
+}
+
+// ktlint-versjonen sas-module drar inn bruker en Kotlin-frontend som ikke forstår
+// context parameters, og klarer derfor ikke å parse kildekoden i denne modulen.
+ktlint {
+    version = "1.8.0"
 }

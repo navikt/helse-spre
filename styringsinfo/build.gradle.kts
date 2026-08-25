@@ -1,23 +1,24 @@
-val hikariCPVersion: String by project
-val postgresqlVersion: String by project
-val kotliqueryVersion: String by project
-val flywayCoreVersion: String by project
-val tbdLibsVersion: String by project
-val mockkVersion: String by project
+plugins {
+    id("no.nav.helse.sas.sas-deployable")
+}
 
-val skyscreamerVersion = "1.5.1"
+sasDeployable {
+    mainClass = "no.nav.helse.spre.styringsinfo.AppKt"
+    imageName = "helse-spre-styringsinfo"
+}
 
 dependencies {
-    implementation("com.zaxxer:HikariCP:$hikariCPVersion")
-    implementation("org.postgresql:postgresql:$postgresqlVersion")
-    implementation("org.flywaydb:flyway-database-postgresql:$flywayCoreVersion")
-    implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
-    implementation("com.github.navikt.tbd-libs:azure-token-client-default:$tbdLibsVersion")
-    implementation("com.github.navikt.tbd-libs:retry:$tbdLibsVersion")
-    implementation("com.github.navikt.tbd-libs:speed-client:$tbdLibsVersion")
+    implementation(project(":felles"))
+    implementation(libs.hikaricp)
+    implementation(libs.postgresql)
+    implementation(libs.flyway.database.postgresql)
+    implementation(libs.kotliquery)
+    implementation(libs.tbd.libs.azure)
+    implementation(libs.tbd.libs.retry)
+    implementation(libs.tbd.libs.speed.client)
 
-    testImplementation("com.github.navikt.tbd-libs:rapids-and-rivers-test:$tbdLibsVersion")
-    testImplementation("com.github.navikt.tbd-libs:postgres-testdatabaser:$tbdLibsVersion")
-    testImplementation("org.skyscreamer:jsonassert:$skyscreamerVersion")
-    testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation(libs.tbd.libs.rapids.and.rivers.test)
+    testImplementation(libs.tbd.libs.postgres.testdatabaser)
+    testImplementation(libs.jsonassert)
+    testImplementation(libs.mockk)
 }
