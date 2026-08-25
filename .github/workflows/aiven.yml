@@ -38,7 +38,7 @@ jobs:
           team: tbd
 
       - name: Deploy
-        uses: nais/deploy/actions/deploy@2d18f050f07b6a007864c6a57070ed915d571beb # v2
+        uses: nais/deploy/actions/deploy@849e900e3cfa7faf7ad1532bb3a3e6499c932199 # v2
         env:
           CLUSTER: dev-gcp
           RESOURCE: config/oppgaver/aiven-dev-spre-oppgaver.yml,config/sykmeldt/aiven-dev-forelagte-opplysninger.yml
@@ -62,7 +62,7 @@ jobs:
           team: tbd
 
       - name: Deploy
-        uses: nais/deploy/actions/deploy@2d18f050f07b6a007864c6a57070ed915d571beb # v2
+        uses: nais/deploy/actions/deploy@849e900e3cfa7faf7ad1532bb3a3e6499c932199 # v2
         env:
           CLUSTER: prod-gcp
           RESOURCE: config/oppgaver/aiven-prod-spre-oppgaver.yml
