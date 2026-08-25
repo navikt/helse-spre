@@ -8,9 +8,9 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import java.util.*
 import no.nav.helse.spre.gosys.vedtak.Dekning
 import no.nav.helse.spre.gosys.vedtak.Forsikringsvurdering
+import java.util.*
 
 class SpForsikringClient(
     private val baseUrl: String,
@@ -21,22 +21,24 @@ class SpForsikringClient(
     suspend fun hentForsikringsvurdering(forsikringsvurderingId: UUID): Forsikringsvurdering? {
         val callId = UUID.randomUUID()
         logg.info("Henter forsikringsvurdering for id $forsikringsvurderingId")
-        val response = httpClient.get("$baseUrl/forsikringsvurderinger/$forsikringsvurderingId") {
-            header("callId", callId)
-            bearerAuth(azureClient.bearerToken(scope).getOrThrow().token)
-            accept(ContentType.Application.Json)
-        }
+        val response =
+            httpClient.get("$baseUrl/forsikringsvurderinger/$forsikringsvurderingId") {
+                header("callId", callId)
+                bearerAuth(azureClient.bearerToken(scope).getOrThrow().token)
+                accept(ContentType.Application.Json)
+            }
         return when (response.status.value) {
             200 -> {
                 val json = objectMapper.readValue<JsonNode>(response.bodyAsText())
                 Forsikringsvurdering(
-                    dekning = json["samletDekning"]?.takeUnless { it.isNull }?.let { dekning ->
-                        Dekning(
-                            dekningsgrad = dekning["grad"].asInt(),
-                            gjelderFraDag = dekning["fraDag"].asInt(),
-                        )
-                    },
-                    indivieduellForsikringNavn = json["navKjøpteForsikringer"].find { it["lagtTilGrunn"].asBoolean() }?.get("navn")?.asText(),
+                    dekning =
+                        json["samletDekning"]?.takeUnless { it.isNull }?.let { dekning ->
+                            Dekning(
+                                dekningsgrad = dekning["grad"].asInt(),
+                                gjelderFraDag = dekning["fraDag"].asInt(),
+                            )
+                        },
+                    individuellForsikringNavn = json["individuelleForsikringer"].find { it["lagtTilGrunn"].asBoolean() }?.get("navn")?.asText(),
                     kollektivForsikringNavn = json["kollektivForsikring"]?.get("navn")?.asText(),
                 )
             }

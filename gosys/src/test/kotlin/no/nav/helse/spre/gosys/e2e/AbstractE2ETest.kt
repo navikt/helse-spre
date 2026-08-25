@@ -16,10 +16,6 @@ import io.ktor.serialization.jackson.*
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
 import kotlinx.coroutines.runBlocking
 import kotliquery.queryOf
 import kotliquery.sessionOf
@@ -61,9 +57,12 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 internal abstract class AbstractE2ETest {
-
     protected val testRapid = TestRapid()
     protected lateinit var dataSource: TestDataSource
     protected lateinit var sessionFactory: SessionFactory
@@ -72,31 +71,35 @@ internal abstract class AbstractE2ETest {
 
     private val mockClient = httpclient()
     protected val pdfClient = PdfClient(mockClient, "http://url.no")
-    private val azureMock: AzureTokenProvider = mockk {
-        every { bearerToken("scope") }.returns(AzureToken("token", LocalDateTime.MAX).ok())
-        every { bearerToken("JOARK_SCOPE") }.returns(
-            AzureToken(
-                "6B70C162-8AAB-4B56-944D-7F092423FE4B",
-                LocalDateTime.MAX
-            ).ok()
-        )
-    }
+    private val azureMock: AzureTokenProvider =
+        mockk {
+            every { bearerToken("scope") }.returns(AzureToken("token", LocalDateTime.MAX).ok())
+            every { bearerToken("JOARK_SCOPE") }.returns(
+                AzureToken(
+                    "6B70C162-8AAB-4B56-944D-7F092423FE4B",
+                    LocalDateTime.MAX,
+                ).ok(),
+            )
+        }
     protected val joarkClient = JoarkClient("https://url.no", azureMock, "JOARK_SCOPE", mockClient)
     protected val eregClient = EregClient("https://url.no", mockClient)
-    protected val spForsikringClient: SpForsikringClient = mockk {
-        coEvery { hentForsikringsvurdering(any()) } returns null
-    }
-    protected val speedClient = mockk<SpeedClient> {
-        every { hentPersoninfo(any(), any()) } returns PersonResponse(
-            fødselsdato = LocalDate.now(),
-            dødsdato = null,
-            fornavn = "MOLEFONKEN",
-            mellomnavn = null,
-            etternavn = "ERT",
-            adressebeskyttelse = PersonResponse.Adressebeskyttelse.UGRADERT,
-            kjønn = PersonResponse.Kjønn.UKJENT
-        ).ok()
-    }
+    protected val spForsikringClient: SpForsikringClient =
+        mockk {
+            coEvery { hentForsikringsvurdering(any()) } returns null
+        }
+    protected val speedClient =
+        mockk<SpeedClient> {
+            every { hentPersoninfo(any(), any()) } returns
+                PersonResponse(
+                    fødselsdato = LocalDate.now(),
+                    dødsdato = null,
+                    fornavn = "MOLEFONKEN",
+                    mellomnavn = null,
+                    etternavn = "ERT",
+                    adressebeskyttelse = PersonResponse.Adressebeskyttelse.UGRADERT,
+                    kjønn = PersonResponse.Kjønn.UKJENT,
+                ).ok()
+        }
 
     protected lateinit var duplikatsjekkDao: DuplikatsjekkDao
     protected lateinit var meldingOmVedtakRepository: MeldingOmVedtakRepository
@@ -125,7 +128,7 @@ internal abstract class AbstractE2ETest {
             eregClient = eregClient,
             spForsikringClient = spForsikringClient,
             speedClient = speedClient,
-            sessionFactory = sessionFactory
+            sessionFactory = sessionFactory,
         )
         capturedJoarkRequests.clear()
         capturedPdfRequests.clear()
@@ -137,21 +140,21 @@ internal abstract class AbstractE2ETest {
         testRapid.reset()
     }
 
-    private fun httpclient(): HttpClient {
-        return HttpClient(MockEngine) {
+    private fun httpclient(): HttpClient =
+        HttpClient(MockEngine) {
             install(ContentNegotiation) {
                 register(ContentType.Application.Json, JacksonConverter(objectMapper))
             }
             engine {
                 addHandler { request ->
                     when (request.url.fullPath) {
-
                         "/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true" -> handlerForJoark(request)
 
                         "/api/v1/genpdf/spre-gosys/vedtak",
                         "/api/v1/genpdf/spre-gosys/ferdig_annullering",
                         "/api/v1/genpdf/spre-gosys/vedtak_selvstendig",
-                        "/api/v1/genpdf/spre-gosys/annullering" -> handlerForPdfKall(request)
+                        "/api/v1/genpdf/spre-gosys/annullering",
+                        -> handlerForPdfKall(request)
 
                         "/v1/organisasjon/123456789" -> handlerForEregKall(request)
 
@@ -160,7 +163,6 @@ internal abstract class AbstractE2ETest {
                 }
             }
         }
-    }
 
     open fun MockRequestHandleScope.handlerForJoark(request: HttpRequestData): HttpResponseData {
         capturedJoarkRequests.add(request)
@@ -172,13 +174,12 @@ internal abstract class AbstractE2ETest {
         return respond("Test".toByteArray())
     }
 
-    open fun MockRequestHandleScope.handlerForEregKall(request: HttpRequestData): HttpResponseData {
-        return respond(eregResponse().toByteArray())
-    }
+    open fun MockRequestHandleScope.handlerForEregKall(request: HttpRequestData): HttpResponseData = respond(eregResponse().toByteArray())
 
-    private inline fun <reified T> HttpRequestData.parsePayload(): T = runBlocking {
-        requireNotNull(objectMapper.readValue(this@parsePayload.body.toByteArray(), T::class.java))
-    }
+    private inline fun <reified T> HttpRequestData.parsePayload(): T =
+        runBlocking {
+            requireNotNull(objectMapper.readValue(this@parsePayload.body.toByteArray(), T::class.java))
+        }
 
     protected fun assertJournalpost(expected: JournalpostPayload = expectedJournalpost()) {
         val joarkRequest = capturedJoarkRequests.single()
@@ -206,17 +207,18 @@ internal abstract class AbstractE2ETest {
         utbetalingstype: Utbetalingstype = UTBETALING,
         totaltTilUtbetaling: Int = 32913,
         behandlingsdato: LocalDate = tom,
-        linjer: List<VedtakPdfPayload.Linje> = listOf(
-            VedtakPdfPayload.Linje(
-                fom = fom,
-                tom = tom,
-                grad = 100,
-                dagsats = 1431,
-                mottaker = "Arbeidsgiver",
-                totalbeløp = totaltTilUtbetaling,
-                erOpphørt = false,
-            )
-        ),
+        linjer: List<VedtakPdfPayload.Linje> =
+            listOf(
+                VedtakPdfPayload.Linje(
+                    fom = fom,
+                    tom = tom,
+                    grad = 100,
+                    dagsats = 1431,
+                    mottaker = "Arbeidsgiver",
+                    totalbeløp = totaltTilUtbetaling,
+                    erOpphørt = false,
+                ),
+            ),
         arbeidsgiverOppdrag: VedtakPdfPayload.Oppdrag? = null,
         personOppdrag: VedtakPdfPayload.Oppdrag? = null,
         ikkeUtbetalteDager: List<VedtakPdfPayload.IkkeUtbetalteDager> = emptyList(),
@@ -228,53 +230,55 @@ internal abstract class AbstractE2ETest {
         avviksprosent: Double = 20.0,
         skjønnsfastsettingtype: Skjønnsfastsettingtype = OMREGNET_ÅRSINNTEKT,
         skjønnsfastsettingårsak: Skjønnsfastsettingårsak = Skjønnsfastsettingårsak.ANDRE_AVSNITT,
-        arbeidsgivere: List<VedtakPdfPayload.ArbeidsgiverData> = listOf(
-            VedtakPdfPayload.ArbeidsgiverData(
-                organisasjonsnummer = "123456789",
-                omregnetÅrsinntekt = 565260.0,
-                innrapportertÅrsinntekt = 500000.0,
-                skjønnsfastsatt = 565260.0
-            )
-        ),
+        arbeidsgivere: List<VedtakPdfPayload.ArbeidsgiverData> =
+            listOf(
+                VedtakPdfPayload.ArbeidsgiverData(
+                    organisasjonsnummer = "123456789",
+                    omregnetÅrsinntekt = 565260.0,
+                    innrapportertÅrsinntekt = 500000.0,
+                    skjønnsfastsatt = 565260.0,
+                ),
+            ),
         begrunnelser: Map<String, String>? = mapOf("innvilgelse" to "En begrunnelse med '"),
         vedtakFattetTidspunkt: LocalDateTime = AbstractE2ETest.vedtakFattetTidspunkt,
-    ) =
-        VedtakPdfPayload(
-            fødselsnummer = "12345678910",
-            type = utbetalingstype.lesbarTittel,
-            fom = fom,
-            tom = tom,
-            linjer = linjer,
-            personOppdrag = personOppdrag,
-            arbeidsgiverOppdrag = arbeidsgiverOppdrag,
-            organisasjonsnummer = "123456789",
-            behandlingsdato = behandlingsdato,
-            forbrukteSykedager = forbrukteSykedager,
-            dagerIgjen = dagerIgjen,
-            automatiskBehandling = godkjentAv == "Automatisk behandlet",
-            godkjentAv = godkjentAv,
-            sumNettoBeløp = totaltTilUtbetaling,
-            ikkeUtbetalteDager = ikkeUtbetalteDager,
-            maksdato = maksdato,
-            sykepengegrunnlag = 565260.0,
-            sumTotalBeløp = linjer.sumOf { it.totalbeløp },
-            organisasjonsnavn = "PENGELØS SPAREBANK",
-            navn = "Molefonken Ert",
-            skjæringstidspunkt = skjæringstidspunkt,
-            avviksprosent = avviksprosent,
-            skjønnsfastsettingtype = when (skjønnsfastsettingtype) {
+    ) = VedtakPdfPayload(
+        fødselsnummer = "12345678910",
+        type = utbetalingstype.lesbarTittel,
+        fom = fom,
+        tom = tom,
+        linjer = linjer,
+        personOppdrag = personOppdrag,
+        arbeidsgiverOppdrag = arbeidsgiverOppdrag,
+        organisasjonsnummer = "123456789",
+        behandlingsdato = behandlingsdato,
+        forbrukteSykedager = forbrukteSykedager,
+        dagerIgjen = dagerIgjen,
+        automatiskBehandling = godkjentAv == "Automatisk behandlet",
+        godkjentAv = godkjentAv,
+        sumNettoBeløp = totaltTilUtbetaling,
+        ikkeUtbetalteDager = ikkeUtbetalteDager,
+        maksdato = maksdato,
+        sykepengegrunnlag = 565260.0,
+        sumTotalBeløp = linjer.sumOf { it.totalbeløp },
+        organisasjonsnavn = "PENGELØS SPAREBANK",
+        navn = "Molefonken Ert",
+        skjæringstidspunkt = skjæringstidspunkt,
+        avviksprosent = avviksprosent,
+        skjønnsfastsettingtype =
+            when (skjønnsfastsettingtype) {
                 OMREGNET_ÅRSINNTEKT -> "Omregnet årsinntekt"
                 RAPPORTERT_ÅRSINNTEKT -> "Rapportert årsinntekt"
                 ANNET -> "Annet"
             },
-            skjønnsfastsettingårsak = when (skjønnsfastsettingårsak) {
+        skjønnsfastsettingårsak =
+            when (skjønnsfastsettingårsak) {
                 Skjønnsfastsettingårsak.ANDRE_AVSNITT -> "Skjønnsfastsettelse ved mer enn 25 % avvik (§ 8-30 andre avsnitt)"
                 Skjønnsfastsettingårsak.TREDJE_AVSNITT -> "Skjønnsfastsettelse ved mangelfull eller uriktig rapportering (§ 8-30 tredje avsnitt)"
             },
-            arbeidsgivere = arbeidsgivere,
-            begrunnelser = begrunnelser,
-            vedtakFattetTidspunkt = vedtakFattetTidspunkt,
-        )
+        arbeidsgivere = arbeidsgivere,
+        begrunnelser = begrunnelser,
+        vedtakFattetTidspunkt = vedtakFattetTidspunkt,
+    )
 
     protected fun expectedSNPdfPayload(
         fom: LocalDate = 1.januar,
@@ -294,52 +298,52 @@ internal abstract class AbstractE2ETest {
         beregningsgrunnlag: BigDecimal = BigDecimal("565260.0"),
         begrunnelser: Map<String, String>? = mapOf("innvilgelse" to ""),
         vedtakFattetTidspunkt: LocalDateTime = AbstractE2ETest.vedtakFattetTidspunkt,
-        pensjonsgivendeInntekter: List<PensjonsgivendeInntekt> = listOf(
-            PensjonsgivendeInntekt(
-                årstall = 2024,
-                beløp = BigDecimal("600000")
+        pensjonsgivendeInntekter: List<PensjonsgivendeInntekt> =
+            listOf(
+                PensjonsgivendeInntekt(
+                    årstall = 2024,
+                    beløp = BigDecimal("600000"),
+                ),
+                PensjonsgivendeInntekt(
+                    årstall = 2023,
+                    beløp = BigDecimal("600000"),
+                ),
+                PensjonsgivendeInntekt(
+                    årstall = 2022,
+                    beløp = BigDecimal("600000"),
+                ),
             ),
-            PensjonsgivendeInntekt(
-                årstall = 2023,
-                beløp = BigDecimal("600000")
-            ),
-            PensjonsgivendeInntekt(
-                årstall = 2022,
-                beløp = BigDecimal("600000")
-            )
-        ),
-        indivieduellForsikringNavn: String? = null,
+        individuellForsikringNavn: String? = null,
         kollektivForsikringNavn: String? = null,
         dekning: Dekning = Dekning(dekningsgrad = 80, gjelderFraDag = 17),
-    ) =
-        SNVedtakPdfPayload(
-            fødselsnummer = "12345678910",
-            type = utbetalingstype.lesbarTittel,
-            fom = fom,
-            tom = tom,
-            linjer = linjer,
-            personOppdrag = personOppdrag,
-            arbeidsgiverOppdrag = arbeidsgiverOppdrag,
-            behandlingsdato = behandlingsdato,
-            forbrukteSykedager = forbrukteSykedager,
-            dagerIgjen = dagerIgjen,
-            automatiskBehandling = godkjentAv == "Automatisk behandlet",
-            godkjentAv = godkjentAv,
-            sumNettoBeløp = totaltTilUtbetaling,
-            sumTotalBeløp = linjer.sumOf { it.totalbeløp },
-            ikkeUtbetalteDager = ikkeUtbetalteDager,
-            maksdato = maksdato,
-            sykepengegrunnlag = BigDecimal("565260.0"),
-            navn = "Molefonken Ert",
-            skjæringstidspunkt = skjæringstidspunkt,
-            begrunnelser = begrunnelser,
-            beregningsgrunnlag = beregningsgrunnlag,
-            vedtakFattetTidspunkt = vedtakFattetTidspunkt,
-            pensjonsgivendeInntekter = pensjonsgivendeInntekter,
-            indivieduellForsikringNavn = indivieduellForsikringNavn,
-            kollektivForsikringNavn = kollektivForsikringNavn,
-            dekning = dekning,
-        )
+    ) = SNVedtakPdfPayload(
+        fødselsnummer = "12345678910",
+        type = utbetalingstype.lesbarTittel,
+        fom = fom,
+        tom = tom,
+        linjer = linjer,
+        personOppdrag = personOppdrag,
+        arbeidsgiverOppdrag = arbeidsgiverOppdrag,
+        behandlingsdato = behandlingsdato,
+        forbrukteSykedager = forbrukteSykedager,
+        dagerIgjen = dagerIgjen,
+        automatiskBehandling = godkjentAv == "Automatisk behandlet",
+        godkjentAv = godkjentAv,
+        sumNettoBeløp = totaltTilUtbetaling,
+        sumTotalBeløp = linjer.sumOf { it.totalbeløp },
+        ikkeUtbetalteDager = ikkeUtbetalteDager,
+        maksdato = maksdato,
+        sykepengegrunnlag = BigDecimal("565260.0"),
+        navn = "Molefonken Ert",
+        skjæringstidspunkt = skjæringstidspunkt,
+        begrunnelser = begrunnelser,
+        beregningsgrunnlag = beregningsgrunnlag,
+        vedtakFattetTidspunkt = vedtakFattetTidspunkt,
+        pensjonsgivendeInntekter = pensjonsgivendeInntekter,
+        individuellForsikringNavn = individuellForsikringNavn,
+        kollektivForsikringNavn = kollektivForsikringNavn,
+        dekning = dekning,
+    )
 
     protected fun expectedJournalpost(
         fom: LocalDate = 1.januar,
@@ -348,35 +352,38 @@ internal abstract class AbstractE2ETest {
         journalpostTittel: String = utbetalingstype.journaltittel,
         dokumentTittel: String = "${utbetalingstype.dokumenttittel}, ${fom.formatted()} - ${tom.formatted()}",
         eksternReferanseId: UUID = UUID.randomUUID(),
-    ): JournalpostPayload {
-        return JournalpostPayload(
+    ): JournalpostPayload =
+        JournalpostPayload(
             tittel = journalpostTittel,
             journalpostType = "NOTAT",
             tema = "SYK",
             behandlingstema = "ab0061",
             journalfoerendeEnhet = "9999",
-            bruker = JournalpostPayload.Bruker(
-                id = "12345678910",
-                idType = "FNR"
-            ),
-            sak = JournalpostPayload.Sak(
-                sakstype = "GENERELL_SAK"
-            ),
-            dokumenter = listOf(
-                JournalpostPayload.Dokument(
-                    tittel = dokumentTittel,
-                    dokumentvarianter = listOf(
-                        JournalpostPayload.Dokument.DokumentVariant(
-                            filtype = "PDFA",
-                            fysiskDokument = Base64.getEncoder().encodeToString("Test".toByteArray()),
-                            variantformat = "ARKIV"
-                        )
-                    )
-                )
-            ),
+            bruker =
+                JournalpostPayload.Bruker(
+                    id = "12345678910",
+                    idType = "FNR",
+                ),
+            sak =
+                JournalpostPayload.Sak(
+                    sakstype = "GENERELL_SAK",
+                ),
+            dokumenter =
+                listOf(
+                    JournalpostPayload.Dokument(
+                        tittel = dokumentTittel,
+                        dokumentvarianter =
+                            listOf(
+                                JournalpostPayload.Dokument.DokumentVariant(
+                                    filtype = "PDFA",
+                                    fysiskDokument = Base64.getEncoder().encodeToString("Test".toByteArray()),
+                                    variantformat = "ARKIV",
+                                ),
+                            ),
+                    ),
+                ),
             eksternReferanseId = eksternReferanseId.toString(),
         )
-    }
 
     @Language("json")
     private fun vedtakFattet(
@@ -544,17 +551,19 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
-        personOppdrag: Oppdrag = Oppdrag(
-            sykdomstidslinje,
-            fagområde = "SP",
-            mottaker = fødselsnummer,
-            fagsystemId = "fagsystemIdPerson"
-        ),
-        arbeidsgiverOppdrag: Oppdrag = Oppdrag(
-            emptyList(),
-            fagområde = "SPREF",
-            fagsystemId = "fagsystemIdArbeidsgiver"
-        )
+        personOppdrag: Oppdrag =
+            Oppdrag(
+                sykdomstidslinje,
+                fagområde = "SP",
+                mottaker = fødselsnummer,
+                fagsystemId = "fagsystemIdPerson",
+            ),
+        arbeidsgiverOppdrag: Oppdrag =
+            Oppdrag(
+                emptyList(),
+                fagområde = "SPREF",
+                fagsystemId = "fagsystemIdArbeidsgiver",
+            ),
     ) = """{
     "@id": "$hendelseId",
     "fødselsnummer": "$fødselsnummer",
@@ -589,12 +598,13 @@ internal abstract class AbstractE2ETest {
         sykdomstidslinje: List<Dag> = utbetalingsdager(1.januar, 31.januar),
         type: String = "UTBETALING",
         opprettet: LocalDateTime = sykdomstidslinje.last().dato.atStartOfDay(),
-        arbeidsgiverOppdrag: Oppdrag = Oppdrag(
-            sykdomstidslinje,
-            fagområde = "SPREF",
-            fagsystemId = "fagsystemIdArbeidsgiver"
-        ),
-        brukeroppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SP", fagsystemId = "fagsystemIdPerson")
+        arbeidsgiverOppdrag: Oppdrag =
+            Oppdrag(
+                sykdomstidslinje,
+                fagområde = "SPREF",
+                fagsystemId = "fagsystemIdArbeidsgiver",
+            ),
+        brukeroppdrag: Oppdrag = Oppdrag(emptyList(), fagområde = "SP", fagsystemId = "fagsystemIdPerson"),
     ) = """{
     "@id": "$hendelseId",
     "fødselsnummer": "$fødselsnummer",
@@ -635,7 +645,7 @@ internal abstract class AbstractE2ETest {
                 sykdomstidslinje = sykdomstidslinje,
                 type = type,
                 opprettet = opprettet.atStartOfDay(),
-            )
+            ),
         )
     }
 
@@ -655,8 +665,8 @@ internal abstract class AbstractE2ETest {
                 utbetalingId = utbetalingId,
                 vedtaksperiodeIder = vedtaksperiodeIder,
                 sykdomstidslinje = sykdomstidslinje,
-                type = type
-            )
+                type = type,
+            ),
         )
     }
 
@@ -677,22 +687,24 @@ internal abstract class AbstractE2ETest {
                 utbetalingId = utbetalingId,
                 vedtaksperiodeIder = vedtaksperiodeIder,
                 sykdomstidslinje = sykdomstidslinje,
-                personOppdrag = Oppdrag(
-                    sykdomstidslinje,
-                    sats = 700,
-                    mottaker = fødselsnummer,
-                    fagområde = "SP",
-                    fagsystemId = "fagsystemIdPerson"
-                ),
-                arbeidsgiverOppdrag = Oppdrag(
-                    sykdomstidslinje,
-                    sats = 741,
-                    mottaker = orgnummer,
-                    fagområde = "SPREF",
-                    fagsystemId = "fagsystemIdArbeidsgiver"
-                ),
-                type = type
-            )
+                personOppdrag =
+                    Oppdrag(
+                        sykdomstidslinje,
+                        sats = 700,
+                        mottaker = fødselsnummer,
+                        fagområde = "SP",
+                        fagsystemId = "fagsystemIdPerson",
+                    ),
+                arbeidsgiverOppdrag =
+                    Oppdrag(
+                        sykdomstidslinje,
+                        sats = 741,
+                        mottaker = orgnummer,
+                        fagområde = "SPREF",
+                        fagsystemId = "fagsystemIdArbeidsgiver",
+                    ),
+                type = type,
+            ),
         )
     }
 
@@ -713,8 +725,8 @@ internal abstract class AbstractE2ETest {
                 vedtaksperiodeId = vedtaksperiodeId,
                 fom = sykdomstidslinje.first().dato,
                 tom = sykdomstidslinje.last().dato,
-                vedtakFattetTidspunkt = vedtakFattetTidspunkt
-            )
+                vedtakFattetTidspunkt = vedtakFattetTidspunkt,
+            ),
         )
     }
 
@@ -738,28 +750,28 @@ internal abstract class AbstractE2ETest {
                 tom = sykdomstidslinje.last().dato,
                 vedtakFattetTidspunkt = vedtakFattetTidspunkt,
                 forsikringsvurderingId = forsikringsvurderingId,
-            )
+            ),
         )
     }
 
-    protected fun harLagretTilDuplikattabellen(hendelseId: UUID): Boolean =
-        antallRaderIDuplikattabellen(hendelseId) == 1
+    protected fun harLagretTilDuplikattabellen(hendelseId: UUID): Boolean = antallRaderIDuplikattabellen(hendelseId) == 1
 
-    protected fun harIkkeLagretTilDuplikattabellen(hendelseId: UUID): Boolean =
-        antallRaderIDuplikattabellen(hendelseId) == 0
+    protected fun harIkkeLagretTilDuplikattabellen(hendelseId: UUID): Boolean = antallRaderIDuplikattabellen(hendelseId) == 0
 
-    private fun antallRaderIDuplikattabellen(hendelseId: UUID) = sessionOf(dataSource.ds).use { session ->
-        @Language("PostgreSQL") val query = "SELECT COUNT(1) FROM duplikatsjekk WHERE id=?"
-        session.run(queryOf(query, hendelseId).map { it.int(1) }.asSingle)
-    }
+    private fun antallRaderIDuplikattabellen(hendelseId: UUID) =
+        sessionOf(dataSource.ds).use { session ->
+            @Language("PostgreSQL")
+            val query = "SELECT COUNT(1) FROM duplikatsjekk WHERE id=?"
+            session.run(queryOf(query, hendelseId).map { it.int(1) }.asSingle)
+        }
 
     enum class Utbetalingstype(
         internal val journaltittel: String,
         internal val dokumenttittel: String,
-        internal val lesbarTittel: String
+        internal val lesbarTittel: String,
     ) {
         UTBETALING("Vedtak om sykepenger", "Sykepenger behandlet", "utbetaling av"),
-        REVURDERING("Vedtak om revurdering av sykepenger", "Sykepenger revurdert", "revurdering av")
+        REVURDERING("Vedtak om revurdering av sykepenger", "Sykepenger revurdert", "revurdering av"),
     }
 
     companion object {
