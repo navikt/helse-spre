@@ -62,7 +62,7 @@ internal class SpForsikringClientTest {
                 200,
                 """
                 {
-                  "navKjøpteForsikringer": [
+                  "individuelleForsikringer": [
                     { "navn": "Ikke valgt forsikring", "lagtTilGrunn": false },
                     { "navn": "Valgt individuell forsikring", "lagtTilGrunn": true }
                   ],
@@ -89,7 +89,7 @@ internal class SpForsikringClientTest {
                 200,
                 """
                 {
-                  "navKjøpteForsikringer": [
+                  "individuelleForsikringer": [
                     { "navn": "Ikke valgt forsikring", "lagtTilGrunn": false }
                   ],
                   "kollektivForsikring": { "navn": "Kollektiv forsikring" },
@@ -113,7 +113,7 @@ internal class SpForsikringClientTest {
                 200,
                 """
                 {
-                  "navKjøpteForsikringer": [],
+                  "individuelleForsikringer": [],
                   "kollektivForsikring": { "navn": "Kollektiv forsikring" },
                   "samletDekning": null
                 }
@@ -134,7 +134,7 @@ internal class SpForsikringClientTest {
                 200,
                 """
                 {
-                  "navKjøpteForsikringer": [
+                  "individuelleForsikringer": [
                     { "navn": "Valgt individuell forsikring", "lagtTilGrunn": true }
                   ],
                   "kollektivForsikring": null
@@ -157,7 +157,7 @@ internal class SpForsikringClientTest {
                 200,
                 """
                 {
-                  "navKjøpteForsikringer": [
+                  "individuelleForsikringer": [
                     { "navn": "Valgt individuell forsikring", "lagtTilGrunn": true }
                   ]
                 }
