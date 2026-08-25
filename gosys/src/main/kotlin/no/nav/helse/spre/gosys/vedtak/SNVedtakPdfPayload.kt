@@ -29,7 +29,8 @@ data class SNVedtakPdfPayload(
     val vedtakFattetTidspunkt: LocalDateTime,
     val pensjonsgivendeInntekter: List<PensjonsgivendeInntekt>,
     val indivieduellForsikringNavn: String?,
-    val kollektivForsikringNavn: String?
+    val kollektivForsikringNavn: String?,
+    val dekning: Dekning,
 )
 
 data class PensjonsgivendeInntekt(
@@ -40,4 +41,10 @@ data class PensjonsgivendeInntekt(
 data class Forsikringsvurdering(
     val indivieduellForsikringNavn: String?,
     val kollektivForsikringNavn: String?,
+    val dekning: Dekning?,
+)
+
+data class Dekning(
+    val dekningsgrad: Int,
+    val gjelderFraDag: Int,
 )

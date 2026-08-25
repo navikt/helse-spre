@@ -19,6 +19,7 @@ import no.nav.helse.spre.gosys.utbetaling.Utbetaling
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.Companion.IkkeUtbetalingsdagtyper
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling.OppdragDto.UtbetalingslinjeDto
 import no.nav.helse.spre.gosys.vedtak.AvvistPeriode
+import no.nav.helse.spre.gosys.vedtak.Dekning
 import no.nav.helse.spre.gosys.vedtak.Forsikringsvurdering
 import no.nav.helse.spre.gosys.vedtak.PensjonsgivendeInntekt
 import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
@@ -176,6 +177,7 @@ class PdfProduserer(
         vedtakFattetTidspunkt = meldingOmVedtakJson["vedtakFattetTidspunkt"].asLocalDateTime(),
         indivieduellForsikringNavn = forsikringsvurdering?.indivieduellForsikringNavn,
         kollektivForsikringNavn = forsikringsvurdering?.kollektivForsikringNavn,
+        dekning = forsikringsvurdering?.dekning ?: Dekning(dekningsgrad = 80, gjelderFraDag = 17)
     )
 
     private fun Utbetaling.toLinjer(
@@ -244,7 +246,7 @@ class PdfProduserer(
         .filter { it.type in IkkeUtbetalingsdagtyper }
         .filter { dag ->
             dag.dato >= skjæringstidspunkt ||
-            dag.begrunnelser.any { it == "MeldingTilNavDagUtenforVentetid" || it == "AvslåttMeldingTilNavDag" }
+                dag.begrunnelser.any { it == "MeldingTilNavDagUtenforVentetid" || it == "AvslåttMeldingTilNavDag" }
         }
         .map { dag ->
             AvvistPeriode(

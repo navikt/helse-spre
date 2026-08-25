@@ -61,7 +61,8 @@ internal class SpForsikringClientTest {
                 { "navn": "Ikke valgt forsikring", "lagtTilGrunn": false },
                 { "navn": "Valgt individuell forsikring", "lagtTilGrunn": true }
               ],
-              "kollektivForsikring": { "navn": "Kollektiv forsikring" }
+              "kollektivForsikring": { "navn": "Kollektiv forsikring" },
+              "samletDekning": { "grad": 100, "fraDag": 1 }
             }
         """.trimIndent()
         )
@@ -70,6 +71,8 @@ internal class SpForsikringClientTest {
 
         assertEquals("Valgt individuell forsikring", forsikringsvurdering?.indivieduellForsikringNavn)
         assertEquals("Kollektiv forsikring", forsikringsvurdering?.kollektivForsikringNavn)
+        assertEquals(100, forsikringsvurdering?.dekning?.dekningsgrad)
+        assertEquals(1, forsikringsvurdering?.dekning?.gjelderFraDag)
     }
 
     @Test
@@ -81,7 +84,8 @@ internal class SpForsikringClientTest {
               "navKjøpteForsikringer": [
                 { "navn": "Ikke valgt forsikring", "lagtTilGrunn": false }
               ],
-              "kollektivForsikring": { "navn": "Kollektiv forsikring" }
+              "kollektivForsikring": { "navn": "Kollektiv forsikring" },
+              "samletDekning": { "grad": 100, "fraDag": 1 }
             }
         """.trimIndent()
         )
@@ -90,6 +94,24 @@ internal class SpForsikringClientTest {
 
         assertNull(forsikringsvurdering?.indivieduellForsikringNavn)
         assertEquals("Kollektiv forsikring", forsikringsvurdering?.kollektivForsikringNavn)
+    }
+
+    @Test
+    fun `dekning blir null når samletDekning er null`() = runBlocking {
+        val id = UUID.randomUUID()
+        stubForsikringsvurdering(
+            id, 200, """
+            {
+              "navKjøpteForsikringer": [],
+              "kollektivForsikring": { "navn": "Kollektiv forsikring" },
+              "samletDekning": null
+            }
+        """.trimIndent()
+        )
+
+        val forsikringsvurdering = client.hentForsikringsvurdering(id)
+
+        assertNull(forsikringsvurdering?.dekning)
     }
 
     @Test

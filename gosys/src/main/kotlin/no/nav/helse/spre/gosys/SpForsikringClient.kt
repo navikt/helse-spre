@@ -8,7 +8,8 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import java.util.UUID
+import java.util.*
+import no.nav.helse.spre.gosys.vedtak.Dekning
 import no.nav.helse.spre.gosys.vedtak.Forsikringsvurdering
 
 class SpForsikringClient(
@@ -29,6 +30,12 @@ class SpForsikringClient(
             200 -> {
                 val json = objectMapper.readValue<JsonNode>(response.bodyAsText())
                 Forsikringsvurdering(
+                    dekning = json["samletDekning"]?.takeUnless { it.isNull }?.let { dekning ->
+                        Dekning(
+                            dekningsgrad = dekning["grad"].asInt(),
+                            gjelderFraDag = dekning["fraDag"].asInt(),
+                        )
+                    },
                     indivieduellForsikringNavn = json["navKjøpteForsikringer"].find { it["lagtTilGrunn"].asBoolean() }?.let { it["navn"].asText() },
                     kollektivForsikringNavn = json["kollektivForsikring"].let { it["navn"].asText() },
                 )
