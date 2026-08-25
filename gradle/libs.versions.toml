@@ -2,7 +2,7 @@
 flyway = "11.5.0"
 ktor = "3.5.2"
 sasGradlePlugins = "20260807.0944"
-tbd-libs = "2026.01.22-09.16-1d3f6039"
+tbd-libs = "20260823.1727"
 
 [libraries]
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
