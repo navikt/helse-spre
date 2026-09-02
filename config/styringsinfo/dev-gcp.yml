@@ -8,8 +8,6 @@ kafkaConsumerGroup: tbd-spre-styringsinfo-v3
 kafkaResetPolicy: earliest
 livenessInitialDelay: 60
 readinessInitialDelay: 60
-app:
-  leaderElection: true
 gcp:
   type: POSTGRES_17
   databaseName: spre-styringsinfo
