@@ -106,12 +106,19 @@ spec:
             users:
               - name: bigquery-datastream
             {{/if}}
-        {{#if gcp.datastream}}
         flags:
+          - name: cloudsql.enable_pgaudit
+            value: "on"
+          - name: pgaudit.log
+            value: "write,ddl,role"
+          - name: pgaudit.log_parameter
+            value: "on"
+          - name: pgaudit.log_relation
+            value: "on"
+          {{#if gcp.datastream}}
           - name: cloudsql.logical_decoding
             value: "on"
-        {{/if}}
-
+          {{/if}}
         {{#if gcp.cascadeDelete}}
         cascadingDelete: {{ gcp.cascadingDelete }}
         {{/if}}
