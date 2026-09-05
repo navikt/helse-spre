@@ -9,7 +9,7 @@ flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql
 hikaricp = "com.zaxxer:HikariCP:6.3.0"
 kotliquery = "com.github.seratch:kotliquery:1.9.1"
 postgresql = "org.postgresql:postgresql:42.7.13"
-rapids-and-rivers = "com.github.navikt:rapids-and-rivers:2026011411051768385145.e8ebad1177b4"
+rapids-and-rivers = "com.github.navikt:rapids-and-rivers:2026071513121784113927"
 
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
