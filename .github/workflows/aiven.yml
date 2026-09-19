@@ -45,7 +45,6 @@ jobs:
 
   deploy-prod:
     name: apply kafka-topic i prod
-    needs: deploy-dev
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
