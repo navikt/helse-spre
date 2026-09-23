@@ -1,6 +1,6 @@
 [versions]
 flyway = "13.7.0"
-ktor = "3.5.2"
+ktor = "3.6.0"
 sasGradlePlugins = "20260918.1635"
 tbd-libs = "2026.01.22-09.16-1d3f6039"
 
