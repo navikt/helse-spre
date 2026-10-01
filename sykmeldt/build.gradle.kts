@@ -1,8 +1,8 @@
 plugins {
-    id("no.nav.helse.sas.sas-deployable")
+    id("no.nav.sykepenger.deployable")
 }
 
-sasDeployable {
+sykepengerDeployable {
     mainClass = "no.nav.helse.spre.sykmeldt.AppKt"
     imageName = "helse-spre-sykmeldt"
 }

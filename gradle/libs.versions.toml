@@ -1,7 +1,7 @@
 [versions]
 flyway = "13.7.0"
 ktor = "3.6.0"
-sasGradlePlugins = "20260930.1152"
+sykepengerGradlePlugins = "20261001.1830"
 tbd-libs = "2026.01.22-09.16-1d3f6039"
 
 [libraries]
@@ -33,6 +33,6 @@ tbd-libs-rapids-and-rivers-test = { module = "com.github.navikt.tbd-libs:rapids-
 wiremock = "org.wiremock:wiremock-jetty12:3.13.2"
 
 [plugins]
-sas-deployable = { id = "no.nav.helse.sas.sas-deployable", version.ref = "sasGradlePlugins" }
-sas-kotlin = { id = "no.nav.helse.sas.sas-kotlin", version.ref = "sasGradlePlugins" }
-sas-root = { id = "no.nav.helse.sas.sas-root", version.ref = "sasGradlePlugins" }
+sykepenger-deployable = { id = "no.nav.sykepenger.deployable", version.ref = "sykepengerGradlePlugins" }
+sykepenger-kotlin = { id = "no.nav.sykepenger.kotlin", version.ref = "sykepengerGradlePlugins" }
+sykepenger-root = { id = "no.nav.sykepenger.root", version.ref = "sykepengerGradlePlugins" }

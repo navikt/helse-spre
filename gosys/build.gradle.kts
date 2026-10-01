@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("no.nav.helse.sas.sas-deployable")
+    id("no.nav.sykepenger.deployable")
 }
 
-sasDeployable {
+sykepengerDeployable {
     mainClass = "no.nav.helse.spre.gosys.AppKt"
     imageName = "helse-spre-gosys"
 }
@@ -41,7 +41,7 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-// ktlint-versjonen sas-module drar inn bruker en Kotlin-frontend som ikke forstår
+// ktlint-versjonen no.nav.sykepenger.module drar inn bruker en Kotlin-frontend som ikke forstår
 // context parameters, og klarer derfor ikke å parse kildekoden i denne modulen.
 ktlint {
     version = "1.8.0"
