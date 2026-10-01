@@ -22,7 +22,7 @@ tbd-libs-azure = { module = "com.github.navikt.tbd-libs:azure-token-client-defau
 tbd-libs-retry = { module = "com.github.navikt.tbd-libs:retry", version.ref = "tbd-libs" }
 tbd-libs-speed-client = { module = "com.github.navikt.tbd-libs:speed-client", version.ref = "tbd-libs" }
 
-json-schema-validator = "com.networknt:json-schema-validator:1.0.65"
+json-schema-validator = "com.networknt:json-schema-validator:3.0.7"
 jsonassert = "org.skyscreamer:jsonassert:1.5.3"
 kotest-assertions-core = "io.kotest:kotest-assertions-core:6.2.5"
 ktor-client-mock = { module = "io.ktor:ktor-client-mock-jvm", version.ref = "ktor" }
