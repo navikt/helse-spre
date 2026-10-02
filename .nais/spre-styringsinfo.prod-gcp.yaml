@@ -1,0 +1,36 @@
+spec:
+  liveness:
+    initialDelay: 30
+  readiness:
+    initialDelay: 30
+  resources:
+    limits:
+      memory: 2Gi
+  kafka:
+    pool: nav-prod
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_17
+        tier: db-custom-4-16384
+        name: spre-styringsinfo
+        diskAutoresize: true
+        pointInTimeRecovery: true
+        databases:
+          - name: spre-styringsinfo
+            envVarPrefix: DATABASE
+            users:
+              - name: bigquery-datastream
+        flags:
+          - name: cloudsql.enable_pgaudit
+            value: "on"
+          - name: pgaudit.log
+            value: "write,ddl,role"
+          - name: pgaudit.log_parameter
+            value: "on"
+          - name: pgaudit.log_relation
+            value: "on"
+          - name: cloudsql.logical_decoding
+            value: "on"
+  env:
+    - name: NOM_API_OAUTH_SCOPE
+      value: "api://prod-gcp.nom.nom-api/.default"

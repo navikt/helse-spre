@@ -1,9 +1,0 @@
-app: oppgaver
-replicas:
-  min: 2
-  max: 8
-kafkaPool: nav-prod
-gcp:
-  type: POSTGRES_17
-  databaseName: spre-oppgaver
-  envVarPrefix: DATABASE

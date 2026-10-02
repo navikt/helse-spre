@@ -1,0 +1,24 @@
+spec:
+  replicas:
+    max: 8
+  kafka:
+    pool: nav-prod
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_17
+        tier: db-custom-4-16384
+        name: spre-oppgaver
+        diskAutoresize: true
+        pointInTimeRecovery: true
+        databases:
+          - name: spre-oppgaver
+            envVarPrefix: DATABASE
+        flags:
+          - name: cloudsql.enable_pgaudit
+            value: "on"
+          - name: pgaudit.log
+            value: "write,ddl,role"
+          - name: pgaudit.log_parameter
+            value: "on"
+          - name: pgaudit.log_relation
+            value: "on"

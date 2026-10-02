@@ -14,19 +14,19 @@ Lag en mappe og sørg for at det finnes en `build.gradle.kts` der.
 Alle gradle-modulene bygges og releases automatisk. Ved hver pakke som blir lastet opp trigges en deployment workflow for
 den pakken.
 
-Navnet på appen prefikses med `spre-` i nais.yml, slik at navnet på modulen skal være uten.
+Appen heter `spre-[modul]` i Nais, mens modulen heter bare `[modul]`.
 
 1. Gjør 'Legge til en ny gradle-modul'. Mappenavnet korresponderer med appnavnet
-2. Lag `config/[app]/[cluster].yml` for de klustrene appen skal deployes til.
-3. Lag en minimal `App.kt` så appen kan starte opp.
-4. Push endringene
+2. Lag `.nais/spre-[app].yaml` med det som er likt i alle miljøer, og `.nais/spre-[app].[miljø].yaml` (f.eks. `dev-gcp`, `prod-gcp`) med det som er miljøspesifikt.
+3. Lag `.github/workflows/main-[app].yml` etter mønster fra de andre appene.
+4. Lag en minimal `App.kt` så appen kan starte opp.
+5. Push endringene
 
 ## Disable deploy av app eller begrense miljøer:
 
-Det kan av forskjellige årsaker være nyttig å midlertidig skru av deploy av en app. Enkleste måte å gjøre det på er å
-legge til noe etter .yml i filendelsen på det aktuelle miljøet i `config/[app]/[cluster].yaml`. Her er et eksempel hvor
-vi disabler deploy av spre-gosys i
-prod: https://github.com/navikt/helse-spre/commit/19424c6edb195dbcb06d1f6f1d4bcd6267ed685e.
+Det kan av forskjellige årsaker være nyttig å midlertidig skru av deploy av en app. Fjern eller kommenter ut
+`deploy-[miljø]`-jobben i `.github/workflows/main-[app].yml`. Ikke gi mixin-fila (`.nais/spre-[app].[miljø].yaml`) nytt
+navn – da deployes basen uten den miljøspesifikke konfigurasjonen.
 
 ## Oppgradering av gradle wrapper
 

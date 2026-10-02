@@ -1,0 +1,5 @@
+spec:
+  pool: nav-dev
+  config:
+    retentionHours: 24  # 24h på treig disk
+    localRetentionHours: 1 # 1h på rask disk

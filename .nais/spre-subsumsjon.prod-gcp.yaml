@@ -1,0 +1,10 @@
+spec:
+  replicas:
+    scalingStrategy:
+      kafka:
+        consumerGroup: tbd-spre-subsumsjon-v1
+  kafka:
+    pool: nav-prod
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: tbd-spre-subsumsjon-v1

@@ -1,0 +1,62 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: spre-styringsinfo
+  namespace: tbd
+  labels:
+    team: tbd
+spec:
+  port: 8080
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
+  strategy:
+    type: Recreate
+  replicas:
+    disableAutoScaling: false
+    min: 2
+    max: 8
+    scalingStrategy:
+      kafka:
+        topic: tbd.rapid.v1
+        consumerGroup: tbd-spre-styringsinfo-v3
+        threshold: 200
+  liveness:
+    path: isalive
+  readiness:
+    path: isready
+  preStopHook:
+    http:
+      path: /stop
+  resources:
+    requests:
+      cpu: 250m
+      memory: 128Mi
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      rules:
+        - application: logging
+          namespace: nais-system
+        - application: nom-api
+          namespace: nom
+        - application: speed-api
+  prometheus:
+    enabled: true
+    path: /metrics
+  env:
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: tbd-spre-styringsinfo-v3
+    - name: KAFKA_RAPID_TOPIC
+      value: tbd.rapid.v1
+    - name: KAFKA_RESET_POLICY
+      value: earliest
+    - name: NOM_API_BASE_URL
+      value: "http://nom-api.nom.svc.cluster.local"

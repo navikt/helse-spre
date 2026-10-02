@@ -1,0 +1,6 @@
+# Deployes ikke av aiven.yml i prod i dag.
+spec:
+  pool: nav-prod
+  config:
+    retentionHours: 168  # 7 dager på treig disk
+    localRetentionHours: 24 # 1 dag på rask disk
