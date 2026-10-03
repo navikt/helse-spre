@@ -1,15 +1,15 @@
 [versions]
-flyway = "13.7.0"
+flyway = "13.8.0"
 ktor = "3.6.0"
 sykepengerGradlePlugins = "20261001.1830"
-tbd-libs = "2026.01.22-09.16-1d3f6039"
+tbd-libs = "20261002.1227"
 
 [libraries]
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 hikaricp = "com.zaxxer:HikariCP:7.1.0"
 kotliquery = "com.github.seratch:kotliquery:1.9.1"
 postgresql = "org.postgresql:postgresql:42.7.13"
-rapids-and-rivers = "com.github.navikt:rapids-and-rivers:2026011411051768385145.e8ebad1177b4"
+rapids-and-rivers = "com.github.navikt:rapids-and-rivers:2026091610031789545782"
 
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
@@ -22,7 +22,7 @@ tbd-libs-azure = { module = "com.github.navikt.tbd-libs:azure-token-client-defau
 tbd-libs-retry = { module = "com.github.navikt.tbd-libs:retry", version.ref = "tbd-libs" }
 tbd-libs-speed-client = { module = "com.github.navikt.tbd-libs:speed-client", version.ref = "tbd-libs" }
 
-json-schema-validator = "com.networknt:json-schema-validator:1.0.65"
+json-schema-validator = "com.networknt:json-schema-validator:3.0.7"
 jsonassert = "org.skyscreamer:jsonassert:1.5.3"
 kotest-assertions-core = "io.kotest:kotest-assertions-core:6.2.5"
 ktor-client-mock = { module = "io.ktor:ktor-client-mock-jvm", version.ref = "ktor" }
