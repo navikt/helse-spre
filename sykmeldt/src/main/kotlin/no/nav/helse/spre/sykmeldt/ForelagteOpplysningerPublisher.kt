@@ -1,6 +1,7 @@
 package no.nav.helse.spre.sykmeldt
 
 import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy
 import tools.jackson.module.kotlin.jacksonMapperBuilder
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -35,6 +36,7 @@ class KafkaForelagteOpplysningerPublisher(private val producer: KafkaProducer<St
         val TOPICNAME = "tbd.forelagte-opplysninger"
         val mapper = jacksonMapperBuilder()
             .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .accessorNaming(DefaultAccessorNamingStrategy.Provider().withFirstCharAcceptance(true, true))
             .build()
     }
 }

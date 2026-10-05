@@ -17,9 +17,6 @@ dependencies {
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.jackson3)
-    implementation(libs.ktor.server.auth.jwt) {
-        exclude(group = "junit")
-    }
     implementation(libs.hikaricp)
     implementation(libs.postgresql)
     implementation(libs.flyway.database.postgresql)

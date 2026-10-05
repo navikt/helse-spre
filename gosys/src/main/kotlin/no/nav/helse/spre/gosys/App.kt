@@ -3,6 +3,7 @@ package no.nav.helse.spre.gosys
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.introspect.DefaultAccessorNamingStrategy
 import tools.jackson.module.kotlin.jacksonMapperBuilder
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory
 
 internal val objectMapper: ObjectMapper = jacksonMapperBuilder()
     .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+    .accessorNaming(DefaultAccessorNamingStrategy.Provider().withFirstCharAcceptance(true, true))
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .build()
 
