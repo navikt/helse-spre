@@ -1,6 +1,6 @@
 package db.migration
 
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.databind.node.ObjectNode
 
 internal class V42__fjerne_behandlingsresultat_vedtatt: BehandlingshendelseJsonMigrering() {
     override fun query() =

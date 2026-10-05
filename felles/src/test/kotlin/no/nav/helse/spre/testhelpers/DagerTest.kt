@@ -1,9 +1,8 @@
 package no.nav.helse.spre.testhelpers
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import no.nav.helse.spre.testhelpers.Dag.Companion.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,9 +12,9 @@ import org.junit.jupiter.api.Test
 class DagerTest {
 
     private companion object {
-        val objectMapper: ObjectMapper = jacksonObjectMapper()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .registerModule(JavaTimeModule())
+        val objectMapper: ObjectMapper = jacksonMapperBuilder()
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .build()
     }
 
     @Test

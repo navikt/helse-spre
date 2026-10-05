@@ -1,9 +1,8 @@
 package no.nav.helse.spre.oppgaver
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.module.kotlin.jacksonMapperBuilder
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -17,9 +16,9 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.LoggerFactory
 import java.util.*
 
-internal val objectMapper: ObjectMapper = jacksonObjectMapper()
-    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    .registerModule(JavaTimeModule())
+internal val objectMapper: ObjectMapper = jacksonMapperBuilder()
+    .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+    .build()
 
 internal val log = LoggerFactory.getLogger("helse-spre-oppgaver")
 internal val sikkerLog = LoggerFactory.getLogger("tjenestekall")

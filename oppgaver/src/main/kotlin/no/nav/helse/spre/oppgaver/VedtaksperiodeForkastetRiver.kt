@@ -1,6 +1,6 @@
 package no.nav.helse.spre.oppgaver
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
@@ -39,7 +39,7 @@ class VedtaksperiodeForkastetRiver(
         val speilrelatert = packet["speilrelatert"].asBoolean()
         val fom = packet["fom"].asLocalDate()
         val tom = packet["tom"].asLocalDate()
-        val hendelser = packet["hendelser"].map { UUID.fromString(it.asText()) }
+        val hendelser = packet["hendelser"].values().map { UUID.fromString(it.asText()) }
         val oppgaver = hendelser.mapNotNull { oppgaveDAO.finnOppgave(it, observer) } + oppgaveDAO.finnOppgaverIDokumentOppdaget(orgnummer, fødselsnummer, observer, hendelser)
 
         withMDC(mapOf(

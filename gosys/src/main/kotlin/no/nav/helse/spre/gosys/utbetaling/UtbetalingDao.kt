@@ -1,6 +1,6 @@
 package no.nav.helse.spre.gosys.utbetaling
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import java.util.*
 import kotliquery.TransactionalSession
 import kotliquery.queryOf

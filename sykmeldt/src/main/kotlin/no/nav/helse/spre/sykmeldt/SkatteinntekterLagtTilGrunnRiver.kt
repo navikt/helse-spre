@@ -1,6 +1,6 @@
 package no.nav.helse.spre.sykmeldt
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
@@ -44,7 +44,7 @@ private fun JsonMessage.toForelagteOpplysninger(): ForelagteOpplysningerMelding 
         skjæringstidspunkt = this["skjæringstidspunkt"].asLocalDate(),
         tidsstempel = this["@opprettet"].asLocalDateTime(),
         omregnetÅrsinntekt = this["omregnetÅrsinntekt"].asDouble(),
-        skatteinntekter = this["skatteinntekter"].map {
+        skatteinntekter = this["skatteinntekter"].values().map {
             ForelagteOpplysningerMelding.Skatteinntekt(
                 måned = it["måned"].asYearMonth(),
                 beløp = it["beløp"].asDouble()

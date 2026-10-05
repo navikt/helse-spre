@@ -1,7 +1,7 @@
 package no.nav.helse.spre.styringsinfo.teamsak.enhet
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ArrayNode
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.node.ArrayNode
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asOptionalLocalDate
@@ -32,7 +32,7 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
             } ?: ManglendeTilknytning
 
         private fun JsonNode.orgTilknytning(gyldigPåDato: LocalDate): OrgTilknytning? {
-            val tilknytninger = this["data"]["ressurs"]["orgTilknytning"].map {
+            val tilknytninger = this["data"]["ressurs"]["orgTilknytning"].values().map {
                 OrgTilknytning(
                     gyldigFom = it["gyldigFom"].asLocalDate(),
                     gyldigTom = it["gyldigTom"].asOptionalLocalDate(),
@@ -109,8 +109,8 @@ internal class NavOrganisasjonsmasterClient(private val baseUrl: String, private
     private fun String.onOneLine() = this.replace("\n", " ")
     private fun JsonNode.containsErrors() = this.has("errors")
     private fun JsonNode.errorMsgs() = with (this as ArrayNode) {
-        val errorMsgs = this.map { it["message"]?.asText() ?: "unknown error" }
-        val extensions = this.map { it["extensions"]?.get("details")?.asText() ?: "extension details unknown" }
+        val errorMsgs = this.values().map { it["message"]?.asText() ?: "unknown error" }
+        val extensions = this.values().map { it["extensions"]?.get("details")?.asText() ?: "extension details unknown" }
         "$errorMsgs -- $extensions"
     }
 

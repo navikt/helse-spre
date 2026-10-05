@@ -1,6 +1,6 @@
 package no.nav.helse.spre.gosys.utbetaling
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
@@ -77,7 +77,7 @@ data class Utbetaling(
                 fagområde = this["fagområde"].asText(),
                 fagsystemId = this["fagsystemId"].asText(),
                 nettoBeløp = this["nettoBeløp"].asInt(),
-                utbetalingslinjer = this["linjer"].map { linje ->
+                utbetalingslinjer = this["linjer"].values().map { linje ->
                     OppdragDto.UtbetalingslinjeDto(
                         fom = linje["fom"].asLocalDate(),
                         tom = linje["tom"].asLocalDate(),
@@ -91,12 +91,12 @@ data class Utbetaling(
             )
         }
 
-        private val JsonNode.utbetalingsdager get() = path("utbetalingsdager").map { dag ->
+        private val JsonNode.utbetalingsdager get() = path("utbetalingsdager").values().map { dag ->
             UtbetalingdagDto(
                 dato = dag["dato"].asLocalDate(),
                 type = dag["type"].asText(),
                 begrunnelser = dag.path("begrunnelser").takeUnless(JsonNode::isMissingOrNull)
-                    ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList()
+                    ?.let { it.values().map { begrunnelse -> begrunnelse.asText() } } ?: emptyList()
             )
         }
     }

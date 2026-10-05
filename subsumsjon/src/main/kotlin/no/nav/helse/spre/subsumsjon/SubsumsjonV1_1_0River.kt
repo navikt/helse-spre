@@ -1,7 +1,7 @@
 package no.nav.helse.spre.subsumsjon
 
-import com.fasterxml.jackson.databind.node.ArrayNode
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.databind.node.ArrayNode
+import tools.jackson.databind.node.ObjectNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
@@ -54,7 +54,7 @@ internal class SubsumsjonV1_1_0River(
 
     private fun subsumsjonMelding(packet: JsonMessage): String {
         val sporing = (packet["subsumsjon.sporing"] as? ObjectNode) ?: objectMapper.createObjectNode()
-        sporing.set<ArrayNode>("vedtaksperiode", objectMapper.createArrayNode().apply {
+        sporing.set("vedtaksperiode", objectMapper.createArrayNode().apply {
             add(packet["subsumsjon.vedtaksperiodeId"])
         })
 

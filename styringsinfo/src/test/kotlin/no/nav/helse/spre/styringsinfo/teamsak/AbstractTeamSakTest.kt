@@ -1,7 +1,7 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
@@ -121,10 +121,10 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
             if (isEmpty()) return
             println()
             println("********** Kul tabell til Team Sak **********")
-            first().fieldNames().forEach { print(it.printbar) }
+            first().propertyNames().forEach { print(it.printbar) }
             println()
             forEach {
-                it.fields().forEach { (_,verdi) -> print(verdi.asText().printbar) }
+                it.properties().forEach { (_,verdi) -> print(verdi.asText().printbar) }
                 println()
             }
             println()

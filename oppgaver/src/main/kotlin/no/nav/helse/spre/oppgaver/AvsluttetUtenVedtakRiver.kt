@@ -31,6 +31,7 @@ class AvsluttetUtenVedtakRiver(
         val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         withMDC(mapOf("event" to "avsluttet_uten_vedtak")) {
             packet["hendelser"]
+                .values()
                 .map { UUID.fromString(it.asText()) }
                 .mapNotNull { oppgaveDAO.finnOppgave(it, observer) }
                 .forEach { oppgave ->

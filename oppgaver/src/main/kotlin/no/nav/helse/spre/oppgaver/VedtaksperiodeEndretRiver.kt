@@ -34,6 +34,7 @@ class VedtaksperiodeEndretRiver(
         val forrigeTilstand = packet["forrigeTilstand"].asText()
         val gjeldendeTilstand = packet["gjeldendeTilstand"].asText()
         packet["hendelser"]
+            .values()
             .map { UUID.fromString(it.asText()) }
             .mapNotNull { oppgaveDAO.finnOppgave(it, observer) }
             .forEach { oppgave ->

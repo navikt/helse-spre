@@ -1,6 +1,6 @@
 package db.migration
 
-import com.fasterxml.jackson.databind.node.ObjectNode
+import tools.jackson.databind.node.ObjectNode
 
 internal class V30__korrigerer_behandlingsresultat_ved_vedtaksperiode_avvist: BehandlingshendelseJsonMigrering() {
     override fun query() = """

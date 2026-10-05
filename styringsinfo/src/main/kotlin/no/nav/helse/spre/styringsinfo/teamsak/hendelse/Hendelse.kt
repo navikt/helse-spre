@@ -1,6 +1,6 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import java.time.OffsetDateTime
 import java.util.UUID

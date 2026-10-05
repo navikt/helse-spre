@@ -1,8 +1,8 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.*
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
@@ -157,7 +157,7 @@ internal class PostgresBehandlingshendelseDao(private val dataSource: DataSource
             if (value == null) putNull(fieldName)
             else put(fieldName, value)
         }
-        private val ObjectNode.felter get() = fieldNames().asSequence().toSet()
+        private val ObjectNode.felter get() = propertyNames().toSet()
 
         private val formatter = DateTimeFormatterBuilder().appendPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS").appendOffsetId().toFormatter() // timestamps lagres med 6 desimaler + offset i db
         private fun fraJson(jsonNode: JsonNode) = OffsetDateTime.parse(jsonNode.asText())

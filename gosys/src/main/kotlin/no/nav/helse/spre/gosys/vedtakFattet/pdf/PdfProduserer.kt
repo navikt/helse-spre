@@ -1,6 +1,6 @@
 package no.nav.helse.spre.gosys.vedtakFattet.pdf
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
@@ -133,7 +133,7 @@ class PdfProduserer(
                     }
                 },
             arbeidsgivere =
-                meldingOmVedtakJson["sykepengegrunnlagsfakta"]["arbeidsgivere"]?.map { arbeidsgiver ->
+                meldingOmVedtakJson["sykepengegrunnlagsfakta"]["arbeidsgivere"]?.values()?.map { arbeidsgiver ->
                     VedtakPdfPayload.ArbeidsgiverData(
                         organisasjonsnummer = arbeidsgiver["arbeidsgiver"].asText(),
                         omregnetÅrsinntekt = arbeidsgiver["omregnetÅrsinntekt"].asDouble(),
@@ -175,7 +175,7 @@ class PdfProduserer(
             skjæringstidspunkt = meldingOmVedtakJson["skjæringstidspunkt"].asLocalDate(),
             beregningsgrunnlag = meldingOmVedtakJson["sykepengegrunnlagsfakta"]["selvstendig"]["beregningsgrunnlag"].asBigDecimal(),
             pensjonsgivendeInntekter =
-                meldingOmVedtakJson["sykepengegrunnlagsfakta"]["selvstendig"]["pensjonsgivendeInntekter"].map {
+                meldingOmVedtakJson["sykepengegrunnlagsfakta"]["selvstendig"]["pensjonsgivendeInntekter"].values().map {
                     PensjonsgivendeInntekt(
                         årstall = it["årstall"].asInt(),
                         beløp = it["beløp"].asBigDecimal(),
@@ -216,7 +216,7 @@ class PdfProduserer(
     ): String =
         meldingOmVedtakJson["begrunnelser"]
             .takeUnless { it.isMissingOrNull() }
-            ?.map { begrunnelse -> begrunnelse["type"].asText() }
+            ?.values()?.map { begrunnelse -> begrunnelse["type"].asText() }
             ?.find { it == "DelvisInnvilgelse" || it == "Avslag" }
             ?.let {
                 when (it) {

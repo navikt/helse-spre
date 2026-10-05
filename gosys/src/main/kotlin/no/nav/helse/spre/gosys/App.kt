@@ -1,10 +1,10 @@
 package no.nav.helse.spre.gosys
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.module.kotlin.jacksonMapperBuilder
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.azure.createAzureTokenClientFromEnvironment
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import com.github.navikt.tbd_libs.retry.retry
@@ -16,7 +16,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
+import io.ktor.serialization.jackson3.*
 import java.time.Duration
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.spre.gosys.annullering.PlanlagtAnnulleringDao
@@ -35,10 +35,10 @@ import org.flywaydb.core.Flyway
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-internal val objectMapper: ObjectMapper = jacksonObjectMapper()
-    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+internal val objectMapper: ObjectMapper = jacksonMapperBuilder()
+    .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    .registerModule(JavaTimeModule())
+    .build()
 
 internal val logg: Logger = LoggerFactory.getLogger("spregosys")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
@@ -73,7 +73,7 @@ fun launchApplication(
     )
     val speedClient = SpeedClient(
         httpClient = java.net.http.HttpClient.newHttpClient(),
-        objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()),
+        objectMapper = jacksonObjectMapper(),
         tokenProvider = azureClient
     )
 
