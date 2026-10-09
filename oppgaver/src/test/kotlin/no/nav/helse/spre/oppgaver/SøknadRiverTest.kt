@@ -80,7 +80,7 @@ fun sendtSøknad(
 fun sendtSøknadArbeidsledig(
     hendelseId: UUID,
     dokumentId: UUID = UUID.randomUUID(),
-    fnr: String = "12345678910"
+    fnr: String = "12345678910",
 ): String =
     """{
             "@event_name": "sendt_søknad_arbeidsledig",
@@ -92,7 +92,7 @@ fun sendtSøknadArbeidsledig(
 fun sendtArbeidsgiversøknad(
     hendelseId: UUID,
     dokumentId: UUID = UUID.randomUUID(),
-    fnr: String = "12345678910"
+    fnr: String = "12345678910",
 ): String =
     """{
             "@event_name": "sendt_søknad_arbeidsgiver",
@@ -100,4 +100,3 @@ fun sendtArbeidsgiversøknad(
             "@id": "$hendelseId",
             "id": "$dokumentId"
         }"""
-

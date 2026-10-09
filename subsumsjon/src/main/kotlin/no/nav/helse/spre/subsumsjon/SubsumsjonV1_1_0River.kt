@@ -13,72 +13,95 @@ import io.micrometer.core.instrument.MeterRegistry
 
 internal class SubsumsjonV1_1_0River(
     rapidsConnection: RapidsConnection,
-    private val subsumsjonPublisher: (key: String, value: String) -> Unit
+    private val subsumsjonPublisher: (key: String, value: String) -> Unit,
 ) : River.PacketListener {
-
     init {
-        River(rapidsConnection).apply {
-            precondition {
-                it.requireValue("@event_name", "subsumsjon")
-                it.requireValue("subsumsjon.versjon", "1.1.0")
-            }
-            validate {
-                it.requireKey(
-                    "@id", "@opprettet", "subsumsjon", "subsumsjon.tidsstempel", "subsumsjon.versjon", "subsumsjon.kilde", "subsumsjon.versjonAvKode",
-                    "subsumsjon.fodselsnummer", "subsumsjon.lovverk", "subsumsjon.lovverksversjon",
-                    "subsumsjon.paragraf", "subsumsjon.input", "subsumsjon.output", "subsumsjon.utfall",
-                    "subsumsjon.vedtaksperiodeId", "subsumsjon.behandlingId"
-                )
-                it.requireKey("subsumsjon.sporing")
-                it.interestedIn("subsumsjon.ledd")
-                it.interestedIn("subsumsjon.punktum")
-                it.interestedIn("subsumsjon.bokstav")
-            }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition {
+                    it.requireValue("@event_name", "subsumsjon")
+                    it.requireValue("subsumsjon.versjon", "1.1.0")
+                }
+                validate {
+                    it.requireKey(
+                        "@id",
+                        "@opprettet",
+                        "subsumsjon",
+                        "subsumsjon.tidsstempel",
+                        "subsumsjon.versjon",
+                        "subsumsjon.kilde",
+                        "subsumsjon.versjonAvKode",
+                        "subsumsjon.fodselsnummer",
+                        "subsumsjon.lovverk",
+                        "subsumsjon.lovverksversjon",
+                        "subsumsjon.paragraf",
+                        "subsumsjon.input",
+                        "subsumsjon.output",
+                        "subsumsjon.utfall",
+                        "subsumsjon.vedtaksperiodeId",
+                        "subsumsjon.behandlingId",
+                    )
+                    it.requireKey("subsumsjon.sporing")
+                    it.interestedIn("subsumsjon.ledd")
+                    it.interestedIn("subsumsjon.punktum")
+                    it.interestedIn("subsumsjon.bokstav")
+                }
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         sikkerLogg.error("Feil under validering av subsumsjon:\n$metadata\n${problems.toExtendedReport()}")
         throw IllegalArgumentException("Feil under validering av subsumsjon: $problems")
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         log.info("mottatt subsumsjon med id: ${packet["@id"]}")
         sikkerLogg.info("mottatt subsumsjon med id: ${packet["@id"]}")
         subsumsjonPublisher(fødselsnummer(packet), subsumsjonMelding(packet))
     }
 
-    private fun fødselsnummer(packet: JsonMessage): String {
-        return packet["subsumsjon.fodselsnummer"].asText()
-    }
+    private fun fødselsnummer(packet: JsonMessage): String = packet["subsumsjon.fodselsnummer"].asText()
 
     private fun subsumsjonMelding(packet: JsonMessage): String {
         val sporing = (packet["subsumsjon.sporing"] as? ObjectNode) ?: objectMapper.createObjectNode()
-        sporing.set<ArrayNode>("vedtaksperiode", objectMapper.createArrayNode().apply {
-            add(packet["subsumsjon.vedtaksperiodeId"])
-        })
+        sporing.set<ArrayNode>(
+            "vedtaksperiode",
+            objectMapper.createArrayNode().apply {
+                add(packet["subsumsjon.vedtaksperiodeId"])
+            },
+        )
 
-        val subsumsjonsmelding = buildMap {
-            this["id"] = packet["@id"]
-            this["eventName"] = "subsumsjon"
-            this["tidsstempel"] = packet["subsumsjon.tidsstempel"]
-            this["versjon"] = packet["subsumsjon.versjon"]
-            this["kilde"] = packet["subsumsjon.kilde"]
-            this["versjonAvKode"] = packet["subsumsjon.versjonAvKode"]
-            this["fodselsnummer"] = packet["subsumsjon.fodselsnummer"]
-            this["vedtaksperiodeId"] = packet["subsumsjon.vedtaksperiodeId"]
-            this["behandlingId"] = packet["subsumsjon.behandlingId"]
-            this["sporing"] = sporing
-            this["lovverk"] = packet["subsumsjon.lovverk"]
-            this["lovverksversjon"] = packet["subsumsjon.lovverksversjon"]
-            this["paragraf"] = packet["subsumsjon.paragraf"]
-            this["input"] = packet["subsumsjon.input"]
-            this["output"] = packet["subsumsjon.output"]
-            this["utfall"] = packet["subsumsjon.utfall"]
-            this["ledd"] = packet["subsumsjon.ledd"].takeUnless { it.isMissingOrNull() }?.asInt()
-            this["punktum"] = packet["subsumsjon.punktum"].takeUnless { it.isMissingOrNull() }?.asInt()
-            this["bokstav"] = packet["subsumsjon.bokstav"].takeUnless { it.isMissingOrNull() }?.asText()
-        }
+        val subsumsjonsmelding =
+            buildMap {
+                this["id"] = packet["@id"]
+                this["eventName"] = "subsumsjon"
+                this["tidsstempel"] = packet["subsumsjon.tidsstempel"]
+                this["versjon"] = packet["subsumsjon.versjon"]
+                this["kilde"] = packet["subsumsjon.kilde"]
+                this["versjonAvKode"] = packet["subsumsjon.versjonAvKode"]
+                this["fodselsnummer"] = packet["subsumsjon.fodselsnummer"]
+                this["vedtaksperiodeId"] = packet["subsumsjon.vedtaksperiodeId"]
+                this["behandlingId"] = packet["subsumsjon.behandlingId"]
+                this["sporing"] = sporing
+                this["lovverk"] = packet["subsumsjon.lovverk"]
+                this["lovverksversjon"] = packet["subsumsjon.lovverksversjon"]
+                this["paragraf"] = packet["subsumsjon.paragraf"]
+                this["input"] = packet["subsumsjon.input"]
+                this["output"] = packet["subsumsjon.output"]
+                this["utfall"] = packet["subsumsjon.utfall"]
+                this["ledd"] = packet["subsumsjon.ledd"].takeUnless { it.isMissingOrNull() }?.asInt()
+                this["punktum"] = packet["subsumsjon.punktum"].takeUnless { it.isMissingOrNull() }?.asInt()
+                this["bokstav"] = packet["subsumsjon.bokstav"].takeUnless { it.isMissingOrNull() }?.asText()
+            }
 
         return objectMapper.writeValueAsString(subsumsjonsmelding).also { sikkerLogg.info("sender subsumsjon: $it") }
     }

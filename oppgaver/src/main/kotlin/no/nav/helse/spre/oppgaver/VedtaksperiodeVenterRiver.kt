@@ -17,24 +17,33 @@ class VedtaksperiodeVenterRiver(
     private val oppgaveDAO: OppgaveDAO,
     private val publisist: Publisist,
 ) : River.PacketListener {
-
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "vedtaksperioder_venter") }
-            validate { it.requireKey("@id") }
-            validate {
-                it.requireArray("vedtaksperioder") {
-                    requireKey("hendelser", "organisasjonsnummer", "venterPå.organisasjonsnummer")
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "vedtaksperioder_venter") }
+                validate { it.requireKey("@id") }
+                validate {
+                    it.requireArray("vedtaksperioder") {
+                        requireKey("hendelser", "organisasjonsnummer", "venterPå.organisasjonsnummer")
+                    }
                 }
-            }
-        }.register(this)
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         loggUkjentMelding("vedtaksperioder_venter", problems)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         val meldingId = packet["@id"].asText()
         packet["vedtaksperioder"].forEach { venter ->
             try {
@@ -45,7 +54,11 @@ class VedtaksperiodeVenterRiver(
         }
     }
 
-    private fun håndterVedtaksperiodeVenter(meldingId: String, venter: VedtaksperiodeVenterDto, context: MessageContext) {
+    private fun håndterVedtaksperiodeVenter(
+        meldingId: String,
+        venter: VedtaksperiodeVenterDto,
+        context: MessageContext,
+    ) {
         if (venter.venterPå.venteårsak.hva !in listOf("GODKJENNING", "SØKNAD", "INNTEKTSMELDING")) return
 
         withMDC(mapOf("event" to "vedtaksperiode_venter", "id" to meldingId)) {
@@ -57,12 +70,16 @@ class VedtaksperiodeVenterRiver(
                 }
 
                 "SØKNAD",
-                "GODKJENNING" -> håndter(venter, context) // Når vi venter på GODKJENNING/SØKNAD så håndterer vi alltid
+                "GODKJENNING",
+                -> håndter(venter, context) // Når vi venter på GODKJENNING/SØKNAD så håndterer vi alltid
             }
         }
     }
 
-    private fun håndter(venter: VedtaksperiodeVenterDto, context: MessageContext) {
+    private fun håndter(
+        venter: VedtaksperiodeVenterDto,
+        context: MessageContext,
+    ) {
         val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         venter.hendelser
             .mapNotNull { oppgaveDAO.finnOppgave(it, observer) }
@@ -74,16 +91,16 @@ class VedtaksperiodeVenterRiver(
 private data class VedtaksperiodeVenterDto(
     val organisasjonsnummer: String,
     val hendelser: List<UUID>,
-    val venterPå: VenterPå
+    val venterPå: VenterPå,
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class VenterPå(
         val organisasjonsnummer: String,
-        val venteårsak: Venteårsak
+        val venteårsak: Venteårsak,
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Venteårsak(
-        val hva : String
+        val hva: String,
     )
 }

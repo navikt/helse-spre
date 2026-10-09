@@ -11,15 +11,15 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.b
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 import java.time.OffsetDateTime
 import java.util.*
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
 
 internal data class VedtaksperioderVenterIndirektePåGodkjenning(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    val venter: List<VedtaksperiodeVenter>
+    val venter: List<VedtaksperiodeVenter>,
 ) : Hendelse {
     override val type = eventName
 
@@ -31,8 +31,7 @@ internal data class VedtaksperioderVenterIndirektePåGodkjenning(
                 val builder = behandlingshendelseDao.initialiser(BehandlingId(t.behandlingId))
                 val ny = builder.behandlingstatus(KOMPLETT_FAKTAGRUNNLAG).build(opprettet, AUTOMATISK) ?: return@map false
                 behandlingshendelseDao.lagre(ny, id)
-            }
-            .any()
+            }.any()
     }
 
     private fun venterPåGodkjenningOgAnnenVedtaksperiode(venter: VedtaksperiodeVenter): Boolean {
@@ -55,33 +54,41 @@ internal data class VedtaksperioderVenterIndirektePåGodkjenning(
             }
         }
 
-        internal fun opprettet(packet: JsonMessage) = VedtaksperioderVenterIndirektePåGodkjenning(
-            id = packet.hendelseId,
-            data = packet.blob,
-            opprettet = packet.opprettet,
-            venter = packet["vedtaksperioder"].map { vedtaksperiodeVenter ->
-                VedtaksperiodeVenter(
-                    vedtaksperiodeId = UUID.fromString(vedtaksperiodeVenter.path("vedtaksperiodeId").asText()),
-                    behandlingId = UUID.fromString(vedtaksperiodeVenter.path("behandlingId").asText()),
-                    venterPå = VedtaksperiodeVenter.VenterPå(
-                        vedtaksperiodeId = UUID.fromString(vedtaksperiodeVenter.path("venterPå").path("vedtaksperiodeId").asText()),
-                        venteårsak = vedtaksperiodeVenter.path("venterPå").path("venteårsak").path("hva").asText()
-                    )
-                )
-            }
-        )
+        internal fun opprettet(packet: JsonMessage) =
+            VedtaksperioderVenterIndirektePåGodkjenning(
+                id = packet.hendelseId,
+                data = packet.blob,
+                opprettet = packet.opprettet,
+                venter =
+                    packet["vedtaksperioder"].map { vedtaksperiodeVenter ->
+                        VedtaksperiodeVenter(
+                            vedtaksperiodeId = UUID.fromString(vedtaksperiodeVenter.path("vedtaksperiodeId").asText()),
+                            behandlingId = UUID.fromString(vedtaksperiodeVenter.path("behandlingId").asText()),
+                            venterPå =
+                                VedtaksperiodeVenter.VenterPå(
+                                    vedtaksperiodeId = UUID.fromString(vedtaksperiodeVenter.path("venterPå").path("vedtaksperiodeId").asText()),
+                                    venteårsak =
+                                        vedtaksperiodeVenter
+                                            .path("venterPå")
+                                            .path("venteårsak")
+                                            .path("hva")
+                                            .asText(),
+                                ),
+                        )
+                    },
+            )
 
         internal fun river(
             rapidsConnection: RapidsConnection,
             hendelseDao: HendelseDao,
-            behandlingshendelseDao: BehandlingshendelseDao
+            behandlingshendelseDao: BehandlingshendelseDao,
         ) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
             valider = ::valider,
-            opprett = ::opprettet
+            opprett = ::opprettet,
         )
     }
 }
@@ -89,10 +96,10 @@ internal data class VedtaksperioderVenterIndirektePåGodkjenning(
 data class VedtaksperiodeVenter(
     val vedtaksperiodeId: UUID,
     val behandlingId: UUID,
-    val venterPå: VenterPå
+    val venterPå: VenterPå,
 ) {
     data class VenterPå(
         val vedtaksperiodeId: UUID,
-        val venteårsak: String
+        val venteårsak: String,
     )
 }

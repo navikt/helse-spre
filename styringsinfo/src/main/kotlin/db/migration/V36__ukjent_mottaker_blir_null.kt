@@ -7,14 +7,14 @@ import org.intellij.lang.annotations.Language
 /**
 Ukjent mottaker skal bare være null
  */
-internal class V36__ukjent_mottaker_blir_null: BehandlingshendelseJsonMigrering() {
-
+internal class V36__ukjent_mottaker_blir_null : BehandlingshendelseJsonMigrering() {
     @Language("postgresql")
-    override fun query(): String = """
+    override fun query(): String =
+        """
         select b.sekvensnummer, b.data, b.er_korrigert from behandlingshendelse b
             where b.data ->> 'mottaker' = 'UKJENT'
             and b.er_korrigert = false;
-    """.trimIndent()
+        """.trimIndent()
 
     override fun nyVersjon(): Versjon? = null
 

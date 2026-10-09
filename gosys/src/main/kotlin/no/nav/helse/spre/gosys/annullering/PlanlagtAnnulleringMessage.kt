@@ -15,5 +15,5 @@ data class PlanlagtAnnulleringMessage(
     val årsaker: List<String>,
     val begrunnelse: String,
     val vedtaksperioder: List<UUID>,
-    val opprettet: LocalDateTime
+    val opprettet: LocalDateTime,
 )

@@ -7,8 +7,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
-internal class ManueltBehandletAvSaksbehandlerTest: AbstractTeamSakTest() {
-
+internal class ManueltBehandletAvSaksbehandlerTest : AbstractTeamSakTest() {
     @Test
     fun `start og slutt for utkast til vedtak som avvises av saksbehandler`() {
         val hendelsefabrikk = Hendelsefabrikk()
@@ -34,7 +33,6 @@ internal class ManueltBehandletAvSaksbehandlerTest: AbstractTeamSakTest() {
         assertEquals(AUTOMATISK, behandling.hendelsesmetode)
         assertEquals(MANUELL, behandling.behandlingsmetode)
     }
-
 
     @Test
     fun `når to saksbehandlere har behandlet saken blir det behandlingsmetode totrinns`() {

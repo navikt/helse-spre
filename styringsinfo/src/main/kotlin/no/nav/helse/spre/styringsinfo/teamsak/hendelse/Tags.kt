@@ -20,11 +20,13 @@ internal enum class Tag {
     Førstegangsbehandling,
     Forlengelse,
     InngangsvilkårFraInfotrygd,
-    TilkommenInntekt
+    TilkommenInntekt,
 }
 
-internal class Tags(private val tags: Set<Tag>) {
-    internal constructor(tags: List<String>) :this(tags.tilKjenteTags())
+internal class Tags(
+    private val tags: Set<Tag>,
+) {
+    internal constructor(tags: List<String>) : this(tags.tilKjenteTags())
 
     internal val periodetype get(): Behandling.Periodetype {
         if (tags.contains(Tag.Førstegangsbehandling)) return Behandling.Periodetype.FØRSTEGANGSBEHANDLING
@@ -57,10 +59,11 @@ internal class Tags(private val tags: Set<Tag>) {
     private companion object {
         private fun valueOfOrNull(name: String) = Tag.entries.firstOrNull { it.name == name }
 
-        private fun List<String>.tilKjenteTags(): Set<Tag> {
-            return mapNotNull { streng -> valueOfOrNull(streng) }.toSet()
-        }
+        private fun List<String>.tilKjenteTags(): Set<Tag> = mapNotNull { streng -> valueOfOrNull(streng) }.toSet()
 
-        class UtledingFraTagsException(felt: String, tags: Set<Tag>): IllegalStateException("Nå kom det jaggu et event med en $felt jeg ikke klarte å tolke. Dette må være en feil. Ta en titt! Tagger: $tags")
+        class UtledingFraTagsException(
+            felt: String,
+            tags: Set<Tag>,
+        ) : IllegalStateException("Nå kom det jaggu et event med en $felt jeg ikke klarte å tolke. Dette må være en feil. Ta en titt! Tagger: $tags")
     }
 }

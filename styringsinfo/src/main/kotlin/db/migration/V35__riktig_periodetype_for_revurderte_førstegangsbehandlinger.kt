@@ -7,10 +7,10 @@ import org.intellij.lang.annotations.Language
 /**
 Revurderinger av førstegangsbehandlinger skal ha periodetype førstebehandling
  */
-internal class V35__riktig_periodetype_for_revurderte_førstegangsbehandlinger: BehandlingshendelseJsonMigrering() {
-
+internal class V35__riktig_periodetype_for_revurderte_førstegangsbehandlinger : BehandlingshendelseJsonMigrering() {
     @Language("postgresql")
-    override fun query(): String = """
+    override fun query(): String =
+        """
         select b.sekvensnummer, b.data, b.er_korrigert from behandlingshendelse b
             where b.data ->> 'periodetype' = 'FORLENGELSE'
             and b.er_korrigert = false
@@ -19,7 +19,7 @@ internal class V35__riktig_periodetype_for_revurderte_førstegangsbehandlinger: 
                 where c.data ->>'periodetype' = 'FØRSTEGANGSBEHANDLING'
                 and c.sakid = b.sakid
             );
-    """.trimIndent()
+        """.trimIndent()
 
     override fun nyVersjon(): Versjon? = null
 

@@ -11,11 +11,11 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class DagerTest {
-
     private companion object {
-        val objectMapper: ObjectMapper = jacksonObjectMapper()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .registerModule(JavaTimeModule())
+        val objectMapper: ObjectMapper =
+            jacksonObjectMapper()
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .registerModule(JavaTimeModule())
     }
 
     @Test
@@ -141,10 +141,11 @@ class DagerTest {
 
     @Test
     fun `utbetalingsdager + fridager`() {
-        val dager = utbetalingsdager(
-            1.januar,
-            2.januar
-        ) + fridager(3.januar, 4.januar)
+        val dager =
+            utbetalingsdager(
+                1.januar,
+                2.januar,
+            ) + fridager(3.januar, 4.januar)
         val expected = objectMapper.readTree(dager.toJson())
         assertTrue(expected.isArray)
         assertEquals(4, expected.size())
@@ -160,10 +161,11 @@ class DagerTest {
 
     @Test
     fun `utbetalingsdager + feriedager + permisjonsdager`() {
-        val dager = utbetalingsdager(
-            1.januar,
-            2.januar
-        ) + feriedager(3.januar, 4.januar) + permisjonsdager(5.januar)
+        val dager =
+            utbetalingsdager(
+                1.januar,
+                2.januar,
+            ) + feriedager(3.januar, 4.januar) + permisjonsdager(5.januar)
         val expected = objectMapper.readTree(dager.toJson())
         assertTrue(expected.isArray)
         assertEquals(5, expected.size())

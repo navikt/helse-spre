@@ -1,9 +1,5 @@
 package no.nav.helse.spre.gosys.e2e
 
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest.Utbetalingstype.REVURDERING
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
 import no.nav.helse.spre.testhelpers.andreYtelser
@@ -22,9 +18,12 @@ import no.nav.helse.spre.testhelpers.utbetalingsdager
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
-
     companion object {
         fun LocalDate.formatted(): String = format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
     }
@@ -36,35 +35,36 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         sendUtbetalingDelvisRefusjon(
             utbetalingId = utbetalingId,
             vedtaksperiodeIder = listOf(vedtaksperiodeId),
-            sykdomstidslinje = utbetalingsdager(1.januar, 31.januar)
+            sykdomstidslinje = utbetalingsdager(1.januar, 31.januar),
         )
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId
+            utbetalingId = utbetalingId,
         )
 
-        val expectedLinjer = listOf(
-            VedtakPdfPayload.Linje(
-                fom = 1.januar,
-                tom = 31.januar,
-                grad = 100,
-                dagsats = 741,
-                mottaker = "Arbeidsgiver",
-                mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
-                totalbeløp = 17043,
-                erOpphørt = false
-            ),
-            VedtakPdfPayload.Linje(
-                fom = 1.januar,
-                tom = 31.januar,
-                grad = 100,
-                dagsats = 700,
-                mottaker = "Molefonken",
-                mottakerType = VedtakPdfPayload.MottakerType.Person,
-                totalbeløp = 16100,
-                erOpphørt = false
+        val expectedLinjer =
+            listOf(
+                VedtakPdfPayload.Linje(
+                    fom = 1.januar,
+                    tom = 31.januar,
+                    grad = 100,
+                    dagsats = 741,
+                    mottaker = "Arbeidsgiver",
+                    mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
+                    totalbeløp = 17043,
+                    erOpphørt = false,
+                ),
+                VedtakPdfPayload.Linje(
+                    fom = 1.januar,
+                    tom = 31.januar,
+                    grad = 100,
+                    dagsats = 700,
+                    mottaker = "Molefonken",
+                    mottakerType = VedtakPdfPayload.MottakerType.Person,
+                    totalbeløp = 16100,
+                    erOpphørt = false,
+                ),
             )
-        )
 
         assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
         assertVedtakPdf(
@@ -72,8 +72,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 linjer = expectedLinjer,
                 totaltTilUtbetaling = 33143,
                 personOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdPerson"),
-                arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver")
-            )
+                arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
+            ),
         )
     }
 
@@ -87,52 +87,55 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         sendBrukerutbetaling(
             utbetalingId = utbetalingId,
             vedtaksperiodeIder = listOf(vedtaksperiodeId),
-            sykdomstidslinje = utbetalingsdager(1.januar, 31.januar)
-                + arbeidsdager(1.februar, 7.februar)
-                + utbetalingsdager(8.februar, 18.februar)
+            sykdomstidslinje =
+                utbetalingsdager(1.januar, 31.januar) +
+                    arbeidsdager(1.februar, 7.februar) +
+                    utbetalingsdager(8.februar, 18.februar),
         )
         sendSNVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId
+            utbetalingId = utbetalingId,
         )
 
         // Then:
         assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
         assertSNVedtakPdf(
             expectedSNPdfPayload(
-                linjer = listOf(
-                    VedtakPdfPayload.Linje(
-                        fom = 8.februar,
-                        tom = 18.februar,
-                        grad = 100,
-                        dagsats = 1431,
-                        mottaker = "Molefonken",
-                        mottakerType = VedtakPdfPayload.MottakerType.Person,
-                        totalbeløp = 10017,
-                        erOpphørt = false
+                linjer =
+                    listOf(
+                        VedtakPdfPayload.Linje(
+                            fom = 8.februar,
+                            tom = 18.februar,
+                            grad = 100,
+                            dagsats = 1431,
+                            mottaker = "Molefonken",
+                            mottakerType = VedtakPdfPayload.MottakerType.Person,
+                            totalbeløp = 10017,
+                            erOpphørt = false,
+                        ),
+                        VedtakPdfPayload.Linje(
+                            fom = 1.januar,
+                            tom = 31.januar,
+                            grad = 100,
+                            dagsats = 1431,
+                            mottaker = "Molefonken",
+                            mottakerType = VedtakPdfPayload.MottakerType.Person,
+                            totalbeløp = 32913,
+                            erOpphørt = false,
+                        ),
                     ),
-                    VedtakPdfPayload.Linje(
-                        fom = 1.januar,
-                        tom = 31.januar,
-                        grad = 100,
-                        dagsats = 1431,
-                        mottaker = "Molefonken",
-                        mottakerType = VedtakPdfPayload.MottakerType.Person,
-                        totalbeløp = 32913,
-                        erOpphørt = false
-                    )
-                ),
                 totaltTilUtbetaling = 42930,
-                behandlingsdato = 18.februar, //TODO: Bruk `vedtakFattetTidspunkt` på vedtaket
+                behandlingsdato = 18.februar, // TODO: Bruk `vedtakFattetTidspunkt` på vedtaket
                 personOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdPerson"),
-                ikkeUtbetalteDager = listOf(
-                    VedtakPdfPayload.IkkeUtbetalteDager(
-                        1.februar,
-                        7.februar,
-                        listOf("Arbeidsdag")
-                    )
-                )
-            )
+                ikkeUtbetalteDager =
+                    listOf(
+                        VedtakPdfPayload.IkkeUtbetalteDager(
+                            1.februar,
+                            7.februar,
+                            listOf("Arbeidsdag"),
+                        ),
+                    ),
+            ),
         )
     }
 
@@ -143,53 +146,56 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         sendBrukerutbetaling(
             utbetalingId = utbetalingId,
             vedtaksperiodeIder = listOf(vedtaksperiodeId),
-            sykdomstidslinje = utbetalingsdager(1.januar, 31.januar)
-                + arbeidsdager(1.februar, 7.februar)
-                + utbetalingsdager(8.februar, 18.februar)
+            sykdomstidslinje =
+                utbetalingsdager(1.januar, 31.januar) +
+                    arbeidsdager(1.februar, 7.februar) +
+                    utbetalingsdager(8.februar, 18.februar),
         )
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = utbetalingId
+            utbetalingId = utbetalingId,
         )
         assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
 
-        val expectedLinjer = listOf(
-            VedtakPdfPayload.Linje(
-                fom = 8.februar,
-                tom = 18.februar,
-                grad = 100,
-                dagsats = 1431,
-                mottaker = "Molefonken",
-                mottakerType = VedtakPdfPayload.MottakerType.Person,
-                totalbeløp = 10017,
-                erOpphørt = false
-            ),
-            VedtakPdfPayload.Linje(
-                fom = 1.januar,
-                tom = 31.januar,
-                grad = 100,
-                dagsats = 1431,
-                mottaker = "Molefonken",
-                mottakerType = VedtakPdfPayload.MottakerType.Person,
-                totalbeløp = 32913,
-                erOpphørt = false
+        val expectedLinjer =
+            listOf(
+                VedtakPdfPayload.Linje(
+                    fom = 8.februar,
+                    tom = 18.februar,
+                    grad = 100,
+                    dagsats = 1431,
+                    mottaker = "Molefonken",
+                    mottakerType = VedtakPdfPayload.MottakerType.Person,
+                    totalbeløp = 10017,
+                    erOpphørt = false,
+                ),
+                VedtakPdfPayload.Linje(
+                    fom = 1.januar,
+                    tom = 31.januar,
+                    grad = 100,
+                    dagsats = 1431,
+                    mottaker = "Molefonken",
+                    mottakerType = VedtakPdfPayload.MottakerType.Person,
+                    totalbeløp = 32913,
+                    erOpphørt = false,
+                ),
             )
-        )
 
         assertVedtakPdf(
             expectedPdfPayload(
                 linjer = expectedLinjer,
                 totaltTilUtbetaling = 42930,
-                behandlingsdato = 18.februar, //TODO: Bruk `vedtakFattetTidspunkt` på vedtaket
+                behandlingsdato = 18.februar, // TODO: Bruk `vedtakFattetTidspunkt` på vedtaket
                 personOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdPerson"),
-                ikkeUtbetalteDager = listOf(
-                    VedtakPdfPayload.IkkeUtbetalteDager(
-                        1.februar,
-                        7.februar,
-                        listOf("Arbeidsdag")
-                    )
-                )
-            )
+                ikkeUtbetalteDager =
+                    listOf(
+                        VedtakPdfPayload.IkkeUtbetalteDager(
+                            1.februar,
+                            7.februar,
+                            listOf("Arbeidsdag"),
+                        ),
+                    ),
+            ),
         )
     }
 
@@ -201,22 +207,22 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val hendelseIdUtbetaling = UUID.randomUUID()
         sendUtbetaling(
             hendelseId = hendelseIdUtbetaling,
-            utbetalingId = utbetalingId
+            utbetalingId = utbetalingId,
         )
 
         sendVedtakFattet(
             hendelseId = hendelseIdVedtak,
             utbetalingId = utbetalingId,
-            vedtaksperiodeId = vedtaksperiodeId
+            vedtaksperiodeId = vedtaksperiodeId,
         )
         sendUtbetaling(
             hendelseId = hendelseIdUtbetaling,
-            utbetalingId = utbetalingId
+            utbetalingId = utbetalingId,
         )
         sendVedtakFattet(
             hendelseId = hendelseIdVedtak,
             utbetalingId = utbetalingId,
-            vedtaksperiodeId = vedtaksperiodeId
+            vedtaksperiodeId = vedtaksperiodeId,
         )
         assertEquals(1, capturedJoarkRequests.size)
         assertJournalpost(expectedJournalpost(eksternReferanseId = utbetalingId))
@@ -286,32 +292,34 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val utbetalingId = UUID.randomUUID()
         sendVedtakFattet(
             utbetalingId = utbetalingId,
-            sykdomstidslinje = utbetalingsdager(2.januar, 30.januar)
+            sykdomstidslinje = utbetalingsdager(2.januar, 30.januar),
         )
         sendUtbetaling(
             utbetalingId = utbetalingId,
             sykdomstidslinje = utbetalingsdager(1.januar, 31.januar),
-            opprettet = 31.januar
+            opprettet = 31.januar,
         )
         assertVedtakPdf(
-            expected = expectedPdfPayload(
-                fom = 2.januar,
-                tom = 30.januar,
-                skjæringstidspunkt = 2.januar,
-                behandlingsdato = 31.januar,
-                arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
-                linjer = listOf(
-                    VedtakPdfPayload.Linje(
-                        fom = 1.januar,
-                        tom = 31.januar,
-                        grad = 100,
-                        dagsats = 1431,
-                        mottaker = "Arbeidsgiver",
-                        totalbeløp = 23 * 1431, // trekker fra helger, 1. januar 2018 er en mandag
-                        erOpphørt = false,
-                    )
-                )
-            )
+            expected =
+                expectedPdfPayload(
+                    fom = 2.januar,
+                    tom = 30.januar,
+                    skjæringstidspunkt = 2.januar,
+                    behandlingsdato = 31.januar,
+                    arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
+                    linjer =
+                        listOf(
+                            VedtakPdfPayload.Linje(
+                                fom = 1.januar,
+                                tom = 31.januar,
+                                grad = 100,
+                                dagsats = 1431,
+                                mottaker = "Arbeidsgiver",
+                                totalbeløp = 23 * 1431, // trekker fra helger, 1. januar 2018 er en mandag
+                                erOpphørt = false,
+                            ),
+                        ),
+                ),
         )
     }
 
@@ -349,19 +357,19 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val utbetalingId = UUID.randomUUID()
         val sykdomstidslinje =
             utbetalingsdager(1.januar, 17.januar) +
-                    arbeidsdager(18.januar) +
-                    fridager(19.januar) +
-                    feriedager(20.januar) +
-                    permisjonsdager(21.januar) +
-                    arbeidsdager(22.januar)
+                arbeidsdager(18.januar) +
+                fridager(19.januar) +
+                feriedager(20.januar) +
+                permisjonsdager(21.januar) +
+                arbeidsdager(22.januar)
         sendUtbetaling(
             utbetalingId = utbetalingId,
-            sykdomstidslinje = sykdomstidslinje
+            sykdomstidslinje = sykdomstidslinje,
         )
         sendVedtakFattet(
             utbetalingId = utbetalingId,
             vedtaksperiodeId = vedtaksperiodeId,
-            sykdomstidslinje = sykdomstidslinje
+            sykdomstidslinje = sykdomstidslinje,
         )
         assertJournalpost(expectedJournalpost(fom = 1.januar, tom = 22.januar, eksternReferanseId = utbetalingId))
 
@@ -371,26 +379,28 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 tom = 22.januar,
                 totaltTilUtbetaling = 18603,
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
-                ikkeUtbetalteDager = listOf(
-                    VedtakPdfPayload.IkkeUtbetalteDager(
-                        fom = 18.januar,
-                        tom = 22.januar,
-                        begrunnelser = listOf("Arbeidsdag")
-                    )
-                ),
-                linjer = listOf(
-                    VedtakPdfPayload.Linje(
-                        fom = 1.januar,
-                        tom = 17.januar,
-                        grad = 100,
-                        dagsats = 1431,
-                        mottaker = "Arbeidsgiver",
-                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
-                        totalbeløp = 18603,
-                        erOpphørt = false
-                    )
-                )
-            )
+                ikkeUtbetalteDager =
+                    listOf(
+                        VedtakPdfPayload.IkkeUtbetalteDager(
+                            fom = 18.januar,
+                            tom = 22.januar,
+                            begrunnelser = listOf("Arbeidsdag"),
+                        ),
+                    ),
+                linjer =
+                    listOf(
+                        VedtakPdfPayload.Linje(
+                            fom = 1.januar,
+                            tom = 17.januar,
+                            grad = 100,
+                            dagsats = 1431,
+                            mottaker = "Arbeidsgiver",
+                            mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
+                            totalbeløp = 18603,
+                            erOpphørt = false,
+                        ),
+                    ),
+            ),
         )
     }
 
@@ -400,23 +410,24 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val vedtaksperiodeId = UUID.randomUUID()
         val sykdomstidslinje =
             utbetalingsdager(1.januar, 16.januar) +
-                    avvistDager(17.januar, begrunnelser = listOf("EtterDødsdato"))
+                avvistDager(17.januar, begrunnelser = listOf("EtterDødsdato"))
         sendUtbetaling(
             utbetalingId = utbetalingId,
             sykdomstidslinje = sykdomstidslinje,
-            type = "REVURDERING"
+            type = "REVURDERING",
         )
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId,
-            sykdomstidslinje = sykdomstidslinje
+            sykdomstidslinje = sykdomstidslinje,
         )
         assertJournalpost(
-            expected = expectedJournalpost(
-                journalpostTittel = "Vedtak om revurdering av sykepenger",
-                dokumentTittel = "Sykepenger revurdert, 01.01.2018 - 17.01.2018",
-                eksternReferanseId = utbetalingId,
-            )
+            expected =
+                expectedJournalpost(
+                    journalpostTittel = "Vedtak om revurdering av sykepenger",
+                    dokumentTittel = "Sykepenger revurdert, 01.01.2018 - 17.01.2018",
+                    eksternReferanseId = utbetalingId,
+                ),
         )
         assertVedtakPdf(
             expectedPdfPayload(
@@ -425,26 +436,28 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 tom = 17.januar,
                 totaltTilUtbetaling = 17172,
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
-                ikkeUtbetalteDager = listOf(
-                    VedtakPdfPayload.IkkeUtbetalteDager(
-                        fom = 17.januar,
-                        tom = 17.januar,
-                        begrunnelser = listOf("Personen er død")
-                    )
-                ),
-                linjer = listOf(
-                    VedtakPdfPayload.Linje(
-                        fom = 1.januar,
-                        tom = 16.januar,
-                        grad = 100,
-                        dagsats = 1431,
-                        mottaker = "Arbeidsgiver",
-                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
-                        totalbeløp = 17172,
-                        erOpphørt = false
-                    )
-                )
-            )
+                ikkeUtbetalteDager =
+                    listOf(
+                        VedtakPdfPayload.IkkeUtbetalteDager(
+                            fom = 17.januar,
+                            tom = 17.januar,
+                            begrunnelser = listOf("Personen er død"),
+                        ),
+                    ),
+                linjer =
+                    listOf(
+                        VedtakPdfPayload.Linje(
+                            fom = 1.januar,
+                            tom = 16.januar,
+                            grad = 100,
+                            dagsats = 1431,
+                            mottaker = "Arbeidsgiver",
+                            mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
+                            totalbeløp = 17172,
+                            erOpphørt = false,
+                        ),
+                    ),
+            ),
         )
     }
 
@@ -456,19 +469,20 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         sendUtbetaling(
             utbetalingId = utbetalingId,
             sykdomstidslinje = sykdomstidslinje,
-            type = "REVURDERING"
+            type = "REVURDERING",
         )
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId,
-            sykdomstidslinje = sykdomstidslinje
+            sykdomstidslinje = sykdomstidslinje,
         )
         assertJournalpost(
-            expected = expectedJournalpost(
-                journalpostTittel = "Vedtak om revurdering av sykepenger",
-                dokumentTittel = "Sykepenger revurdert, 01.01.2018 - 17.01.2018",
-                eksternReferanseId = utbetalingId,
-            )
+            expected =
+                expectedJournalpost(
+                    journalpostTittel = "Vedtak om revurdering av sykepenger",
+                    dokumentTittel = "Sykepenger revurdert, 01.01.2018 - 17.01.2018",
+                    eksternReferanseId = utbetalingId,
+                ),
         )
         assertVedtakPdf(
             expectedPdfPayload(
@@ -477,15 +491,16 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 tom = 17.januar,
                 totaltTilUtbetaling = 0,
                 arbeidsgiverOppdrag = null,
-                ikkeUtbetalteDager = listOf(
-                    VedtakPdfPayload.IkkeUtbetalteDager(
-                        fom = 1.januar,
-                        tom = 17.januar,
-                        begrunnelser = listOf("Personen mottar Svangerskapspenger")
-                    )
-                ),
-                linjer = emptyList()
-            )
+                ikkeUtbetalteDager =
+                    listOf(
+                        VedtakPdfPayload.IkkeUtbetalteDager(
+                            fom = 1.januar,
+                            tom = 17.januar,
+                            begrunnelser = listOf("Personen mottar Svangerskapspenger"),
+                        ),
+                    ),
+                linjer = emptyList(),
+            ),
         )
     }
 
@@ -496,24 +511,25 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val sykdomstidslinje = utbetalingsdager(2.januar, 31.januar)
         sendUtbetaling(
             utbetalingId = utbetalingId,
-            sykdomstidslinje = arbeidsdager(1.januar) + sykdomstidslinje
+            sykdomstidslinje = arbeidsdager(1.januar) + sykdomstidslinje,
         )
         sendVedtakFattet(
             utbetalingId = utbetalingId,
             vedtaksperiodeId = vedtaksperiodeId,
-            sykdomstidslinje = sykdomstidslinje
+            sykdomstidslinje = sykdomstidslinje,
         )
 
         assertJournalpost(expectedJournalpost(fom = 2.januar, tom = 31.januar, eksternReferanseId = utbetalingId))
 
-
-        assertVedtakPdf(expectedPdfPayload(
-            fom = 2.januar,
-            tom = 31.januar,
-            totaltTilUtbetaling = 31482,
-            ikkeUtbetalteDager = emptyList(),
-            arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver")
-        ))
+        assertVedtakPdf(
+            expectedPdfPayload(
+                fom = 2.januar,
+                tom = 31.januar,
+                totaltTilUtbetaling = 31482,
+                ikkeUtbetalteDager = emptyList(),
+                arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
+            ),
+        )
     }
 
     @Test
@@ -523,36 +539,40 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         val sykdomstidslinje = utbetalingsdager(3.januar, 31.januar)
         sendUtbetaling(
             utbetalingId = utbetalingId,
-            sykdomstidslinje = avvistDager(1.januar, begrunnelser = listOf("MeldingTilNavDagUtenforVentetid")) +
-                avvistDager(2.januar, begrunnelser = listOf("AvslåttMeldingTilNavDag")) +
-                sykdomstidslinje
+            sykdomstidslinje =
+                avvistDager(1.januar, begrunnelser = listOf("MeldingTilNavDagUtenforVentetid")) +
+                    avvistDager(2.januar, begrunnelser = listOf("AvslåttMeldingTilNavDag")) +
+                    sykdomstidslinje,
         )
         sendVedtakFattet(
             utbetalingId = utbetalingId,
             vedtaksperiodeId = vedtaksperiodeId,
-            sykdomstidslinje = sykdomstidslinje
+            sykdomstidslinje = sykdomstidslinje,
         )
 
         assertJournalpost(expectedJournalpost(fom = 3.januar, tom = 31.januar, eksternReferanseId = utbetalingId))
 
-        assertVedtakPdf(expectedPdfPayload(
-            fom = 3.januar,
-            tom = 31.januar,
-            totaltTilUtbetaling = 30051, // 21 stønadsdager (ukedager) * 1431 kr
-            ikkeUtbetalteDager = listOf(
-                VedtakPdfPayload.IkkeUtbetalteDager(
-                    fom = 1.januar,
-                    tom = 1.januar,
-                    begrunnelser = listOf("Melding til Nav dag utenfor ventetid")
-                ),
-                VedtakPdfPayload.IkkeUtbetalteDager(
-                    fom = 2.januar,
-                    tom = 2.januar,
-                    begrunnelser = listOf("Melding til Nav dag avslått av saksbehandler")
-                )
+        assertVedtakPdf(
+            expectedPdfPayload(
+                fom = 3.januar,
+                tom = 31.januar,
+                totaltTilUtbetaling = 30051, // 21 stønadsdager (ukedager) * 1431 kr
+                ikkeUtbetalteDager =
+                    listOf(
+                        VedtakPdfPayload.IkkeUtbetalteDager(
+                            fom = 1.januar,
+                            tom = 1.januar,
+                            begrunnelser = listOf("Melding til Nav dag utenfor ventetid"),
+                        ),
+                        VedtakPdfPayload.IkkeUtbetalteDager(
+                            fom = 2.januar,
+                            tom = 2.januar,
+                            begrunnelser = listOf("Melding til Nav dag avslått av saksbehandler"),
+                        ),
+                    ),
+                arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
             ),
-            arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver")
-        ))
+        )
     }
 
     @Test
@@ -563,7 +583,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId,
-            sykdomstidslinje = utbetalingsdager(6.november(2021), 19.november(2021))
+            sykdomstidslinje = utbetalingsdager(6.november(2021), 19.november(2021)),
         )
 
         assertJournalpost(
@@ -572,8 +592,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 dokumentTittel = "Sykepenger revurdert, 06.11.2021 - 19.11.2021",
                 fom = 6.november(2021),
                 tom = 19.november(2021),
-                eksternReferanseId = utbetalingId
-            )
+                eksternReferanseId = utbetalingId,
+            ),
         )
         assertVedtakPdf(
             expectedPdfPayload(
@@ -587,41 +607,43 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 dagerIgjen = 238,
                 godkjentAv = "K123456",
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
-                linjer = listOf(
-                    VedtakPdfPayload.Linje(
-                        fom = 15.november(2021),
-                        tom = 19.november(2021),
-                        grad = 60,
-                        dagsats = 700,
-                        mottaker = "Arbeidsgiver",
-                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
-                        erOpphørt = false,
-                        totalbeløp = 3900
+                linjer =
+                    listOf(
+                        VedtakPdfPayload.Linje(
+                            fom = 15.november(2021),
+                            tom = 19.november(2021),
+                            grad = 60,
+                            dagsats = 700,
+                            mottaker = "Arbeidsgiver",
+                            mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
+                            erOpphørt = false,
+                            totalbeløp = 3900,
+                        ),
+                        VedtakPdfPayload.Linje(
+                            fom = 8.november(2021),
+                            tom = 12.november(2021),
+                            grad = 60,
+                            dagsats = 700,
+                            mottaker = "Arbeidsgiver",
+                            mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
+                            erOpphørt = false,
+                            totalbeløp = 3900,
+                        ),
+                        VedtakPdfPayload.Linje(
+                            fom = 6.november(2021),
+                            tom = 19.november(2021),
+                            grad = 80,
+                            dagsats = 1000,
+                            mottaker = "Arbeidsgiver",
+                            mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
+                            erOpphørt = true,
+                            totalbeløp = 0,
+                        ),
                     ),
-                    VedtakPdfPayload.Linje(
-                        fom = 8.november(2021),
-                        tom = 12.november(2021),
-                        grad = 60,
-                        dagsats = 700,
-                        mottaker = "Arbeidsgiver",
-                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
-                        erOpphørt = false,
-                        totalbeløp = 3900
-                    ),
-                    VedtakPdfPayload.Linje(
-                        fom = 6.november(2021),
-                        tom = 19.november(2021),
-                        grad = 80,
-                        dagsats = 1000,
-                        mottaker = "Arbeidsgiver",
-                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
-                        erOpphørt = true,
-                        totalbeløp = 0
-                    )
-                )
-            )
+            ),
         )
     }
+
     @Test
     fun `Vedtak med bruk av arbeid ikke gjenopptatt setter fom til første dag etter arbeid ikke gjenopptatt`() {
         val vedtaksperiodeId = UUID.randomUUID()
@@ -630,7 +652,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId,
-            sykdomstidslinje = utbetalingsdager(1.juni(2023), 5.juni(2023))
+            sykdomstidslinje = utbetalingsdager(1.juni(2023), 5.juni(2023)),
         )
 
         assertJournalpost(
@@ -638,7 +660,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 journalpostTittel = "Vedtak om revurdering av sykepenger",
                 dokumentTittel = "Sykepenger revurdert, 04.06.2023 - 05.06.2023",
                 eksternReferanseId = utbetalingId,
-            )
+            ),
         )
 
         assertVedtakPdf(
@@ -656,8 +678,8 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 linjer = emptyList(),
                 // Nå tar vi ikke med `ArbeidIkkeGjenopptattDag` som en del av `IkkeUtbetalingsdagtyper`
                 // Om vi tar med disse skal med må de legges til, men da får vi i den listen dager som ikke er avgrenset av fom/tom
-                ikkeUtbetalteDager = emptyList()
-            )
+                ikkeUtbetalteDager = emptyList(),
+            ),
         )
     }
 
@@ -669,7 +691,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
         sendVedtakFattet(
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId,
-            sykdomstidslinje = utbetalingsdager(6.november(2021), 19.november(2021))
+            sykdomstidslinje = utbetalingsdager(6.november(2021), 19.november(2021)),
         )
 
         assertJournalpost(
@@ -679,7 +701,7 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 fom = 6.november(2021),
                 tom = 19.november(2021),
                 eksternReferanseId = utbetalingId,
-            )
+            ),
         )
         assertVedtakPdf(
             expectedPdfPayload(
@@ -693,44 +715,48 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
                 dagerIgjen = 238,
                 godkjentAv = "K123456",
                 arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
-                linjer = listOf(
-                    VedtakPdfPayload.Linje(
-                        dagsats = 700,
-                        fom = 15.november(2021),
-                        tom = 19.november(2021),
-                        grad = 60,
-                        totalbeløp = 3900,
-                        mottaker = "Arbeidsgiver",
-                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
-                        erOpphørt = false
+                linjer =
+                    listOf(
+                        VedtakPdfPayload.Linje(
+                            dagsats = 700,
+                            fom = 15.november(2021),
+                            tom = 19.november(2021),
+                            grad = 60,
+                            totalbeløp = 3900,
+                            mottaker = "Arbeidsgiver",
+                            mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
+                            erOpphørt = false,
+                        ),
+                        VedtakPdfPayload.Linje(
+                            dagsats = 700,
+                            fom = 8.november(2021),
+                            tom = 12.november(2021),
+                            grad = 60,
+                            totalbeløp = 3900,
+                            mottaker = "Arbeidsgiver",
+                            mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
+                            erOpphørt = false,
+                        ),
+                        VedtakPdfPayload.Linje(
+                            dagsats = 1000,
+                            fom = 6.november(2021),
+                            tom = 19.november(2021),
+                            grad = 80,
+                            totalbeløp = 0,
+                            mottaker = "Arbeidsgiver",
+                            mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
+                            erOpphørt = true,
+                        ),
                     ),
-                    VedtakPdfPayload.Linje(
-                        dagsats = 700,
-                        fom = 8.november(2021),
-                        tom = 12.november(2021),
-                        grad = 60,
-                        totalbeløp = 3900,
-                        mottaker = "Arbeidsgiver",
-                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
-                        erOpphørt = false
-                    ),
-                    VedtakPdfPayload.Linje(
-                        dagsats = 1000,
-                        fom = 6.november(2021),
-                        tom = 19.november(2021),
-                        grad = 80,
-                        totalbeløp = 0,
-                        mottaker = "Arbeidsgiver",
-                        mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
-                        erOpphørt = true
-                    )
-                )
-            )
+            ),
         )
     }
 
     @Language("JSON")
-    fun utbetalingMedOpphør(vedtaksperiodeId: String, utbetalingId: String) = """
+    fun utbetalingMedOpphør(
+        vedtaksperiodeId: String,
+        utbetalingId: String,
+    ) = """
         {
           "utbetalingId": "$utbetalingId",
           "korrelasjonsId": "4A6C8E3C-22DB-4B73-BB92-327BC4E50F6D",
@@ -1080,12 +1106,13 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
             "$vedtaksperiodeId"
           ]
         }
-    """.trimIndent()
-
+        """.trimIndent()
 
     @Language("JSON")
-    private fun utbetalingUtbetaltMedAig(utbetalingId: UUID, vedtaksperiodeId: UUID) =
-        """
+    private fun utbetalingUtbetaltMedAig(
+        utbetalingId: UUID,
+        vedtaksperiodeId: UUID,
+    ) = """
         {
             "@event_name": "utbetaling_utbetalt",
             "organisasjonsnummer": "123456789",

@@ -8,7 +8,6 @@ import org.junit.jupiter.api.assertThrows
 import java.util.*
 
 internal class VedtakOgUtbetalingJoarkFeilhåndteringTest : AbstractE2ETest() {
-
     @Test
     fun `gir opp og lar appen restarte om Joark-kallet feiler`() {
         val utbetalingId = UUID.randomUUID()
@@ -25,5 +24,4 @@ internal class VedtakOgUtbetalingJoarkFeilhåndteringTest : AbstractE2ETest() {
         capturedJoarkRequests.add(request)
         error("connection reset")
     }
-
 }

@@ -22,7 +22,7 @@ import org.junit.jupiter.api.BeforeEach
 import java.lang.System.getenv
 import java.util.*
 
-internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
+internal abstract class AbstractTeamSakTest : AbstractDatabaseTest() {
     private lateinit var hendelseDao: HendelseDao
     private lateinit var behandlingshendelseDao: BehandlingshendelseDao
 
@@ -38,9 +38,11 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         alleRader.printTabell()
     }
 
-    protected fun nyttVedtak(sakId: SakId = SakId(UUID.randomUUID()),
-                             behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()),
-                             totrinnsbehandling: Boolean = false): Pair<Behandling, Hendelsefabrikk> {
+    protected fun nyttVedtak(
+        sakId: SakId = SakId(UUID.randomUUID()),
+        behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()),
+        totrinnsbehandling: Boolean = false,
+    ): Pair<Behandling, Hendelsefabrikk> {
         val hendelsefabrikk = Hendelsefabrikk(sakId, behandlingId)
         val (_, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         assertFalse(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
@@ -69,7 +71,10 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         return behandling to hendelsefabrikk
     }
 
-    protected fun nyAuu(sakId: SakId = SakId(UUID.randomUUID()), behandlingId: BehandlingId = BehandlingId(UUID.randomUUID())): Behandling {
+    protected fun nyAuu(
+        sakId: SakId = SakId(UUID.randomUUID()),
+        behandlingId: BehandlingId = BehandlingId(UUID.randomUUID()),
+    ): Behandling {
         val hendelsefabrikk = Hendelsefabrikk(sakId, behandlingId)
         val (_, behandlingOpprettet) = hendelsefabrikk.behandlingOpprettet()
         val behandling = behandlingOpprettet.håndter(behandlingId)
@@ -80,12 +85,14 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         return behandling
     }
 
-    protected val BehandlingId.rader get() = sessionOf(testDataSource.ds).use { session ->
-        session.run(
-            queryOf("select count(1) from behandlingshendelse where behandlingId='$this'")
-                .map { row -> row.int(1) }
-                .asSingle)
-    } ?: 0
+    protected val BehandlingId.rader get() =
+        sessionOf(testDataSource.ds).use { session ->
+            session.run(
+                queryOf("select count(1) from behandlingshendelse where behandlingId='$this'")
+                    .map { row -> row.int(1) }
+                    .asSingle,
+            )
+        } ?: 0
 
     protected fun Hendelse.håndter(behandlingId: BehandlingId): Behandling {
         if (ignorer(behandlingshendelseDao)) return behandling(behandlingId)
@@ -95,28 +102,31 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
         return behandling(behandlingId)
     }
 
-    protected fun behandling(behandlingId: BehandlingId) =
-        checkNotNull(behandlingshendelseDao.hent(behandlingId)) { "Fant ingn behandling for behandlingId $behandlingId" }
+    protected fun behandling(behandlingId: BehandlingId) = checkNotNull(behandlingshendelseDao.hent(behandlingId)) { "Fant ingn behandling for behandlingId $behandlingId" }
 
-    protected fun assertUkjentBehandling(behandlingId: BehandlingId) =
-        assertFalse(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
+    protected fun assertUkjentBehandling(behandlingId: BehandlingId) = assertFalse(behandlingshendelseDao.harLagretBehandingshendelseFor(behandlingId))
 
-    private val alleRader get() = sessionOf(testDataSource.ds).use { session ->
-        session.run(queryOf("select * from behandlingshendelse").map { row ->
-            (objectMapper.readTree(row.string("data")) as ObjectNode).apply {
-                put("sekvensnummer", row.long("sekvensnummer"))
-                put("sakId", row.uuid("sakId").toString())
-                put("behandlingId", row.uuid("behandlingId").toString())
-                put("funksjonellTid", row.offsetDateTime("funksjonellTid").toString())
-                put("tekniskTid", row.offsetDateTime("tekniskTid").toString())
-                put("versjon", row.string("versjon"))
-            }
-        }.asList)
-    }
+    private val alleRader get() =
+        sessionOf(testDataSource.ds).use { session ->
+            session.run(
+                queryOf("select * from behandlingshendelse")
+                    .map { row ->
+                        (objectMapper.readTree(row.string("data")) as ObjectNode).apply {
+                            put("sekvensnummer", row.long("sekvensnummer"))
+                            put("sakId", row.uuid("sakId").toString())
+                            put("behandlingId", row.uuid("behandlingId").toString())
+                            put("funksjonellTid", row.offsetDateTime("funksjonellTid").toString())
+                            put("tekniskTid", row.offsetDateTime("tekniskTid").toString())
+                            put("versjon", row.string("versjon"))
+                        }
+                    }.asList,
+            )
+        }
 
     private companion object {
         private val objectMapper = jacksonObjectMapper()
         private val String.printbar get() = take(25).padEnd(25, ' ') + "   "
+
         private fun List<ObjectNode>.printTabell() {
             if (isEmpty()) return
             println()
@@ -124,10 +134,10 @@ internal abstract class AbstractTeamSakTest: AbstractDatabaseTest() {
             first().fieldNames().forEach { print(it.printbar) }
             println()
             forEach {
-                it.fields().forEach { (_,verdi) -> print(verdi.asText().printbar) }
+                it.fields().forEach { (_, verdi) -> print(verdi.asText().printbar) }
                 println()
             }
             println()
         }
-   }
+    }
 }

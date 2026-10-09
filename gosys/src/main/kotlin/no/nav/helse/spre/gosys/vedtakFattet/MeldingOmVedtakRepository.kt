@@ -1,11 +1,10 @@
 package no.nav.helse.spre.gosys.vedtakFattet
 
-import java.util.*
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
+import java.util.*
 
 class MeldingOmVedtakRepository {
-
     context(session: TransactionalSession)
     fun lagre(meldingOmVedtak: MeldingOmVedtak) {
         session.run(
@@ -19,9 +18,9 @@ class MeldingOmVedtakRepository {
                     "utbetaling_id" to meldingOmVedtak.utbetalingId,
                     "fnr" to meldingOmVedtak.fødselsnummer,
                     "json" to meldingOmVedtak.json,
-                    "journalfort" to meldingOmVedtak.journalførtTidspunkt
-                )
-            ).asUpdate
+                    "journalfort" to meldingOmVedtak.journalførtTidspunkt,
+                ),
+            ).asUpdate,
         )
     }
 
@@ -40,6 +39,6 @@ class MeldingOmVedtakRepository {
                     fødselsnummer = it.string("fnr"),
                     json = it.string("data"),
                 )
-            }.asSingle
+            }.asSingle,
         )
 }

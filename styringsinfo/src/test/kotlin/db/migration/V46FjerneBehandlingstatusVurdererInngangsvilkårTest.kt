@@ -4,15 +4,16 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class V46FjerneBehandlingstatusVurdererInngangsvilkårTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V46__fjerne_behandlingstatus_vurderer_inngangsvilkår()
-) {
-
+internal class V46FjerneBehandlingstatusVurdererInngangsvilkårTest :
+    BehandlingshendelseJsonMigreringTest(
+        migrering = V46__fjerne_behandlingstatus_vurderer_inngangsvilkår(),
+    ) {
     @Test
     fun `endrer de som har behandlingstatus VURDERER_INNGANGSVILKÅR tilbake til REGISTRERT`() {
-        val radSomSkalKorrigeres = leggTilBehandlingshendelse(behandlingId = UUID.randomUUID()) { data ->
-            data.put("behandlingstatus", "VURDERER_INNGANGSVILKÅR")
-        }
+        val radSomSkalKorrigeres =
+            leggTilBehandlingshendelse(behandlingId = UUID.randomUUID()) { data ->
+                data.put("behandlingstatus", "VURDERER_INNGANGSVILKÅR")
+            }
 
         leggTilBehandlingshendelse(behandlingId = UUID.randomUUID()) { data ->
             data.put("behandlingstatus", "AVVENTER_GODKJENNING")

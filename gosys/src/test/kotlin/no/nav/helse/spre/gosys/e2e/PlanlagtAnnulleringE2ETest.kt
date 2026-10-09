@@ -1,11 +1,6 @@
 package no.nav.helse.spre.gosys.e2e
 
 import io.ktor.client.engine.mock.*
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
-import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.annullering.PlanlagtAnnullering.FerdigAnnulleringPdfPayload
@@ -15,9 +10,13 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlin.test.assertEquals
 
 internal class PlanlagtAnnulleringE2ETest : AbstractE2ETest() {
-
     @BeforeEach
     fun setup() {
         testRapid.reset()
@@ -45,19 +44,20 @@ internal class PlanlagtAnnulleringE2ETest : AbstractE2ETest() {
             val pdfPayload =
                 requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), FerdigAnnulleringPdfPayload::class.java))
 
-            val expectedPdfPayload = FerdigAnnulleringPdfPayload(
-                fødselsnummer = "fnr",
-                yrkesaktivitetstype = "ARBEIDSTAKER",
-                organisasjonsnummer = "123456789",
-                fom = LocalDate.of(2018, 1, 1),
-                tom = LocalDate.of(2018, 1, 10),
-                saksbehandlerIdent = "A123456",
-                årsaker = listOf("Annet", "Yrkesskade"),
-                begrunnelse = "Todo",
-                annullert = LocalDateTime.of(2020, 5, 4, 8, 8, 0),
-                organisasjonsnavn = "PENGELØS SPAREBANK",
-                navn = "Molefonken Ert"
-            )
+            val expectedPdfPayload =
+                FerdigAnnulleringPdfPayload(
+                    fødselsnummer = "fnr",
+                    yrkesaktivitetstype = "ARBEIDSTAKER",
+                    organisasjonsnummer = "123456789",
+                    fom = LocalDate.of(2018, 1, 1),
+                    tom = LocalDate.of(2018, 1, 10),
+                    saksbehandlerIdent = "A123456",
+                    årsaker = listOf("Annet", "Yrkesskade"),
+                    begrunnelse = "Todo",
+                    annullert = LocalDateTime.of(2020, 5, 4, 8, 8, 0),
+                    organisasjonsnavn = "PENGELØS SPAREBANK",
+                    navn = "Molefonken Ert",
+                )
 
             Assertions.assertEquals(expectedPdfPayload, pdfPayload)
         }
@@ -90,19 +90,20 @@ internal class PlanlagtAnnulleringE2ETest : AbstractE2ETest() {
             val pdfPayload =
                 requireNotNull(objectMapper.readValue(pdfRequest.body.toByteArray(), FerdigAnnulleringPdfPayload::class.java))
 
-            val expectedPdfPayload = FerdigAnnulleringPdfPayload(
-                fødselsnummer = "fnr",
-                yrkesaktivitetstype = "ARBEIDSTAKER",
-                organisasjonsnummer = "123456789",
-                fom = LocalDate.of(2018, 1, 1),
-                tom = LocalDate.of(2018, 1, 20),
-                saksbehandlerIdent = "A123456",
-                årsaker = listOf("Annet", "Yrkesskade"),
-                begrunnelse = "Todo",
-                annullert = LocalDateTime.of(2020, 5, 4, 8, 8, 0),
-                organisasjonsnavn = "PENGELØS SPAREBANK",
-                navn = "Molefonken Ert"
-            )
+            val expectedPdfPayload =
+                FerdigAnnulleringPdfPayload(
+                    fødselsnummer = "fnr",
+                    yrkesaktivitetstype = "ARBEIDSTAKER",
+                    organisasjonsnummer = "123456789",
+                    fom = LocalDate.of(2018, 1, 1),
+                    tom = LocalDate.of(2018, 1, 20),
+                    saksbehandlerIdent = "A123456",
+                    årsaker = listOf("Annet", "Yrkesskade"),
+                    begrunnelse = "Todo",
+                    annullert = LocalDateTime.of(2020, 5, 4, 8, 8, 0),
+                    organisasjonsnavn = "PENGELØS SPAREBANK",
+                    navn = "Molefonken Ert",
+                )
 
             Assertions.assertEquals(expectedPdfPayload, pdfPayload)
         }
@@ -123,7 +124,12 @@ internal class PlanlagtAnnulleringE2ETest : AbstractE2ETest() {
     }
 
     @Language("JSON")
-    private fun planlagtAnnullering(id: UUID = UUID.randomUUID(), vedtaksperioder: List<UUID>, fom: LocalDate, tom: LocalDate) = """
+    private fun planlagtAnnullering(
+        id: UUID = UUID.randomUUID(),
+        vedtaksperioder: List<UUID>,
+        fom: LocalDate,
+        tom: LocalDate,
+    ) = """
         {
             "@event_name": "planlagt_annullering",
             "@opprettet": "${LocalDateTime.of(2020, 5, 4, 8, 8, 0)}",
@@ -142,7 +148,12 @@ internal class PlanlagtAnnulleringE2ETest : AbstractE2ETest() {
     """
 
     @Language("JSON")
-    private fun vedtaksperiodeAnnullert(id: UUID = UUID.randomUUID(), vedtaksperiodeId: UUID = UUID.randomUUID(), fom: LocalDate, tom: LocalDate) = """
+    private fun vedtaksperiodeAnnullert(
+        id: UUID = UUID.randomUUID(),
+        vedtaksperiodeId: UUID = UUID.randomUUID(),
+        fom: LocalDate,
+        tom: LocalDate,
+    ) = """
         {
           "@event_name": "vedtaksperiode_annullert",
           "organisasjonsnummer": "123456789",
@@ -161,7 +172,11 @@ internal class PlanlagtAnnulleringE2ETest : AbstractE2ETest() {
         }
     """
 
-    private fun expectedJournalpost(eksternReferanseId: UUID = UUID.randomUUID(), fom: LocalDate, tom: LocalDate): JournalpostPayload {
+    private fun expectedJournalpost(
+        eksternReferanseId: UUID = UUID.randomUUID(),
+        fom: LocalDate,
+        tom: LocalDate,
+    ): JournalpostPayload {
         val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
         return JournalpostPayload(
             tittel = "Annullering av vedtak om sykepenger",
@@ -169,25 +184,29 @@ internal class PlanlagtAnnulleringE2ETest : AbstractE2ETest() {
             tema = "SYK",
             behandlingstema = "ab0061",
             journalfoerendeEnhet = "9999",
-            bruker = JournalpostPayload.Bruker(
-                id = "fnr",
-                idType = "FNR"
-            ),
-            sak = JournalpostPayload.Sak(
-                sakstype = "GENERELL_SAK"
-            ),
-            dokumenter = listOf(
-                JournalpostPayload.Dokument(
-                    tittel = "Utbetaling annullert i ny løsning ${fom.format(formatter)} - ${tom.format(formatter)}",
-                    dokumentvarianter = listOf(
-                        JournalpostPayload.Dokument.DokumentVariant(
-                            filtype = "PDFA",
-                            fysiskDokument = Base64.getEncoder().encodeToString("Test".toByteArray()),
-                            variantformat = "ARKIV"
-                        )
-                    )
-                )
-            ),
+            bruker =
+                JournalpostPayload.Bruker(
+                    id = "fnr",
+                    idType = "FNR",
+                ),
+            sak =
+                JournalpostPayload.Sak(
+                    sakstype = "GENERELL_SAK",
+                ),
+            dokumenter =
+                listOf(
+                    JournalpostPayload.Dokument(
+                        tittel = "Utbetaling annullert i ny løsning ${fom.format(formatter)} - ${tom.format(formatter)}",
+                        dokumentvarianter =
+                            listOf(
+                                JournalpostPayload.Dokument.DokumentVariant(
+                                    filtype = "PDFA",
+                                    fysiskDokument = Base64.getEncoder().encodeToString("Test".toByteArray()),
+                                    variantformat = "ARKIV",
+                                ),
+                            ),
+                    ),
+                ),
             eksternReferanseId = eksternReferanseId.toString(),
         )
     }

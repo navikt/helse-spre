@@ -4,16 +4,15 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class V42FjerneBehandlingsresultatVedtattTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V42__fjerne_behandlingsresultat_vedtatt()
-) {
-
+internal class V42FjerneBehandlingsresultatVedtattTest :
+    BehandlingshendelseJsonMigreringTest(
+        migrering = V42__fjerne_behandlingsresultat_vedtatt(),
+    ) {
     @Test
     fun `setter behandlingsresultat INNVILGET på de som er siste rad på en behandling, ikke AVSLUTTET og har behandlingsresultat VEDTATT`() {
         leggTilBehandlingshendelse(behandlingId = UUID.randomUUID()) { data ->
             data.putNull("behandlingsresultat")
             data.put("behandlingstatus", "REGISTRERT")
-
         }
 
         leggTilBehandlingshendelse(behandlingId = UUID.randomUUID()) { data ->
@@ -31,10 +30,11 @@ internal class V42FjerneBehandlingsresultatVedtattTest: BehandlingshendelseJsonM
             data.put("behandlingstatus", "AVSLUTTET")
         }
 
-        val vedtattRad = leggTilBehandlingshendelse(behandlingId = UUID.randomUUID()) { data ->
-            data.put("behandlingsresultat", "VEDTATT")
-            data.put("behandlingstatus", "AVVENTER_GODKJENNING")
-        }
+        val vedtattRad =
+            leggTilBehandlingshendelse(behandlingId = UUID.randomUUID()) { data ->
+                data.put("behandlingsresultat", "VEDTATT")
+                data.put("behandlingstatus", "AVVENTER_GODKJENNING")
+            }
 
         migrer()
 

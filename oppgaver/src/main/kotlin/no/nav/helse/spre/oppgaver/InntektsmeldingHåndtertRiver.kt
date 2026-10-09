@@ -15,19 +15,28 @@ class InntektsmeldingHåndtertRiver(
     private val oppgaveDAO: OppgaveDAO,
     private val publisist: Publisist,
 ) : River.PacketListener {
-
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "inntektsmelding_håndtert") }
-            validate { it.requireKey("inntektsmeldingId") }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "inntektsmelding_håndtert") }
+                validate { it.requireKey("inntektsmeldingId") }
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         loggUkjentMelding("inntektsmelding_håndtert", problems)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         val inntektsmeldingId = packet["inntektsmeldingId"].asText().let { UUID.fromString(it) }
         val oppgave = oppgaveDAO.finnOppgave(inntektsmeldingId, observer) ?: return
@@ -37,4 +46,3 @@ class InntektsmeldingHåndtertRiver(
         }
     }
 }
-

@@ -26,16 +26,18 @@ class EregClient(
     ): EregResponse {
         try {
             sikkerLogg.info("Henter navn på organisasjon: $organisasjonsnummer, {}", kv("Nav-Call-Id", callId))
-            return httpClient.prepareGet("$baseUrl/v1/organisasjon/$organisasjonsnummer") {
-                System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
-                header("Nav-Call-Id", callId)
-                accept(ContentType.Application.Json)
-                expectSuccess = true
-            }.executeRetry { response ->
-                response.bodyAsText()
-                .let<String, JsonNode>(objectMapper::readValue)
-                .let { jsonResponse -> EregResponse(navn = trekkUtNavn(jsonResponse))}
-            }
+            return httpClient
+                .prepareGet("$baseUrl/v1/organisasjon/$organisasjonsnummer") {
+                    System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
+                    header("Nav-Call-Id", callId)
+                    accept(ContentType.Application.Json)
+                    expectSuccess = true
+                }.executeRetry { response ->
+                    response
+                        .bodyAsText()
+                        .let<String, JsonNode>(objectMapper::readValue)
+                        .let { jsonResponse -> EregResponse(navn = trekkUtNavn(jsonResponse)) }
+                }
         } catch (exception: RuntimeException) {
             logg.error("Feil ved henting av organiasasjonsnavn. Sjekk sikker logg for detaljer")
             sikkerLogg.error("Feil ved henting av organiasasjonsnavn orgnummer=$organisasjonsnummer", exception)
@@ -44,13 +46,14 @@ class EregClient(
     }
 
     private fun trekkUtNavn(organisasjon: JsonNode) =
-        organisasjon["navn"].let { navn ->
-            (1..5).mapNotNull { index -> navn["navnelinje$index"] }
-                .filterNot(JsonNode::isMissingOrNull)
-                .map(JsonNode::asText)
-                .filterNot(String::isBlank)
-        }.joinToString()
-
+        organisasjon["navn"]
+            .let { navn ->
+                (1..5)
+                    .mapNotNull { index -> navn["navnelinje$index"] }
+                    .filterNot(JsonNode::isMissingOrNull)
+                    .map(JsonNode::asText)
+                    .filterNot(String::isBlank)
+            }.joinToString()
 }
 
 data class EregResponse(

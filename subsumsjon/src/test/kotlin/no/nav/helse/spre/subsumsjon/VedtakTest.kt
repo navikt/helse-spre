@@ -11,12 +11,10 @@ import java.time.LocalDateTime
 import java.util.*
 
 internal class VedtakTest {
-
     private lateinit var fattetRiver: VedtakFattetRiver
     private lateinit var forkastetRiver: VedtakForkastetRiver
     private val testRapid = TestRapid()
     private val resultat = mutableListOf<Pair<String, String>>()
-
 
     @BeforeEach
     fun setup() {
@@ -55,7 +53,10 @@ internal class VedtakTest {
 }
 
 @Language("JSON")
-private fun testVedtakFattet(id: String, opprettet: LocalDateTime = LocalDateTime.parse("2022-02-15T00:00:00.000000000")) = """
+private fun testVedtakFattet(
+    id: String,
+    opprettet: LocalDateTime = LocalDateTime.parse("2022-02-15T00:00:00.000000000"),
+) = """
     {
       "fom": "2022-02-01",
       "tom": "2022-02-15",
@@ -76,10 +77,13 @@ private fun testVedtakFattet(id: String, opprettet: LocalDateTime = LocalDateTim
       "organisasjonsnummer": "947064649",
       "vedtaksperiodeId": "c249e73d-53dc-4237-9f8d-8d7cf58dfb80"
     }
-""".trimIndent()
+    """.trimIndent()
 
 @Language("JSON")
-private fun testVedtaksperiodeForkastet(id: String, opprettet: LocalDateTime = LocalDateTime.parse("2022-02-15T00:00:00.000000000")) = """
+private fun testVedtaksperiodeForkastet(
+    id: String,
+    opprettet: LocalDateTime = LocalDateTime.parse("2022-02-15T00:00:00.000000000"),
+) = """
     {
       "tilstand": "TIL_INFOTRYGD",
       "@event_name": "vedtaksperiode_forkastet",
@@ -89,4 +93,4 @@ private fun testVedtaksperiodeForkastet(id: String, opprettet: LocalDateTime = L
       "organisasjonsnummer": "947064649",
       "vedtaksperiodeId": "049aa630-c361-45fb-9aae-f86db7978c88"
     }
-""".trimIndent()
+    """.trimIndent()

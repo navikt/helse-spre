@@ -23,20 +23,25 @@ internal class HendelseRiver(
     private val opprett: (packet: JsonMessage) -> Hendelse,
     rapidsConnection: RapidsConnection,
     private val hendelseDao: HendelseDao,
-    private val behandlingshendelseDao: BehandlingshendelseDao
+    private val behandlingshendelseDao: BehandlingshendelseDao,
 ) : River.PacketListener {
-
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireAny("@event_name", listOf(eventName, "${eventName}_styringsinfo_replay")) }
-            validate {
-                fellesValidering(it)
-                valider(it)
-            }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireAny("@event_name", listOf(eventName, "${eventName}_styringsinfo_replay")) }
+                validate {
+                    fellesValidering(it)
+                    valider(it)
+                }
+            }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         withMDC(packet.mdcValues) {
             try {
                 håndterHendelse(packet)
@@ -58,18 +63,28 @@ internal class HendelseRiver(
         packet.sikkerLogg("Håndterte ${packet.eventName}")
     }
 
-    private fun JsonMessage.sikkerLogg(melding: String, throwable: Throwable? = null) =
-        if (throwable == null) sikkerLogg.info("$melding\n\t${toJson()}")
-        else sikkerLogg.error("$melding\n\t${toJson()}", throwable)
+    private fun JsonMessage.sikkerLogg(
+        melding: String,
+        throwable: Throwable? = null,
+    ) = if (throwable == null) {
+        sikkerLogg.info("$melding\n\t${toJson()}")
+    } else {
+        sikkerLogg.error("$melding\n\t${toJson()}", throwable)
+    }
 
     private val JsonMessage.mdcValues
-        get() = listOf("vedtaksperiodeId", "behandlingId", "yrkesaktivitetstype", "@id", "@event_name")
-            .associate { key -> key.removePrefix("@") to get(key) }
-            .mapValues { (_, value) -> value.takeUnless { it.isMissingOrNull() }?.asText() }
-            .filterValues { it != null }
-            .mapValues { (_, value) -> value!! }
+        get() =
+            listOf("vedtaksperiodeId", "behandlingId", "yrkesaktivitetstype", "@id", "@event_name")
+                .associate { key -> key.removePrefix("@") to get(key) }
+                .mapValues { (_, value) -> value.takeUnless { it.isMissingOrNull() }?.asText() }
+                .filterValues { it != null }
+                .mapValues { (_, value) -> value!! }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         sikkerLogg.error("Forsto ikke $eventName:\n\t${problems.toExtendedReport()}")
     }
 
@@ -95,6 +110,7 @@ internal class HendelseRiver(
         internal val JsonMessage.blob get() = objectMapper.readTree(toJson())
 
         internal fun JsonMessage.requireBehandlingId() = require("behandlingId") { behandlingId -> UUID.fromString(behandlingId.asText()) }
+
         internal fun JsonMessage.requireVedtaksperiodeId() = require("vedtaksperiodeId") { vedtaksperiodeId -> UUID.fromString(vedtaksperiodeId.asText()) }
     }
 }

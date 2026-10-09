@@ -1,13 +1,11 @@
 package no.nav.helse.spre.gosys.vedtak
 
 import no.nav.helse.spre.testhelpers.januar
-import org.junit.jupiter.api.Test
-
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 internal class VedtakPdfPayloadTest {
-
     private val tomListe: List<VedtakPdfPayload.Linje> = emptyList()
 
     @Test
@@ -25,32 +23,36 @@ internal class VedtakPdfPayloadTest {
 
     @Test
     fun `kronologisk stigende rekkefølge innenfor en arbeidsgiver`() {
-        val arbeidsgiverLinjer = listOf(
-            arbeidsgiverlinje(5.januar, 9.januar),
-            arbeidsgiverlinje(10.januar, 14.januar),
-            arbeidsgiverlinje(15.januar, 20.januar)
-        )
+        val arbeidsgiverLinjer =
+            listOf(
+                arbeidsgiverlinje(5.januar, 9.januar),
+                arbeidsgiverlinje(10.januar, 14.januar),
+                arbeidsgiverlinje(15.januar, 20.januar),
+            )
 
         assertEquals(
             listOf(
                 arbeidsgiverlinje(15.januar, 20.januar),
                 arbeidsgiverlinje(10.januar, 14.januar),
-                arbeidsgiverlinje(5.januar, 9.januar)
-            ), arbeidsgiverLinjer.slåSammen(tomListe)
+                arbeidsgiverlinje(5.januar, 9.januar),
+            ),
+            arbeidsgiverLinjer.slåSammen(tomListe),
         )
     }
 
     @Test
     fun `kronologisk stigende rekkefølge på arbeidsgiver og personlinjer`() {
-        val arbeidsgiverLinjer = listOf(
-            arbeidsgiverlinje(15.januar, 20.januar),
-            arbeidsgiverlinje(5.januar, 9.januar),
-            arbeidsgiverlinje(10.januar, 14.januar)
-        )
-        val personLinjer = listOf(
-            personlinje(11.januar, 16.januar),
-            personlinje(1.januar, 6.januar)
-        )
+        val arbeidsgiverLinjer =
+            listOf(
+                arbeidsgiverlinje(15.januar, 20.januar),
+                arbeidsgiverlinje(5.januar, 9.januar),
+                arbeidsgiverlinje(10.januar, 14.januar),
+            )
+        val personLinjer =
+            listOf(
+                personlinje(11.januar, 16.januar),
+                personlinje(1.januar, 6.januar),
+            )
 
         assertEquals(
             listOf(
@@ -58,25 +60,29 @@ internal class VedtakPdfPayloadTest {
                 personlinje(11.januar, 16.januar),
                 arbeidsgiverlinje(10.januar, 14.januar),
                 arbeidsgiverlinje(5.januar, 9.januar),
-                personlinje(1.januar, 6.januar)
-            ), arbeidsgiverLinjer.slåSammen(personLinjer)
+                personlinje(1.januar, 6.januar),
+            ),
+            arbeidsgiverLinjer.slåSammen(personLinjer),
         )
     }
 
     @Test
     fun `arbeidsgiver først, når arbeidsgiver og personlinje med lik fom`() {
-        val arbeidsgiverLinjer = listOf(
-            arbeidsgiverlinje(15.januar, 20.januar),
-        )
-        val personLinjer = listOf(
-            personlinje(15.januar, 16.januar),
-        )
+        val arbeidsgiverLinjer =
+            listOf(
+                arbeidsgiverlinje(15.januar, 20.januar),
+            )
+        val personLinjer =
+            listOf(
+                personlinje(15.januar, 16.januar),
+            )
 
         assertEquals(
             listOf(
                 arbeidsgiverlinje(15.januar, 20.januar),
-                personlinje(15.januar, 16.januar)
-            ), personLinjer.slåSammen(arbeidsgiverLinjer)
+                personlinje(15.januar, 16.januar),
+            ),
+            personLinjer.slåSammen(arbeidsgiverLinjer),
         )
     }
 
@@ -86,7 +92,7 @@ internal class VedtakPdfPayloadTest {
         grad: Int = 100,
         dagsats: Int = 1400,
         mottaker: String = "123 456 789",
-        totalbeløp: Int = 20000
+        totalbeløp: Int = 20000,
     ) = linje(fom, tom, grad, dagsats, mottaker, VedtakPdfPayload.MottakerType.Arbeidsgiver, totalbeløp)
 
     fun personlinje(
@@ -95,7 +101,7 @@ internal class VedtakPdfPayloadTest {
         grad: Int = 100,
         dagsats: Int = 1400,
         mottaker: String = "123456 78999",
-        totalbeløp: Int = 20000
+        totalbeløp: Int = 20000,
     ) = linje(fom, tom, grad, dagsats, mottaker, VedtakPdfPayload.MottakerType.Person, totalbeløp)
 
     fun linje(
@@ -106,22 +112,20 @@ internal class VedtakPdfPayloadTest {
         mottaker: String,
         mottakerType: VedtakPdfPayload.MottakerType,
         totalbeløp: Int,
-        erOpphørt: Boolean = false
-    ) =
-        VedtakPdfPayload.Linje(
-            fom = fom,
-            tom = tom,
-            grad = grad,
-            dagsats = dagsats,
-            mottaker = mottaker,
-            mottakerType = mottakerType,
-            totalbeløp = totalbeløp,
-            erOpphørt
-        )
+        erOpphørt: Boolean = false,
+    ) = VedtakPdfPayload.Linje(
+        fom = fom,
+        tom = tom,
+        grad = grad,
+        dagsats = dagsats,
+        mottaker = mottaker,
+        mottakerType = mottakerType,
+        totalbeløp = totalbeløp,
+        erOpphørt,
+    )
 
-    private fun List<VedtakPdfPayload.Linje>.slåSammen(other: List<VedtakPdfPayload.Linje>): List<VedtakPdfPayload.Linje> {
-        return (this + other)
+    private fun List<VedtakPdfPayload.Linje>.slåSammen(other: List<VedtakPdfPayload.Linje>): List<VedtakPdfPayload.Linje> =
+        (this + other)
             .sortedBy { it.mottakerType }
             .sortedByDescending { it.fom }
-    }
 }

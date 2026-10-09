@@ -17,7 +17,6 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
-import java.time.Duration
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.spre.gosys.annullering.PlanlagtAnnulleringDao
 import no.nav.helse.spre.gosys.annullering.PlanlagtAnnulleringRiver
@@ -34,11 +33,13 @@ import no.nav.helse.spre.gosys.vedtakFattet.pdf.PdfProduserer
 import org.flywaydb.core.Flyway
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Duration
 
-internal val objectMapper: ObjectMapper = jacksonObjectMapper()
-    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    .registerModule(JavaTimeModule())
+internal val objectMapper: ObjectMapper =
+    jacksonObjectMapper()
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .registerModule(JavaTimeModule())
 
 internal val logg: Logger = LoggerFactory.getLogger("spregosys")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
@@ -51,42 +52,48 @@ fun main() {
 }
 
 fun launchApplication(
-    environment: Map<String, String>
+    environment: Map<String, String>,
 ): RapidsConnection {
     val azureClient = createAzureTokenClientFromEnvironment(environment)
-    val httpClient = HttpClient {
+    val httpClient =
+        HttpClient {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, JacksonConverter(objectMapper))
+            }
 
-        install(ContentNegotiation) {
-            register(ContentType.Application.Json, JacksonConverter(objectMapper))
+            install(HttpTimeout) { requestTimeoutMillis = 10000 }
         }
-
-        install(HttpTimeout) { requestTimeoutMillis = 10000 }
-    }
     val joarkClient = JoarkClient(environment.getValue("JOARK_BASE_URL"), azureClient, environment.getValue("JOARK_SCOPE"), httpClient)
     val pdfClient = PdfClient(httpClient, "http://sprinter")
     val eregClient = EregClient(environment.getValue("EREG_BASE_URL"), httpClient)
-    val spForsikringClient = SpForsikringClient(
-        baseUrl = environment.getValue("SP_FORSIKRING_BASE_URL"),
-        azureClient = azureClient,
-        scope = environment.getValue("SP_FORSIKRING_SCOPE"),
-        httpClient = httpClient,
-    )
-    val speedClient = SpeedClient(
-        httpClient = java.net.http.HttpClient.newHttpClient(),
-        objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()),
-        tokenProvider = azureClient
-    )
+    val spForsikringClient =
+        SpForsikringClient(
+            baseUrl = environment.getValue("SP_FORSIKRING_BASE_URL"),
+            azureClient = azureClient,
+            scope = environment.getValue("SP_FORSIKRING_SCOPE"),
+            httpClient = httpClient,
+        )
+    val speedClient =
+        SpeedClient(
+            httpClient =
+                java.net.http.HttpClient
+                    .newHttpClient(),
+            objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()),
+            tokenProvider = azureClient,
+        )
 
-    val hikariConfig = HikariConfig().apply {
-        jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", environment.getValue("DB_HOST"), environment.getValue("DB_PORT"), environment.getValue("DB_DATABASE"))
-        username = environment.getValue("DB_USERNAME")
-        password = environment.getValue("DB_PASSWORD")
-        maximumPoolSize = 3
-        initializationFailTimeout = Duration.ofMinutes(30).toMillis()
-    }
+    val hikariConfig =
+        HikariConfig().apply {
+            jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", environment.getValue("DB_HOST"), environment.getValue("DB_PORT"), environment.getValue("DB_DATABASE"))
+            username = environment.getValue("DB_USERNAME")
+            password = environment.getValue("DB_PASSWORD")
+            maximumPoolSize = 3
+            initializationFailTimeout = Duration.ofMinutes(30).toMillis()
+        }
 
     val dataSource = HikariDataSource(hikariConfig)
-    Flyway.configure()
+    Flyway
+        .configure()
         .dataSource(dataSource)
         .lockRetryCount(-1)
         .load()
@@ -102,7 +109,8 @@ fun launchApplication(
 
     val sessionFactory = SessionFactory(dataSource)
 
-    return RapidApplication.create(environment)
+    return RapidApplication
+        .create(environment)
         .apply {
             settOppRivers(
                 duplikatsjekkDao = duplikatsjekkDao,
@@ -115,7 +123,7 @@ fun launchApplication(
                 eregClient = eregClient,
                 spForsikringClient = spForsikringClient,
                 speedClient = speedClient,
-                sessionFactory = sessionFactory
+                sessionFactory = sessionFactory,
             )
         }
 }
@@ -131,7 +139,7 @@ internal fun RapidsConnection.settOppRivers(
     eregClient: EregClient,
     spForsikringClient: SpForsikringClient,
     speedClient: SpeedClient,
-    sessionFactory: SessionFactory
+    sessionFactory: SessionFactory,
 ) {
     FeriepengerRiver(this, duplikatsjekkDao, feriepengerMediator)
     VedtakFattetRiver(
@@ -139,30 +147,34 @@ internal fun RapidsConnection.settOppRivers(
         meldingOmVedtakRepository = meldingOmVedtakRepository,
         utbetalingDao = utbetalingDao,
         duplikatsjekkDao = duplikatsjekkDao,
-        pdfProduserer = PdfProduserer(
-            pdfClient = pdfClient,
-            eregClient = eregClient,
-            speedClient = speedClient,
-            spForsikringClient = spForsikringClient,
-        ),
-        pdfJournalfører = PdfJournalfører(
-            joarkClient = joarkClient
-        ),
+        pdfProduserer =
+            PdfProduserer(
+                pdfClient = pdfClient,
+                eregClient = eregClient,
+                speedClient = speedClient,
+                spForsikringClient = spForsikringClient,
+            ),
+        pdfJournalfører =
+            PdfJournalfører(
+                joarkClient = joarkClient,
+            ),
         sessionFactory = sessionFactory,
     )
     UtbetalingUtbetaltMedEllerUtenUtbetalingRiver(
         rapidsConnection = this,
         utbetalingDao = utbetalingDao,
         duplikatsjekkDao = duplikatsjekkDao,
-        pdfProduserer = PdfProduserer(
-            pdfClient = pdfClient,
-            eregClient = eregClient,
-            speedClient = speedClient,
-            spForsikringClient = spForsikringClient,
-        ),
-        pdfJournalfører = PdfJournalfører(
-            joarkClient = joarkClient
-        ),
+        pdfProduserer =
+            PdfProduserer(
+                pdfClient = pdfClient,
+                eregClient = eregClient,
+                speedClient = speedClient,
+                spForsikringClient = spForsikringClient,
+            ),
+        pdfJournalfører =
+            PdfJournalfører(
+                joarkClient = joarkClient,
+            ),
         meldingOmVedtakRepository = meldingOmVedtakRepository,
         sessionFactory = sessionFactory,
     )
@@ -171,5 +183,7 @@ internal fun RapidsConnection.settOppRivers(
     VedtaksperiodeAnnullertRiver(this, planlagtAnnulleringDao, pdfClient, joarkClient, eregClient, speedClient)
 }
 
-internal suspend fun <T> HttpStatement.executeRetry(avbryt: (throwable: Throwable) -> Boolean = { false }, block: suspend (response: HttpResponse) -> T) =
-    retry(avbryt = avbryt) { execute { block(it) } }
+internal suspend fun <T> HttpStatement.executeRetry(
+    avbryt: (throwable: Throwable) -> Boolean = { false },
+    block: suspend (response: HttpResponse) -> T,
+) = retry(avbryt = avbryt) { execute { block(it) } }

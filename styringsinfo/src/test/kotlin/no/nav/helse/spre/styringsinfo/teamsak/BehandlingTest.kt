@@ -6,8 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
-internal class BehandlingTest: AbstractTeamSakTest() {
-
+internal class BehandlingTest : AbstractTeamSakTest() {
     @Test
     fun `funksjonell lik behandling`() {
         val hendelsefabrikk = Hendelsefabrikk()

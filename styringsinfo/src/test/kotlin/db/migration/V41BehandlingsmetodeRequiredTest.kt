@@ -4,15 +4,16 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class V41BehandlingsmetodeRequiredTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V41__behandlingsmetode_required()
-) {
-
+internal class V41BehandlingsmetodeRequiredTest :
+    BehandlingshendelseJsonMigreringTest(
+        migrering = V41__behandlingsmetode_required(),
+    ) {
     @Test
     fun `korrigerer inn behandlingsmetode AUTOMATISK der hvor det mangler`() {
-        val radUtenBehandlingsmetode1 = leggTilBehandlingshendelse(behandlingId = UUID.randomUUID()) { data ->
-            data.putNull("behandlingsmetode")
-        }
+        val radUtenBehandlingsmetode1 =
+            leggTilBehandlingshendelse(behandlingId = UUID.randomUUID()) { data ->
+                data.putNull("behandlingsmetode")
+            }
 
         leggTilBehandlingshendelse(behandlingId = UUID.randomUUID()) { data ->
             data.put("behandlingsmetode", "MANUELL")

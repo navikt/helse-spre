@@ -2,17 +2,16 @@ package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.IKKE_REALITETSBEHANDLET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.*
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertNotNull
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetTilknytning
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.ManglendeTilknytning
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 import java.util.UUID
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetTilknytning
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.ManglendeTilknytning
 
 internal class BuilderTest {
-
     @Test
     fun `ignorerer funksjonelt like behandlinger`() {
         val forrige = lagBehandling()
@@ -62,43 +61,47 @@ internal class BuilderTest {
             assertEquals(TOTRINNS, it.behandlingsmetode)
             assertEquals(AUTOMATISK, it.hendelsesmetode)
         }
-        Behandling.Builder(lagBehandling()).tilknytninger(
-            saksbehandler = FunnetTilknytning(enhet = "1234", avdeling = "ab123c"),
-            beslutter = FunnetTilknytning(enhet = "5678", avdeling = "ab123d")).build(AUTOMATISK).let {
-            assertEquals("1234", it.saksbehandlerEnhet)
-            assertEquals("ab123c", it.saksbehandlerAvdeling)
-            assertEquals("5678", it.beslutterEnhet)
-            assertEquals("ab123d", it.beslutterAvdeling)
-            assertEquals(TOTRINNS, it.behandlingsmetode)
-            assertEquals(AUTOMATISK, it.hendelsesmetode)
-        }
+        Behandling
+            .Builder(lagBehandling())
+            .tilknytninger(
+                saksbehandler = FunnetTilknytning(enhet = "1234", avdeling = "ab123c"),
+                beslutter = FunnetTilknytning(enhet = "5678", avdeling = "ab123d"),
+            ).build(AUTOMATISK)
+            .let {
+                assertEquals("1234", it.saksbehandlerEnhet)
+                assertEquals("ab123c", it.saksbehandlerAvdeling)
+                assertEquals("5678", it.beslutterEnhet)
+                assertEquals("ab123d", it.beslutterAvdeling)
+                assertEquals(TOTRINNS, it.behandlingsmetode)
+                assertEquals(AUTOMATISK, it.hendelsesmetode)
+            }
     }
 
     private val nå = OffsetDateTime.now()
     private val etterpå = nå.plusDays(1)
 
     // Setter bare resultat for å vite at det ikke blir null 💡
-    private fun Behandling.Builder.build(hendelsemetode: Behandling.Metode) =
-        behandlingsresultat(IKKE_REALITETSBEHANDLET).build(OffsetDateTime.now(), hendelsemetode)!!
+    private fun Behandling.Builder.build(hendelsemetode: Behandling.Metode) = behandlingsresultat(IKKE_REALITETSBEHANDLET).build(OffsetDateTime.now(), hendelsemetode)!!
 
-    private fun lagBehandling(yrkesaktivitetstype: String = "ARBEIDSTAKER") = Behandling(
-        sakId = SakId(UUID.randomUUID()),
-        behandlingId = BehandlingId(UUID.randomUUID()),
-        relatertBehandlingId = null,
-        aktørId = "1",
-        mottattTid = nå,
-        registrertTid = nå,
-        funksjonellTid = nå,
-        behandlingstatus = Behandling.Behandlingstatus.REGISTRERT,
-        behandlingsmetode = AUTOMATISK,
-        behandlingskilde = Behandling.Behandlingskilde.SYKMELDT,
-        periodetype = Behandling.Periodetype.FORLENGELSE,
-        behandlingstype = Behandling.Behandlingstype.SØKNAD,
-        behandlingsresultat = null,
-        mottaker = null,
-        saksbehandlerEnhet = null,
-        beslutterEnhet = null,
-        hendelsesmetode = AUTOMATISK,
-        yrkesaktivitetstype = yrkesaktivitetstype,
-    )
+    private fun lagBehandling(yrkesaktivitetstype: String = "ARBEIDSTAKER") =
+        Behandling(
+            sakId = SakId(UUID.randomUUID()),
+            behandlingId = BehandlingId(UUID.randomUUID()),
+            relatertBehandlingId = null,
+            aktørId = "1",
+            mottattTid = nå,
+            registrertTid = nå,
+            funksjonellTid = nå,
+            behandlingstatus = Behandling.Behandlingstatus.REGISTRERT,
+            behandlingsmetode = AUTOMATISK,
+            behandlingskilde = Behandling.Behandlingskilde.SYKMELDT,
+            periodetype = Behandling.Periodetype.FORLENGELSE,
+            behandlingstype = Behandling.Behandlingstype.SØKNAD,
+            behandlingsresultat = null,
+            mottaker = null,
+            saksbehandlerEnhet = null,
+            beslutterEnhet = null,
+            hendelsesmetode = AUTOMATISK,
+            yrkesaktivitetstype = yrkesaktivitetstype,
+        )
 }

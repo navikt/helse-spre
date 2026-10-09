@@ -1,14 +1,13 @@
 package no.nav.helse.spre.styringsinfo.teamsak.enhet
 
 import no.nav.helse.spre.styringsinfo.objectMapper
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.NavOrganisasjonsmasterClient.Companion.tilknytning
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.NavOrganisasjonsmasterClient.Companion.tilknytning
 
 class NavOrganisasjonsmasterClientTest {
-
     @Test
     fun `parser enhet i et enkelt case`() {
         val dato = LocalDate.of(2024, 1, 1)
@@ -51,9 +50,9 @@ class NavOrganisasjonsmasterClientTest {
         assertEquals(FunnetTilknytning(enhet = "1350", avdeling = "ab666a"), actualTilknytning)
     }
 
-
     @Language("JSON")
-    private val personMedEnEnhet = """
+    private val personMedEnEnhet =
+        """
         {
           "data": {
             "ressurs": {
@@ -84,10 +83,11 @@ class NavOrganisasjonsmasterClientTest {
           }
         }
         
-    """.trimIndent()
+        """.trimIndent()
 
     @Language("JSON")
-    private val personMedFlereEnheter = """
+    private val personMedFlereEnheter =
+        """
         {
           "data": {
             "ressurs": {
@@ -118,10 +118,11 @@ class NavOrganisasjonsmasterClientTest {
           }
         }
         
-    """.trimIndent()
+        """.trimIndent()
 
     @Language("JSON")
-    private val personUtenEnhet = """
+    private val personUtenEnhet =
+        """
         {
           "data": {
             "ressurs": {
@@ -130,6 +131,5 @@ class NavOrganisasjonsmasterClientTest {
             }
           }
         }
-    """.trimIndent()
+        """.trimIndent()
 }
-

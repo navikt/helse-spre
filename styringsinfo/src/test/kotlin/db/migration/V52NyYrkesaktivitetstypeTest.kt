@@ -3,10 +3,6 @@ package db.migration
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.test_support.TestDataSource
-import java.time.OffsetDateTime
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatterBuilder
-import java.util.*
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.databaseContainer
@@ -20,9 +16,12 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.OffsetDateTime
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatterBuilder
+import java.util.*
 
 class V52NyYrkesaktivitetstypeTest {
-
     private lateinit var dataSource: TestDataSource
     private lateinit var hendelseDao: PostgresHendelseDao
     private lateinit var behandlingDao: PostgresBehandlingshendelseDao
@@ -43,11 +42,13 @@ class V52NyYrkesaktivitetstypeTest {
                 session.run(queryOf(cleanupQuery).asExecute)
             }
         }
-        Flyway.configure()
+        Flyway
+            .configure()
             .dataSource(dataSource.ds)
             .cleanDisabled(false)
             .target(MigrationVersion.fromVersion("52"))
-            .load().let {
+            .load()
+            .let {
                 it.clean()
                 it.migrate()
             }
@@ -63,7 +64,7 @@ class V52NyYrkesaktivitetstypeTest {
     private fun leggTilBehandlingshendelseDefaulteYrkesaktivitetstype(
         funksjonellTid: ZonedDateTime = ZonedDateTime.now(),
         hendelse: Hendelse,
-        registrertTid: ZonedDateTime
+        registrertTid: ZonedDateTime,
     ): Long {
         hendelseDao.lagre(hendelse)
 
@@ -73,27 +74,31 @@ class V52NyYrkesaktivitetstypeTest {
             values(:sakId, :behandlingId, :funksjonellTid, :versjon, :data::jsonb, :siste, :hendelseId, :erKorrigert)
             """
 
-            val sekvensnummer = session.run(
-                queryOf(
-                    sql, mapOf(
-                    "sakId" to UUID.randomUUID(),
-                    "behandlingId" to UUID.randomUUID(),
-                    "funksjonellTid" to funksjonellTid,
-                    "versjon" to "1.0.0",
-                    "siste" to true,
-                    "data" to objectMapper.readTree(
-                        """
-                    {
-                    "registrertTid": "${registrertTid.format(tidsformatør)}",
-                    "mottattTid": "${ZonedDateTime.now().format(tidsformatør)}"
-                    }
-                """.trimIndent()
-                    ).toString(),
-                    "hendelseId" to hendelse.id,
-                    "erKorrigert" to false
-                )
-                ).asUpdateAndReturnGeneratedKey
-            )!!
+            val sekvensnummer =
+                session.run(
+                    queryOf(
+                        sql,
+                        mapOf(
+                            "sakId" to UUID.randomUUID(),
+                            "behandlingId" to UUID.randomUUID(),
+                            "funksjonellTid" to funksjonellTid,
+                            "versjon" to "1.0.0",
+                            "siste" to true,
+                            "data" to
+                                objectMapper
+                                    .readTree(
+                                        """
+                                        {
+                                        "registrertTid": "${registrertTid.format(tidsformatør)}",
+                                        "mottattTid": "${ZonedDateTime.now().format(tidsformatør)}"
+                                        }
+                                        """.trimIndent(),
+                                    ).toString(),
+                            "hendelseId" to hendelse.id,
+                            "erKorrigert" to false,
+                        ),
+                    ).asUpdateAndReturnGeneratedKey,
+                )!!
             return sekvensnummer
         }
     }
@@ -102,10 +107,11 @@ class V52NyYrkesaktivitetstypeTest {
     fun `sjekker at vi defaulter til arbeidstaker`() {
         val hendelse = PågåendeBehandling(UUID.randomUUID())
 
-        val id = leggTilBehandlingshendelseDefaulteYrkesaktivitetstype(
-            registrertTid = ZonedDateTime.now(),
-            hendelse = hendelse
-        )
+        val id =
+            leggTilBehandlingshendelseDefaulteYrkesaktivitetstype(
+                registrertTid = ZonedDateTime.now(),
+                hendelse = hendelse,
+            )
 
         val henteSQL = """select yrkesaktivitetstype from behandlingshendelse where sekvensnummer = $id"""
 
@@ -116,9 +122,12 @@ class V52NyYrkesaktivitetstypeTest {
     }
 }
 
-private class PågåendeBehandling(override val id: UUID) : Hendelse {
+private class PågåendeBehandling(
+    override val id: UUID,
+) : Hendelse {
     override val opprettet: OffsetDateTime = OffsetDateTime.parse("1970-01-01T00:00+01:00")
     override val type: String = "pågående_behandlinger"
     override val data: JsonNode = jacksonObjectMapper().createObjectNode().apply { put("test", true) }
+
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao) = throw IllegalStateException("Testehendelse skal ikke håndteres")
 }

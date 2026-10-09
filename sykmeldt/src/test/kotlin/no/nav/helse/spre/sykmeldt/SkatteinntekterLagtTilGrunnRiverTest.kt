@@ -10,7 +10,6 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import java.util.*
 
 class SkatteinntekterLagtTilGrunnRiverTest {
-
     private val testRapid = TestRapid()
     private val publisher = TestForelagteOpplysningerPublisher()
     private lateinit var river: SkatteinntekterLagtTilGrunnRiver
@@ -42,8 +41,8 @@ class SkatteinntekterLagtTilGrunnRiverTest {
     }
 
     @Language("JSON")
-    private fun skatteinntekterLagtTilGrunnEvent(vedtaksperiodeId: UUID): String {
-        return """
+    private fun skatteinntekterLagtTilGrunnEvent(vedtaksperiodeId: UUID): String =
+        """
        {
          "@event_name": "skatteinntekter_lagt_til_grunn",
          "organisasjonsnummer": "987654321",
@@ -71,5 +70,4 @@ class SkatteinntekterLagtTilGrunnRiverTest {
          "fødselsnummer": "12029240045"
        }
        """
-    }
 }

@@ -6,54 +6,58 @@ import io.micrometer.core.instrument.Clock
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.prometheus.metrics.model.registry.PrometheusRegistry
+import org.flywaydb.core.Flyway
 import java.time.Duration
 import javax.sql.DataSource
-import org.flywaydb.core.Flyway
 
-internal class DataSourceBuilder(env: Map<String, String>) {
+internal class DataSourceBuilder(
+    env: Map<String, String>,
+) {
     private val databaseUsername: String = requireNotNull(env["DATABASE_USERNAME"]) { "brukernavn må settes" }
     private val databasePassword: String = requireNotNull(env["DATABASE_PASSWORD"]) { "passord må settes" }
 
     private val dbUrl: String = requireNotNull(env["DATABASE_JDBC_URL"]) { "jdbc url må settes" }
 
-    private val hikariConfig = HikariConfig().apply {
-        jdbcUrl = dbUrl
-        username = databaseUsername
-        password = databasePassword
-        maximumPoolSize = 5
-        minimumIdle = 2
-        idleTimeout = Duration.ofMinutes(1).toMillis()
-        maxLifetime = idleTimeout * 5
-        initializationFailTimeout = Duration.ofMinutes(1).toMillis()
-        connectionTimeout = Duration.ofSeconds(5).toMillis()
-        leakDetectionThreshold = Duration.ofSeconds(10).toMillis()
-        metricRegistry = PrometheusMeterRegistry(
-            PrometheusConfig.DEFAULT,
-            PrometheusRegistry.defaultRegistry,
-            Clock.SYSTEM
-        )
-    }
+    private val hikariConfig =
+        HikariConfig().apply {
+            jdbcUrl = dbUrl
+            username = databaseUsername
+            password = databasePassword
+            maximumPoolSize = 5
+            minimumIdle = 2
+            idleTimeout = Duration.ofMinutes(1).toMillis()
+            maxLifetime = idleTimeout * 5
+            initializationFailTimeout = Duration.ofMinutes(1).toMillis()
+            connectionTimeout = Duration.ofSeconds(5).toMillis()
+            leakDetectionThreshold = Duration.ofSeconds(10).toMillis()
+            metricRegistry =
+                PrometheusMeterRegistry(
+                    PrometheusConfig.DEFAULT,
+                    PrometheusRegistry.defaultRegistry,
+                    Clock.SYSTEM,
+                )
+        }
 
-    private val hikariMigrationConfig = HikariConfig().apply {
-        jdbcUrl = dbUrl
-        username = databaseUsername
-        password = databasePassword
-        initializationFailTimeout = Duration.ofMinutes(1).toMillis()
-        connectionTimeout = Duration.ofSeconds(30).toMillis()
-        maximumPoolSize = 4
-        minimumIdle = 2
-    }
+    private val hikariMigrationConfig =
+        HikariConfig().apply {
+            jdbcUrl = dbUrl
+            username = databaseUsername
+            password = databasePassword
+            initializationFailTimeout = Duration.ofMinutes(1).toMillis()
+            connectionTimeout = Duration.ofSeconds(30).toMillis()
+            maximumPoolSize = 4
+            minimumIdle = 2
+        }
 
     private fun runMigration(dataSource: DataSource) =
-        Flyway.configure()
+        Flyway
+            .configure()
             .dataSource(dataSource)
             .lockRetryCount(-1)
             .load()
             .migrate()
 
-    internal fun getDataSource(): HikariDataSource {
-        return HikariDataSource(hikariConfig)
-    }
+    internal fun getDataSource(): HikariDataSource = HikariDataSource(hikariConfig)
 
     internal fun migrate() {
         val dataSource = HikariDataSource(hikariMigrationConfig)

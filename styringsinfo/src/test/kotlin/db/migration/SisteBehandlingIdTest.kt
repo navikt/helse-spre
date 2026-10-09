@@ -10,11 +10,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class SisteBehandlingIdTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V1337__Behandling1Migrering(),
-    forrigeVersjon = MigrationVersion.LATEST
-) {
-
+internal class SisteBehandlingIdTest :
+    BehandlingshendelseJsonMigreringTest(
+        migrering = V1337__Behandling1Migrering(),
+        forrigeVersjon = MigrationVersion.LATEST,
+    ) {
     private lateinit var behandlingshendelseDao: BehandlingshendelseDao
 
     @BeforeEach
@@ -35,7 +35,7 @@ internal class SisteBehandlingIdTest: BehandlingshendelseJsonMigreringTest(
 
         assertEquals(
             BehandlingId(behandlingId2),
-            behandlingshendelseDao.sisteBehandlingId(SakId(sakId))
+            behandlingshendelseDao.sisteBehandlingId(SakId(sakId)),
         )
 
         // Migrerer kun behandling 1
@@ -44,19 +44,19 @@ internal class SisteBehandlingIdTest: BehandlingshendelseJsonMigreringTest(
 
         assertEquals(
             BehandlingId(behandlingId2),
-            behandlingshendelseDao.sisteBehandlingId(SakId(sakId))
+            behandlingshendelseDao.sisteBehandlingId(SakId(sakId)),
         )
     }
 
     private companion object {
         private val behandlingId1 = UUID.randomUUID()
 
-        private class V1337__Behandling1Migrering: BehandlingshendelseJsonMigrering() {
+        private class V1337__Behandling1Migrering : BehandlingshendelseJsonMigrering() {
             override fun query() = "select sekvensnummer, data, er_korrigert from behandlingshendelse where behandlingid='$behandlingId1'"
+
             override fun nyVersjon() = null
-            override fun nyData(gammelData: ObjectNode): ObjectNode { return gammelData }
+
+            override fun nyData(gammelData: ObjectNode): ObjectNode = gammelData
         }
     }
 }
-
-

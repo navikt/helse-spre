@@ -5,10 +5,10 @@ import kotliquery.sessionOf
 import no.nav.helse.spre.styringsinfo.AbstractDatabaseTest
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SAKSBEHANDLER
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingskilde.SYSTEM
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstype.SØKNAD
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.PostgresHendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.Testhendelse
@@ -19,8 +19,7 @@ import java.lang.IllegalStateException
 import java.time.OffsetDateTime
 import java.util.UUID
 
-internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
-
+internal class PostgresBehandlingshendelseDaoTest : AbstractDatabaseTest() {
     private val hendelseId = UUID.randomUUID()
     private val testehendelse = Testhendelse(hendelseId)
 
@@ -85,11 +84,17 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         hendelseDao.lagre(testehendelse)
     }
 
-    private val BehandlingId.rader get() = sessionOf(testDataSource.ds).use { session ->
-        session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
-    } ?: 0
+    private val BehandlingId.rader get() =
+        sessionOf(testDataSource.ds).use { session ->
+            session.run(queryOf("select count(1) from behandlingshendelse where behandlingId='$this'").map { row -> row.int(1) }.asSingle)
+        } ?: 0
 
-    private fun nyBehandling(behandlingId: BehandlingId, funksjonellTid: OffsetDateTime, behandlingsmetode: Behandling.Metode = MANUELL, yrkesaktivitetstype: String) = Behandling(
+    private fun nyBehandling(
+        behandlingId: BehandlingId,
+        funksjonellTid: OffsetDateTime,
+        behandlingsmetode: Behandling.Metode = MANUELL,
+        yrkesaktivitetstype: String,
+    ) = Behandling(
         sakId = SakId(UUID.randomUUID()),
         behandlingId = behandlingId,
         relatertBehandlingId = null,
@@ -103,6 +108,6 @@ internal class PostgresBehandlingshendelseDaoTest: AbstractDatabaseTest() {
         behandlingsmetode = behandlingsmetode,
         saksbehandlerEnhet = "4488",
         hendelsesmetode = AUTOMATISK,
-        yrkesaktivitetstype = yrkesaktivitetstype
+        yrkesaktivitetstype = yrkesaktivitetstype,
     )
 }

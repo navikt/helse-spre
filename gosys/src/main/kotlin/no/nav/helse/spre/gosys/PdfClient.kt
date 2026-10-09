@@ -12,75 +12,83 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.ContentType.Application.Json
-import java.util.*
 import net.logstash.logback.argument.StructuredArguments.kv
 import no.nav.helse.spre.gosys.annullering.PlanlagtAnnullering
 import no.nav.helse.spre.gosys.feriepenger.FeriepengerPdfPayload
 import no.nav.helse.spre.gosys.vedtak.SNVedtakPdfPayload
 import no.nav.helse.spre.gosys.vedtak.VedtakPdfPayload
+import java.util.*
 
-class PdfClient(private val httpClient: HttpClient, private val baseUrl: String) {
+class PdfClient(
+    private val httpClient: HttpClient,
+    private val baseUrl: String,
+) {
     private val encoder = Base64.getEncoder()
 
-    suspend fun hentVedtakPdf(vedtak: VedtakPdfPayload) =
-        produserPdfBytes("$baseUrl/api/v1/genpdf/spre-gosys/vedtak", vedtak)
+    suspend fun hentVedtakPdf(vedtak: VedtakPdfPayload) = produserPdfBytes("$baseUrl/api/v1/genpdf/spre-gosys/vedtak", vedtak)
 
-    suspend fun hentSNVedtakPdf(vedtak: SNVedtakPdfPayload) =
-        produserPdfBytes("$baseUrl/api/v1/genpdf/spre-gosys/vedtak_selvstendig", vedtak)
+    suspend fun hentSNVedtakPdf(vedtak: SNVedtakPdfPayload) = produserPdfBytes("$baseUrl/api/v1/genpdf/spre-gosys/vedtak_selvstendig", vedtak)
 
-    suspend fun hentFerdigAnnulleringPdf(ferdigAnnullering: PlanlagtAnnullering.FerdigAnnulleringPdfPayload) =
-        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/ferdig_annullering", ferdigAnnullering)
+    suspend fun hentFerdigAnnulleringPdf(ferdigAnnullering: PlanlagtAnnullering.FerdigAnnulleringPdfPayload) = hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/ferdig_annullering", ferdigAnnullering)
 
-    suspend fun hentFeriepengerPdf(feriepenger: FeriepengerPdfPayload) =
-        hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/feriepenger", feriepenger)
+    suspend fun hentFeriepengerPdf(feriepenger: FeriepengerPdfPayload) = hentPdf("$baseUrl/api/v1/genpdf/spre-gosys/feriepenger", feriepenger)
 
-    private suspend fun hentPdf(url: String, input: Any): String =
-        produserPdfBytes(url, input).let(encoder::encodeToString)
+    private suspend fun hentPdf(
+        url: String,
+        input: Any,
+    ): String = produserPdfBytes(url, input).let(encoder::encodeToString)
 
-    private suspend fun produserPdfBytes(url: String, input: Any): ByteArray {
+    private suspend fun produserPdfBytes(
+        url: String,
+        input: Any,
+    ): ByteArray {
         val body = objectMapper.writeValueAsString(input).replace("\u0092", "'")
         if (erUtvikling) sikkerLogg.info("Payload til PDF-generering: $body")
         return runCatching {
-            httpClient.preparePost(url) {
-                contentType(Json)
-                setBody(body)
-                expectSuccess = true
-            }.executeRetry { response ->
-                response.body<ByteArray?>()?.takeUnless { it.isEmpty() } ?: error("Fikk tom pdf")
-            }
-        }
-            .onFailure {
-                sikkerLogg.info("Payload som ble brukt til å generere PDF: $body")
-                sikkerLogg.error("Feil ved generering av PDF for url=$url", it)
-            }
-            .getOrThrow()
+            httpClient
+                .preparePost(url) {
+                    contentType(Json)
+                    setBody(body)
+                    expectSuccess = true
+                }.executeRetry { response ->
+                    response.body<ByteArray?>()?.takeUnless { it.isEmpty() } ?: error("Fikk tom pdf")
+                }
+        }.onFailure {
+            sikkerLogg.info("Payload som ble brukt til å generere PDF: $body")
+            sikkerLogg.error("Feil ved generering av PDF for url=$url", it)
+        }.getOrThrow()
     }
 }
 
-suspend fun finnOrganisasjonsnavn(eregClient: EregClient, organisasjonsnummer: String, callId: UUID = UUID.randomUUID()): String {
-    return try {
+suspend fun finnOrganisasjonsnavn(
+    eregClient: EregClient,
+    organisasjonsnummer: String,
+    callId: UUID = UUID.randomUUID(),
+): String =
+    try {
         eregClient.hentOrganisasjonsnavn(organisasjonsnummer, callId).navn
     } catch (e: Exception) {
         logg.error("Feil ved henting av bedriftsnavn for $organisasjonsnummer {}", kv("callId", callId))
         sikkerLogg.error("Feil ved henting av bedriftsnavn for $organisasjonsnummer {}", kv("callId", callId), e)
         ""
     }
-}
 
-fun hentNavn(speedClient: SpeedClient, ident: String, callId: String) =
-    tryCatch {
-        retryBlocking {
-            speedClient.hentPersoninfo(ident, callId).getOrThrow()
-        }
+fun hentNavn(
+    speedClient: SpeedClient,
+    ident: String,
+    callId: String,
+) = tryCatch {
+    retryBlocking {
+        speedClient.hentPersoninfo(ident, callId).getOrThrow()
     }
-        .fold(
-            whenOk = { it.tilVisning() },
-            whenError = { msg, cause ->
-                logg.error("Feil ved henting av navn {}", kv("callId", callId))
-                sikkerLogg.error("Feil ved henting av navn for ident=$ident: $msg {}", kv("callId", callId), cause)
-                null
-            }
-        )
+}.fold(
+    whenOk = { it.tilVisning() },
+    whenError = { msg, cause ->
+        logg.error("Feil ved henting av navn {}", kv("callId", callId))
+        sikkerLogg.error("Feil ved henting av navn for ident=$ident: $msg {}", kv("callId", callId), cause)
+        null
+    },
+)
 
 private fun PersonResponse.tilVisning() =
     listOfNotNull(fornavn, mellomnavn, etternavn)

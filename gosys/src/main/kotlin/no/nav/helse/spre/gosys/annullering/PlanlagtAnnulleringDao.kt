@@ -1,13 +1,14 @@
 package no.nav.helse.spre.gosys.annullering
 
-import java.util.*
-import javax.sql.DataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
+import java.util.*
+import javax.sql.DataSource
 
-class PlanlagtAnnulleringDao(private val dataSource: DataSource) {
-
+class PlanlagtAnnulleringDao(
+    private val dataSource: DataSource,
+) {
     fun lagre(plan: PlanlagtAnnulleringMessage) {
         @Language("PostgreSQL")
         val query = """
@@ -34,9 +35,9 @@ class PlanlagtAnnulleringDao(private val dataSource: DataSource) {
                         "saksbehandler_ident" to plan.saksbehandlerIdent,
                         "arsaker" to plan.årsaker.joinToString { it },
                         "begrunnelse" to plan.begrunnelse,
-                        "opprettet" to plan.opprettet
-                    )
-                ).asExecute
+                        "opprettet" to plan.opprettet,
+                    ),
+                ).asExecute,
             )
             plan.vedtaksperioder.forEach { vedtaksperiode ->
                 session.run(
@@ -44,9 +45,9 @@ class PlanlagtAnnulleringDao(private val dataSource: DataSource) {
                         insertVedtaksperioder,
                         mapOf(
                             "vedtaksperiode_id" to vedtaksperiode,
-                            "plan" to plan.hendelseId
-                        )
-                    ).asExecute
+                            "plan" to plan.hendelseId,
+                        ),
+                    ).asExecute,
                 )
             }
         }
@@ -59,8 +60,8 @@ class PlanlagtAnnulleringDao(private val dataSource: DataSource) {
             return session.run(
                 queryOf(
                     query,
-                    vedtaksperiodeId
-                ).map { it.uuid("plan") }.asList
+                    vedtaksperiodeId,
+                ).map { it.uuid("plan") }.asList,
             )
         }
     }
@@ -72,42 +73,47 @@ class PlanlagtAnnulleringDao(private val dataSource: DataSource) {
             return session.run(
                 queryOf(
                     query,
-                    planId
-                ).asUpdate
+                    planId,
+                ).asUpdate,
             )
         }
-
     }
 
     fun finnPlanlagtAnnullering(planId: UUID): PlanlagtAnnullering? {
         sessionOf(dataSource).use { session ->
             @Language("PostgreSQL")
             val query = "SELECT * FROM planlagt_annullering WHERE id = ?"
+
             @Language("PostgreSQL")
             val vedtaksperioderForPlan = "SELECT vedtaksperiode_id, annullert FROM vedtaksperioder_som_skal_annulleres WHERE plan = ?"
-            val vedtaksperioder = session.run(
-                queryOf(vedtaksperioderForPlan, planId).map {
-                    PlanlagtAnnullering.Vedtaksperiode(
-                        vedtaksperiodeId = it.uuid("vedtaksperiode_id"),
-                        annullert = it.localDateTimeOrNull("annullert")
-                    )
-                }.asList
-            )
+            val vedtaksperioder =
+                session.run(
+                    queryOf(vedtaksperioderForPlan, planId)
+                        .map {
+                            PlanlagtAnnullering.Vedtaksperiode(
+                                vedtaksperiodeId = it.uuid("vedtaksperiode_id"),
+                                annullert = it.localDateTimeOrNull("annullert"),
+                            )
+                        }.asList,
+                )
             return session.run(
-                queryOf(query, planId).map { PlanlagtAnnullering(
-                    id = it.uuid("id"),
-                    fnr = it.string("fnr"),
-                    yrkesaktivitetstype = it.string("yrkesaktivitetstype"),
-                    organisasjonsnummer = it.stringOrNull("organisasjonsnummer"),
-                    fom = it.localDate("fom"),
-                    tom = it.localDate("tom"),
-                    saksbehandlerIdent = it.string("saksbehandler_ident"),
-                    årsaker = it.string("arsaker").split(", "),
-                    begrunnelse = it.string("begrunnelse"),
-                    vedtaksperioder = vedtaksperioder,
-                    notat_opprettet = it.localDateTimeOrNull("notat_opprettet"),
-                    opprettet = it.localDateTime("opprettet")
-                ) }.asSingle
+                queryOf(query, planId)
+                    .map {
+                        PlanlagtAnnullering(
+                            id = it.uuid("id"),
+                            fnr = it.string("fnr"),
+                            yrkesaktivitetstype = it.string("yrkesaktivitetstype"),
+                            organisasjonsnummer = it.stringOrNull("organisasjonsnummer"),
+                            fom = it.localDate("fom"),
+                            tom = it.localDate("tom"),
+                            saksbehandlerIdent = it.string("saksbehandler_ident"),
+                            årsaker = it.string("arsaker").split(", "),
+                            begrunnelse = it.string("begrunnelse"),
+                            vedtaksperioder = vedtaksperioder,
+                            notat_opprettet = it.localDateTimeOrNull("notat_opprettet"),
+                            opprettet = it.localDateTime("opprettet"),
+                        )
+                    }.asSingle,
             )
         }
     }

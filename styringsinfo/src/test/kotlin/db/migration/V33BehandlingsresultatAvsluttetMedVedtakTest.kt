@@ -9,28 +9,30 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 @Disabled("Vi lytter på vedtak_fattet i stedet for avsluttet_med_vedtak og testene kjører derfor ikke")
-internal class V33BehandlingsresultatAvsluttetMedVedtakTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V33__behandlingsresultat_avsluttet_med_vedtak()
-) {
+internal class V33BehandlingsresultatAvsluttetMedVedtakTest :
+    BehandlingshendelseJsonMigreringTest(
+        migrering = V33__behandlingsresultat_avsluttet_med_vedtak(),
+    ) {
     @Test
     fun `skal skrive om alle avsluttet_med_vedtak-hendelser sitt behandlingsresultat fra VEDTATT til VEDTAK_IVERKSATT`() {
         val behandlingId = UUID.randomUUID()
         val hendelsefabrikk = Hendelsefabrikk(behandlingId = BehandlingId(behandlingId))
-        val korrigertHendelse = leggTilBehandlingshendelse(
-            sakId = UUID.randomUUID(),
-            behandlingId = behandlingId,
-            siste = true,
-            versjon = Versjon.of("0.1.0"),
-            erKorrigert = false, data = {
-                it.put("behandlingsresultat", "VEDTATT")
-            },
-            hendelse = hendelsefabrikk.vedtakFattet()
-        )
+        val korrigertHendelse =
+            leggTilBehandlingshendelse(
+                sakId = UUID.randomUUID(),
+                behandlingId = behandlingId,
+                siste = true,
+                versjon = Versjon.of("0.1.0"),
+                erKorrigert = false,
+                data = {
+                    it.put("behandlingsresultat", "VEDTATT")
+                },
+                hendelse = hendelsefabrikk.vedtakFattet(),
+            )
 
         migrer()
         assertKorrigert(korrigertHendelse) { _, ny ->
             assertEquals("VEDTAK_IVERKSATT", ny.path("behandlingsresultat").asText())
         }
     }
-
 }

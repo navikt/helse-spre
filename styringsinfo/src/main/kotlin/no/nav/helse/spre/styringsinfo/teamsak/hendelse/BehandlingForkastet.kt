@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.ANNULLERT
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
+import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
@@ -21,7 +21,7 @@ internal class BehandlingForkastet(
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     behandlingId: UUID,
-    automatiskBehandling: Boolean
+    automatiskBehandling: Boolean,
 ) : Hendelse {
     private val hendelsesmetode = if (automatiskBehandling) AUTOMATISK else MANUELL
     private val behandlingId = BehandlingId(behandlingId)
@@ -30,22 +30,26 @@ internal class BehandlingForkastet(
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builder = behandlingshendelseDao.initialiser(behandlingId)
-        val ny = builder
-            .avslutt(AVBRUTT)
-            .build(opprettet, hendelsesmetode)
-            ?: return false
+        val ny =
+            builder
+                .avslutt(AVBRUTT)
+                .build(opprettet, hendelsesmetode)
+                ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 
     // Per i dag sendes det ut 'behandling_forkastet' etter 'vedtaksperiode_annullert'.
     // Derfor ignorerer vi forkastinger når behandlingen allerede er avsluttet som ANNULLERT
-    override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) =
-        behandlingshendelseDao.hent(behandlingId).behandlingsresultat == ANNULLERT
+    override fun ignorer(behandlingshendelseDao: BehandlingshendelseDao) = behandlingshendelseDao.hent(behandlingId).behandlingsresultat == ANNULLERT
 
     internal companion object {
         private const val eventName = "behandling_forkastet"
 
-        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
+        internal fun river(
+            rapidsConnection: RapidsConnection,
+            hendelseDao: HendelseDao,
+            behandlingshendelseDao: BehandlingshendelseDao,
+        ) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
@@ -54,13 +58,15 @@ internal class BehandlingForkastet(
                 packet.requireBehandlingId()
                 packet.require("automatiskBehandling", JsonNode::isBoolean)
             },
-            opprett = { packet -> BehandlingForkastet(
-                id = packet.hendelseId,
-                data = packet.blob,
-                opprettet = packet.opprettet,
-                behandlingId = packet.behandlingId,
-                automatiskBehandling = packet.automatiskBehandling
-            )}
+            opprett = { packet ->
+                BehandlingForkastet(
+                    id = packet.hendelseId,
+                    data = packet.blob,
+                    opprettet = packet.opprettet,
+                    behandlingId = packet.behandlingId,
+                    automatiskBehandling = packet.automatiskBehandling,
+                )
+            },
         )
 
         private val JsonMessage.automatiskBehandling get() = this["automatiskBehandling"].asBoolean()

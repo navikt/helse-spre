@@ -13,42 +13,54 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import java.util.UUID
 
-class SkatteinntekterLagtTilGrunnRiver(rapidsConnection: RapidsConnection, private val forelagteOpplysningerPublisher: ForelagteOpplysningerPublisher) : River.PacketListener {
-
+class SkatteinntekterLagtTilGrunnRiver(
+    rapidsConnection: RapidsConnection,
+    private val forelagteOpplysningerPublisher: ForelagteOpplysningerPublisher,
+) : River.PacketListener {
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "skatteinntekter_lagt_til_grunn") }
-            validate {
-                it.requireKey("vedtaksperiodeId", "behandlingId", "skjæringstidspunkt", "skatteinntekter", "omregnetÅrsinntekt")
-                it.require("@opprettet", JsonNode::asLocalDateTime)
-            }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "skatteinntekter_lagt_til_grunn") }
+                validate {
+                    it.requireKey("vedtaksperiodeId", "behandlingId", "skjæringstidspunkt", "skatteinntekter", "omregnetÅrsinntekt")
+                    it.require("@opprettet", JsonNode::asLocalDateTime)
+                }
+            }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         sikkerlogg.info("Leste melding: ${packet.toJson()}")
         val vedtaksperiodeId = packet["vedtaksperiodeId"].asText().let { UUID.fromString(it) }
         val forelagteOpplysninger = packet.toForelagteOpplysninger()
         forelagteOpplysningerPublisher.sendMelding(vedtaksperiodeId, forelagteOpplysninger)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         sikkerlogg.error(problems.toExtendedReport())
     }
 }
 
-private fun JsonMessage.toForelagteOpplysninger(): ForelagteOpplysningerMelding {
-    return ForelagteOpplysningerMelding(
+private fun JsonMessage.toForelagteOpplysninger(): ForelagteOpplysningerMelding =
+    ForelagteOpplysningerMelding(
         vedtaksperiodeId = this["vedtaksperiodeId"].asText().let { UUID.fromString(it) },
         behandlingId = this["behandlingId"].asText().let { UUID.fromString(it) },
         skjæringstidspunkt = this["skjæringstidspunkt"].asLocalDate(),
         tidsstempel = this["@opprettet"].asLocalDateTime(),
         omregnetÅrsinntekt = this["omregnetÅrsinntekt"].asDouble(),
-        skatteinntekter = this["skatteinntekter"].map {
-            ForelagteOpplysningerMelding.Skatteinntekt(
-                måned = it["måned"].asYearMonth(),
-                beløp = it["beløp"].asDouble()
-            )
-        }
+        skatteinntekter =
+            this["skatteinntekter"].map {
+                ForelagteOpplysningerMelding.Skatteinntekt(
+                    måned = it["måned"].asYearMonth(),
+                    beløp = it["beløp"].asDouble(),
+                )
+            },
     )
-}

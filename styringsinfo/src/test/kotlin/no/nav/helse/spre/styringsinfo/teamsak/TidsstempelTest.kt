@@ -9,8 +9,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeParseException
 
-internal class TidsstempelTest: AbstractTeamSakTest() {
-
+internal class TidsstempelTest : AbstractTeamSakTest() {
     @Test
     fun `presisjon på tidsstempler truncates ned til 6 desimaler i databasen`() {
         val hendelsefabrikk = Hendelsefabrikk()
@@ -62,7 +61,7 @@ internal class TidsstempelTest: AbstractTeamSakTest() {
             ".12312Z",
             ".123123",
             ".123123-01",
-            ".123123-01:00"
+            ".123123-01:00",
         ).forEach {
             assertFalse(it.gyldigFormat) { "$it er et gyldig format" }
         }
@@ -79,27 +78,40 @@ internal class TidsstempelTest: AbstractTeamSakTest() {
         assertEquals(OffsetDateTime.parse(tidspunktMedUtcOffset), tidspunktUtenOffset.offsetDateTime(ZoneId.of("UTC")))
     }
 
-    private val mottattTid get() = sessionOf(testDataSource.ds).use { session ->
-        session.run(queryOf("select data->>'mottattTid' from behandlingshendelse LIMIT 1").map { row ->
-            row.string(1)
-        }.asSingle)!!
-    }
+    private val mottattTid get() =
+        sessionOf(testDataSource.ds).use { session ->
+            session.run(
+                queryOf("select data->>'mottattTid' from behandlingshendelse LIMIT 1")
+                    .map { row ->
+                        row.string(1)
+                    }.asSingle,
+            )!!
+        }
 
-    private val registrertTid get() = sessionOf(testDataSource.ds).use { session ->
-        session.run(queryOf("select data->>'registrertTid' from behandlingshendelse LIMIT 1").map { row ->
-            row.string(1)
-        }.asSingle)!!
-    }
+    private val registrertTid get() =
+        sessionOf(testDataSource.ds).use { session ->
+            session.run(
+                queryOf("select data->>'registrertTid' from behandlingshendelse LIMIT 1")
+                    .map { row ->
+                        row.string(1)
+                    }.asSingle,
+            )!!
+        }
 
-    private val funksjonellTid get() = sessionOf(testDataSource.ds).use { session ->
-        session.run(queryOf("select funksjonellTid from behandlingshendelse LIMIT 1").map { row ->
-            row.string(1)
-        }.asSingle)!!
-    }
+    private val funksjonellTid get() =
+        sessionOf(testDataSource.ds).use { session ->
+            session.run(
+                queryOf("select funksjonellTid from behandlingshendelse LIMIT 1")
+                    .map { row ->
+                        row.string(1)
+                    }.asSingle,
+            )!!
+        }
 
     private companion object {
         private val format = "\\d{6}((\\+\\d{2}(:\\d{2})?)|Z)".toRegex()
         private val String.gyldigFormat get() = substringAfter(".").matches(format)
-        private fun assertFormat(tidspunkt: String) = assertTrue(tidspunkt.gyldigFormat) { "Ugyldig format $tidspunkt"}
+
+        private fun assertFormat(tidspunkt: String) = assertTrue(tidspunkt.gyldigFormat) { "Ugyldig format $tidspunkt" }
     }
 }

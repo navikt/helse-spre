@@ -8,10 +8,10 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-internal class V29UppercaseEnumVerdierTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V29__uppercase_enum_verdier()
-) {
-
+internal class V29UppercaseEnumVerdierTest :
+    BehandlingshendelseJsonMigreringTest(
+        migrering = V29__uppercase_enum_verdier(),
+    ) {
     @Test
     fun `Legger til korrigerende rader for å rette opp i feil enum-verdier i versjon 0_0_1`() {
         val behandlingId1 = UUID.randomUUID()
@@ -49,7 +49,10 @@ internal class V29UppercaseEnumVerdierTest: BehandlingshendelseJsonMigreringTest
         assertKorrigert(raden) { gammel, ny -> assertGammelOgNyData(gammel, ny) }
     }
 
-    private fun assertGammelOgNyData(gammel: ObjectNode, ny: ObjectNode) {
+    private fun assertGammelOgNyData(
+        gammel: ObjectNode,
+        ny: ObjectNode,
+    ) {
         assertEquals("Automatisk", gammel.path("behandlingsmetode").asText())
         assertEquals("AUTOMATISK", ny.path("behandlingsmetode").asText())
         assertEquals("AvventerGodkjenning", gammel.path("behandlingstatus").asText())
@@ -66,22 +69,33 @@ internal class V29UppercaseEnumVerdierTest: BehandlingshendelseJsonMigreringTest
         }
     }
 
-    private fun leggTilRad(behandlingId: UUID, siste: Boolean, versjon: String = "0.0.1", erKorrigert: Boolean = false, funksjonellTid: LocalDateTime = LocalDateTime.now(), behandlingsresultat: String? = "Vedtatt") =
-        leggTilBehandlingshendelse(behandlingId = behandlingId, siste = siste, versjon = Versjon.Companion.of(versjon), erKorrigert = erKorrigert, funksjonellTid = funksjonellTid) {
-            val epoch = LocalDate.EPOCH.atStartOfDay()
-            it.put("aktørId", "1234")
-            it.put("mottattTid", "$epoch")
-            it.put("registrertTid", "$epoch")
-            it.put("behandlingstatus", "AvventerGodkjenning")
-            it.put("behandlingtype", "Omgjøring")
-            it.put("behandlingskilde", "Saksbehandler")
-            it.putString("behandlingsmetode", "Automatisk")
-            it.putString("relatertBehandlingId", null)
-            it.putString("behandlingsresultat", behandlingsresultat)
-        }
-
-    private fun ObjectNode.putString(fieldName: String, value: String?): ObjectNode {
-        return if (value == null) putNull(fieldName)
-        else put(fieldName, value)
+    private fun leggTilRad(
+        behandlingId: UUID,
+        siste: Boolean,
+        versjon: String = "0.0.1",
+        erKorrigert: Boolean = false,
+        funksjonellTid: LocalDateTime = LocalDateTime.now(),
+        behandlingsresultat: String? = "Vedtatt",
+    ) = leggTilBehandlingshendelse(behandlingId = behandlingId, siste = siste, versjon = Versjon.Companion.of(versjon), erKorrigert = erKorrigert, funksjonellTid = funksjonellTid) {
+        val epoch = LocalDate.EPOCH.atStartOfDay()
+        it.put("aktørId", "1234")
+        it.put("mottattTid", "$epoch")
+        it.put("registrertTid", "$epoch")
+        it.put("behandlingstatus", "AvventerGodkjenning")
+        it.put("behandlingtype", "Omgjøring")
+        it.put("behandlingskilde", "Saksbehandler")
+        it.putString("behandlingsmetode", "Automatisk")
+        it.putString("relatertBehandlingId", null)
+        it.putString("behandlingsresultat", behandlingsresultat)
     }
+
+    private fun ObjectNode.putString(
+        fieldName: String,
+        value: String?,
+    ): ObjectNode =
+        if (value == null) {
+            putNull(fieldName)
+        } else {
+            put(fieldName, value)
+        }
 }

@@ -6,7 +6,7 @@ data class AvvistPeriode(
     val fom: LocalDate,
     val tom: LocalDate,
     val type: String,
-    val begrunnelser: List<String>
+    val begrunnelser: List<String>,
 ) {
     fun kanUtvidesMed(other: AvvistPeriode): Boolean {
         if (!etterfølgerUtenGap(this, other)) return false
@@ -26,22 +26,26 @@ data class AvvistPeriode(
     private fun erLiktBegrunnet(
         sisteInnslag: AvvistPeriode,
         avvistDag: AvvistPeriode,
-    ) = sisteInnslag.type == avvistDag.type
-        && sisteInnslag.begrunnelser.containsAll(avvistDag.begrunnelser)
-        && avvistDag.begrunnelser.containsAll(sisteInnslag.begrunnelser)
+    ) = sisteInnslag.type == avvistDag.type &&
+        sisteInnslag.begrunnelser.containsAll(avvistDag.begrunnelser) &&
+        avvistDag.begrunnelser.containsAll(sisteInnslag.begrunnelser)
 }
 
-internal fun Iterable<AvvistPeriode>.slåSammenLikePerioder(): List<AvvistPeriode> = this
-    .fold(listOf()) { akkumulator, avvistPeriode ->
-        val siste = akkumulator.lastOrNull()
-        val nySiste = when {
-            // listen er tom
-            siste == null -> listOf(avvistPeriode)
-            // kan utvide <siste>
-            siste.kanUtvidesMed(avvistPeriode) -> listOf(siste.copy(tom = avvistPeriode.tom))
-            // må legge <siste> tilbake igjen, og lage ny fordi <siste> ikke kan utvides
-            else -> listOf(siste, avvistPeriode)
-        }
+internal fun Iterable<AvvistPeriode>.slåSammenLikePerioder(): List<AvvistPeriode> =
+    this
+        .fold(listOf()) { akkumulator, avvistPeriode ->
+            val siste = akkumulator.lastOrNull()
+            val nySiste =
+                when {
+                    // listen er tom
+                    siste == null -> listOf(avvistPeriode)
 
-        akkumulator.dropLast(1) + nySiste
-    }
+                    // kan utvide <siste>
+                    siste.kanUtvidesMed(avvistPeriode) -> listOf(siste.copy(tom = avvistPeriode.tom))
+
+                    // må legge <siste> tilbake igjen, og lage ny fordi <siste> ikke kan utvides
+                    else -> listOf(siste, avvistPeriode)
+                }
+
+            akkumulator.dropLast(1) + nySiste
+        }

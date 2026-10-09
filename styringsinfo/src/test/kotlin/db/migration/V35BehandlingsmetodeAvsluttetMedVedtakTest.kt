@@ -8,9 +8,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*
 
-internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V35__riktig_periodetype_for_revurderte_førstegangsbehandlinger()
-) {
+internal class V35BehandlingsmetodeAvsluttetMedVedtakTest :
+    BehandlingshendelseJsonMigreringTest(
+        migrering = V35__riktig_periodetype_for_revurderte_førstegangsbehandlinger(),
+    ) {
     @Test
     fun `skal skrive om revurderinger av førstegangsbehandlinger skal ha periodetype førstebehandling`() {
         val sakId = UUID.randomUUID()
@@ -21,27 +22,29 @@ internal class V35BehandlingsmetodeAvsluttetMedVedtakTest: BehandlingshendelseJs
             behandlingId = behandlingId,
             siste = true,
             versjon = Versjon.of("0.1.0"),
-            erKorrigert = false, data = {
+            erKorrigert = false,
+            data = {
                 it.put("periodetype", "FØRSTEGANGSBEHANDLING")
             },
-            hendelse = hendelsefabrikk.vedtakFattet()
+            hendelse = hendelsefabrikk.vedtakFattet(),
         )
         val behandlingId2 = UUID.randomUUID()
-        val revurdering = leggTilBehandlingshendelse(
-            sakId = sakId,
-            behandlingId = behandlingId2,
-            siste = true,
-            versjon = Versjon.of("0.1.0"),
-            erKorrigert = false, data = {
-                it.put("periodetype", "FORLENGELSE")
-            },
-            hendelse = hendelsefabrikk.vedtakFattet(behandlingId = BehandlingId(behandlingId2))
-        )
+        val revurdering =
+            leggTilBehandlingshendelse(
+                sakId = sakId,
+                behandlingId = behandlingId2,
+                siste = true,
+                versjon = Versjon.of("0.1.0"),
+                erKorrigert = false,
+                data = {
+                    it.put("periodetype", "FORLENGELSE")
+                },
+                hendelse = hendelsefabrikk.vedtakFattet(behandlingId = BehandlingId(behandlingId2)),
+            )
 
         migrer()
         assertKorrigert(revurdering) { _, ny ->
             assertEquals("FØRSTEGANGSBEHANDLING", ny.path("periodetype").asText())
         }
     }
-
 }

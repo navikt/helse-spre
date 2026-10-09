@@ -1,10 +1,10 @@
 package no.nav.helse.spre.gosys.utbetaling
 
 import com.fasterxml.jackson.databind.JsonNode
-import java.util.*
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.helse.spre.gosys.objectMapper
+import java.util.*
 
 class UtbetalingDao {
     companion object {
@@ -15,7 +15,12 @@ class UtbetalingDao {
     }
 
     context(session: TransactionalSession)
-    fun lagre(id: UUID, event: String, utbetalingData: Utbetaling, json: String) {
+    fun lagre(
+        id: UUID,
+        event: String,
+        utbetalingData: Utbetaling,
+        json: String,
+    ) {
         session.run(
             queryOf(
                 // language=postgresql
@@ -27,7 +32,7 @@ class UtbetalingDao {
                 event,
                 utbetalingData.fødselsnummer,
                 json,
-            ).asUpdate
+            ).asUpdate,
         )
     }
 
@@ -41,10 +46,6 @@ class UtbetalingDao {
                 // language=postgresql
                 "SELECT data FROM utbetaling WHERE utbetaling_id = ?",
                 utbetalingId,
-            ).map { it.string("data") }.asSingle
+            ).map { it.string("data") }.asSingle,
         )
 }
-
-
-
-

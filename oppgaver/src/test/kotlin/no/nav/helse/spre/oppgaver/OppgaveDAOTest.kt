@@ -42,7 +42,7 @@ internal class OppgaveDAOTest {
             dokumentId = dokumentId,
             fødselsnummer = "123",
             orgnummer = "456",
-            dokumentType = DokumentType.Søknad
+            dokumentType = DokumentType.Søknad,
         )
         val oppgave = oppgaveDAO.finnOppgave(hendelseId, observer)
         assertNotNull(oppgave)
@@ -88,7 +88,11 @@ internal class OppgaveDAOTest {
         assertTidsstempel(timeout2, oppgaveDAO.hentTimeout(dokumentId2, timeout1))
     }
 
-    private fun assertTidsstempel(forventet: LocalDateTime, faktisk: LocalDateTime) = assertEquals(forventet.truncatedTo(SECONDS), faktisk.truncatedTo(SECONDS))
+    private fun assertTidsstempel(
+        forventet: LocalDateTime,
+        faktisk: LocalDateTime,
+    ) = assertEquals(forventet.truncatedTo(SECONDS), faktisk.truncatedTo(SECONDS))
+
     private fun assertEquals(
         hendelseId: UUID,
         dokumentId: UUID,
@@ -96,7 +100,7 @@ internal class OppgaveDAOTest {
         orgnummer: String,
         tilstand: Oppgave.Tilstand,
         dokumentType: DokumentType,
-        oppgave: Oppgave
+        oppgave: Oppgave,
     ) {
         assertEquals(hendelseId, oppgave.hendelseId)
         assertEquals(dokumentId, oppgave.dokumentId)

@@ -7,16 +7,16 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingst
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class RevurderingTest: AbstractTeamSakTest() {
-
-
+internal class RevurderingTest : AbstractTeamSakTest() {
     @Test
     fun `førstegangsbehandling revurderes`() {
         val (_, hendelsefabrikk) = nyttVedtak()
 
-        val (revurderingbehandlingId, behandlingOpprettetRevurdering) = hendelsefabrikk.behandlingOpprettet(
-            behandlingId = nyBehandlingId(),
-            behandlingstype = Revurdering)
+        val (revurderingbehandlingId, behandlingOpprettetRevurdering) =
+            hendelsefabrikk.behandlingOpprettet(
+                behandlingId = nyBehandlingId(),
+                behandlingstype = Revurdering,
+            )
         behandlingOpprettetRevurdering.håndter(revurderingbehandlingId)
         val behandlingRevurdering = hendelsefabrikk.utkastTilVedtak(behandlingId = revurderingbehandlingId).håndter(revurderingbehandlingId)
 

@@ -3,22 +3,22 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.NavOrganisasjonsmasterClient
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.MANUELL
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskTilknytning
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.NavOrganisasjonsmasterClient
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.Tilknytning
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.behandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.blob
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
+import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskTilknytning
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.Tilknytning
-import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 
 internal class VedtaksperiodeAvvist(
     override val id: UUID,
@@ -26,7 +26,7 @@ internal class VedtaksperiodeAvvist(
     override val data: JsonNode,
     private val behandlingId: UUID,
     private val saksbehandlerTilknytning: Tilknytning,
-    private val automatiskBehandling: Boolean
+    private val automatiskBehandling: Boolean,
 ) : Hendelse {
     override val type = eventName
 
@@ -34,11 +34,12 @@ internal class VedtaksperiodeAvvist(
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
 
         val hendelsesmetode = if (automatiskBehandling) AUTOMATISK else MANUELL
-        val ny = builder
-            .avslutt(AVBRUTT)
-            .tilknytninger(saksbehandler = saksbehandlerTilknytning)
-            .build(opprettet, hendelsesmetode)
-            ?: return false
+        val ny =
+            builder
+                .avslutt(AVBRUTT)
+                .tilknytninger(saksbehandler = saksbehandlerTilknytning)
+                .build(opprettet, hendelsesmetode)
+                ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 
@@ -49,7 +50,7 @@ internal class VedtaksperiodeAvvist(
             rapidsConnection: RapidsConnection,
             hendelseDao: HendelseDao,
             behandlingshendelseDao: BehandlingshendelseDao,
-            nom: NavOrganisasjonsmasterClient
+            nom: NavOrganisasjonsmasterClient,
         ) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
@@ -60,24 +61,32 @@ internal class VedtaksperiodeAvvist(
                 packet.requireSaksbehandlerIdent()
                 packet.requireAutomatiskBehandling()
             },
-            opprett = { packet -> VedtaksperiodeAvvist(
-                id = packet.hendelseId,
-                data = packet.blob,
-                opprettet = packet.opprettet,
-                behandlingId = packet.behandlingId,
-                saksbehandlerTilknytning = packet.tilknytning(nom, packet.saksbehandlerIdent),
-                automatiskBehandling = packet.automatiskBehandling
-            )}
+            opprett = { packet ->
+                VedtaksperiodeAvvist(
+                    id = packet.hendelseId,
+                    data = packet.blob,
+                    opprettet = packet.opprettet,
+                    behandlingId = packet.behandlingId,
+                    saksbehandlerTilknytning = packet.tilknytning(nom, packet.saksbehandlerIdent),
+                    automatiskBehandling = packet.automatiskBehandling,
+                )
+            },
         )
 
-        private fun JsonMessage.tilknytning(nom: NavOrganisasjonsmasterClient, ident: String?): Tilknytning {
+        private fun JsonMessage.tilknytning(
+            nom: NavOrganisasjonsmasterClient,
+            ident: String?,
+        ): Tilknytning {
             if (automatiskBehandling || ident == null) return AutomatiskTilknytning
             return nom.hentTilknytning(ident, LocalDate.now(), hendelseId.toString())
         }
 
         private val JsonMessage.saksbehandlerIdent get() = this["saksbehandler.ident"].asText().takeUnless { it.isBlank() }
+
         private fun JsonMessage.requireSaksbehandlerIdent() = require("saksbehandler.ident") { saksbehandlerIdent -> saksbehandlerIdent.asText() }
+
         private fun JsonMessage.requireAutomatiskBehandling() = require("automatiskBehandling") { automatiskBehandling -> automatiskBehandling.asBoolean() }
+
         private val JsonMessage.automatiskBehandling get() = this["automatiskBehandling"].asBoolean()
     }
 }

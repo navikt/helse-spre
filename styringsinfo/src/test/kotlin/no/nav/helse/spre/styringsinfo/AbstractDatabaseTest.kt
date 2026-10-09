@@ -21,4 +21,3 @@ abstract class AbstractDatabaseTest {
         databaseContainer.droppTilkobling(testDataSource)
     }
 }
-

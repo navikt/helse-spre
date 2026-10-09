@@ -5,16 +5,16 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskTilknytning
+import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetTilknytning
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
 import java.time.OffsetDateTime
 import java.util.UUID
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskTilknytning
-import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetTilknytning
 
 internal class Hendelsefabrikk(
     private val sakId: SakId = nySakId(),
     private val behandlingId: BehandlingId = nyBehandlingId(),
-    private val aktørId: String = "1234"
+    private val aktørId: String = "1234",
 ) {
     internal fun behandlingOpprettet(
         sakId: SakId = this.sakId,
@@ -25,52 +25,60 @@ internal class Hendelsefabrikk(
         innsendt: OffsetDateTime = nesteTidspunkt,
         registrert: OffsetDateTime = nesteTidspunkt,
         opprettet: OffsetDateTime = nesteTidspunkt,
-        yrkesaktivitetstype: String = "ARBEIDSTAKER"
+        yrkesaktivitetstype: String = "ARBEIDSTAKER",
     ): Triple<BehandlingId, BehandlingOpprettet, SakId> {
         val behandlingskilde = BehandlingOpprettet.Behandlingskilde(innsendt, registrert, avsender)
-        val behandlingOpprettet = BehandlingOpprettet(UUID.randomUUID(), opprettet, blob, yrkesaktivitetstype,sakId.id, behandlingId.id, aktørId, behandlingskilde, behandlingstype)
+        val behandlingOpprettet = BehandlingOpprettet(UUID.randomUUID(), opprettet, blob, yrkesaktivitetstype, sakId.id, behandlingId.id, aktørId, behandlingskilde, behandlingstype)
         return Triple(behandlingId, behandlingOpprettet, sakId)
     }
 
     internal fun vedtakFattet(
         behandlingId: BehandlingId = this.behandlingId,
         tags: Set<Tag> = setOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget, Tag.Førstegangsbehandling),
-        id: UUID = UUID.randomUUID()
+        id: UUID = UUID.randomUUID(),
     ) = VedtakFattet(
         id = id,
         opprettet = nesteTidspunkt,
         data = blob,
         behandlingId = behandlingId.id,
-        tags = Tags(tags)
+        tags = Tags(tags),
     )
 
     internal fun utkastTilVedtak(
         behandlingId: BehandlingId = this.behandlingId,
         tags: Set<Tag> = setOf(Tag.Arbeidsgiverutbetaling, Tag.Innvilget, Tag.Førstegangsbehandling),
-        id: UUID = UUID.randomUUID()
+        id: UUID = UUID.randomUUID(),
     ) = UtkastTilVedtak(
         id = id,
         opprettet = nesteTidspunkt,
         data = blob,
         behandlingId = behandlingId.id,
-        tags = Tags(tags)
+        tags = Tags(tags),
     )
 
-    internal fun avsluttetUtenVedtak(behandlingId: BehandlingId = this.behandlingId) = AvsluttetUtenVedtak(
+    internal fun avsluttetUtenVedtak(behandlingId: BehandlingId = this.behandlingId) =
+        AvsluttetUtenVedtak(
+            id = UUID.randomUUID(),
+            opprettet = nesteTidspunkt,
+            data = blob,
+            behandlingId = behandlingId.id,
+        )
+
+    internal fun behandlingForkastet(
+        behandlingId: BehandlingId = this.behandlingId,
+        hendelsesmetode: Behandling.Metode = Behandling.Metode.MANUELL,
+    ) = BehandlingForkastet(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         data = blob,
-        behandlingId = behandlingId.id
+        behandlingId = behandlingId.id,
+        automatiskBehandling = hendelsesmetode == AUTOMATISK,
     )
 
-    internal fun behandlingForkastet(behandlingId: BehandlingId = this.behandlingId, hendelsesmetode: Behandling.Metode = Behandling.Metode.MANUELL) = BehandlingForkastet(
-        id = UUID.randomUUID(),
-        opprettet = nesteTidspunkt,
-        data = blob, behandlingId = behandlingId.id,
-        automatiskBehandling = hendelsesmetode == AUTOMATISK
-    )
-
-    internal fun vedtaksperiodeGodkjent(behandlingId: BehandlingId = this.behandlingId, totrinnsbehandling: Boolean = false) = VedtaksperiodeGodkjent(
+    internal fun vedtaksperiodeGodkjent(
+        behandlingId: BehandlingId = this.behandlingId,
+        totrinnsbehandling: Boolean = false,
+    ) = VedtaksperiodeGodkjent(
         id = UUID.randomUUID(),
         opprettet = nesteTidspunkt,
         data = blob,
@@ -78,31 +86,34 @@ internal class Hendelsefabrikk(
         saksbehandlerTilknytning = FunnetTilknytning("SB123", "ab123a"),
         beslutterTilknytning = FunnetTilknytning("SB456", "ab123b").takeIf { totrinnsbehandling } ?: AutomatiskTilknytning,
         automatiskBehandling = false,
-        totrinnsbehandling = totrinnsbehandling
+        totrinnsbehandling = totrinnsbehandling,
     )
 
-    internal fun vedtaksperiodeAvvist(behandlingId: BehandlingId = this.behandlingId) = VedtaksperiodeAvvist(
-        id = UUID.randomUUID(),
-        opprettet = nesteTidspunkt,
-        data = blob,
-        behandlingId = behandlingId.id,
-        saksbehandlerTilknytning = FunnetTilknytning("SB123", "ab123a"),
-        automatiskBehandling = false
-    )
+    internal fun vedtaksperiodeAvvist(behandlingId: BehandlingId = this.behandlingId) =
+        VedtaksperiodeAvvist(
+            id = UUID.randomUUID(),
+            opprettet = nesteTidspunkt,
+            data = blob,
+            behandlingId = behandlingId.id,
+            saksbehandlerTilknytning = FunnetTilknytning("SB123", "ab123a"),
+            automatiskBehandling = false,
+        )
 
-    internal fun vedtaksperiodeAnnullert(behandlingId: BehandlingId = this.behandlingId) = VedtaksperiodeAnnullert(
-        id = UUID.randomUUID(),
-        opprettet = nesteTidspunkt,
-        data = blob,
-        behandlingId = behandlingId.id
-    )
+    internal fun vedtaksperiodeAnnullert(behandlingId: BehandlingId = this.behandlingId) =
+        VedtaksperiodeAnnullert(
+            id = UUID.randomUUID(),
+            opprettet = nesteTidspunkt,
+            data = blob,
+            behandlingId = behandlingId.id,
+        )
 
-    internal fun vedtaksperiodeVenter(venterPå: List<VedtaksperiodeVenter>) = VedtaksperioderVenterIndirektePåGodkjenning(
-        id = UUID.randomUUID(),
-        opprettet = nesteTidspunkt,
-        venter = venterPå,
-        data = blob
-    )
+    internal fun vedtaksperiodeVenter(venterPå: List<VedtaksperiodeVenter>) =
+        VedtaksperioderVenterIndirektePåGodkjenning(
+            id = UUID.randomUUID(),
+            opprettet = nesteTidspunkt,
+            venter = venterPå,
+            data = blob,
+        )
 
     internal companion object {
         private val nå = OffsetDateTime.now()
@@ -122,6 +133,7 @@ internal class Hendelsefabrikk(
         internal val Revurdering = BehandlingOpprettet.Behandlingstype("Revurdering")
 
         internal fun nySakId() = SakId(UUID.randomUUID())
+
         internal fun nyBehandlingId() = BehandlingId(UUID.randomUUID())
     }
 }

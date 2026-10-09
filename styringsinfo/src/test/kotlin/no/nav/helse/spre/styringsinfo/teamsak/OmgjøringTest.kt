@@ -11,8 +11,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
-internal class OmgjøringTest: AbstractTeamSakTest() {
-
+internal class OmgjøringTest : AbstractTeamSakTest() {
     @Test
     fun `en omgjøring av auu som blir til et vedtak`() {
         val hendelsefabrikk = Hendelsefabrikk()
@@ -32,10 +31,12 @@ internal class OmgjøringTest: AbstractTeamSakTest() {
         assertEquals(IKKE_REALITETSBEHANDLET, behandling.behandlingsresultat)
         assertNull(behandling.relatertBehandlingId)
 
-        val (behandlingId2, behandlingOpprettet2) = hendelsefabrikk.behandlingOpprettet(
-            behandlingId = Hendelsefabrikk.nyBehandlingId(),
-            avsender = Hendelsefabrikk.Arbeidsgiver,
-            behandlingstype = Hendelsefabrikk.Omgjøring)
+        val (behandlingId2, behandlingOpprettet2) =
+            hendelsefabrikk.behandlingOpprettet(
+                behandlingId = Hendelsefabrikk.nyBehandlingId(),
+                avsender = Hendelsefabrikk.Arbeidsgiver,
+                behandlingstype = Hendelsefabrikk.Omgjøring,
+            )
         var behandling2 = behandlingOpprettet2.håndter(behandlingId2)
 
         assertEquals(REGISTRERT, behandling2.behandlingstatus)

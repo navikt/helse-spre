@@ -1,17 +1,17 @@
 package no.nav.helse.spre.gosys.vedtakFattet.pdf
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helse.spre.gosys.JoarkClient
 import no.nav.helse.spre.gosys.JournalpostPayload
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.sikkerLogg
 import no.nav.helse.spre.gosys.utbetaling.Utbetaling
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 class PdfJournalfører(
-    private val joarkClient: JoarkClient
+    private val joarkClient: JoarkClient,
 ) {
     private val encoder = Base64.getEncoder()
 
@@ -19,19 +19,21 @@ class PdfJournalfører(
         pdfBytes: ByteArray,
         utbetaling: Utbetaling,
         søknadsperiodeFom: LocalDate,
-        søknadsperiodeTom: LocalDate
+        søknadsperiodeTom: LocalDate,
     ) {
-        val journalpostPayload = JournalpostPayload(
-            tittel = journalpostTittel(utbetaling.type),
-            bruker = JournalpostPayload.Bruker(id = utbetaling.fødselsnummer),
-            dokumenter = listOf(
-                JournalpostPayload.Dokument(
-                    tittel = dokumentTittel(type = utbetaling.type, fom = søknadsperiodeFom, tom = søknadsperiodeTom),
-                    dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdfBytes.let(encoder::encodeToString)))
-                )
-            ),
-            eksternReferanseId = utbetaling.utbetalingId.toString(),
-        )
+        val journalpostPayload =
+            JournalpostPayload(
+                tittel = journalpostTittel(utbetaling.type),
+                bruker = JournalpostPayload.Bruker(id = utbetaling.fødselsnummer),
+                dokumenter =
+                    listOf(
+                        JournalpostPayload.Dokument(
+                            tittel = dokumentTittel(type = utbetaling.type, fom = søknadsperiodeFom, tom = søknadsperiodeTom),
+                            dokumentvarianter = listOf(JournalpostPayload.Dokument.DokumentVariant(fysiskDokument = pdfBytes.let(encoder::encodeToString))),
+                        ),
+                    ),
+                eksternReferanseId = utbetaling.utbetalingId.toString(),
+            )
 
         if (!journalførPdf(utbetaling.utbetalingId, journalpostPayload)) error("Feil oppstod under journalføring av vedtak")
 
@@ -41,28 +43,28 @@ class PdfJournalfører(
 
     private fun journalførPdf(
         utbetalingId: UUID,
-        journalpostPayload: JournalpostPayload
+        journalpostPayload: JournalpostPayload,
     ): Boolean = runBlocking { joarkClient.opprettJournalpost(utbetalingId, journalpostPayload) }
 
     private fun dokumentTittel(
         type: Utbetaling.Utbetalingtype,
         fom: LocalDate,
-        tom: LocalDate
-    ): String = when (type) {
-        Utbetaling.Utbetalingtype.UTBETALING -> "Sykepenger behandlet, ${fom.somNorskDato()} - ${tom.somNorskDato()}"
-        Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Sykepenger etterutbetalt, ${fom.somNorskDato()} - ${tom.somNorskDato()}"
-        Utbetaling.Utbetalingtype.REVURDERING -> "Sykepenger revurdert, ${fom.somNorskDato()} - ${tom.somNorskDato()}"
-        Utbetaling.Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
-    }
+        tom: LocalDate,
+    ): String =
+        when (type) {
+            Utbetaling.Utbetalingtype.UTBETALING -> "Sykepenger behandlet, ${fom.somNorskDato()} - ${tom.somNorskDato()}"
+            Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Sykepenger etterutbetalt, ${fom.somNorskDato()} - ${tom.somNorskDato()}"
+            Utbetaling.Utbetalingtype.REVURDERING -> "Sykepenger revurdert, ${fom.somNorskDato()} - ${tom.somNorskDato()}"
+            Utbetaling.Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
+        }
 
     private fun LocalDate.somNorskDato(): String = format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 
-    private fun journalpostTittel(type: Utbetaling.Utbetalingtype): String {
-        return when (type) {
+    private fun journalpostTittel(type: Utbetaling.Utbetalingtype): String =
+        when (type) {
             Utbetaling.Utbetalingtype.UTBETALING -> "Vedtak om sykepenger"
             Utbetaling.Utbetalingtype.ETTERUTBETALING -> "Vedtak om etterutbetaling av sykepenger"
             Utbetaling.Utbetalingtype.REVURDERING -> "Vedtak om revurdering av sykepenger"
             Utbetaling.Utbetalingtype.ANNULLERING -> throw IllegalArgumentException("Forsøkte å opprette vedtaksnotat for annullering")
         }
-    }
 }

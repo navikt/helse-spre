@@ -20,25 +20,30 @@ internal class UtkastTilVedtak(
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     private val behandlingId: UUID,
-    private val tags: Tags
+    private val tags: Tags,
 ) : Hendelse {
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
-        val ny = builder
-            .behandlingstatus(AVVENTER_GODKJENNING)
-            .mottaker(tags.mottaker)
-            .periodetype(tags.periodetype)
-            .build(opprettet, AUTOMATISK)
-            ?: return false
+        val ny =
+            builder
+                .behandlingstatus(AVVENTER_GODKJENNING)
+                .mottaker(tags.mottaker)
+                .periodetype(tags.periodetype)
+                .build(opprettet, AUTOMATISK)
+                ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 
     internal companion object {
         private const val eventName = "utkast_til_vedtak"
 
-        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
+        internal fun river(
+            rapidsConnection: RapidsConnection,
+            hendelseDao: HendelseDao,
+            behandlingshendelseDao: BehandlingshendelseDao,
+        ) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
@@ -47,13 +52,15 @@ internal class UtkastTilVedtak(
                 packet.requireBehandlingId()
                 packet.requireTags()
             },
-            opprett = { packet -> UtkastTilVedtak(
-                id = packet.hendelseId,
-                data = packet.blob,
-                opprettet = packet.opprettet,
-                behandlingId = packet.behandlingId,
-                tags = Tags(packet.tags)
-            )}
+            opprett = { packet ->
+                UtkastTilVedtak(
+                    id = packet.hendelseId,
+                    data = packet.blob,
+                    opprettet = packet.opprettet,
+                    behandlingId = packet.behandlingId,
+                    tags = Tags(packet.tags),
+                )
+            },
         )
 
         private val JsonMessage.tags get() = this["tags"].map { it.asText() }

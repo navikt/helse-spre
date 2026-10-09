@@ -15,19 +15,28 @@ class AvsluttetMedVedtakRiver(
     private val oppgaveDAO: OppgaveDAO,
     private val publisist: Publisist,
 ) : River.PacketListener {
-
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "avsluttet_med_vedtak") }
-            validate { it.requireKey("hendelser") }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "avsluttet_med_vedtak") }
+                validate { it.requireKey("hendelser") }
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         loggUkjentMelding("avsluttet_med_vedtak", problems)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         withMDC(mapOf("event" to "avsluttet_med_vedtak")) {
             packet["hendelser"]
@@ -39,4 +48,3 @@ class AvsluttetMedVedtakRiver(
         }
     }
 }
-

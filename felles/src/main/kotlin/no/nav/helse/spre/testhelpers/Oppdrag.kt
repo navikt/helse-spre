@@ -15,18 +15,21 @@ class Oppdrag(
     private val mottaker: String = "123456789",
     private val fagområde: String = "SPREF",
     private val fagsystemId: String = "fagsystemId",
-    private val tidsstempel: LocalDateTime = tidslinje.lastOrNull()?.dato?.atStartOfDay() ?: LocalDateTime.now()
+    private val tidsstempel: LocalDateTime = tidslinje.lastOrNull()?.dato?.atStartOfDay() ?: LocalDateTime.now(),
 ) {
-
     fun toJson(): String {
         val linjer = Linjer(tidslinje, grad, sats)
-        val stønadsdager = tidslinje.count {
-            it.type == Dagtype.UTBETALINGSDAG && it.dato.dayOfWeek !in listOf(
-                DayOfWeek.SATURDAY,
-                DayOfWeek.SUNDAY
-            )
-        }
-        return """ { 
+        val stønadsdager =
+            tidslinje.count {
+                it.type == Dagtype.UTBETALINGSDAG &&
+                    it.dato.dayOfWeek !in
+                    listOf(
+                        DayOfWeek.SATURDAY,
+                        DayOfWeek.SUNDAY,
+                    )
+            }
+        return """
+             { 
              "linjer": ${linjer.toJson()},
              "stønadsdager": $stønadsdager,
              "fagområde": "$fagområde",
@@ -39,17 +42,15 @@ class Oppdrag(
              "fom":"-999999999-01-01",
              "tom":"-999999999-01-01"
             }    
-        """.trimIndent()
+            """.trimIndent()
     }
-
 
     // I første omgang kun linjer uten opphold
     class Linjer(
         tidslinje: List<Dag>,
         private val grad: Double,
-        private val sats: Int
+        private val sats: Int,
     ) {
-
         private val påbegynt = mutableListOf<Dag>()
         private val linjer = mutableListOf<Pair<Dag, Dag>>()
 
@@ -70,12 +71,15 @@ class Oppdrag(
             }
         }
 
-        fun toJson(): String {
-            return """
+        fun toJson(): String =
+            """
                 ${
                 linjer.map { (fom, tom) ->
-                    val stønadsdager = fom.dato.datesUntil(tom.dato.plusDays(1))
-                        .toList().count { it.dayOfWeek !in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY) }
+                    val stønadsdager =
+                        fom.dato
+                            .datesUntil(tom.dato.plusDays(1))
+                            .toList()
+                            .count { it.dayOfWeek !in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY) }
 
                     """{
                             "fom": "${fom.dato}",
@@ -88,6 +92,5 @@ class Oppdrag(
                 }
             }
             """.trimIndent()
-        }
     }
 }

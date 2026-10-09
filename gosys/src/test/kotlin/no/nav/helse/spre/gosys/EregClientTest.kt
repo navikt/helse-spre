@@ -8,15 +8,16 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class EregClientTest : AbstractE2ETest() {
-
     @Test
-    fun `happy case`() = runBlocking {
-        assertEquals("PENGELØS SPAREBANK", eregClient.hentOrganisasjonsnavn("123456789", UUID.randomUUID()).navn)
-    }
+    fun `happy case`() =
+        runBlocking {
+            assertEquals("PENGELØS SPAREBANK", eregClient.hentOrganisasjonsnavn("123456789", UUID.randomUUID()).navn)
+        }
 }
 
 @Language("Json")
-internal fun eregResponse() = """
+internal fun eregResponse() =
+    """
     {
       "organisasjonsnummer": "123456789",
       "type": "Virksomhet",
@@ -135,4 +136,4 @@ internal fun eregResponse() = """
         }
       ]
     }
-""".trimIndent()
+    """.trimIndent()

@@ -1,15 +1,19 @@
 package no.nav.helse.spre.gosys
 
-import java.util.*
-import javax.sql.DataSource
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
+import java.util.*
+import javax.sql.DataSource
 
-class DuplikatsjekkDao(private val datasource: DataSource) {
-
-    fun sjekkDuplikat(id: UUID, callback: () -> Unit) {
+class DuplikatsjekkDao(
+    private val datasource: DataSource,
+) {
+    fun sjekkDuplikat(
+        id: UUID,
+        callback: () -> Unit,
+    ) {
         sessionOf(datasource).use {
             @Language("PostgreSQL")
             val query = "INSERT INTO duplikatsjekk (id) VALUES (?) ON CONFLICT DO NOTHING;"
@@ -30,8 +34,8 @@ class DuplikatsjekkDao(private val datasource: DataSource) {
             queryOf(
                 // language=postgresql
                 "INSERT INTO duplikatsjekk (id) VALUES (?)",
-                id
-            ).asUpdate
+                id,
+            ).asUpdate,
         )
     }
 
@@ -42,6 +46,6 @@ class DuplikatsjekkDao(private val datasource: DataSource) {
                 // language=postgresql
                 statement = "SELECT 1 FROM duplikatsjekk WHERE id = :id",
                 paramMap = mapOf("id" to id),
-            ).map { true }.asSingle
+            ).map { true }.asSingle,
         ) ?: false
 }

@@ -6,14 +6,14 @@ import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
 import com.networknt.schema.ValidationMessage
 import io.kotest.matchers.collections.shouldBeIn
-import java.net.URI
-import java.util.*
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
+import java.net.URI
+import java.util.*
 
 internal class SubsumsjonTest {
     private val testRapid = TestRapid()
@@ -68,142 +68,144 @@ internal class SubsumsjonTest {
     }
 
     @Language("JSON")
-    private fun testSubsumsjon(versjon: String = "1.0.0") = """
-  {
-    "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
-    "@event_name": "subsumsjon",
-    "@opprettet": "2022-02-02T14:47:01.326499238",
-    "subsumsjon": {
-      "tidsstempel": "2022-02-02T14:47:01.326499238+01:00",
-      "versjon": "$versjon",
-      "kilde": "spleis",
-      "versjonAvKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",
-      "fodselsnummer": "02126721911",
-      "sporing": {
-        "vedtaksperiode": ["8fe5da85-d00b-4570-afaa-3a3e9403240e"],
-        "organisasjonsnummer":["947064649"]
-      },
-      "lovverk": "folketrygdloven",
-      "lovverksversjon": "2018-01-01",
-      "paragraf": "8-17",
-      "input": {
-        "arbeidsgiverperioder": [
-          {
-            "fom": "2021-08-01",
-            "tom": "2021-08-16"
-          }
-        ]
-      },
-      "output": {
-        "førsteUtbetalingsdag": "2021-08-17"
-      },
-      "utfall": "VILKAR_BEREGNET",
-      "ledd": 1,
-      "bokstav": "a"
-    },
-    "system_read_count": 0,
-    "system_participating_services": [
-      {
-        "service": "spleis",
-        "instance": "spleis-86b77d6b48-xbfwr",
-        "time": "2022-02-02T14:47:01.328378699"
-      }
-    ]
-  }
-""".trimIndent()
+    private fun testSubsumsjon(versjon: String = "1.0.0") =
+        """
+        {
+          "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
+          "@event_name": "subsumsjon",
+          "@opprettet": "2022-02-02T14:47:01.326499238",
+          "subsumsjon": {
+            "tidsstempel": "2022-02-02T14:47:01.326499238+01:00",
+            "versjon": "$versjon",
+            "kilde": "spleis",
+            "versjonAvKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",
+            "fodselsnummer": "02126721911",
+            "sporing": {
+              "vedtaksperiode": ["8fe5da85-d00b-4570-afaa-3a3e9403240e"],
+              "organisasjonsnummer":["947064649"]
+            },
+            "lovverk": "folketrygdloven",
+            "lovverksversjon": "2018-01-01",
+            "paragraf": "8-17",
+            "input": {
+              "arbeidsgiverperioder": [
+                {
+                  "fom": "2021-08-01",
+                  "tom": "2021-08-16"
+                }
+              ]
+            },
+            "output": {
+              "førsteUtbetalingsdag": "2021-08-17"
+            },
+            "utfall": "VILKAR_BEREGNET",
+            "ledd": 1,
+            "bokstav": "a"
+          },
+          "system_read_count": 0,
+          "system_participating_services": [
+            {
+              "service": "spleis",
+              "instance": "spleis-86b77d6b48-xbfwr",
+              "time": "2022-02-02T14:47:01.328378699"
+            }
+          ]
+        }
+        """.trimIndent()
+
     @Language("JSON")
     private fun testSubsumsjonV1_1_0(
         vedtaksperiodeId: UUID = UUID.randomUUID(),
-        behandlingId: UUID = UUID.randomUUID()
+        behandlingId: UUID = UUID.randomUUID(),
     ) = """
-  {
-    "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
-    "@event_name": "subsumsjon",
-    "@opprettet": "2022-02-02T14:47:01.326499238",
-    "subsumsjon": {
-      "tidsstempel": "2022-02-02T14:47:01.326499238+01:00",
-      "versjon": "1.1.0",
-      "kilde": "spleis",
-      "versjonAvKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",
-      "fodselsnummer": "02126721911",
-      "vedtaksperiodeId": "$vedtaksperiodeId",
-      "behandlingId": "$behandlingId",
-      "sporing": {
-        "vedtaksperiode": ["$vedtaksperiodeId"],
-        "organisasjonsnummer":["947064649"]
-      },
-      "lovverk": "folketrygdloven",
-      "lovverksversjon": "2018-01-01",
-      "paragraf": "8-17",
-      "input": {
-        "arbeidsgiverperioder": [
-          {
-            "fom": "2021-08-01",
-            "tom": "2021-08-16"
-          }
-        ]
-      },
-      "output": {
-        "førsteUtbetalingsdag": "2021-08-17"
-      },
-      "utfall": "VILKAR_BEREGNET",
-      "ledd": 1,
-      "bokstav": "a"
-    },
-    "system_read_count": 0,
-    "system_participating_services": [
-      {
-        "service": "spleis",
-        "instance": "spleis-86b77d6b48-xbfwr",
-        "time": "2022-02-02T14:47:01.328378699"
-      }
-    ]
-  }
-""".trimIndent()
+        {
+          "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
+          "@event_name": "subsumsjon",
+          "@opprettet": "2022-02-02T14:47:01.326499238",
+          "subsumsjon": {
+            "tidsstempel": "2022-02-02T14:47:01.326499238+01:00",
+            "versjon": "1.1.0",
+            "kilde": "spleis",
+            "versjonAvKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",
+            "fodselsnummer": "02126721911",
+            "vedtaksperiodeId": "$vedtaksperiodeId",
+            "behandlingId": "$behandlingId",
+            "sporing": {
+              "vedtaksperiode": ["$vedtaksperiodeId"],
+              "organisasjonsnummer":["947064649"]
+            },
+            "lovverk": "folketrygdloven",
+            "lovverksversjon": "2018-01-01",
+            "paragraf": "8-17",
+            "input": {
+              "arbeidsgiverperioder": [
+                {
+                  "fom": "2021-08-01",
+                  "tom": "2021-08-16"
+                }
+              ]
+            },
+            "output": {
+              "førsteUtbetalingsdag": "2021-08-17"
+            },
+            "utfall": "VILKAR_BEREGNET",
+            "ledd": 1,
+            "bokstav": "a"
+          },
+          "system_read_count": 0,
+          "system_participating_services": [
+            {
+              "service": "spleis",
+              "instance": "spleis-86b77d6b48-xbfwr",
+              "time": "2022-02-02T14:47:01.328378699"
+            }
+          ]
+        }
+        """.trimIndent()
 
     @Language("JSON")
-    private val badTestMessage = """
-    {
-      "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
-      "@event_name": "subsumsjon",
-      "@opprettet": "2022-02-02T14:47:01.326499238",
-      "versjon": "1.0.0",
-      "kilde": "spleis",
-      "versjonavKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",
-      "fodselsnummer": "02126721911",
-      "sporing": {
-        "fødselsnummer": "02126721911",
-        "organisasjonsnummer": "972674818",
-        "vedtaksperiode": "7b7ae5bd-a5f5-4c25-996a-1afd7c403b6a"
-      },
-      "lovverk": "folketrygdloven",
-      "lovverkVersjon": "2018-01-01",
-      "paragraf": "8-17",
-      "input": {
-        "arbeidsgiverperioder": [
-          {
-            "fom": "2021-08-01",
-            "tom": "2021-08-16"
-          }
-        ]
-      },
-      "output": {
-        "førsteUtbetalingsdag": "2021-08-17"
-      },
-      "utfall": "VILKAR_BEREGNET",
-      "ledd": 1,
-      "bokstav": "a",
-      "system_read_count": 0,
-      "system_participating_services": [
+    private val badTestMessage =
+        """
         {
-          "service": "spleis",
-          "instance": "spleis-86b77d6b48-xbfwr",
-          "time": "2022-02-02T14:47:01.328378699"
+          "@id": "1fe967d5-950d-4b52-9f76-59f1f3982a86",
+          "@event_name": "subsumsjon",
+          "@opprettet": "2022-02-02T14:47:01.326499238",
+          "versjon": "1.0.0",
+          "kilde": "spleis",
+          "versjonavKode": "docker.pkg.github.com/navikt/helse-spleis/spleis:47404a1",
+          "fodselsnummer": "02126721911",
+          "sporing": {
+            "fødselsnummer": "02126721911",
+            "organisasjonsnummer": "972674818",
+            "vedtaksperiode": "7b7ae5bd-a5f5-4c25-996a-1afd7c403b6a"
+          },
+          "lovverk": "folketrygdloven",
+          "lovverkVersjon": "2018-01-01",
+          "paragraf": "8-17",
+          "input": {
+            "arbeidsgiverperioder": [
+              {
+                "fom": "2021-08-01",
+                "tom": "2021-08-16"
+              }
+            ]
+          },
+          "output": {
+            "førsteUtbetalingsdag": "2021-08-17"
+          },
+          "utfall": "VILKAR_BEREGNET",
+          "ledd": 1,
+          "bokstav": "a",
+          "system_read_count": 0,
+          "system_participating_services": [
+            {
+              "service": "spleis",
+              "instance": "spleis-86b77d6b48-xbfwr",
+              "time": "2022-02-02T14:47:01.328378699"
+            }
+          ]
         }
-      ]
-    }
-""".trimIndent()
-
+        """.trimIndent()
 
     private val schema by lazy {
         JsonSchemaFactory
@@ -215,7 +217,8 @@ internal class SubsumsjonTest {
         try {
             assertEquals(emptySet<ValidationMessage>(), schema.validate(melding))
         } catch (_: Exception) {
-            LoggerFactory.getLogger(SubsumsjonTest::class.java)
+            LoggerFactory
+                .getLogger(SubsumsjonTest::class.java)
                 .warn("Kunne ikke kjøre kontrakttest for subsumsjoner. Mangler du internett?")
         }
     }

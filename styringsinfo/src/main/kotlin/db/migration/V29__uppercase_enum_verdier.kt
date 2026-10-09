@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 
-internal class V29__uppercase_enum_verdier: BehandlingshendelseJsonMigrering() {
-
+internal class V29__uppercase_enum_verdier : BehandlingshendelseJsonMigrering() {
     override fun query() = "select * from behandlingshendelse where versjon='0.0.1' and er_korrigert=false;"
 
     override fun nyVersjon() = Versjon.of("0.0.2")
@@ -20,10 +19,11 @@ internal class V29__uppercase_enum_verdier: BehandlingshendelseJsonMigrering() {
     }
 
     private companion object {
-        private fun String.MEGA() = when(this) {
-            "AvventerGodkjenning" -> "AVVENTER_GODKJENNING"
-            else -> this.uppercase()
-        }
+        private fun String.MEGA() =
+            when (this) {
+                "AvventerGodkjenning" -> "AVVENTER_GODKJENNING"
+                else -> this.uppercase()
+            }
 
         private fun ObjectNode.oppdaterFeltFor(feltnavn: String) {
             path(feltnavn).takeUnless { it.isMissingOrNull() }?.let {

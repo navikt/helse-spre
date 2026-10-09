@@ -22,4 +22,3 @@ private fun launchApplication(): RapidsConnection {
     rapidsConnection.apply { SkatteinntekterLagtTilGrunnRiver(this, publisher) }
     return rapidsConnection
 }
-

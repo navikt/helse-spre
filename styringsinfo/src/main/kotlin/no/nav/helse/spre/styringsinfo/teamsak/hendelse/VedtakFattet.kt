@@ -19,18 +19,19 @@ internal class VedtakFattet(
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
     private val behandlingId: UUID,
-    private val tags: Tags
+    private val tags: Tags,
 ) : Hendelse {
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
-        val ny = builder
-            .mottaker(tags.mottaker)
-            .avslutt(tags.behandlingsresultat)
-            .periodetype(tags.periodetype)
-            .build(opprettet, AUTOMATISK)
-            ?: return false
+        val ny =
+            builder
+                .mottaker(tags.mottaker)
+                .avslutt(tags.behandlingsresultat)
+                .periodetype(tags.periodetype)
+                .build(opprettet, AUTOMATISK)
+                ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 
@@ -42,24 +43,30 @@ internal class VedtakFattet(
             packet.requireTags()
         }
 
-        internal fun opprett(packet: JsonMessage) = VedtakFattet(
-            id = packet.hendelseId,
-            opprettet = packet.opprettet,
-            data = packet.blob,
-            behandlingId = packet.behandlingId,
-            tags = Tags(packet.tags)
-        )
+        internal fun opprett(packet: JsonMessage) =
+            VedtakFattet(
+                id = packet.hendelseId,
+                opprettet = packet.opprettet,
+                data = packet.blob,
+                behandlingId = packet.behandlingId,
+                tags = Tags(packet.tags),
+            )
 
-        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
+        internal fun river(
+            rapidsConnection: RapidsConnection,
+            hendelseDao: HendelseDao,
+            behandlingshendelseDao: BehandlingshendelseDao,
+        ) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
             behandlingshendelseDao = behandlingshendelseDao,
             valider = { packet -> valider(packet) },
-            opprett = { packet -> opprett(packet) }
+            opprett = { packet -> opprett(packet) },
         )
 
         private val JsonMessage.tags get() = this["tags"].map { it.asText() }
+
         private fun JsonMessage.requireTags() = requireKey("tags")
     }
 }

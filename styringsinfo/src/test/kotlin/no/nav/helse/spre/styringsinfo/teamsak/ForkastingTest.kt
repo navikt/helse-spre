@@ -1,6 +1,5 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
-import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.AVBRUTT
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVSLUTTET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.REGISTRERT
@@ -11,8 +10,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
-internal class ForkastingTest: AbstractTeamSakTest() {
-
+internal class ForkastingTest : AbstractTeamSakTest() {
     @Test
     fun `start og slutt for forkastet periode`() {
         val hendelsefabrikk = Hendelsefabrikk()

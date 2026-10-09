@@ -15,21 +15,30 @@ class VedtaksperiodeEndretRiver(
     private val oppgaveDAO: OppgaveDAO,
     private val publisist: Publisist,
 ) : River.PacketListener {
-
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "vedtaksperiode_endret") }
-            precondition { it.requireAny("gjeldendeTilstand", listOf("AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING"))}
-            validate { it.requireKey("hendelser") }
-            validate { it.interestedIn("forrigeTilstand") }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "vedtaksperiode_endret") }
+                precondition { it.requireAny("gjeldendeTilstand", listOf("AVVENTER_GODKJENNING", "AVVENTER_GODKJENNING_REVURDERING")) }
+                validate { it.requireKey("hendelser") }
+                validate { it.interestedIn("forrigeTilstand") }
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         loggUkjentMelding("vedtaksperiode_endret", problems)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         val forrigeTilstand = packet["forrigeTilstand"].asText()
         val gjeldendeTilstand = packet["gjeldendeTilstand"].asText()
@@ -43,4 +52,3 @@ class VedtaksperiodeEndretRiver(
             }
     }
 }
-

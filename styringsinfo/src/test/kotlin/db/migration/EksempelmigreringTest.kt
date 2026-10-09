@@ -7,10 +7,11 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V1337__Eksempelmigrering(),
-    forrigeVersjon = MigrationVersion.LATEST
-) {
+internal class EksempelmigreringTest :
+    BehandlingshendelseJsonMigreringTest(
+        migrering = V1337__Eksempelmigrering(),
+        forrigeVersjon = MigrationVersion.LATEST,
+    ) {
     @Test
     fun `Migrerer riktige rader`() {
         val behandlingId1 = UUID.randomUUID()
@@ -21,7 +22,7 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
         val rad4 = leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = true, versjon = versjonSomSkalMigreres) { it.put("endretFelt", 4).put("fjernFelt", true) }
         migrer()
         assertKorrigerte(rad2, rad3)
-        assertKorrigert(rad4) { _, ny->
+        assertKorrigert(rad4) { _, ny ->
             assertEquals("kult", ny.path("nyttFelt").asText())
             assertFalse(ny.has("fjernFelt"))
             assertEquals(1337, ny.path("endretFelt").asInt())
@@ -49,9 +50,11 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
     private companion object {
         private val versjonSomSkalMigreres = Versjon.of("4.1.1")
 
-        private class V1337__Eksempelmigrering: BehandlingshendelseJsonMigrering() {
+        private class V1337__Eksempelmigrering : BehandlingshendelseJsonMigrering() {
             override fun query() = "select sekvensnummer, data, er_korrigert from behandlingshendelse where versjon='$versjonSomSkalMigreres'"
+
             override fun nyVersjon() = Versjon.of("5.0.0")
+
             override fun nyData(gammelData: ObjectNode): ObjectNode {
                 gammelData.put("nyttFelt", "kult")
                 gammelData.remove("fjernFelt")
@@ -63,5 +66,3 @@ internal class EksempelmigreringTest: BehandlingshendelseJsonMigreringTest(
         }
     }
 }
-
-

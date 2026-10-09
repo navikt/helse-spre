@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
-internal class AnnulleringTest: AbstractTeamSakTest() {
-
+internal class AnnulleringTest : AbstractTeamSakTest() {
     @Test
     fun `selvstendig - sak annulleres`() {
         val sakId = Hendelsefabrikk.nySakId()
@@ -44,7 +43,6 @@ internal class AnnulleringTest: AbstractTeamSakTest() {
         assertEquals(MANUELL, forkastetBehandling.behandlingsmetode)
         assertNull(forkastetBehandling.saksbehandlerEnhet)
     }
-
 
     @Test
     fun `sak annulleres`() {
@@ -87,7 +85,6 @@ internal class AnnulleringTest: AbstractTeamSakTest() {
         assertNull(utbetaltBehandling.behandlingsresultat)
         assertEquals(utbetaltBehandling.behandlingsmetode, AUTOMATISK)
         assertEquals(utbetaltBehandling.hendelsesmetode, MANUELL)
-
 
         val januarVedtakFattet = hendelsefabrikk.vedtakFattet()
         utbetaltBehandling = januarVedtakFattet.håndter(januarBehandlingId)

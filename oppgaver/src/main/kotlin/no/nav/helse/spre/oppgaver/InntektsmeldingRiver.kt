@@ -9,23 +9,36 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import java.util.*
 
-class InntektsmeldingRiver(rapidsConnection: RapidsConnection, private val oppgaveDAO: OppgaveDAO, private val publisist: Publisist) :
-    River.PacketListener {
+class InntektsmeldingRiver(
+    rapidsConnection: RapidsConnection,
+    private val oppgaveDAO: OppgaveDAO,
+    private val publisist: Publisist,
+) : River.PacketListener {
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireAny("@event_name", listOf("inntektsmelding", "arbeidsgiveropplysninger", "korrigerte_arbeidsgiveropplysninger", "selvbestemte_arbeidsgiveropplysninger")) }
-            validate { it.requireKey("@id") }
-            validate { it.requireKey("inntektsmeldingId") }
-            validate { it.requireKey("virksomhetsnummer") }
-            validate { it.requireKey("arbeidstakerFnr") }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireAny("@event_name", listOf("inntektsmelding", "arbeidsgiveropplysninger", "korrigerte_arbeidsgiveropplysninger", "selvbestemte_arbeidsgiveropplysninger")) }
+                validate { it.requireKey("@id") }
+                validate { it.requireKey("inntektsmeldingId") }
+                validate { it.requireKey("virksomhetsnummer") }
+                validate { it.requireKey("arbeidstakerFnr") }
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         loggUkjentMelding("inntektsmelding", problems)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         val hendelseId = UUID.fromString(packet["@id"].asText())
         val dokumentId = packet.dokumentId()
         val fnr = packet["arbeidstakerFnr"].asText()
@@ -35,6 +48,5 @@ class InntektsmeldingRiver(rapidsConnection: RapidsConnection, private val oppga
         Oppgave.nyInntektsmelding(hendelseId, dokumentId, fnr, organisasjonsnummer, observer)
     }
 
-    private fun JsonMessage.dokumentId() =
-        UUID.fromString(this["inntektsmeldingId"].asText())
+    private fun JsonMessage.dokumentId() = UUID.fromString(this["inntektsmeldingId"].asText())
 }

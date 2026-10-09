@@ -23,7 +23,7 @@ internal class VedtakMessageTest {
                 avvistPeriode(LocalDate.of(2020, 7, 31), "Fridag", emptyList()),
                 avvistPeriode(LocalDate.of(2020, 8, 4), "AvvistDag", listOf("ManglerOpptjening")),
                 avvistPeriode(LocalDate.of(2020, 8, 5), "AvvistDag", listOf("ManglerOpptjening", "SykepengedagerOppbrukt")),
-                avvistPeriode(LocalDate.of(2020, 8, 6), "AvvistDag", listOf("ManglerOpptjening", "SykepengedagerOppbrukt"))
+                avvistPeriode(LocalDate.of(2020, 8, 6), "AvvistDag", listOf("ManglerOpptjening", "SykepengedagerOppbrukt")),
             ).slåSammenLikePerioder()
 
         assertEquals(
@@ -33,15 +33,20 @@ internal class VedtakMessageTest {
                 AvvistPeriode(LocalDate.of(2020, 7, 27), LocalDate.of(2020, 7, 28), "AvvistDag", listOf("ManglerOpptjening")),
                 AvvistPeriode(LocalDate.of(2020, 7, 29), LocalDate.of(2020, 7, 31), "Fridag", emptyList()),
                 AvvistPeriode(LocalDate.of(2020, 8, 4), LocalDate.of(2020, 8, 4), "AvvistDag", listOf("ManglerOpptjening")),
-                AvvistPeriode(LocalDate.of(2020, 8, 5), LocalDate.of(2020, 8, 6), "AvvistDag", listOf("ManglerOpptjening", "SykepengedagerOppbrukt"))
-            ), json
+                AvvistPeriode(LocalDate.of(2020, 8, 5), LocalDate.of(2020, 8, 6), "AvvistDag", listOf("ManglerOpptjening", "SykepengedagerOppbrukt")),
+            ),
+            json,
         )
     }
 
-    private fun avvistPeriode(fom: LocalDate, type: String, begrunnelser: List<String>) = AvvistPeriode(
+    private fun avvistPeriode(
+        fom: LocalDate,
+        type: String,
+        begrunnelser: List<String>,
+    ) = AvvistPeriode(
         fom = fom,
         tom = fom,
         type = type,
-        begrunnelser = begrunnelser
+        begrunnelser = begrunnelser,
     )
 }

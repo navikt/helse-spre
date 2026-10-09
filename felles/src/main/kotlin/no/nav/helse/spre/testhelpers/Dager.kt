@@ -5,43 +5,95 @@ import java.time.LocalDate
 import java.util.*
 import kotlin.streams.toList
 
-fun utbetalingsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.UTBETALINGSDAG)
-fun arbeidsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.ARBEIDSDAG)
-fun fridager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FRIDAG)
-fun feriedager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FERIEDAG)
-fun andreYtelser(fom: LocalDate, tom: LocalDate = fom, begrunnelser: List<String>) = dagerFraTil(fom, tom, Dagtype.ANDREYTELSER, begrunnelser)
-fun permisjonsdager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.PERMISJONSDAG)
-fun ukjentDager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.UKJENTDAG)
-fun foreldetDager(fom: LocalDate, tom: LocalDate = fom) = dagerFraTil(fom, tom, Dagtype.FORELDETDAG)
-fun avvistDager(fom: LocalDate, tom: LocalDate = fom, begrunnelser: List<String>) = dagerFraTil(fom, tom, Dagtype.AVVISTDAG, begrunnelser)
+fun utbetalingsdager(
+    fom: LocalDate,
+    tom: LocalDate = fom,
+) = dagerFraTil(fom, tom, Dagtype.UTBETALINGSDAG)
 
-private fun dagerFraTil(fom: LocalDate, tom: LocalDate, type: Dagtype, begrunnelser: List<String>? = null): List<Dag> {
-    return fom.datesUntil(tom.plusDays(1)).map {
-        Dag(it, type, begrunnelser)
-    }.toList()
-}
+fun arbeidsdager(
+    fom: LocalDate,
+    tom: LocalDate = fom,
+) = dagerFraTil(fom, tom, Dagtype.ARBEIDSDAG)
 
-class Dag(val dato: LocalDate, val type: Dagtype, private val begrunnelser: List<String>?) {
-    override fun toString(): String {
-        return """{
+fun fridager(
+    fom: LocalDate,
+    tom: LocalDate = fom,
+) = dagerFraTil(fom, tom, Dagtype.FRIDAG)
+
+fun feriedager(
+    fom: LocalDate,
+    tom: LocalDate = fom,
+) = dagerFraTil(fom, tom, Dagtype.FERIEDAG)
+
+fun andreYtelser(
+    fom: LocalDate,
+    tom: LocalDate = fom,
+    begrunnelser: List<String>,
+) = dagerFraTil(fom, tom, Dagtype.ANDREYTELSER, begrunnelser)
+
+fun permisjonsdager(
+    fom: LocalDate,
+    tom: LocalDate = fom,
+) = dagerFraTil(fom, tom, Dagtype.PERMISJONSDAG)
+
+fun ukjentDager(
+    fom: LocalDate,
+    tom: LocalDate = fom,
+) = dagerFraTil(fom, tom, Dagtype.UKJENTDAG)
+
+fun foreldetDager(
+    fom: LocalDate,
+    tom: LocalDate = fom,
+) = dagerFraTil(fom, tom, Dagtype.FORELDETDAG)
+
+fun avvistDager(
+    fom: LocalDate,
+    tom: LocalDate = fom,
+    begrunnelser: List<String>,
+) = dagerFraTil(fom, tom, Dagtype.AVVISTDAG, begrunnelser)
+
+private fun dagerFraTil(
+    fom: LocalDate,
+    tom: LocalDate,
+    type: Dagtype,
+    begrunnelser: List<String>? = null,
+): List<Dag> =
+    fom
+        .datesUntil(tom.plusDays(1))
+        .map {
+            Dag(it, type, begrunnelser)
+        }.toList()
+
+class Dag(
+    val dato: LocalDate,
+    val type: Dagtype,
+    private val begrunnelser: List<String>?,
+) {
+    override fun toString(): String =
+        """{
                    "dato": "$dato",
                    "type": "${if (dato.dayOfWeek in listOf(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY)) type.helgenavn else type.vanligNavn}"
-                   ${if(begrunnelser != null) {",\"begrunnelser\": ${begrunnelser.map { "\"$it\"" }}"} else {""}}
+                   ${if (begrunnelser != null) {
+            ",\"begrunnelser\": ${begrunnelser.map { "\"$it\"" }}"
+        } else {
+            ""
+        }}
                }"""
-    }
 
     companion object {
-        fun List<Dag>.toJson(): String {
-            return """
+        fun List<Dag>.toJson(): String =
+            """
                    [
                     ${this.joinToString()}
                    ] 
                 """
-        }
     }
 }
 
-enum class Dagtype(val vanligNavn: String, val helgenavn: String = vanligNavn) {
+enum class Dagtype(
+    val vanligNavn: String,
+    val helgenavn: String = vanligNavn,
+) {
     UTBETALINGSDAG("NavDag", "NavHelgeDag"),
     ARBEIDSDAG("Arbeidsdag"),
     FRIDAG("Fridag"),
@@ -50,7 +102,8 @@ enum class Dagtype(val vanligNavn: String, val helgenavn: String = vanligNavn) {
     AVVISTDAG("AvvistDag"),
     FERIEDAG("Feriedag"),
     ANDREYTELSER("AndreYtelser"),
-    PERMISJONSDAG("Permisjonsdag");
+    PERMISJONSDAG("Permisjonsdag"),
+    ;
 
     companion object {
         fun from(serialisertNavn: String): Dagtype {

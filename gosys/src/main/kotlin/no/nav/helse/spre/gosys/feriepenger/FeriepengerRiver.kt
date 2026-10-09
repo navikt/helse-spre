@@ -19,24 +19,30 @@ import java.util.*
 class FeriepengerRiver(
     rapidsConnection: RapidsConnection,
     private val duplikatsjekkDao: DuplikatsjekkDao,
-    private val feriepengerMediator: FeriepengerMediator
+    private val feriepengerMediator: FeriepengerMediator,
 ) : River.PacketListener {
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "feriepenger_utbetalt") }
-            validate {
-                it.require("@opprettet", JsonNode::asLocalDateTime)
-                it.requireKey("@id", "fødselsnummer", "organisasjonsnummer")
-                it.require("fom", JsonNode::asLocalDate)
-                it.require("tom", JsonNode::asLocalDate)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "feriepenger_utbetalt") }
+                validate {
+                    it.require("@opprettet", JsonNode::asLocalDateTime)
+                    it.requireKey("@id", "fødselsnummer", "organisasjonsnummer")
+                    it.require("fom", JsonNode::asLocalDate)
+                    it.require("tom", JsonNode::asLocalDate)
 
-                it.requireKey("arbeidsgiverOppdrag.fagsystemId", "arbeidsgiverOppdrag.mottaker", "arbeidsgiverOppdrag.totalbeløp")
-                it.requireKey("personOppdrag.fagsystemId", "personOppdrag.mottaker", "personOppdrag.totalbeløp")
-            }
-        }.register(this)
+                    it.requireKey("arbeidsgiverOppdrag.fagsystemId", "arbeidsgiverOppdrag.mottaker", "arbeidsgiverOppdrag.totalbeløp")
+                    it.requireKey("personOppdrag.fagsystemId", "personOppdrag.mottaker", "personOppdrag.totalbeløp")
+                }
+            }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         val id = UUID.fromString(packet["@id"].asText())
         try {
             duplikatsjekkDao.sjekkDuplikat(id) {
@@ -53,7 +59,11 @@ class FeriepengerRiver(
         }
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         logg.error(problems.toString())
         sikkerLogg.error(problems.toExtendedReport())
     }

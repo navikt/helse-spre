@@ -5,10 +5,10 @@ import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
+import no.nav.helse.spre.gosys.objectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import no.nav.helse.spre.gosys.objectMapper
 
 data class Utbetaling(
     val utbetalingId: UUID,
@@ -26,22 +26,21 @@ data class Utbetaling(
     val ident: String,
     val epost: String,
     val opprettet: LocalDateTime,
-    val utbetalingsdager: List<UtbetalingdagDto>
+    val utbetalingsdager: List<UtbetalingdagDto>,
 ) {
     internal fun søknadsperiode(vedtaksperiode: Pair<LocalDate, LocalDate>): Pair<LocalDate, LocalDate> {
         val dager = utbetalingsdager.filter { it.dato >= vedtaksperiode.first && it.dato <= vedtaksperiode.second }
 
-        val fom = when (dager.none { it.type == "ArbeidIkkeGjenopptattDag" }) {
-            true -> vedtaksperiode.first
-            false -> dager.firstOrNull { it.type != "ArbeidIkkeGjenopptattDag" }?.dato ?: vedtaksperiode.first
-        }
+        val fom =
+            when (dager.none { it.type == "ArbeidIkkeGjenopptattDag" }) {
+                true -> vedtaksperiode.first
+                false -> dager.firstOrNull { it.type != "ArbeidIkkeGjenopptattDag" }?.dato ?: vedtaksperiode.first
+            }
 
         return fom to vedtaksperiode.second
     }
 
-    fun erRevurdering(): Boolean {
-        return this.type == Utbetalingtype.REVURDERING
-    }
+    fun erRevurdering(): Boolean = this.type == Utbetalingtype.REVURDERING
 
     enum class Utbetalingtype { UTBETALING, ETTERUTBETALING, ANNULLERING, REVURDERING }
 
@@ -50,8 +49,8 @@ data class Utbetaling(
 
         fun fromJson(packet: JsonMessage) = fromJson(objectMapper.readTree(packet.toJson()))
 
-        fun fromJson(packet: JsonNode): Utbetaling {
-            return Utbetaling(
+        fun fromJson(packet: JsonNode): Utbetaling =
+            Utbetaling(
                 utbetalingId = packet["utbetalingId"].let { UUID.fromString(it.asText()) },
                 fødselsnummer = packet["fødselsnummer"].asText(),
                 organisasjonsnummer = packet["organisasjonsnummer"].asText(),
@@ -67,38 +66,41 @@ data class Utbetaling(
                 ident = packet["ident"].asText(),
                 epost = packet["epost"].asText(),
                 opprettet = packet["@opprettet"].asLocalDateTime(),
-                utbetalingsdager = packet.utbetalingsdager
+                utbetalingsdager = packet.utbetalingsdager,
             )
-        }
 
-        private fun JsonNode.tilOppdragDto(): OppdragDto {
-            return OppdragDto(
+        private fun JsonNode.tilOppdragDto(): OppdragDto =
+            OppdragDto(
                 mottaker = this["mottaker"].asText(),
                 fagområde = this["fagområde"].asText(),
                 fagsystemId = this["fagsystemId"].asText(),
                 nettoBeløp = this["nettoBeløp"].asInt(),
-                utbetalingslinjer = this["linjer"].map { linje ->
-                    OppdragDto.UtbetalingslinjeDto(
-                        fom = linje["fom"].asLocalDate(),
-                        tom = linje["tom"].asLocalDate(),
-                        dagsats = (linje.path("sats").takeUnless { it.isMissingOrNull() } ?: linje.path("dagsats")).asInt(),
-                        totalbeløp = linje["totalbeløp"].asInt(),
-                        grad = linje["grad"].asInt(),
-                        stønadsdager = linje["stønadsdager"].asInt(),
-                        statuskode = linje.findValue("statuskode")?.asText()
-                    )
-                }
+                utbetalingslinjer =
+                    this["linjer"].map { linje ->
+                        OppdragDto.UtbetalingslinjeDto(
+                            fom = linje["fom"].asLocalDate(),
+                            tom = linje["tom"].asLocalDate(),
+                            dagsats = (linje.path("sats").takeUnless { it.isMissingOrNull() } ?: linje.path("dagsats")).asInt(),
+                            totalbeløp = linje["totalbeløp"].asInt(),
+                            grad = linje["grad"].asInt(),
+                            stønadsdager = linje["stønadsdager"].asInt(),
+                            statuskode = linje.findValue("statuskode")?.asText(),
+                        )
+                    },
             )
-        }
 
-        private val JsonNode.utbetalingsdager get() = path("utbetalingsdager").map { dag ->
-            UtbetalingdagDto(
-                dato = dag["dato"].asLocalDate(),
-                type = dag["type"].asText(),
-                begrunnelser = dag.path("begrunnelser").takeUnless(JsonNode::isMissingOrNull)
-                    ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList()
-            )
-        }
+        private val JsonNode.utbetalingsdager get() =
+            path("utbetalingsdager").map { dag ->
+                UtbetalingdagDto(
+                    dato = dag["dato"].asLocalDate(),
+                    type = dag["type"].asText(),
+                    begrunnelser =
+                        dag
+                            .path("begrunnelser")
+                            .takeUnless(JsonNode::isMissingOrNull)
+                            ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList(),
+                )
+            }
     }
 
     data class OppdragDto(
@@ -106,7 +108,7 @@ data class Utbetaling(
         val fagområde: String,
         val fagsystemId: String,
         val nettoBeløp: Int,
-        val utbetalingslinjer: List<UtbetalingslinjeDto>
+        val utbetalingslinjer: List<UtbetalingslinjeDto>,
     ) {
         data class UtbetalingslinjeDto(
             val fom: LocalDate,
@@ -115,7 +117,7 @@ data class Utbetaling(
             val totalbeløp: Int,
             val grad: Int,
             val stønadsdager: Int,
-            val statuskode: String?
+            val statuskode: String?,
         ) {
             val erOpphørt = statuskode == "OPPH"
         }
@@ -124,6 +126,6 @@ data class Utbetaling(
     data class UtbetalingdagDto(
         val dato: LocalDate,
         val type: String,
-        val begrunnelser: List<String>
+        val begrunnelser: List<String>,
     )
 }

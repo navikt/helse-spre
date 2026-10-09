@@ -10,6 +10,8 @@ internal interface Hendelse {
     val opprettet: OffsetDateTime
     val type: String
     val data: JsonNode
+
     fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean
+
     fun ignorer(behandlingshendelseDao: BehandlingshendelseDao): Boolean = false
 }

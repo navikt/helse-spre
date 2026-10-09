@@ -8,25 +8,24 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class VedtaksperiodeVenterTest: AbstractTeamSakTest() {
-
+internal class VedtaksperiodeVenterTest : AbstractTeamSakTest() {
     @Test
     fun `periode venter bak en annen til godkjenning`() {
-        val behandlingTilGodkjenning= tilGodkjenning()
+        val behandlingTilGodkjenning = tilGodkjenning()
         val venterPaDenTilGodkjenning = nyPeriodeSomVenterPå(behandlingTilGodkjenning, "GODKJENNING")
         Assertions.assertEquals(
             Behandling.Behandlingstatus.AVVENTER_GODKJENNING,
-            behandlingTilGodkjenning.behandlingstatus
+            behandlingTilGodkjenning.behandlingstatus,
         )
         Assertions.assertEquals(
             Behandling.Behandlingstatus.KOMPLETT_FAKTAGRUNNLAG,
-            venterPaDenTilGodkjenning.behandlingstatus
+            venterPaDenTilGodkjenning.behandlingstatus,
         )
     }
 
     @Test
     fun `periode venter bak en annen periode som venter på noe annet enn godkjenning`() {
-        val periode1= tilRegistrert()
+        val periode1 = tilRegistrert()
         val periode2SomVenterPå1 = nyPeriodeSomVenterPå(periode1, "ARBEIDSGIVER")
         Assertions.assertEquals(Behandling.Behandlingstatus.REGISTRERT, periode1.behandlingstatus)
         Assertions.assertEquals(Behandling.Behandlingstatus.REGISTRERT, periode2SomVenterPå1.behandlingstatus)
@@ -55,7 +54,10 @@ internal class VedtaksperiodeVenterTest: AbstractTeamSakTest() {
         return behandling
     }
 
-    private fun nyPeriodeSomVenterPå(venterPå: Behandling, venterPåHva: String): Behandling {
+    private fun nyPeriodeSomVenterPå(
+        venterPå: Behandling,
+        venterPåHva: String,
+    ): Behandling {
         val sakId = SakId(UUID.randomUUID())
         val behandlingId = BehandlingId(UUID.randomUUID())
         val hendelsefabrikk = Hendelsefabrikk(sakId, behandlingId)
@@ -63,16 +65,22 @@ internal class VedtaksperiodeVenterTest: AbstractTeamSakTest() {
         var behandling = behandlingOpprettet.håndter(behandlingId)
         Assertions.assertEquals(Behandling.Behandlingstatus.REGISTRERT, behandling.behandlingstatus)
         Assertions.assertNull(behandling.behandlingsresultat)
-        behandling = hendelsefabrikk.vedtaksperiodeVenter(venterPå = listOf(
-            VedtaksperiodeVenter(
-                vedtaksperiodeId = behandling.sakId.id,
-                behandlingId = behandling.behandlingId.id,
-                venterPå = VedtaksperiodeVenter.VenterPå(
-                    vedtaksperiodeId = venterPå.sakId.id,
-                    venteårsak = venterPåHva
-                )
-            )
-        )).håndter(behandlingId)
+        behandling =
+            hendelsefabrikk
+                .vedtaksperiodeVenter(
+                    venterPå =
+                        listOf(
+                            VedtaksperiodeVenter(
+                                vedtaksperiodeId = behandling.sakId.id,
+                                behandlingId = behandling.behandlingId.id,
+                                venterPå =
+                                    VedtaksperiodeVenter.VenterPå(
+                                        vedtaksperiodeId = venterPå.sakId.id,
+                                        venteårsak = venterPåHva,
+                                    ),
+                            ),
+                        ),
+                ).håndter(behandlingId)
         return behandling
     }
 }

@@ -34,7 +34,6 @@ internal class FeriepengerRiverTest {
         FeriepengerRiver(testRapid, duplikatsjekkDao, feriepengerMediator)
     }
 
-
     @AfterEach
     fun after() {
         databaseContainer.droppTilkobling(dataSource)
@@ -60,29 +59,30 @@ internal class FeriepengerRiverTest {
         assertEquals(
             FeriepengerPdfPayload(
                 tittel = "Feriepenger utbetalt for sykepenger",
-                oppdrag = listOf(
-                    OppdragPdfPayload(
-                        type = OppdragType.ARBEIDSGIVER,
-                        fom = LocalDate.of(2021, 5, 1),
-                        tom = LocalDate.of(2021, 5, 31),
-                        totalbeløp = 1000,
-                        mottaker = "123456789",
-                        fagsystemId ="88ABRH3QENHB5K4XUY4LQ7HRTY"
+                oppdrag =
+                    listOf(
+                        OppdragPdfPayload(
+                            type = OppdragType.ARBEIDSGIVER,
+                            fom = LocalDate.of(2021, 5, 1),
+                            tom = LocalDate.of(2021, 5, 31),
+                            totalbeløp = 1000,
+                            mottaker = "123456789",
+                            fagsystemId = "88ABRH3QENHB5K4XUY4LQ7HRTY",
+                        ),
+                        OppdragPdfPayload(
+                            type = OppdragType.PERSON,
+                            fom = LocalDate.of(2021, 5, 1),
+                            tom = LocalDate.of(2021, 5, 31),
+                            totalbeløp = 0,
+                            mottaker = "20046912345",
+                            fagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY",
+                        ),
                     ),
-                    OppdragPdfPayload(
-                        type = OppdragType.PERSON,
-                        fom = LocalDate.of(2021, 5, 1),
-                        tom = LocalDate.of(2021, 5, 31),
-                        totalbeløp = 0,
-                        mottaker = "20046912345",
-                        fagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY"
-                    )
-                ),
                 utbetalt = utbetalt,
                 orgnummer = "123456789",
                 fødselsnummer = "20046912345",
             ),
-            capturedPdfPayload.captured
+            capturedPdfPayload.captured,
         )
     }
 
@@ -96,35 +96,36 @@ internal class FeriepengerRiverTest {
         assertEquals(
             FeriepengerPdfPayload(
                 tittel = "Feriepenger utbetalt for sykepenger",
-                oppdrag = listOf(
-                    OppdragPdfPayload(
-                        type = OppdragType.ARBEIDSGIVER,
-                        fom = LocalDate.of(2021, 5, 1),
-                        tom = LocalDate.of(2021, 5, 31),
-                        totalbeløp = 1000,
-                        mottaker = "123456789",
-                        fagsystemId ="88ABRH3QENHB5K4XUY4LQ7HRTY"
+                oppdrag =
+                    listOf(
+                        OppdragPdfPayload(
+                            type = OppdragType.ARBEIDSGIVER,
+                            fom = LocalDate.of(2021, 5, 1),
+                            tom = LocalDate.of(2021, 5, 31),
+                            totalbeløp = 1000,
+                            mottaker = "123456789",
+                            fagsystemId = "88ABRH3QENHB5K4XUY4LQ7HRTY",
+                        ),
+                        OppdragPdfPayload(
+                            type = OppdragType.PERSON,
+                            fom = LocalDate.of(2021, 5, 1),
+                            tom = LocalDate.of(2021, 5, 31),
+                            totalbeløp = 420,
+                            mottaker = "20046912345",
+                            fagsystemId = "77ATRH3QENHB5K4XUY4LQ7HRTY",
+                        ),
                     ),
-                    OppdragPdfPayload(
-                        type = OppdragType.PERSON,
-                        fom = LocalDate.of(2021, 5, 1),
-                        tom = LocalDate.of(2021, 5, 31),
-                        totalbeløp = 420,
-                        mottaker = "20046912345",
-                        fagsystemId ="77ATRH3QENHB5K4XUY4LQ7HRTY"
-
-                    )
-                ),
                 utbetalt = utbetalt,
                 orgnummer = "123456789",
-                fødselsnummer = "20046912345"
-            ), capturedPdfPayload.captured
+                fødselsnummer = "20046912345",
+            ),
+            capturedPdfPayload.captured,
         )
     }
 
     @Language("JSON")
     private fun feriepenger(
-        utbetalt: LocalDateTime = LocalDate.of(2021, 5, 31).atTime(13, 37)
+        utbetalt: LocalDateTime = LocalDate.of(2021, 5, 31).atTime(13, 37),
     ) = """
     {
       "arbeidsgiverOppdrag": {
@@ -150,7 +151,7 @@ internal class FeriepengerRiverTest {
 
     @Language("JSON")
     private fun feriepengerArbeidsgiverOgPerson(
-        utbetalt: LocalDateTime = LocalDate.of(2021, 5, 31).atTime(13, 37)
+        utbetalt: LocalDateTime = LocalDate.of(2021, 5, 31).atTime(13, 37),
     ) = """
     {
       "arbeidsgiverOppdrag": {
@@ -173,5 +174,4 @@ internal class FeriepengerRiverTest {
       "tom": "2021-05-31"
     }
     """
-
 }

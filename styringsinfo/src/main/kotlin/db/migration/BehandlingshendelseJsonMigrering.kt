@@ -11,7 +11,7 @@ import java.sql.Statement
 import java.time.Duration
 import java.time.LocalDateTime
 
-internal abstract class BehandlingshendelseJsonMigrering: BaseJavaMigration() {
+internal abstract class BehandlingshendelseJsonMigrering : BaseJavaMigration() {
     private val logg = LoggerFactory.getLogger(this::class.java)
 
     override fun migrate(context: Context) {
@@ -35,7 +35,11 @@ internal abstract class BehandlingshendelseJsonMigrering: BaseJavaMigration() {
         logg.info("[Finished] Korrigerte totalt $korrigerteRaderTotalt rader på $tidsbruk (${tidsbruk.seconds} sekunder)")
     }
 
-    private fun håndterEnBatch(resultSet: ResultSet, statement: Statement, versjon: String): Int {
+    private fun håndterEnBatch(
+        resultSet: ResultSet,
+        statement: Statement,
+        versjon: String,
+    ): Int {
         val gamleSekvensnummer = mutableListOf<Long>()
 
         while (gamleSekvensnummer.size < batchSize && resultSet.next()) {
@@ -46,9 +50,9 @@ internal abstract class BehandlingshendelseJsonMigrering: BaseJavaMigration() {
 
             val nyRad = """
                 insert into behandlingshendelse(sakId, behandlingId, funksjonellTid, versjon, data, siste, hendelseId, er_korrigert)
-                select sakId, behandlingId, funksjonellTid, $versjon, '${nyData}'::jsonb, siste, hendelseId, false 
+                select sakId, behandlingId, funksjonellTid, $versjon, '$nyData'::jsonb, siste, hendelseId, false 
                 from behandlingshendelse 
-                where sekvensnummer=${gammeltSekvensnummer};
+                where sekvensnummer=$gammeltSekvensnummer;
             """
 
             gamleSekvensnummer.add(gammeltSekvensnummer)
@@ -67,20 +71,25 @@ internal abstract class BehandlingshendelseJsonMigrering: BaseJavaMigration() {
 
     /** Query som identifiserer radene som skal korrigeres. Må være mulig å hente ut "sekvensnummer", "data" og "er_korrigert" */
     abstract fun query(): String
+
     /** Settes om de nye radene skal få en annen versjon enn raden som korrigeres */
     abstract fun nyVersjon(): Versjon?
+
     /** Får data fra raden som skal korrigeres og returnerer data som skal inn i den nye raden */
     abstract fun nyData(gammelData: ObjectNode): ObjectNode
+
     /** Antall rader som skal korrigeres per batch **/
     open val batchSize: Int = 25_000
 
     private companion object {
         private val objectMapper = jacksonObjectMapper()
         private const val BEHOLD_VERSJON = "versjon"
-        private fun ResultSet.gammelRad() = Triple(
-            getLong("sekvensnummer"),
-            objectMapper.readTree(getString("data")) as ObjectNode,
-            getBoolean("er_korrigert")
-        )
+
+        private fun ResultSet.gammelRad() =
+            Triple(
+                getLong("sekvensnummer"),
+                objectMapper.readTree(getString("data")) as ObjectNode,
+                getBoolean("er_korrigert"),
+            )
     }
 }

@@ -2,8 +2,6 @@ package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
-import java.time.OffsetDateTime
-import java.util.*
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingsresultat.IKKE_REALITETSBEHANDLET
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
@@ -13,28 +11,35 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.b
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
+import java.time.OffsetDateTime
+import java.util.*
 
 internal class AvsluttetUtenVedtak(
     override val id: UUID,
     override val opprettet: OffsetDateTime,
     override val data: JsonNode,
-    private val behandlingId: UUID
+    private val behandlingId: UUID,
 ) : Hendelse {
     override val type = eventName
 
     override fun håndter(behandlingshendelseDao: BehandlingshendelseDao): Boolean {
         val builder = behandlingshendelseDao.initialiser(BehandlingId(behandlingId))
-        val ny = builder
-            .avslutt(IKKE_REALITETSBEHANDLET)
-            .build(opprettet, AUTOMATISK)
-            ?: return false
+        val ny =
+            builder
+                .avslutt(IKKE_REALITETSBEHANDLET)
+                .build(opprettet, AUTOMATISK)
+                ?: return false
         return behandlingshendelseDao.lagre(ny, this.id)
     }
 
     internal companion object {
         private const val eventName = "avsluttet_uten_vedtak"
 
-        internal fun river(rapidsConnection: RapidsConnection, hendelseDao: HendelseDao, behandlingshendelseDao: BehandlingshendelseDao) = HendelseRiver(
+        internal fun river(
+            rapidsConnection: RapidsConnection,
+            hendelseDao: HendelseDao,
+            behandlingshendelseDao: BehandlingshendelseDao,
+        ) = HendelseRiver(
             eventName = eventName,
             rapidsConnection = rapidsConnection,
             hendelseDao = hendelseDao,
@@ -47,9 +52,9 @@ internal class AvsluttetUtenVedtak(
                     id = packet.hendelseId,
                     data = packet.blob,
                     opprettet = packet.opprettet,
-                    behandlingId = packet.behandlingId
+                    behandlingId = packet.behandlingId,
                 )
-            }
+            },
         )
     }
 }

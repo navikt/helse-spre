@@ -8,9 +8,14 @@ sealed class Hendelse {
      * Det er gjort utbetaling i spleis som må tas hensyn til ved behandling av oppgaven
      */
     object AvbruttOgHarRelatertUtbetaling : Hendelse()
+
     object Avsluttet : Hendelse()
+
     object AvsluttetUtenUtbetaling : Hendelse()
+
     object Lest : Hendelse()
-    object VedtaksperiodeVenter: Hendelse()
-    object AvventerGodkjenning: Hendelse()
+
+    object VedtaksperiodeVenter : Hendelse()
+
+    object AvventerGodkjenning : Hendelse()
 }

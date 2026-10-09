@@ -19,12 +19,13 @@ import java.net.http.HttpClient
 
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
-internal val objectMapper: ObjectMapper = ObjectMapper().apply {
-    registerKotlinModule()
-    registerModule(JavaTimeModule())
-    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-}
+internal val objectMapper: ObjectMapper =
+    ObjectMapper().apply {
+        registerKotlinModule()
+        registerModule(JavaTimeModule())
+        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+    }
 
 fun main() {
     val environment = System.getenv()
@@ -33,27 +34,36 @@ fun main() {
 
     val azureClient = createAzureTokenClientFromEnvironment()
 
-    val nomClient = NavOrganisasjonsmasterClient(
-        baseUrl = environment.getValue("NOM_API_BASE_URL"),
-        scope = environment.getValue("NOM_API_OAUTH_SCOPE"),
-        azureClient = azureClient
-    )
+    val nomClient =
+        NavOrganisasjonsmasterClient(
+            baseUrl = environment.getValue("NOM_API_BASE_URL"),
+            scope = environment.getValue("NOM_API_OAUTH_SCOPE"),
+            azureClient = azureClient,
+        )
 
-    val speedClient = SpeedClient(
-        httpClient = HttpClient.newHttpClient(),
-        objectMapper = objectMapper,
-        tokenProvider = azureClient
-    )
+    val speedClient =
+        SpeedClient(
+            httpClient = HttpClient.newHttpClient(),
+            objectMapper = objectMapper,
+            tokenProvider = azureClient,
+        )
     val rapidsConnection = launchApplication(dataSource, environment, nomClient, speedClient)
-    rapidsConnection.register(object: RapidsConnection.StatusListener {
-        override fun onStartup(rapidsConnection: RapidsConnection) {
-            dataSourceBuilder.migrate()
-        }
-    })
+    rapidsConnection.register(
+        object : RapidsConnection.StatusListener {
+            override fun onStartup(rapidsConnection: RapidsConnection) {
+                dataSourceBuilder.migrate()
+            }
+        },
+    )
     rapidsConnection.start()
 }
 
-internal fun launchApplication(dataSource: HikariDataSource, environment: Map<String, String>, nom: NavOrganisasjonsmasterClient, speedClient: SpeedClient): RapidsConnection {
+internal fun launchApplication(
+    dataSource: HikariDataSource,
+    environment: Map<String, String>,
+    nom: NavOrganisasjonsmasterClient,
+    speedClient: SpeedClient,
+): RapidsConnection {
     val hendelseDao = PostgresHendelseDao(dataSource)
     val behandlingshendelseDao = PostgresBehandlingshendelseDao(dataSource)
 

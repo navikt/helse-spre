@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 internal class UventedeHendelserTest : AbstractTeamSakTest() {
-
     @Test
     fun `ignorerer hendelse vi har håndtert tidligere`() {
         val behandlingId = BehandlingId(UUID.randomUUID())

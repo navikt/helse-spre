@@ -33,11 +33,12 @@ data class VedtakPdfPayload(
     val vedtakFattetTidspunkt: LocalDateTime,
 ) {
     data class Oppdrag(
-        val fagsystemId: String
+        val fagsystemId: String,
     )
 
     enum class MottakerType {
-        Arbeidsgiver, Person
+        Arbeidsgiver,
+        Person,
     }
 
     data class Linje(
@@ -48,13 +49,13 @@ data class VedtakPdfPayload(
         val mottaker: String,
         val mottakerType: MottakerType = MottakerType.Arbeidsgiver,
         val totalbeløp: Int,
-        val erOpphørt: Boolean
+        val erOpphørt: Boolean,
     )
 
     data class IkkeUtbetalteDager(
         val fom: LocalDate,
         val tom: LocalDate,
-        val begrunnelser: List<String>
+        val begrunnelser: List<String>,
     ) {
         init {
             check(begrunnelser.isNotEmpty()) {

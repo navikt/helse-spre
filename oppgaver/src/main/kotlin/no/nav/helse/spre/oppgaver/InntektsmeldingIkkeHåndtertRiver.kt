@@ -15,21 +15,30 @@ class InntektsmeldingIkkeHåndtertRiver(
     private val oppgaveDAO: OppgaveDAO,
     private val publisist: Publisist,
 ) : River.PacketListener {
-
     init {
-        River(rapidsConnection).apply {
-            precondition { it.requireValue("@event_name", "inntektsmelding_ikke_håndtert") }
-            validate {
-                it.requireKey("inntektsmeldingId", "speilrelatert")
-            }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                precondition { it.requireValue("@event_name", "inntektsmelding_ikke_håndtert") }
+                validate {
+                    it.requireKey("inntektsmeldingId", "speilrelatert")
+                }
+            }.register(this)
     }
 
-    override fun onError(problems: MessageProblems, context: MessageContext, metadata: MessageMetadata) {
+    override fun onError(
+        problems: MessageProblems,
+        context: MessageContext,
+        metadata: MessageMetadata,
+    ) {
         loggUkjentMelding("inntektsmelding_ikke_håndtert", problems)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext, metadata: MessageMetadata, meterRegistry: MeterRegistry) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
         val observer = OppgaveObserver(oppgaveDAO, publisist, context)
         val inntektsmeldingId = packet["inntektsmeldingId"].asText().let { UUID.fromString(it) }
         val speilrelatert = packet["speilrelatert"].asBoolean()
@@ -42,6 +51,4 @@ class InntektsmeldingIkkeHåndtertRiver(
     }
 
     private fun Boolean.utfall() = if (this) "JA" else "NEI"
-
 }
-

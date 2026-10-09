@@ -7,30 +7,32 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.*
 
-internal class V30KorrigererBehandlingsresultatVedVedtaksperiodeAvvistTest: BehandlingshendelseJsonMigreringTest(
-    migrering = V30__korrigerer_behandlingsresultat_ved_vedtaksperiode_avvist()
-) {
-
+internal class V30KorrigererBehandlingsresultatVedVedtaksperiodeAvvistTest :
+    BehandlingshendelseJsonMigreringTest(
+        migrering = V30__korrigerer_behandlingsresultat_ved_vedtaksperiode_avvist(),
+    ) {
     @Test
     fun `endrer behandlingsresultat til AVBRUTT for hendelser som feilaktig har behandlingsresultat VEDTATT`() {
         val behandlingId1 = UUID.randomUUID()
         val behandlingId2 = UUID.randomUUID()
         val vedtaksperiodeAvvist = Hendelsefabrikk().vedtaksperiodeAvvist()
 
-        val rad1behandling1 = leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = true, versjon = Versjon.Companion.of("1.2.3"), hendelse = vedtaksperiodeAvvist) {
-            it.put("behandlingsresultat", "VEDTATT")
-            it.put("uendretFelt", true)
-        }
+        val rad1behandling1 =
+            leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = true, versjon = Versjon.Companion.of("1.2.3"), hendelse = vedtaksperiodeAvvist) {
+                it.put("behandlingsresultat", "VEDTATT")
+                it.put("uendretFelt", true)
+            }
 
         // Skal ikke migreres siden erKorrigert = true
         leggTilBehandlingshendelse(behandlingId = behandlingId2, siste = false, erKorrigert = true, versjon = Versjon.Companion.of("9.2.3"), hendelse = vedtaksperiodeAvvist) {
             it.put("behandlingsresultat", "VEDTATT")
             it.put("uendretFelt2", true)
         }
-        val rad2behandling2 = leggTilBehandlingshendelse(behandlingId = behandlingId2, siste = false, versjon = Versjon.Companion.of("9.2.3"), hendelse = vedtaksperiodeAvvist) {
-            it.put("behandlingsresultat", "VEDTATT")
-            it.put("uendretFelt2", true)
-        }
+        val rad2behandling2 =
+            leggTilBehandlingshendelse(behandlingId = behandlingId2, siste = false, versjon = Versjon.Companion.of("9.2.3"), hendelse = vedtaksperiodeAvvist) {
+                it.put("behandlingsresultat", "VEDTATT")
+                it.put("uendretFelt2", true)
+            }
 
         // Skal ikke migreres siden den ei peker på vedtaksperiode_avvist-hendelse
         leggTilBehandlingshendelse(behandlingId = behandlingId1, siste = true, versjon = Versjon.Companion.of("1.2.3")) {

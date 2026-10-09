@@ -8,7 +8,7 @@ data class FeriepengerPdfPayload(
     val oppdrag: List<OppdragPdfPayload>,
     val utbetalt: LocalDateTime,
     val orgnummer: String,
-    val fødselsnummer: String
+    val fødselsnummer: String,
 )
 
 data class OppdragPdfPayload(
@@ -17,10 +17,10 @@ data class OppdragPdfPayload(
     val tom: LocalDate,
     val mottaker: String,
     val totalbeløp: Int,
-    val fagsystemId: String
+    val fagsystemId: String,
 )
 
 enum class OppdragType {
     ARBEIDSGIVER,
-    PERSON
+    PERSON,
 }

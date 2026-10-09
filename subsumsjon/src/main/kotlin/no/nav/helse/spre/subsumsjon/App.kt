@@ -33,25 +33,28 @@ fun main() {
         }
     }
 
-    rapid.apply {
-        SubsumsjonV1_0_0River(this) { key, value -> publisher(key, value) }
-        SubsumsjonV1_1_0River(this) { key, value -> publisher(key, value) }
-        SubsumsjonUkjentVersjonRiver(this)
-        VedtakFattetRiver(this) { key, value -> publisher(key, value) }
-        VedtakForkastetRiver(this) { key, value -> publisher(key, value) }
-    }.start()
+    rapid
+        .apply {
+            SubsumsjonV1_0_0River(this) { key, value -> publisher(key, value) }
+            SubsumsjonV1_1_0River(this) { key, value -> publisher(key, value) }
+            SubsumsjonUkjentVersjonRiver(this)
+            VedtakFattetRiver(this) { key, value -> publisher(key, value) }
+            VedtakForkastetRiver(this) { key, value -> publisher(key, value) }
+        }.start()
 }
 
-private fun isFatalError(err: Exception) = when (err) {
-    is InvalidTopicException,
-    is RecordBatchTooLargeException,
-    is RecordTooLargeException,
-    is UnknownServerException,
-    is AuthorizationException -> true
-    else -> false
-}
+private fun isFatalError(err: Exception) =
+    when (err) {
+        is InvalidTopicException,
+        is RecordBatchTooLargeException,
+        is RecordTooLargeException,
+        is UnknownServerException,
+        is AuthorizationException,
+        -> true
+        else -> false
+    }
 
-internal val objectMapper: ObjectMapper = jacksonObjectMapper()
-    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    .registerModule(JavaTimeModule())
-
+internal val objectMapper: ObjectMapper =
+    jacksonObjectMapper()
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .registerModule(JavaTimeModule())

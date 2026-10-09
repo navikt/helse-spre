@@ -9,33 +9,57 @@ data class OppgaveDTO(
     val dokumentType: DokumentTypeDTO,
     val oppdateringstype: OppdateringstypeDTO,
     val dokumentId: UUID,
-    val timeout: LocalDateTime? = null
+    val timeout: LocalDateTime? = null,
 ) {
     internal companion object {
         fun nySøknadoppgave(dokumentId: UUID) = nyOppgave(dokumentId, Søknad)
-        fun nySøknadoppgaveSpeil(dokumentId: UUID) = nyOppgave(dokumentId, Søknad, OpprettSpeilRelatert)
-        fun nyInntektsmeldingoppgave(dokumentId: UUID) = nyOppgave(dokumentId, Inntektsmelding)
-        fun nyInntektsmeldingoppgaveSpeil(dokumentId: UUID) = nyOppgave(dokumentId, Inntektsmelding, OpprettSpeilRelatert)
-        fun ferdigbehandletSøknad(dokumentId: UUID) = ferdigbehandlet(dokumentId, Søknad)
-        fun ferdigbehandletInntektsmelding(dokumentId: UUID) = ferdigbehandlet(dokumentId, Inntektsmelding)
-        fun utsettSøknad(dokumentId: UUID, timeout: LocalDateTime) = utsett(dokumentId, Søknad, timeout)
-        fun utsettInntektsmelding(dokumentId: UUID, timeout: LocalDateTime) = utsett(dokumentId, Inntektsmelding, timeout)
 
-        private fun utsett(dokumentId: UUID, dokumentType: DokumentTypeDTO, timeout: LocalDateTime) = OppgaveDTO(
+        fun nySøknadoppgaveSpeil(dokumentId: UUID) = nyOppgave(dokumentId, Søknad, OpprettSpeilRelatert)
+
+        fun nyInntektsmeldingoppgave(dokumentId: UUID) = nyOppgave(dokumentId, Inntektsmelding)
+
+        fun nyInntektsmeldingoppgaveSpeil(dokumentId: UUID) = nyOppgave(dokumentId, Inntektsmelding, OpprettSpeilRelatert)
+
+        fun ferdigbehandletSøknad(dokumentId: UUID) = ferdigbehandlet(dokumentId, Søknad)
+
+        fun ferdigbehandletInntektsmelding(dokumentId: UUID) = ferdigbehandlet(dokumentId, Inntektsmelding)
+
+        fun utsettSøknad(
+            dokumentId: UUID,
+            timeout: LocalDateTime,
+        ) = utsett(dokumentId, Søknad, timeout)
+
+        fun utsettInntektsmelding(
+            dokumentId: UUID,
+            timeout: LocalDateTime,
+        ) = utsett(dokumentId, Inntektsmelding, timeout)
+
+        private fun utsett(
+            dokumentId: UUID,
+            dokumentType: DokumentTypeDTO,
+            timeout: LocalDateTime,
+        ) = OppgaveDTO(
             dokumentType = dokumentType,
             dokumentId = dokumentId,
             oppdateringstype = Utsett,
-            timeout = timeout
+            timeout = timeout,
         )
 
-        private fun ferdigbehandlet(dokumentId: UUID, dokumentType: DokumentTypeDTO) = OppgaveDTO(
+        private fun ferdigbehandlet(
+            dokumentId: UUID,
+            dokumentType: DokumentTypeDTO,
+        ) = OppgaveDTO(
             dokumentType = dokumentType,
             dokumentId = dokumentId,
             oppdateringstype = Ferdigbehandlet,
-            timeout = null
+            timeout = null,
         )
 
-        private fun nyOppgave(dokumentId: UUID, dokumentType: DokumentTypeDTO, oppdateringstype: OppdateringstypeDTO = Opprett) = OppgaveDTO(
+        private fun nyOppgave(
+            dokumentId: UUID,
+            dokumentType: DokumentTypeDTO,
+            oppdateringstype: OppdateringstypeDTO = Opprett,
+        ) = OppgaveDTO(
             dokumentType = dokumentType,
             dokumentId = dokumentId,
             oppdateringstype = oppdateringstype,
@@ -45,9 +69,13 @@ data class OppgaveDTO(
 }
 
 enum class OppdateringstypeDTO {
-    Utsett, Opprett, OpprettSpeilRelatert, Ferdigbehandlet
+    Utsett,
+    Opprett,
+    OpprettSpeilRelatert,
+    Ferdigbehandlet,
 }
 
 enum class DokumentTypeDTO {
-    Inntektsmelding, Søknad
+    Inntektsmelding,
+    Søknad,
 }

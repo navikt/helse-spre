@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 internal class VersjonTest {
-
     @Test
     fun `kan ikke lag ugyldige versjoner`() {
         assertEquals("Ugyldig versjon tull", assertThrows<IllegalStateException> { Versjon.of("tull") }.message)
@@ -25,13 +24,14 @@ internal class VersjonTest {
 
     @Test
     fun `sammenligne versjoner`() {
-        val versjoner = listOf(
-            Versjon.of("0.0.1"),
-            Versjon.of("0.1.0"),
-            Versjon.of("1.0.0"),
-            Versjon.of("2.0.0"),
-            Versjon.of("1.0.10")
-        )
+        val versjoner =
+            listOf(
+                Versjon.of("0.0.1"),
+                Versjon.of("0.1.0"),
+                Versjon.of("1.0.0"),
+                Versjon.of("2.0.0"),
+                Versjon.of("1.0.10"),
+            )
         assertEquals(Versjon.of("2.0.0"), versjoner.max())
         assertEquals(Versjon.of("0.0.1"), versjoner.min())
     }
@@ -54,7 +54,6 @@ internal class VersjonTest {
     }
 
     private val initielleFelter = setOf("aktørId", "mottattTid", "registrertTid", "behandlingstatus", "behandlingtype", "behandlingskilde", "behandlingsmetode", "relatertBehandlingId", "behandlingsresultat")
-
 
     @Test
     fun `Utviklingen av versjonering med og uten endringer i felter`() {
@@ -85,6 +84,5 @@ internal class VersjonTest {
         assertEquals(Versjon.of("3.0.0"), versjoner.of("a"))
     }
 
-    private fun List<Versjonsutleder>.of(vararg felter: String) =
-        genererVersjoner[felter.toSet()] ?: throw IllegalStateException("Fant ikke versjon for feltene $felter")
+    private fun List<Versjonsutleder>.of(vararg felter: String) = genererVersjoner[felter.toSet()] ?: throw IllegalStateException("Fant ikke versjon for feltene $felter")
 }

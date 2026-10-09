@@ -3,12 +3,12 @@ package no.nav.helse.spre.oppgaver
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import com.github.navikt.tbd_libs.test_support.TestDataSource
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import java.util.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.util.*
 
 class InntektsmeldingRiverTest {
     private lateinit var dataSource: TestDataSource
@@ -50,7 +50,7 @@ fun inntektsmelding(
     inntekt: Double = 30000.00,
     refusjon: Double? = inntekt,
     fødselsnummer: String = "12345678910",
-    organisasjonsnummer: String = "ORGNUMMER"
+    organisasjonsnummer: String = "ORGNUMMER",
 ) = """{
             "@event_name": "$eventName",
             "@id": "$hendelseId",
@@ -58,9 +58,12 @@ fun inntektsmelding(
             "arbeidstakerFnr": "$fødselsnummer",
             "virksomhetsnummer": "$organisasjonsnummer",
             "beregnetInntekt": "$inntekt"
-            ${if (refusjon != null) """,
+            ${if (refusjon != null) {
+    """,
             "refusjon": {
                 "beloepPrMnd": "$refusjon"
-            }""" else ""}
+            }"""
+} else {
+    ""
+}}
         }"""
-

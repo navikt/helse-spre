@@ -1,15 +1,14 @@
 package no.nav.helse.spre.gosys.vedtakFattet
 
-import java.util.*
 import no.nav.helse.spre.gosys.e2e.AbstractE2ETest
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.util.*
 
 internal class VedtakFattetRiverTest : AbstractE2ETest() {
-
     @Test
     fun `Lagrer vedtak fattet`() {
         val utbetalingId = UUID.randomUUID()
@@ -48,7 +47,8 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
     }
 
     @Language("json")
-    private fun vedtakFattetForAvsluttetUtenUtbetaling(hendelseId: UUID) = """
+    private fun vedtakFattetForAvsluttetUtenUtbetaling(hendelseId: UUID) =
+        """
         {
             "@event_name": "vedtak_fattet",
             "fødselsnummer": "12345678910",
@@ -86,6 +86,5 @@ internal class VedtakFattetRiverTest : AbstractE2ETest() {
                 "event_name": "avsluttet_uten_vedtak"
             }
         }
-    """.trimIndent()
-
+        """.trimIndent()
 }

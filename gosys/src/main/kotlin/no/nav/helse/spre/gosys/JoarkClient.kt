@@ -7,34 +7,39 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import java.util.*
-import javax.net.ssl.SSLHandshakeException
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import net.logstash.logback.argument.StructuredArguments.keyValue
+import java.util.*
+import javax.net.ssl.SSLHandshakeException
 
 class JoarkClient(
     private val baseUrl: String,
     private val azureClient: AzureTokenProvider,
     private val joarkScope: String,
-    private val httpClient: HttpClient
+    private val httpClient: HttpClient,
 ) {
-    suspend fun opprettJournalpost(hendelseId: UUID, journalpostPayload: JournalpostPayload): Boolean {
-        return httpClient.preparePost("$baseUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
-            System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
-            header("Nav-Consumer-Token", hendelseId.toString())
-            bearerAuth(azureClient.bearerToken(joarkScope).getOrThrow().token)
-            contentType(ContentType.Application.Json)
-            setBody(journalpostPayload)
-        }
-            .executeRetry(avbryt = { it::class !in forsøkPåNy }) {
+    suspend fun opprettJournalpost(
+        hendelseId: UUID,
+        journalpostPayload: JournalpostPayload,
+    ): Boolean =
+        httpClient
+            .preparePost("$baseUrl/rest/journalpostapi/v1/journalpost?forsoekFerdigstill=true") {
+                System.getenv("NAIS_APP_NAME")?.also { header("Nav-Consumer-Id", it) }
+                header("Nav-Consumer-Token", hendelseId.toString())
+                bearerAuth(azureClient.bearerToken(joarkScope).getOrThrow().token)
+                contentType(ContentType.Application.Json)
+                setBody(journalpostPayload)
+            }.executeRetry(avbryt = { it::class !in forsøkPåNy }) {
                 when (it.status.value) {
-                    in (200 until 300) -> true
+                    in (200 until 300) -> {
+                        true
+                    }
 
                     409 -> {
                         logg.warn(
                             "Fikk HTTP 409 (Conflict) fra Joark ved journalføring," +
                                 " går videre ettersom dette skal bety at noe allerede er journalført knyttet til denne utbetalingen" +
-                                " (eksternReferanseId ${journalpostPayload.eksternReferanseId})"
+                                " (eksternReferanseId ${journalpostPayload.eksternReferanseId})",
                         )
                         true
                     }
@@ -45,16 +50,17 @@ class JoarkClient(
                         sikkerLogg.error(
                             "Feil fra Joark: {}, {}",
                             keyValue(journalpostPayload.bruker.idType, journalpostPayload.bruker.id),
-                            keyValue("response", error)
+                            keyValue("response", error),
                         )
                         throw JoarkClientException("Feil fra Joark: $error")
                     }
                 }
             }
-    }
 
     internal companion object {
-        internal class JoarkClientException(feil: String) : RuntimeException(feil)
+        internal class JoarkClientException(
+            feil: String,
+        ) : RuntimeException(feil)
 
         private val forsøkPåNy = setOf(ClosedReceiveChannelException::class, SSLHandshakeException::class, HttpRequestTimeoutException::class, JoarkClientException::class)
     }
@@ -73,22 +79,21 @@ data class JournalpostPayload(
 ) {
     data class Bruker(
         val id: String,
-        val idType: String = "FNR"
+        val idType: String = "FNR",
     )
 
     data class Sak(
-        val sakstype: String = "GENERELL_SAK"
+        val sakstype: String = "GENERELL_SAK",
     )
 
     data class Dokument(
         val tittel: String,
-        val dokumentvarianter: List<DokumentVariant>
-
+        val dokumentvarianter: List<DokumentVariant>,
     ) {
         data class DokumentVariant(
             val filtype: String = "PDFA",
             val fysiskDokument: String,
-            val variantformat: String = "ARKIV"
+            val variantformat: String = "ARKIV",
         )
     }
 }
