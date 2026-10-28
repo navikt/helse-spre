@@ -1,7 +1,7 @@
 package db.migration
 
-import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
+import tools.jackson.databind.node.ObjectNode
 
 internal class V41__behandlingsmetode_required : BehandlingshendelseJsonMigrering() {
     override fun query() = "select sekvensnummer, data, er_korrigert from behandlingshendelse where er_korrigert=false and siste=true and data ->> 'behandlingsmetode' is null"

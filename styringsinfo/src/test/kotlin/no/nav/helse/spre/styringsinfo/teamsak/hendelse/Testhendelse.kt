@@ -1,8 +1,8 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingshendelseDao
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.*
 import java.util.*
 

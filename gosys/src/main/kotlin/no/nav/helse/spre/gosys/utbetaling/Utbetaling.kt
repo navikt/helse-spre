@@ -1,11 +1,11 @@
 package no.nav.helse.spre.gosys.utbetaling
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDateTime
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import no.nav.helse.spre.gosys.objectMapper
+import tools.jackson.databind.JsonNode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -76,7 +76,7 @@ data class Utbetaling(
                 fagsystemId = this["fagsystemId"].asText(),
                 nettoBeløp = this["nettoBeløp"].asInt(),
                 utbetalingslinjer =
-                    this["linjer"].map { linje ->
+                    this["linjer"].values().map { linje ->
                         OppdragDto.UtbetalingslinjeDto(
                             fom = linje["fom"].asLocalDate(),
                             tom = linje["tom"].asLocalDate(),
@@ -90,7 +90,7 @@ data class Utbetaling(
             )
 
         private val JsonNode.utbetalingsdager get() =
-            path("utbetalingsdager").map { dag ->
+            path("utbetalingsdager").values().map { dag ->
                 UtbetalingdagDto(
                     dato = dag["dato"].asLocalDate(),
                     type = dag["type"].asText(),
@@ -98,7 +98,7 @@ data class Utbetaling(
                         dag
                             .path("begrunnelser")
                             .takeUnless(JsonNode::isMissingOrNull)
-                            ?.let { it.map { begrunnelse -> begrunnelse.asText() } } ?: emptyList(),
+                            ?.let { it.values().map { begrunnelse -> begrunnelse.asText() } } ?: emptyList(),
                 )
             }
     }

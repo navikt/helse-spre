@@ -1,6 +1,5 @@
 package no.nav.helse.spre.gosys.feriepenger
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
@@ -14,6 +13,7 @@ import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.spre.gosys.DuplikatsjekkDao
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.sikkerLogg
+import tools.jackson.databind.JsonNode
 import java.util.*
 
 class FeriepengerRiver(

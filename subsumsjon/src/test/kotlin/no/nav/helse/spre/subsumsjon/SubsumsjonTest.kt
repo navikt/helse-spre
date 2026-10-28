@@ -1,10 +1,10 @@
 package no.nav.helse.spre.subsumsjon
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
-import com.networknt.schema.JsonSchemaFactory
-import com.networknt.schema.SpecVersion
-import com.networknt.schema.ValidationMessage
+import com.networknt.schema.Error
+import com.networknt.schema.SchemaLocation
+import com.networknt.schema.SchemaRegistry
+import com.networknt.schema.SpecificationVersion
 import io.kotest.matchers.collections.shouldBeIn
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.slf4j.LoggerFactory
-import java.net.URI
+import tools.jackson.databind.JsonNode
 import java.util.*
 
 internal class SubsumsjonTest {
@@ -39,7 +39,7 @@ internal class SubsumsjonTest {
         assertEquals("02126721911", resultater.last().first)
         val subsumsjonMelding = resultater.last().second
         vedtaksperiodeId shouldBeIn subsumsjonMelding.node("sporing.vedtaksperiode").toUUIDs()
-        "947064649" shouldBeIn subsumsjonMelding.node("sporing.organisasjonsnummer").map { it.asText() }
+        "947064649" shouldBeIn subsumsjonMelding.node("sporing.organisasjonsnummer").values().map { it.asText() }
         assertEquals(vedtaksperiodeId, subsumsjonMelding.node("vedtaksperiodeId").toUUID())
         assertEquals(behandlingId, subsumsjonMelding.node("behandlingId").toUUID())
     }
@@ -208,14 +208,14 @@ internal class SubsumsjonTest {
         """.trimIndent()
 
     private val schema by lazy {
-        JsonSchemaFactory
-            .getInstance(SpecVersion.VersionFlag.V7)
-            .getSchema(URI("https://raw.githubusercontent.com/navikt/helse/c53bc453251b7878135f31d5d1070e5406ae4af1/subsumsjon/json-schema-1.0.0.json"))
+        SchemaRegistry
+            .withDefaultDialect(SpecificationVersion.DRAFT_7)
+            .getSchema(SchemaLocation.of("https://raw.githubusercontent.com/navikt/helse/c53bc453251b7878135f31d5d1070e5406ae4af1/subsumsjon/json-schema-1.0.0.json"))
     }
 
     private fun assertSubsumsjonsmelding(melding: JsonNode) {
         try {
-            assertEquals(emptySet<ValidationMessage>(), schema.validate(melding))
+            assertEquals(emptyList<Error>(), schema.validate(melding))
         } catch (_: Exception) {
             LoggerFactory
                 .getLogger(SubsumsjonTest::class.java)

@@ -1,11 +1,11 @@
 package no.nav.helse.spre.styringsinfo.teamsak.behandling
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotliquery.*
 import org.intellij.lang.annotations.Language
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatterBuilder
 import java.util.*
@@ -197,7 +197,7 @@ internal class PostgresBehandlingshendelseDao(
             }
         }
 
-        private val ObjectNode.felter get() = fieldNames().asSequence().toSet()
+        private val ObjectNode.felter get() = propertyNames().toSet()
 
         private val formatter = DateTimeFormatterBuilder().appendPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS").appendOffsetId().toFormatter() // timestamps lagres med 6 desimaler + offset i db
 

@@ -1,6 +1,5 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Metode.AUTOMATISK
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.BehandlingId
@@ -8,6 +7,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.behandling.SakId
 import no.nav.helse.spre.styringsinfo.teamsak.enhet.AutomatiskTilknytning
 import no.nav.helse.spre.styringsinfo.teamsak.enhet.FunnetTilknytning
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.*
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.OffsetDateTime
 import java.util.UUID
 

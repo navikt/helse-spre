@@ -15,9 +15,8 @@ dependencies {
     implementation(libs.tbd.libs.retry)
     implementation(libs.tbd.libs.speed.client)
     implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.jackson)
     implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.jackson)
+    implementation(libs.ktor.serialization.jackson3)
     implementation(libs.ktor.server.auth.jwt) {
         exclude(group = "junit")
     }

@@ -1,8 +1,8 @@
 package db.migration
 
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
+import tools.jackson.databind.node.ObjectNode
 
 internal class V29__uppercase_enum_verdier : BehandlingshendelseJsonMigrering() {
     override fun query() = "select * from behandlingshendelse where versjon='0.0.1' and er_korrigert=false;"

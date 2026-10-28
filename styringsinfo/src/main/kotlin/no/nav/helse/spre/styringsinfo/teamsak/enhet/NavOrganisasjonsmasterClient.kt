@@ -1,7 +1,5 @@
 package no.nav.helse.spre.styringsinfo.teamsak.enhet
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ArrayNode
 import com.github.navikt.tbd_libs.azure.AzureTokenProvider
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
 import com.github.navikt.tbd_libs.rapids_and_rivers.asOptionalLocalDate
@@ -10,6 +8,8 @@ import com.github.navikt.tbd_libs.retry.PredefinerteUtsettelser
 import com.github.navikt.tbd_libs.retry.retryBlocking
 import no.nav.helse.spre.styringsinfo.objectMapper
 import no.nav.helse.spre.styringsinfo.sikkerLogg
+import tools.jackson.databind.JsonNode
+import tools.jackson.databind.node.ArrayNode
 import java.lang.Exception
 import java.net.URI
 import java.net.http.HttpClient
@@ -36,7 +36,7 @@ internal class NavOrganisasjonsmasterClient(
 
         private fun JsonNode.orgTilknytning(gyldigPåDato: LocalDate): OrgTilknytning? {
             val tilknytninger =
-                this["data"]["ressurs"]["orgTilknytning"].map {
+                this["data"]["ressurs"]["orgTilknytning"].values().map {
                     OrgTilknytning(
                         gyldigFom = it["gyldigFom"].asLocalDate(),
                         gyldigTom = it["gyldigTom"].asOptionalLocalDate(),

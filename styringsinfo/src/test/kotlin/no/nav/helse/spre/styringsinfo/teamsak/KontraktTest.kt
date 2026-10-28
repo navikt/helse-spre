@@ -1,7 +1,5 @@
 package no.nav.helse.spre.styringsinfo.teamsak
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver
@@ -10,6 +8,8 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.VedtaksperioderVenterIndi
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.UUID
 
 internal class KontraktTest {

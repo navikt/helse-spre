@@ -1,8 +1,8 @@
 package db.migration
 
-import com.fasterxml.jackson.databind.node.ObjectNode
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Versjon
 import org.intellij.lang.annotations.Language
+import tools.jackson.databind.node.ObjectNode
 
 /**
 Ukjent mottaker skal bare være null

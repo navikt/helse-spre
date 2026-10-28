@@ -1,9 +1,9 @@
 package no.nav.helse.spre.gosys.utbetaling
 
-import com.fasterxml.jackson.databind.JsonNode
 import kotliquery.TransactionalSession
 import kotliquery.queryOf
 import no.nav.helse.spre.gosys.objectMapper
+import tools.jackson.databind.JsonNode
 import java.util.*
 
 class UtbetalingDao {

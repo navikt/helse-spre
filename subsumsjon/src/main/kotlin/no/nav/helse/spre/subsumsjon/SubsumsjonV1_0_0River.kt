@@ -1,6 +1,5 @@
 package no.nav.helse.spre.subsumsjon
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
@@ -9,6 +8,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageProblems
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
+import tools.jackson.databind.JsonNode
 import java.util.UUID
 
 internal class SubsumsjonV1_0_0River(
@@ -98,4 +98,4 @@ internal class SubsumsjonV1_0_0River(
 
 internal fun JsonNode.toUUID() = UUID.fromString(this.asText())
 
-internal fun JsonNode.toUUIDs() = this.map { it.toUUID() }
+internal fun JsonNode.toUUIDs() = values().map { it.toUUID() }

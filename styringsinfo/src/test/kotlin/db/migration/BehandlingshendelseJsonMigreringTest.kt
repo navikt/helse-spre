@@ -1,7 +1,5 @@
 package db.migration
 
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.test_support.TestDataSource
 import kotliquery.Row
 import kotliquery.queryOf
@@ -16,6 +14,8 @@ import org.flywaydb.core.api.MigrationVersion
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.UUID

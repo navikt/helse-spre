@@ -1,6 +1,5 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.AVVENTER_GODKJENNING
@@ -12,6 +11,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.b
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.hendelseId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
+import tools.jackson.databind.JsonNode
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -63,7 +63,7 @@ internal class UtkastTilVedtak(
             },
         )
 
-        private val JsonMessage.tags get() = this["tags"].map { it.asText() }
+        private val JsonMessage.tags get() = this["tags"].values().map { it.asText() }
 
         private fun JsonMessage.requireTags() = requireKey("tags")
     }

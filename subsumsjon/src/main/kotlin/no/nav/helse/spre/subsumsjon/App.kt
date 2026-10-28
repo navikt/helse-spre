@@ -1,12 +1,9 @@
 package no.nav.helse.spre.subsumsjon
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.kafka.AivenConfig
 import com.github.navikt.tbd_libs.kafka.ConsumerProducerFactory
 import no.nav.helse.rapids_rivers.RapidApplication
+import no.nav.helse.spre.felles.spreJacksonMapperBuilder
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.errors.AuthorizationException
 import org.apache.kafka.common.errors.InvalidTopicException
@@ -15,6 +12,8 @@ import org.apache.kafka.common.errors.RecordTooLargeException
 import org.apache.kafka.common.errors.UnknownServerException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.cfg.DateTimeFeature
 
 internal val log = LoggerFactory.getLogger("spre-subsumsjoner")
 internal val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
@@ -55,6 +54,6 @@ private fun isFatalError(err: Exception) =
     }
 
 internal val objectMapper: ObjectMapper =
-    jacksonObjectMapper()
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .registerModule(JavaTimeModule())
+    spreJacksonMapperBuilder()
+        .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .build()

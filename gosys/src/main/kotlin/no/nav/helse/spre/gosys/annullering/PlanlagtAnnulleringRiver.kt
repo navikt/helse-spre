@@ -1,6 +1,5 @@
 package no.nav.helse.spre.gosys.annullering
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers.asLocalDate
@@ -14,6 +13,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.helse.spre.gosys.logg
 import no.nav.helse.spre.gosys.sikkerLogg
+import tools.jackson.databind.JsonNode
 import java.util.*
 
 internal class PlanlagtAnnulleringRiver(
@@ -86,9 +86,9 @@ internal class PlanlagtAnnulleringRiver(
                 fom = packet["fom"].asLocalDate(),
                 tom = packet["tom"].asLocalDate(),
                 saksbehandlerIdent = packet["ident"].asText(),
-                årsaker = packet["årsaker"].map { it.asText() },
+                årsaker = packet["årsaker"].values().map { it.asText() },
                 begrunnelse = packet["begrunnelse"].asText(),
-                vedtaksperioder = packet["vedtaksperioder"].map { UUID.fromString(it.asText()) },
+                vedtaksperioder = packet["vedtaksperioder"].values().map { UUID.fromString(it.asText()) },
                 opprettet = packet["@opprettet"].asLocalDateTime(),
                 organisasjonsnummer = packet["organisasjonsnummer"].takeUnless(JsonNode::isMissingOrNull)?.asText(),
             )

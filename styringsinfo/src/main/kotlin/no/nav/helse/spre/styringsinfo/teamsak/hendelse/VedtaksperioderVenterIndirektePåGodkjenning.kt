@@ -1,6 +1,5 @@
 package no.nav.helse.spre.styringsinfo.teamsak.hendelse
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.helse.spre.styringsinfo.teamsak.behandling.Behandling.Behandlingstatus.KOMPLETT_FAKTAGRUNNLAG
@@ -12,6 +11,7 @@ import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.h
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.opprettet
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireBehandlingId
 import no.nav.helse.spre.styringsinfo.teamsak.hendelse.HendelseRiver.Companion.requireVedtaksperiodeId
+import tools.jackson.databind.JsonNode
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -60,7 +60,7 @@ internal data class VedtaksperioderVenterIndirektePåGodkjenning(
                 data = packet.blob,
                 opprettet = packet.opprettet,
                 venter =
-                    packet["vedtaksperioder"].map { vedtaksperiodeVenter ->
+                    packet["vedtaksperioder"].values().map { vedtaksperiodeVenter ->
                         VedtaksperiodeVenter(
                             vedtaksperiodeId = UUID.fromString(vedtaksperiodeVenter.path("vedtaksperiodeId").asText()),
                             behandlingId = UUID.fromString(vedtaksperiodeVenter.path("behandlingId").asText()),
