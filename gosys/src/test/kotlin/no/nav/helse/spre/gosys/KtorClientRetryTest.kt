@@ -52,10 +52,11 @@ internal class KtorClientRetryTest {
             val client = client()
             val url = "http://localhost:${server.port()}"
 
-            val response = client.prepareGet(url) { expectSuccess = true }.executeRetry { it }
-            assertEquals(HttpStatusCode.OK, response.status)
+            val (status, body) =
+                client.prepareGet(url) { expectSuccess = true }.executeRetry { it.status to it.bodyAsText() }
+            assertEquals(HttpStatusCode.OK, status)
 
-            assertEquals(2, response.bodyAsText().toInt())
+            assertEquals(2, body.toInt())
 
             server.stop()
         }
