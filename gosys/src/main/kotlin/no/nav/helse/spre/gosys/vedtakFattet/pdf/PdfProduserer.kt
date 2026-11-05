@@ -260,7 +260,7 @@ class PdfProduserer(
             .filter { it.type in IkkeUtbetalingsdagtyper }
             .filter { dag ->
                 dag.dato >= skjæringstidspunkt ||
-                    dag.begrunnelser.any { it == "MeldingTilNavDagUtenforVentetid" || it == "AvslåttMeldingTilNavDag" }
+                    dag.begrunnelser.any { it in BegrunnelserSomVisesFørSkjæringstidspunktet }
             }.map { dag ->
                 AvvistPeriode(
                     fom = dag.dato,
@@ -369,9 +369,17 @@ class PdfProduserer(
                 "Melding til Nav dag avslått av saksbehandler"
             }
 
+            "Oppholdskrav" -> {
+                "Krav til opphold i Norge er ikke oppfylt"
+            }
+
             else -> {
                 logg.error("Ukjent begrunnelse $begrunnelse")
                 "Ukjent begrunnelse: \"${begrunnelse}\""
             }
         }
 }
+
+// Dager før skjæringstidspunktet kan høre til perioder som aldri får et eget vedtak, så disse avslagene tas med her
+private val BegrunnelserSomVisesFørSkjæringstidspunktet =
+    setOf("MeldingTilNavDagUtenforVentetid", "AvslåttMeldingTilNavDag", "Oppholdskrav")

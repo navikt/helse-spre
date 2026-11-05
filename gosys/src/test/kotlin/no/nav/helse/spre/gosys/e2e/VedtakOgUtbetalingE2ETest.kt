@@ -576,6 +576,89 @@ internal class VedtakOgUtbetalingE2ETest : AbstractE2ETest() {
     }
 
     @Test
+    fun `Oppholdskrav-dag etter skjæringstidspunkt vises som ikke utbetalt dag`() {
+        val utbetalingId = UUID.randomUUID()
+        val vedtaksperiodeId = UUID.randomUUID()
+        val sykdomstidslinje =
+            utbetalingsdager(1.januar, 16.januar) +
+                avvistDager(17.januar, begrunnelser = listOf("Oppholdskrav"))
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = sykdomstidslinje,
+            type = "REVURDERING",
+        )
+        sendVedtakFattet(
+            vedtaksperiodeId = vedtaksperiodeId,
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = sykdomstidslinje,
+        )
+
+        assertVedtakPdf(
+            expectedPdfPayload(
+                utbetalingstype = REVURDERING,
+                fom = 1.januar,
+                tom = 17.januar,
+                totaltTilUtbetaling = 17172,
+                arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
+                ikkeUtbetalteDager =
+                    listOf(
+                        VedtakPdfPayload.IkkeUtbetalteDager(
+                            fom = 17.januar,
+                            tom = 17.januar,
+                            begrunnelser = listOf("Krav til opphold i Norge er ikke oppfylt"),
+                        ),
+                    ),
+                linjer =
+                    listOf(
+                        VedtakPdfPayload.Linje(
+                            fom = 1.januar,
+                            tom = 16.januar,
+                            grad = 100,
+                            dagsats = 1431,
+                            mottaker = "Arbeidsgiver",
+                            mottakerType = VedtakPdfPayload.MottakerType.Arbeidsgiver,
+                            totalbeløp = 17172,
+                            erOpphørt = false,
+                        ),
+                    ),
+            ),
+        )
+    }
+
+    @Test
+    fun `Oppholdskrav-dager før skjæringstidspunkt inkluderes`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val utbetalingId = UUID.randomUUID()
+        val sykdomstidslinje = utbetalingsdager(3.januar, 31.januar)
+        sendUtbetaling(
+            utbetalingId = utbetalingId,
+            sykdomstidslinje = avvistDager(2.januar, begrunnelser = listOf("Oppholdskrav")) + sykdomstidslinje,
+        )
+        sendVedtakFattet(
+            utbetalingId = utbetalingId,
+            vedtaksperiodeId = vedtaksperiodeId,
+            sykdomstidslinje = sykdomstidslinje,
+        )
+
+        assertVedtakPdf(
+            expectedPdfPayload(
+                fom = 3.januar,
+                tom = 31.januar,
+                totaltTilUtbetaling = 30051, // 21 stønadsdager (ukedager) * 1431 kr
+                ikkeUtbetalteDager =
+                    listOf(
+                        VedtakPdfPayload.IkkeUtbetalteDager(
+                            fom = 2.januar,
+                            tom = 2.januar,
+                            begrunnelser = listOf("Krav til opphold i Norge er ikke oppfylt"),
+                        ),
+                    ),
+                arbeidsgiverOppdrag = VedtakPdfPayload.Oppdrag("fagsystemIdArbeidsgiver"),
+            ),
+        )
+    }
+
+    @Test
     fun `markerer linjer utbetaling_utbetalt som er opphørt`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val utbetalingId = UUID.randomUUID()
