@@ -26,7 +26,7 @@ jsonassert = "org.skyscreamer:jsonassert:1.5.3"
 kotest-assertions-core = "io.kotest:kotest-assertions-core:6.2.6"
 ktor-client-mock = { module = "io.ktor:ktor-client-mock-jvm", version.ref = "ktor" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
-mockk = "io.mockk:mockk:1.14.11"
+mockk = "io.mockk:mockk:1.14.12"
 tbd-libs-postgres-testdatabaser = { module = "com.github.navikt.tbd-libs:postgres-testdatabaser", version.ref = "tbd-libs" }
 tbd-libs-rapids-and-rivers-test = { module = "com.github.navikt.tbd-libs:rapids-and-rivers-test", version.ref = "tbd-libs" }
 wiremock = "org.wiremock:wiremock-jetty12:3.13.2"
