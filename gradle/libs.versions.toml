@@ -1,5 +1,5 @@
 [versions]
-flyway = "13.12.1"
+flyway = "13.12.2"
 ktor = "3.6.1"
 sykepengerGradlePlugins = "20261029.1945"
 tbd-libs = "20261029.1843"
@@ -23,7 +23,7 @@ tbd-libs-speed-client = { module = "com.github.navikt.tbd-libs:speed-client", ve
 
 json-schema-validator = "com.networknt:json-schema-validator:3.0.9"
 jsonassert = "org.skyscreamer:jsonassert:1.5.3"
-kotest-assertions-core = "io.kotest:kotest-assertions-core:6.2.6"
+kotest-assertions-core = "io.kotest:kotest-assertions-core:6.2.7"
 ktor-client-mock = { module = "io.ktor:ktor-client-mock-jvm", version.ref = "ktor" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 mockk = "io.mockk:mockk:1.14.12"
