@@ -8,7 +8,7 @@ on:
       - '.nais/topic-spre-oppgaver.yaml'
       - '.nais/topic-spre-oppgaver.*.yaml'
       - '.nais/topic-forelagte-opplysninger.yaml'
-      - '.nais/topic-forelagte-opplysninger.dev-gcp.yaml'
+      - '.nais/topic-forelagte-opplysninger.*.yaml'
       - '.github/workflows/aiven.yml'
   workflow_dispatch:
 
@@ -21,23 +21,21 @@ permissions:
   id-token: write # for nais login
 
 jobs:
-  deploy-dev:
-    name: Deploy til dev
+  deploy:
+    name: Deploy ${{ matrix.topic }} til ${{ matrix.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        topic:
+          - spre-oppgaver
+          - forelagte-opplysninger
+        environment:
+          - dev-gcp
+          - prod-gcp
     uses: navikt/sykepenger-github-workflows/.github/workflows/deploy-v2.yml@b34afa2e28c72e92d6c3ef2f9607f982b0a8283f # v1.0.14
     with:
-      manifest: .nais/topic-spre-oppgaver.yaml
-      environment: dev-gcp
-      extra_manifests: .nais/topic-forelagte-opplysninger.yaml
-    permissions:
-      contents: read
-      id-token: write # for nais login
-
-  deploy-prod:
-    name: Deploy til prod
-    uses: navikt/sykepenger-github-workflows/.github/workflows/deploy-v2.yml@b34afa2e28c72e92d6c3ef2f9607f982b0a8283f # v1.0.14
-    with:
-      manifest: .nais/topic-spre-oppgaver.yaml
-      environment: prod-gcp
+      manifest: .nais/topic-${{ matrix.topic }}.yaml
+      environment: ${{ matrix.environment }}
     permissions:
       contents: read
       id-token: write # for nais login
