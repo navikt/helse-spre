@@ -1,4 +1,3 @@
-# Deployes ikke av aiven.yml i prod i dag.
 spec:
   pool: nav-prod
   config:
